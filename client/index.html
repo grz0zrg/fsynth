@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html>
+    <head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, minimum-scale=1, maximum-scale=1" />
+
+        <meta name="Keywords" content="fragment, spectral synthesizer, computer graphics, rendering, realtime, shader, webgl, glsl, application, software, synthesizer, synthesis, additive, spectral, spectrum, sound, audio">
+        <meta name="Description" content="Web-based collaborative spectral musical instrument driven by real-time visuals from shared GLSL scripts.">
+        <meta name="Author" content="Julien Verneuil">
+        
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:site" content="@fsynth" />
+        <meta name="twitter:title" content="Fragment Synthesizer" />
+        <meta name="twitter:description" content="The Collaborative Spectral Synthesizer" />
+        <meta name="twitter:image" content="https://www.fsynth.com/data/logo.png"/>
+
+        <meta property="og:url" content="https://www.fsynth.com" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Fragment Synthesizer" />
+        <meta property="og:description" content="The Collaborative Spectral Synthesizer" />
+        <meta property="og:image" content="https://www.fsynth.com/data/logo.png" />
+
+        <link rel="manifest" href="manifest.json">
+        <link rel="shortcut icon" type="image/png" href="favicon.png" />
+
+        <title>Fragment - The Collaborative Spectral Synthesizer</title>
+
+        <link rel="stylesheet" type="text/css" href="dist/fs.min.css"/>
+
+        <script type="x-webgl/x-vertex-shader" id="vertex-shader">
+attribute vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
+        </script>
+
+        <script type="x-webgl/x-fragment-shader" id="fragment-shader">
+/*
+ Welcome to Fragment - The Collaborative Spectral Synthesizer
+
+ This sample program generate in real-time what you see and what you are going to hear.
+
+ Fragment interface is composed of four parts :
+   - info. panel/global settings at the top
+   - a graphical score
+   - a toolbar
+   - a GLSL code editor
+
+ Hover over an interface element for a short description of that element.
+
+ Now, if you want to hear what you see, you should try to right click on the graphical score,
+ a menu will be shown with one item, add a slice by clicking on the [+] icon.
+
+ You should hear something now, try to move the vertical slice by clicking on it, hold it then move the cursor around.
+
+ You can add as many slices as you want, you can also remove, mute or tweak slices by right-clicking on one.
+
+ You can experiment right away with the sound/visual by tweaking the values of this sample program, any modifications is updated in real-time as you type.
+
+ If you need some more help you can :
+   - Click on the ? icon
+   - Post on the Fragment message board at https://quiet.fsynth.com
+
+ You can find all the sessions you joined in by going on the homepage at https://www.fsynth.com
+
+ Don't forget that you can invite friends to join your session by sharing the link shown in the adress bar.
+
+ Note : Image/Webcam inputs are not implemented collaboratively, the images or webcam you add can be seen by you only!
+
+ Have fun!
+*/
+
+#define M_PI 3.1415926535897932384626433832795
+
+// noise function
+float rand(vec2 co){
+  return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
+float normalize_y(float y) {
+  	return (resolution.y - y) / resolution.y;
+}
+
+// this function return the oscillator index which play for a given frequency
+float oscillator_y(float frequency) {
+	return resolution.y - (log(frequency / baseFrequency) / log(2.)) * (resolution.y / octave);
+}
+
+// this function is called for every pixels of the score
+void main ()
+{
+    // "uv" will hold the current pixel position bound to [0.0 .. 1.0] range
+	vec2 uv = gl_FragCoord.xy / resolution.xy;
+
+    // globalTime is the playback time in seconds (what you see at the top), we will be using it to animate things a bit!
+    float time = globalTime / (60. / 8.);
+
+    float x = uv.x - cos(time * 24.) / 128. * sin(time * 64.) / 2.;
+	float y = uv.y * 16. / time;
+
+	// band-pass filter, high and low frequencies are attenuated by applying a well-known smoothstep function
+  	float intensity_factor = 0.;
+  	float falloff_factor = 2.8; // increasing this make the filter steeper
+    float ab;
+    float c;
+    if (uv.y < 0.5) {
+      	ab = pow(uv.y * 2., falloff_factor);
+      	c = pow(1. - (uv.y * 2.), falloff_factor);
+		intensity_factor = ab / (ab + c);
+    } else {
+		float v = 0.7 - ((uv.y - 0.5) * 2.);
+      	ab = pow(v, falloff_factor);
+      	c = pow(1. - v, falloff_factor);
+		intensity_factor = ab / (ab + c);
+    }
+
+  	// band-stop filter
+	//if (uv.y < 0.2) y *= 0.0;
+	//if (uv.y > 0.8) y *= 0.0;
+
+	// prepare some noise so it doesn't sound too artificial
+	float noise = rand(vec2(uv.x, y)) * 1.2;
+
+    // l & r are the actual output
+  	// the output is clamped to 0.0 - 1.0 range
+	float f = 0.;
+  	float l = 0.;
+  	float r = 0.;
+
+    // we create a sequence
+    float n = 1. + floor(abs(sin(time * 4.)) * 4.);
+    float n2 = 1. + floor(abs(sin(time * 12.)) * 2.);
+
+    for (float j = 1.; j < 6.; j += 1.) { // this loop build up the harmonics of our sound
+        for (float i = 1.; i < 5.; i += 1.) { // this loop is used to build sequences of our sound
+          	// we play the sequences here, we also add some noise to the note frequencies and warp things a bit along the X axis
+            // you can add slices to the score at different position to enrich the sound!
+      		float notes = 261.6 * (n / (i * (2.25 * n2))) * (noise * 0.009 + clamp(x * 2., 0., 2.));
+            float v = clamp(pow(uv.y - normalize_y(oscillator_y(notes * j) ), 2.), 0., 1.0);
+          	// decrease the harmonic intensity according to the frequency, also vary each harmonics with sin function
+          	float harmonic_intensity = j - sin((time * 12.) * j);
+            // a large bandwidth constant make it close to the frequency defined above but it will sound more artificial
+            // we add some "spreading" around the frequency by giving it a "lower" bandwidth value
+            // we also increase the bandwidth according to the frequency to sound less artificial
+          	float bandwidth = 90000. - (noise * j) * 10000. - ( j * 1000.);
+            // modulate the left and right channel independently, this will sound even more interesting
+            float right_variation = cos(y * 0.004 + i * 2. + time / 8.) * 0.5 + x;
+            float left_variation = sin(y * 0.004 + i * 2. + time * 2.) * 0.2 + x;
+            l += clamp(1. - v * bandwidth, 0., 1.) / (harmonic_intensity + right_variation);
+            r += clamp(1. - v * bandwidth, 0., 1.) / (harmonic_intensity + left_variation);
+        }
+    }
+
+  	// the third argument can be used to gather details about frequencies (magnifying them), its output is not used by the synthesis engine
+    // try a value of 0.5 for the third argument for details about the filter function,
+    // you can also try "l" or "r" multiplied by a constant value like 8.
+    // if you add a webcam as an input, the third argument can be used to see the actual output of your webcam
+	gl_FragColor = vec4(l, r, 0., 1.) * intensity_factor;
+}
+        </script>
+
+        <script type="text/javascript" src="dist/fs.js" defer></script>
+    </head>
+
+    <body>
+        <div id="fs_red_curtain" class="fs-red-curtain"></div>
+        <div id="fs_top_panel" class="fs-top-panel">
+            <div id="fs_time_infos" class="fs-time-infos"></div>
+            <div class="fs-app-infos">
+                <div id="fs_sync_status" class="fs-server-status" title="Synchronization server link state"></div>
+                <div id="fs_server_status" class="fs-server-status" title="Chat server link state"></div>
+                <div id="fs_fas_status" class="fs-server-status" title="Native audio link state" style="display: none"></div>
+                <div id="fs_user_name" class="fs-user-name"></div>
+                <span id="fs_xy_infos"></span>
+                <span id="fs_hz_infos" class="fs-hz-infos"></span>
+                <span id="fs_debug"></span>
+            </div>
+            <div class="fs-app-settings">
+                <div id="mst_slider" class="mst-slider"></div>
+            </div>
+        </div>
+
+        <div id="fs_utter_fail" class="fs-notification fs-utter-fail">
+            <a href="https://www.fsynth.com">
+                <img src="data/fsynth.png" width="300"/>
+            </a>
+            JavaScript is currently not supported or disabled by this browser.
+        </div>
+        <div id="fail" class="fs-notification"></div>
+        <div id="fs_notification" class="fs-notification"></div>
+        <div id="canvas_container" class="canvas" oncontextmenu="return false">
+            <div id="fs_haxis_infos" style="display: none" class="fs-haxis-infos">
+                <div></div>
+                <div></div>
+            </div>
+            <div id="fs_vaxis_infos" style="display: none" class="fs-vaxis-infos">
+                <div></div>
+            </div>
+        </div>
+        <div id="fs_middle_panel" class="fs-middle-panel">
+            <div id="fs_middle_toolbar" class="fs-middle-toolbar"></div>
+            <div id="fs_input_panel" class="fs-input-panel"></div>
+        </div>
+        <div id="code" class="code"></div>
+
+        <div id="fs_right_toolbar" class="fs-right-toolbar">
+
+        </div>
+
+        <div id="fs_settings_dialog">
+            <div>
+                <div id="fs_score_width_input"></div>
+                <div id="fs_score_height_input"></div>
+                <div id="fs_score_base_input"></div>
+                <div id="fs_score_octave_input"></div>
+                <div>
+                    <label class="fs-ck-label">
+                        <div>Show globalTime</div>&nbsp;
+                        <input id="fs_settings_ck_globaltime" type="checkbox">
+                    </label>
+                </div>
+                <div>
+                    <label class="fs-ck-label">
+                        <div>Highlight matches</div>&nbsp;
+                        <input id="fs_settings_ck_hlmatches" type="checkbox">
+                    </label>
+                </div>
+                <div>
+                    <label class="fs-ck-label">
+                        <div>Show line numbers</div>&nbsp;
+                        <input id="fs_settings_ck_lnumbers" type="checkbox">
+                    </label>
+                </div>
+                <div>
+                    <label class="fs-ck-label">
+                        <div>Advanced scrollbar</div>&nbsp;
+                        <input id="fs_settings_ck_xscrollbar" type="checkbox">
+                    </label>
+                </div>
+                <div style="text-align: center">
+                    <label class="fs-input-label" for="fs_select_editor_themes">Editor theme:</label>
+                    <select id="fs_select_editor_themes" class="fs-btn">
+                        <option selected>default</option>
+                        <option>3024-day</option>
+                        <option>3024-night</option>
+                        <option>abcdef</option>
+                        <option>ambiance</option>
+                        <option>ambiance-mobile</option>
+                        <option>base16-dark</option>
+                        <option>base16-light</option>
+                        <option>bespin</option>
+                        <option>blackboard</option>
+                        <option>cobalt</option>
+                        <option>colorforth</option>
+                        <option>dracula</option>
+                        <option>duotone-dark</option>
+                        <option>duotone-light</option>
+                        <option>eclipse</option>
+                        <option>elegant</option>
+                        <option>erlang-dark</option>
+                        <option>hopscotch</option>
+                        <option>icecoder</option>
+                        <option>isotope</option>
+                        <option>lesser-dark</option>
+                        <option>liquibyte</option>
+                        <option>material</option>
+                        <option>mbo</option>
+                        <option>mdn-like</option>
+                        <option>midnight</option>
+                        <option>monokai</option>
+                        <option>neat</option>
+                        <option>neo</option>
+                        <option>night</option>
+                        <option>panda-syntax</option>
+                        <option>paraiso-dark</option>
+                        <option>paraiso-light</option>
+                        <option>pastel-on-dark</option>
+                        <option>railscasts</option>
+                        <option>rubyblue</option>
+                        <option>solarized</option>
+                        <option>the-matrix</option>
+                        <option>tomorrow-night-bright</option>
+                        <option>tomorrow-night-eighties</option>
+                        <option>ttcn</option>
+                        <option>twilight</option>
+                        <option>vibrant-ink</option>
+                        <option>xq-dark</option>
+                        <option>xq-light</option>
+                        <option>yeti</option>
+                        <option>zenburn</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+         <div id="fs_help_dialog">
+            <div>
+                <div>
+                    <div class="fs-help-content">
+                        <button id="fs_ui_help_btn" class="fs-btn fs-btn-default">UI Help</button><br/><button id="fs_glsl_help_btn" class="fs-btn fs-btn-wide fs-btn-default">OpenGL Shading Language ES</button>
+                    </div>
+                    <div class="fs-documentation">
+                        Pre-defined shader inputs
+                        <ul class="fs-documentation-entries">
+                            <li>
+                                vec2 <span class="fs-documentation-keyword">resolution</span> :
+                                <ul>
+                                    <li>
+                                        viewport resolution (in pixels)
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                float <span class="fs-documentation-keyword">globalTime</span> :
+                                <ul>
+                                    <li>
+                                        playback time (in seconds)
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                float <span class="fs-documentation-keyword">baseFrequency</span> :
+                                <ul>
+                                    <li>
+                                        score base frequency
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                float <span class="fs-documentation-keyword">octave</span> :
+                                <ul>
+                                    <li>
+                                        score octave range
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                vec4 <span class="fs-documentation-keyword">mouse</span> :
+                                <ul>
+                                    <li>
+                                        mouse pixel coords.
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                vec4 <span class="fs-documentation-keyword">date</span> :
+                                <ul>
+                                    <li>
+                                        year, month, day, time in seconds
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                sampler2D <span class="fs-documentation-keyword">iInputN</span> :
+                                <ul>
+                                    <li>
+                                        Click on the [+] icon to add N images
+                                    </li>
+                                    <li>
+                                        Typical usage : texture2D(iInput0, uv);
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="fs_slice_settings_dialog">
+            <div>
+            </div>
+        </div>
+
+<!--
+        <div id="fs_midi_out_dialog">
+            <div>
+                <div id="fs_midi_out_editor" class="fs-midi-out-editor"></div>
+            </div>
+        </div>
+-->
+
+        <div id="fs_controls_dialog">
+            <div>
+                <div class="fs-settings">
+                    <div class="fs-settings-panel">
+                        Scalars
+                        <br/>
+                        <label class="fs-input-label" for="fs_scalars_ctrl_name">Input name:</label>
+                        <input id="fs_scalars_ctrl_name" class="wui-rangeslider-input fs-controls-add-ctrl">
+                        <br/>
+                        <label class="fs-input-label" for="fs_scalars_ctrl_type">Type:</label>
+                        <select id="fs_scalars_ctrl_type" class="fs-btn fs-controls-add-ctrl">
+                            <option value="bool">bool</option>
+                            <option value="int">int</option>
+                            <!--<option value="uint">uint</option>-->
+                            <option value="float">float</option>
+                        </select>
+                        <br/>
+                        <label class="fs-input-label" for="fs_scalars_ctrl_mtype">Midi:</label>
+                        <select id="fs_scalars_ctrl_mtype" class="fs-btn fs-controls-add-ctrl">
+                            <option value="rel">Relative</option>
+                            <option value="abs">Absolute</option>
+                        </select>
+                        <br/>
+                        <br/>
+                        <label class="fs-input-label" for="fs_scalars_ctrl_array_size">Count:</label>
+                        <input id="fs_scalars_ctrl_array_size" type="number" value="1" min="1" class="wui-rangeslider-input fs-controls-add-ctrl">
+                        <br/>
+                        <button id="fs_scalars_ctrl_add" class="fs-btn fs-controls-add-ctrl">Add</button>
+                    </div>
+                    <div class="fs-settings-panel">
+                        Vectors
+                        <br/>
+                        <label class="fs-input-label" for="fs_vectors_ctrl_name">Input name:</label>
+                        <input id="fs_vectors_ctrl_name" class="wui-rangeslider-input fs-controls-add-ctrl">
+                        <br/>
+                        <label class="fs-input-label" for="fs_vectors_ctrl_type">Type:</label>
+                        <select id="fs_vectors_ctrl_type" class="fs-btn fs-controls-add-ctrl">
+                            <option value="bvec">bvec</option>
+                            <option value="ivec">ivec</option>
+                            <!--<option value="uvec">uvec</option>-->
+                            <option value="vec">vec</option>
+                        </select>
+                        <br/>
+                        <label class="fs-input-label" for="fs_vectors_ctrl_mtype">Midi:</label>
+                        <select id="fs_vectors_ctrl_mtype" class="fs-btn fs-controls-add-ctrl">
+                            <option value="rel">Relative</option>
+                            <option value="abs">Absolute</option>
+                        </select>
+                        <br/>
+                        <label class="fs-input-label" for="fs_vectors_ctrl_comps">Components:</label>
+                        <select id="fs_vectors_ctrl_comps" class="fs-btn fs-controls-add-ctrl">
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                        </select>
+                        <!--<input id="fs_vectors_ctrl_comps" type="number" value="2" class="wui-rangeslider-input fs-controls-add-ctrl">-->
+                        <br/>
+                        <label class="fs-input-label" for="fs_vectors_ctrl_array_size">Count:</label>
+                        <input id="fs_vectors_ctrl_array_size" type="number" value="1" min="1" class="wui-rangeslider-input fs-controls-add-ctrl">
+                        <br/>
+                        <button id="fs_vectors_ctrl_add" class="fs-btn fs-controls-add-ctrl">Add</button>
+                    </div>
+                    <!--
+                    <div class="fs-settings-panel">
+                        Matrices
+                        <br/>
+                        <label class="fs-input-label" for="fs_ctrl_name">Input name:</label>
+                        <input id="fs_matrices_ctrl_name" class="wui-rangeslider-input fs-controls-add-ctrl">
+                        <br/>
+                        <label class="fs-input-label" for="fs_ctrl_cols">Columns:</label>
+                        <input id="fs_matrices_ctrl_cols" type="number" class="wui-rangeslider-input fs-controls-add-ctrl">
+                        <br/>
+                        <label class="fs-input-label" for="fs_ctrl_rows">Rows:</label>
+                        <input id="fs_matrices_ctrl_rows" type="number" class="wui-rangeslider-input fs-controls-add-ctrl">
+                        <br/>
+                        <label class="fs-input-label" for="fs_ctrl_array_size">Count:</label>
+                        <input id="fs_matrices_ctrl_array_size" type="number" value="1" class="wui-rangeslider-input fs-controls-add-ctrl">
+                        <br/>
+                        <button id="fs_matrices_ctrl_add" class="fs-btn fs-controls-add-ctrl">Add</button>
+                    </div>
+                    -->
+                </div>
+                <div id="fs_controls_panel" class="fs-controls-panel">
+                </div>
+            </div>
+        </div>
+
+        <div id="fs_right_dialog">
+            <div>
+                <ul id="fs_discuss" class="fs-discuss">
+
+                </ul>
+                <div class="fs-users-list">
+                    <ul id="fs_users_list">
+
+                    </ul>
+                </div>
+                <input id="fs_discuss_input" type="text" placeholder="..." class="wui-rangeslider-input fs-discuss-input">
+            </div>
+        </div>
+    </body>
+</html>

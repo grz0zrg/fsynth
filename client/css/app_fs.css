@@ -1,0 +1,691 @@
+/*#include wui/wui.min.css*/
+/*#include normalize/normalize.css*/
+/*#include codemirror/codemirror.css*/
+/*#include codemirror/addon/scroll/simplescrollbars.css*/
+/*#include codemirror/addon/search/matchesonscrollbar.css*/
+/*#include FontAwesome/font-awesome.min.css*/
+
+/*#include wui.css*/
+/*#include icons.css*/
+
+.wui-rangeslider-title {
+    font-family: inherit !important;
+    font-size: 9pt;
+}
+
+.wui-rangeslider-input:invalid {
+    background-color: #800000 !important;
+    box-shadow: 0px 0px 4px 1px #ff0000;
+    border: none;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    
+    margin: 0 auto;
+}
+
+body {
+    font-family: "FiraSans-Regular", Helvetica, Arial, sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    
+    /*overflow: hidden;*/
+    background-color: black;
+}
+
+@font-face {
+    font-family: "FiraSans-Regular";
+    src: url('../data/FiraSans-Regular.otf');
+}
+
+@font-face {
+    font-family: "Inconsolata";
+    src: url('../data/Inconsolata.otf');
+}
+
+.CodeMirror-focused .cm-matchhighlight {
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVQI12NgYGBgkKzc8x9CMDAwAAAmhwSbidEoSQAAAABJRU5ErkJggg==);
+    background-position: bottom;
+    background-repeat: repeat-x;
+}
+
+.cm-matchhighlight {
+    background-color: #333333;
+}
+.CodeMirror-selection-highlight-scrollbar {
+    background-color: green
+}
+
+.fs-midi-out-editor {
+    height: 300px;
+}
+
+.CodeMirror {
+    width: 100%;
+    height: 100%;
+    
+    font-family: "Inconsolata", monospace;
+    font-style: normal;
+    font-weight: normal;
+    
+    font-size: 11pt;
+}
+
+.canvas {
+    position: relative;
+    
+    /*height: calc(50% - 68px);*/
+    
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    
+    /*overflow: auto;*/
+    
+    background-color: #020202;
+    background-image: url("../data/dark-tire.png");
+}
+
+.canvas canvas {
+    border-left: solid 1px #333;
+    border-right: solid 1px #333;
+}
+
+canvas {
+    display: block;
+    margin: auto;
+}
+
+.fs-time-infos {
+    color: #ffffff;
+    
+    position: absolute;
+
+    width: 100%;
+    height: 32px;
+    
+    font-size: 11pt;
+    
+    padding-top: 8px;
+    
+    text-align: center;
+    
+    pointer-events: none;
+
+    cursor: default;
+}
+
+.fs-server-status {
+    width: 14px;
+    height: 14px;
+    /*background-color: #ff0000;*/
+    display: inline-block;
+    /*border-radius: 4px;*/
+    color: #ff0000;
+    margin-left: 2px;
+}
+
+.fs-server-status:before {
+    font-size: 14px;
+    font-family: FontAwesome;
+    content: '\f1e6';
+}
+
+.fs-server-status-on {
+    /*background-color: #00ff00;*/
+    color: #00ff00;
+}
+
+.fs-notification {
+    white-space: pre-wrap;
+    
+    position: absolute;
+    
+    width: calc(100% - 16px);
+    height: calc(100% - 49px);
+    
+    padding: 8px;
+    
+    color: white;
+    
+    pointer-events: none;
+    
+    font-family: sans-serif;
+    
+    z-index: 1;
+    
+    opacity: 1;
+}
+
+.fs-haxis-infos {
+    height: 1px;
+    left: 0;
+    position: absolute;
+    color: #ffffff;
+    width: 100%;
+    background-color: #bbbbbb;
+    /*border-top: 1px dashed #bbbbbb;*/
+}
+
+.fs-vaxis-infos {
+    top: 0;
+    position: absolute;
+    width: 1px;
+    background-color: #bbbbbb;
+    /*border-left: 1px dashed #bbbbbb;*/
+    color: #ffffff;
+}
+
+.fs-haxis-infos div {
+    font-size: 10pt;
+    margin-left: 4px;
+    margin-top: 4px;
+    display: inline-block;
+    padding: 2px;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 99999;
+    position: absolute;
+}
+
+.fs-haxis-infos div:last-child {
+    font-size: 10pt;
+    margin-left: 16px;
+    margin-top: 4px;
+    display: inline-block;
+    position: absolute;
+    padding: 2px;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 99999;
+}
+
+.fs-vaxis-infos div {
+    font-size: 10pt;
+    width: auto;
+    margin: 4px;
+    padding: 2px;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 99999;
+    position: absolute;
+}
+
+.fs-opacity-transition {
+    transition: opacity 2s;
+}
+
+.fs-text-align-right {
+    text-align: right;
+}
+
+.fs-transparent {
+    opacity: 0;
+}
+
+.fs-top-panel {
+    height: 32px;
+    background-color: #111111;
+    border-bottom: solid 1px #555;
+}
+
+.fs-app-settings {
+    display: inline;
+    
+    float: right;
+}
+
+.fs-app-infos {
+    color: #ffffff;
+    
+    font-size: 10pt;
+    
+    display: inline-block;
+    
+    margin-top: 8px;
+    margin-left: 8px;
+}
+
+.fs-user-name {
+    margin-left: 4px;
+    font-size: 9pt;
+    
+    display: inline-block;
+}
+
+.fs-user-name:hover {
+    cursor: pointer;
+}
+
+.fs-middle-panel {
+    border-top: solid 1px #333;
+}
+
+.fs-input-panel {
+    width: calc(100% - 498px - 16px);
+    height: 32px;
+/*    
+    background-color: #111111;
+*/
+    display: inline-block;
+}
+
+.fs-input-thumb {
+    display: inline-block;
+    
+    width: 30px;
+    height: 30px;
+    border: solid 1px #888888;
+    border-radius: 2px;
+    
+    margin-right: 4px;
+}
+
+.fs-input-thumb:hover {
+    cursor: pointer;
+    border: solid 1px #dddddd;
+}
+
+.fs-input-settings-label {
+    color: #ffffff;
+    display: inline-block;
+    text-align: right;
+    width: 54px;
+}
+
+.fs-input-label {
+    color: #ffffff;
+    display: inline-block;
+    text-align: right;
+    width: 94px;
+    font-size: 10pt;
+}
+
+.fs-ck-label {
+    color: #ffffff;
+    display: inline-block;
+    text-align: right;
+    width: 300px;
+    font-size: 10pt;
+}
+
+.fs-ck-label div {
+    display: inline-block;
+}
+
+.fs-ck-label input {
+    vertical-align: middle;
+}
+
+.fs-btn {
+    color: #ffffff;
+    
+    cursor: default;
+    
+    font-size: 11pt;
+    
+    margin-bottom: 4px;
+    margin-top: 14px;
+    
+    border-radius: 4px;
+    
+    background-color: #181818;
+    border-top: solid 1px #404040;
+    border-left: solid 1px #404040;
+    border-bottom: solid 1px #000000;
+    border-right: solid 1px #000000;
+
+    text-align: center;
+
+    line-height: normal;
+}
+
+.fs-btn:hover {
+    cursor: pointer;
+}
+
+.fs-btn-default {
+    width: 180px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+.fs-delete-controls {
+    position: absolute;
+    left: 2px;
+    top: 4px;
+}
+
+.fs-controls-group {
+    background-color: #111111;
+    border: solid 1px #444444;
+    padding: 8px;
+    padding-right: 20px;
+    margin-right: 2px;
+    margin-left: 2px;
+    position: relative;
+}
+
+.fs-controls-group-elems {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    
+    -webkit-flex-wrap: wrap;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    
+    margin-top: 8px;
+}
+
+.fs-controls-panel {
+    color: white;
+    text-align: center;
+    
+    font-size: 10pt;
+    
+    border-top: solid 1px #464646;
+    padding: 12px;
+    
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    -webkit-box-pack: start;
+    -webkit-justify-content: center;
+    -ms-flex-pack: start;
+    justify-content: center;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: row;
+    -ms-flex-direction: row;
+    flex-direction: row;
+}
+
+.fs-controls-panel .wui-rangeslider {
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
+.fs-settings {
+    text-align: center;
+}
+
+.fs-settings-panel {
+    width: 225px;
+    text-align: center;
+    border: solid 2px #222;
+    background-color: #111;
+    margin: 8px;
+    display: inline-block;
+    color: #ff8000;
+}
+
+.fs-controls-panel-list {
+    width: 225px;
+    text-align: center;
+    margin: 8px;
+    display: inline-block;
+}
+
+.fs-controls-add-ctrl {
+    width: 120px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+.fs-discuss {
+    width: calc(100% - 146px);
+    height: calc(100% - 38px);
+    background-color: #111;
+    display: inline-block;
+    border: solid 1px #222;
+    padding: 0;
+    margin: 0;
+    color: #ffffff;
+    font-size: 10pt;
+    overflow-y: auto;
+}
+
+.fs-discuss li {
+    padding-top: 2px;
+    padding-left: 4px;
+    cursor: default;
+}
+
+.fs-users-list {
+    width: 140px;
+    height: 100%;
+    background-color: #111;
+    display: inline-block;
+    float: right;
+    border: solid 1px #222;
+    color: #ffffff;
+    font-size: 10pt;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.fs-users-list li {
+    cursor: default;
+    list-style-type: none;
+    white-space: nowrap;
+    margin-bottom: 2px;
+}
+
+.fs-users-list li:before {
+    content: "\f007";
+    font-family: FontAwesome;
+    margin-right: 6px;
+}
+
+.fs-users-list ul {
+    display: inline-block;
+    padding-left: 12px;
+}
+
+.fs-discuss-input {
+    width: calc(100% - 152px);
+    height: 20px;
+    vertical-align: middle;
+    margin: 0;
+    text-align: left;
+    border: none !important;
+    padding: 4px;
+}
+
+.fs-discuss-input:hover {
+    cursor: text;
+}
+
+.fs-bottom-panel {
+/*
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    
+    -webkit-box-pack: space-around;
+    
+    -webkit-justify-content: space-around;
+    
+    -ms-flex-pack: space-around;
+    
+    justify-content: space-around;
+    
+    -webkit-box-align: center;
+    
+    -webkit-align-items: center;
+    
+    -ms-flex-align: center;
+    
+    align-items: center;
+    -webkit-align-self: center;
+    -ms-flex-item-align: center;
+    align-self: center;
+    -webkit-align-content: center;
+    -ms-flex-line-pack: center;
+    align-content: center;
+*/
+}
+
+.fs-middle-toolbar {
+    width: 498px;
+    
+    margin: 0;
+    
+    display: inline-block;
+}
+
+.fs-middle-toolbar > div {
+    display: inline-block;
+}
+
+.play-position-marker {
+    position: absolute;
+    
+    width: 1px;
+    /*height: 100%;*/
+    
+    background-color: #aaaa00;
+}
+
+.play-position-triangle {
+    width: 0;
+    height: 0;
+    left: -8px;
+    position: absolute;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid #ffff00;
+}
+
+.play-position-triangle:hover {
+    cursor: hand;
+}
+
+.fs-compile-error {
+    color: red;
+    font-weight: bold;
+}
+
+.fs-utter-fail {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    -ms-flex-line-pack: center;
+    align-content: center;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    text-align: center;
+    
+    width: 100%;
+/*    height: 100%;*/
+    padding: 0;
+    
+    pointer-events: all;
+}
+
+.fs-red-curtain {
+    background-color: #000000;
+    width: 100%;
+    height: 100%;
+    z-index: 99999;
+    position: absolute;
+    transition: opacity 2s;
+    transition-timing-function: ease-in;
+    opacity: 1;
+    pointer-events: none;
+}
+
+.fs-open-red-curtain {
+    opacity: 0;
+}
+
+.play-position-triangle-vflip {
+    width: 0;
+    height: 0;
+    left: -8px;
+    position: absolute;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid #ffff00;
+    
+    bottom: 0;
+}
+
+.fs-help-content {
+    text-align: center;
+    padding-top: 16px;
+}
+
+.fs-documentation {
+    color: #ffffff;
+    margin: 8px;
+    padding: 6px;
+    font-size: 13px;
+    background-color: #111111;
+}
+
+.fs-documentation-entries {
+    list-style-type: none;
+    padding-left: 12px;
+}
+
+.fs-documentation-entries ul {
+    list-style-type: none;
+    padding-left: 12px;
+    margin-top: 2px;
+    margin-bottom: 6px;
+}
+
+.fs-documentation-entries > li {
+    background-color: #222222;
+    padding: 4px;
+    margin: 2px;
+    border-top: solid 1px #444444;
+}
+
+.fs-documentation-keyword {
+    color: #ffd700;
+}
+
+.play-position-triangle-vflip:hover {
+    cursor: hand;
+}
+
+.code {
+    width: 100%;
+    height: calc(50% - 6px);
+}
+
+.fs-load-indicator {
+    width: 16px;
+    height: 16px;
+    
+    background-color: green;
+    
+    position: absolute;
+    
+    top: 2px;
+    right: 2px;
+    
+    z-index: 2;
+}
+
+.fs-hide {
+    display: none;
+}

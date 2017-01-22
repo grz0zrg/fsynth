@@ -1,0 +1,24 @@
+#!/bin/sh
+# this script build the production directory, execute some tasks (minification etc.) and upload its content over SSH to the server then execute the setup script
+cd prod_dir
+rm -rf *
+cd ..
+tar -cf - -T prod_files | (cd prod_dir && tar xf -)
+
+uglifyjs prod_dir/client/js/worker/image_processor.js --screw-ie8 --compress --reserve-domprops --mangle -o prod_dir/client/js/worker/image_processor.js
+uglifyjs prod_dir/client/js/worker/notes_buffer.js --screw-ie8 --compress --reserve-domprops --mangle -o prod_dir/client/js/worker/notes_buffer.js
+uglifyjs prod_dir/client/js/worker/fas.js --screw-ie8 --compress --reserve-domprops --mangle -o prod_dir/client/js/worker/fas.js
+remove-html-comments prod_dir/client/index.html prod_dir/client/index.html
+remove-html-comments prod_dir/www/index.html prod_dir/www/index.html
+remove-html-comments prod_dir/placeholder/index.html prod_dir/placeholder/index.html
+cd prod_dir
+
+if [ -z "$1" ]
+then
+  launch_setup="sh setup;"
+else
+  launch_setup="sh setup $1 $2;"
+fi
+
+# archive from a list of files and unarchive over ssl connection to a specified remote folder
+tar cvzf - * | ssh -v -i /home/mine/.ssh/key -p 22 root@my.server.ip.add "cd /home/fragment/; mkdir -p fsynth_upload; cd fsynth_upload; tar xzf -; rsync -av /home/fragment/fsynth_upload/ /home/fragment/fsynth/; rsync -av /home/fragment/fsynth/placeholder/ /home/fs/www/; rm -rf /home/fs/fsynth/placeholder; cd /home/fs/fsynth; chmod +x setup; $launch_setup"

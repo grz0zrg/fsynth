@@ -1,0 +1,26 @@
+{
+    "name": "Fragment Synthesizer",
+    "short_name": "FS",
+    "icons": [{
+        "src": "favicon.png",
+        "sizes": "32x32"
+    },
+    {
+        "src": "favicon_64x64.png",
+        "sizes": "64x64"
+    },
+    {
+        "src": "favicon_128x128.png",
+        "sizes": "128x128"
+    },
+    {
+        "src": "favicon_256x256.png",
+        "sizes": "256x256"
+    }],
+    "scope": "/app/",
+    "start_url": "index.html",
+    "display": "fullscreen",
+    "orientation": "landscape",
+    "theme_color": "#000000",
+    "background_color": "#000000"
+}

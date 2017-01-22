@@ -1,0 +1,3 @@
+#!/bin/sh
+cd js
+anbexec mergejs fp.js

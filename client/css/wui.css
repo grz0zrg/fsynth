@@ -1,0 +1,27 @@
+.wui-toolbar-toggle-on {
+    box-shadow: none !important;
+    background-color: #00545d !important;
+}
+
+.wui-dialog-minimized {
+    border-color: rgb(68, 68, 68) !important;
+}
+
+.wui-toolbar-dropdown-content {
+    background-color: initial;
+    border-top: solid 1px #444444;
+    border-left: solid 1px #444444;
+    border-right: solid 1px #444444;
+}
+
+.wui-toolbar-dropdown-item {
+    border: none;
+    background: initial;
+    background-color: rgba(16,16,16,.95);
+    border-radius: 0;
+}
+
+.wui-toolbar-dropdown-item:hover {
+    font-size: inherit !important;
+    background-color: #141414;
+}

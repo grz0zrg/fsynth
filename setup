@@ -1,0 +1,31 @@
+#!/bin/sh
+common_js="
+var fss_port = 4001,
+    fsdb_port = 4002;
+
+exports.allow_fss_origin = [\"https://www.fsynth.com:8042\", \"https://fsynth.com:8042\"];
+exports.allow_fsdb_origin = [\"https://www.fsynth.com:8042\", \"https://fsynth.com:8042\"];
+
+exports.fss_port = fss_port;
+exports.fsdb_port = fsdb_port;"
+
+chmod -R 755 ../fsynth
+chown -R fs:fs ../fsynth
+
+echo "$common_js" > common.js
+sed 's/"127.0.0.1"/"www.fsynth.com"/' client/dist/fs.min.js > temp
+mv temp client/dist/fs.min.js
+sed 's/="ws"/="wss"/' client/dist/fs.min.js > temp
+mv temp client/dist/fs.min.js
+sed 's/"dist\/fs.js"/"dist\/fs.min.js"/' client/index.html > temp
+mv temp client/index.html
+rm setup
+
+if [ "$1" = "restart" ]; then
+  su - fs -c "pm2 restart $2"
+elif [ "$1" = "update" ]; then
+  su - fs -c "pm2 sendSignal SIGUSR1 $2"
+elif [ "$1" = "updateall" ]; then
+  su - fs -c "pm2 sendSignal SIGUSR1 fss"
+  su - fs -c "pm2 sendSignal SIGUSR1 fsdb"
+fi

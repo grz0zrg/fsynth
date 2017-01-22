@@ -1,0 +1,57 @@
+/**
+    Pack CodeMirror and its dependencies into a single file
+*/
+
+/*#include normalize/normalize.css*/
+/*#include codemirror/codemirror.css*/
+/*#include codemirror/addon/scroll/simplescrollbars.css*/
+/*#include codemirror/addon/search/matchesonscrollbar.css*/
+
+html, body {
+    width: 100%;
+    height: 100%;
+    
+    margin: 0 auto;
+}
+
+body {
+    font-family: "FiraSans-Regular", Helvetica, Arial, sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    
+    /*overflow: hidden;*/
+    background-color: black;
+}
+
+@font-face {
+    font-family: "FiraSans-Regular";
+    src: url('../data/FiraSans-Regular.otf');
+}
+
+@font-face {
+    font-family: "Inconsolata";
+    src: url('../data/Inconsolata.otf');
+}
+
+.CodeMirror-focused .cm-matchhighlight {
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVQI12NgYGBgkKzc8x9CMDAwAAAmhwSbidEoSQAAAABJRU5ErkJggg==);
+    background-position: bottom;
+    background-repeat: repeat-x;
+}
+
+.cm-matchhighlight {
+    background-color: #333333;
+}
+.CodeMirror-selection-highlight-scrollbar {
+    background-color: green
+}
+.CodeMirror {
+    width: 100%;
+    height: 100%;
+    
+    font-family: "Inconsolata", monospace;
+    font-style: normal;
+    font-weight: normal;
+    
+    font-size: 11pt;
+}

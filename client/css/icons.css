@@ -1,0 +1,95 @@
+.fs-code-icon {
+    background-image: url("../data/ui-icons/code.png");
+}
+
+.fs-plus-icon {
+    background-image: url("../data/ui-icons/plus.png");
+}
+
+.fs-play-icon {
+    background-image: url("../data/ui-icons/play.png");
+}
+
+.fs-pause-icon {
+    background-image: url("../data/ui-icons/pause.png");
+}
+
+.fs-reset-icon {
+    background-image: url("../data/ui-icons/reset.png");
+}
+
+.fs-record-icon {
+    background-image: url("../data/ui-icons/record.png");
+}
+
+.fs-cross-45-icon {
+    background-image: url("../data/ui-icons/cross45.png");
+}
+
+.fs-gear-icon {
+    background-image: url("../data/ui-icons/gear.png");
+}
+
+.fs-detach-icon {
+    background-image: url("../data/ui-icons/detach.png");
+}
+
+.fs-share-icon {
+    background-image: url("../data/ui-icons/share.png");
+}
+
+.fs-board-icon {
+    background-image: url("../data/ui-icons/users.png");
+}
+/*
+.fs-midi-out-icon {
+    background-image: url("../data/ui-icons/midi.png");
+}
+*/
+
+.fs-discuss-icon {
+    background-image: url("../data/ui-icons/discuss.png");
+}
+
+.fs-replace-icon {
+    background-image: url("../data/ui-icons/replace.png");
+}
+
+.fs-controls-icon {
+    background-image: url("../data/ui-icons/controls.png");
+}
+
+.fs-fas-icon {
+    background-image: url("../data/ui-icons/fs.png");
+}
+
+.fs-shadertoy-icon {
+    background-image: url("../data/ui-icons/shadertoy.png");
+}
+
+.fs-xyf-icon {
+    background-image: url("../data/ui-icons/xyf.png");
+}
+
+.fs-mute-icon {
+    background-image: url("../data/ui-icons/mute.png");
+}
+
+.fs-unmute-icon {
+    background-image: url("../data/ui-icons/unmute.png");
+}
+
+.fs-help-icon {
+    background-image: url("../data/ui-icons/help.png");
+}
+
+.fs-error-icon {
+    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAHlBMVEW7AAC7AACxAAC7AAC7AAAAAAC4AAC5AAD///+7AAAUdclpAAAABnRSTlMXnORSiwCK0ZKSAAAATUlEQVR42mWPOQ7AQAgDuQLx/z8csYRmPRIFIwRGnosRrpamvkKi0FTIiMASR3hhKW+hAN6/tIWhu9PDWiTGNEkTtIOucA5Oyr9ckPgAWm0GPBog6v4AAAAASUVORK5CYII=");
+    
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    vertical-align: middle;
+    
+    margin-right: 12px;
+}

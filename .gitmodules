@@ -1,0 +1,3 @@
+[submodule "fas"]
+	path = fas
+	url = https://github.com/grz0zrg/fas.git
