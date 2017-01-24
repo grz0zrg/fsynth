@@ -111,6 +111,7 @@ var FragmentSynth = new (function () {
         _time_infos = document.getElementById("fs_time_infos"),
         _hz_infos = document.getElementById("fs_hz_infos"),
         _xy_infos = document.getElementById("fs_xy_infos"),
+        _osc_infos = document.getElementById("fs_osc_infos"),
 
         _haxis_infos = document.getElementById("fs_haxis_infos"),
         _vaxis_infos = document.getElementById("fs_vaxis_infos"),
@@ -156,6 +157,7 @@ var FragmentSynth = new (function () {
         
         // settings
         _show_globaltime = false,
+        _show_oscinfos = false,
         _cm_highlight_matches = false,
         _cm_show_linenumbers = true,
         _cm_advanced_scrollbar = false,
