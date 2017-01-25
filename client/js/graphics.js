@@ -19,7 +19,7 @@ var _create2DTexture = function (image, default_wrap_filter, bind_now) {
         _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.LINEAR);
         _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.LINEAR);
 
-        if (!_isPowerOf2(image.width) || !_isPowerOf2(image.height)) {
+        if ((!_isPowerOf2(image.width) || !_isPowerOf2(image.height)) && !_gl2) {
             _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_S, _gl.CLAMP_TO_EDGE);
             _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_T, _gl.CLAMP_TO_EDGE);
 
@@ -204,11 +204,17 @@ var _frame = function (raf_time) {
         }
     }
 
+    //_gl.bindBuffer(_gl.ARRAY_BUFFER, _quad_vertex_buffer);
     _gl.drawArrays(_gl.TRIANGLE_STRIP, 0, 4);
     
     if ((_notesWorkerAvailable() || fas_enabled) && _play_position_markers.length > 0) {
         if (!fas_enabled) {
             _prev_data = new Uint8Array(_data);
+        }
+        
+        if (_gl2) {
+            _gl.bindBuffer(_gl.PIXEL_PACK_BUFFER, _pbo);
+            _gl.bufferData(_gl.PIXEL_PACK_BUFFER, 1 * _canvas.height * 4, _gl.STATIC_READ);
         }
 
         // populate array first
@@ -219,7 +225,12 @@ var _frame = function (raf_time) {
         } else {
             play_position_marker_x = play_position_marker.x;
             
-            _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, _data);
+            if (_gl2) {
+                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, 0);
+                _gl.getBufferSubData(_gl.PIXEL_PACK_BUFFER, 0, _data);
+            } else {
+                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, _data);
+            }
             
             _transformData(play_position_marker, _data);
         }
@@ -233,7 +244,12 @@ var _frame = function (raf_time) {
             
             play_position_marker_x = play_position_marker.x;
 
-            _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, _temp_data);
+            if (_gl2) {
+                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, 0);
+                _gl.getBufferSubData(_gl.PIXEL_PACK_BUFFER, 0, _temp_data);
+            } else {
+                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, _temp_data);
+            }
             
             _transformData(play_position_marker, _temp_data);
 
@@ -259,6 +275,19 @@ var _frame = function (raf_time) {
         if (parseInt(_time_infos.innerHTML, 10) !== iglobal_time) {
             _time_infos.innerHTML = iglobal_time;
         }
+    }
+    
+    if (_show_oscinfos) {
+        var c = 0;
+        for (i = 0; i < _data.length; i += 4) {
+            if (_data[i] > 0) {
+                c += 1;
+            } else if (_data[i + 1] > 0) {
+                c += 1;
+            }
+        }
+
+        _osc_infos.innerHTML = c;
     }
 
     _raf = window.requestAnimationFrame(_frame);

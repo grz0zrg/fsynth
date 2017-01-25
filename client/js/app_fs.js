@@ -185,6 +185,9 @@ var FragmentSynth = new (function () {
         _raf,
 
         _gl,
+        _gl2 = false,
+        
+        _pbo = null,
 
         _play_position_markers = [],
 
@@ -241,6 +244,19 @@ var FragmentSynth = new (function () {
         Functions.
     ************************************************************/
 
+    var _initializePBO = function () {
+        if (_gl2) {
+            if (_pbo) {
+                _gl.deleteBuffer(_pbo);  
+            }
+
+            _pbo = _gl.createBuffer();
+            _gl.bindBuffer(_gl.PIXEL_PACK_BUFFER, _pbo);
+            _gl.bufferData(_gl.PIXEL_PACK_BUFFER, 1 * _canvas.height * 4, _gl.STATIC_READ);
+            _gl.bindBuffer(_gl.PIXEL_PACK_BUFFER, null);
+        }
+    };
+    
     var _updateScore = function (update_obj, update) {
         var prev_base_freq = _audio_infos.base_freq,
             prev_octave = _audio_infos.octaves,
@@ -276,6 +292,8 @@ var FragmentSynth = new (function () {
             _gl.viewport(0, 0, _canvas.width, _canvas.height);
 
             _updatePlayMarkersHeight(_canvas_height);
+            
+            _initializePBO();
         }
 
         if (update_obj.width) {
@@ -284,6 +302,8 @@ var FragmentSynth = new (function () {
             _canvas.style.width = _canvas_width + 'px';
 
             _gl.viewport(0, 0, _canvas.width, _canvas.height);
+            
+            _initializePBO();
         }
 
         _generateOscillatorSet(_canvas_height, base_freq, octave);
@@ -357,9 +377,16 @@ var FragmentSynth = new (function () {
     CodeMirror.on(_code_editor, 'changes', function (instance, changes) {
         _shareCodeEditorChanges(changes);
     });
-
-    // WebGL
-    _gl = _canvas.getContext("webgl", _webgl_opts) || _canvas.getContext("experimental-webgl", _webgl_opts);
+    
+    // WebGL 2 check
+    _gl = _canvas.getContext("webgl2", _webgl_opts) || _canvas.getContext("experimental-webgl2", _webgl_opts);
+    if (!_gl) {
+        _gl = _canvas.getContext("webgl", _webgl_opts) || _canvas.getContext("experimental-webgl", _webgl_opts);
+    } else {
+        _gl2 = true;
+        
+        _initializePBO();
+    }
 
     if (!_gl) {
         _fail("The WebGL API is not available, please try with a WebGL ready browser.", true);

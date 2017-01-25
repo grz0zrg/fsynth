@@ -27,6 +27,9 @@ function createWindow () {
         win = null
         fas.kill("SIGINT")
         fas.stdin.write("\x03")
+	if (process.platform !== 'darwin') {
+	    app.quit()
+	}
     })
 }
 
@@ -57,11 +60,11 @@ function fasSpawn () {
 
 app.on('ready', fasSpawn)
 
-app.on('window-all-closed', () => {
+/*app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit()
     }
-})
+})*/
 
 app.on('activate', () => {
     if (win === null) {

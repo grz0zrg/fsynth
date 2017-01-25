@@ -38,7 +38,10 @@ var _rewind = function () {
     } else {
         _time = 0;
         _pause_time = 0;
-        _time_infos.innerHTML = parseInt(_time, 10);
+        
+        if (_show_globaltime) {
+            _time_infos.innerHTML = parseInt(_time, 10);
+        }
     }
 };
 

@@ -57,12 +57,16 @@ self.onmessage = function (m) {
                 note_buffer[index + 2] = pvr;
                 note_buffer[index + 3] = -pvl;
                 note_buffer[index + 4] = -pvr;
-            } else { // meh
+            } else {
+/*
                 note_buffer[index] = y;
                 note_buffer[index + 1] = 0;
                 note_buffer[index + 2] = 0;
                 note_buffer[index + 3] = 0;
                 note_buffer[index + 4] = 0;
+*/
+                y -= 1;
+                continue;
             }
         }
 

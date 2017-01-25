@@ -15304,6 +15304,7 @@ _utter_fail_element.innerHTML = "";
         _time_infos = document.getElementById("fs_time_infos"),
         _hz_infos = document.getElementById("fs_hz_infos"),
         _xy_infos = document.getElementById("fs_xy_infos"),
+        _osc_infos = document.getElementById("fs_osc_infos"),
 
         _haxis_infos = document.getElementById("fs_haxis_infos"),
         _vaxis_infos = document.getElementById("fs_vaxis_infos"),
@@ -15349,6 +15350,7 @@ _utter_fail_element.innerHTML = "";
         
         // settings
         _show_globaltime = false,
+        _show_oscinfos = false,
         _cm_highlight_matches = false,
         _cm_show_linenumbers = true,
         _cm_advanced_scrollbar = false,
@@ -15376,6 +15378,9 @@ _utter_fail_element.innerHTML = "";
         _raf,
 
         _gl,
+        _gl2 = false,
+        
+        _pbo = null,
 
         _play_position_markers = [],
 
@@ -15830,7 +15835,7 @@ var _create2DTexture = function (image, default_wrap_filter, bind_now) {
         _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.LINEAR);
         _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.LINEAR);
 
-        if (!_isPowerOf2(image.width) || !_isPowerOf2(image.height)) {
+        if ((!_isPowerOf2(image.width) || !_isPowerOf2(image.height)) && !_gl2) {
             _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_S, _gl.CLAMP_TO_EDGE);
             _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_T, _gl.CLAMP_TO_EDGE);
 
@@ -16015,11 +16020,17 @@ var _frame = function (raf_time) {
         }
     }
 
+    //_gl.bindBuffer(_gl.ARRAY_BUFFER, _quad_vertex_buffer);
     _gl.drawArrays(_gl.TRIANGLE_STRIP, 0, 4);
     
     if ((_notesWorkerAvailable() || fas_enabled) && _play_position_markers.length > 0) {
         if (!fas_enabled) {
             _prev_data = new Uint8Array(_data);
+        }
+        
+        if (_gl2) {
+            _gl.bindBuffer(_gl.PIXEL_PACK_BUFFER, _pbo);
+            _gl.bufferData(_gl.PIXEL_PACK_BUFFER, 1 * _canvas.height * 4, _gl.STATIC_READ);
         }
 
         // populate array first
@@ -16030,7 +16041,12 @@ var _frame = function (raf_time) {
         } else {
             play_position_marker_x = play_position_marker.x;
             
-            _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, _data);
+            if (_gl2) {
+                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, 0);
+                _gl.getBufferSubData(_gl.PIXEL_PACK_BUFFER, 0, _data);
+            } else {
+                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, _data);
+            }
             
             _transformData(play_position_marker, _data);
         }
@@ -16044,7 +16060,12 @@ var _frame = function (raf_time) {
             
             play_position_marker_x = play_position_marker.x;
 
-            _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, _temp_data);
+            if (_gl2) {
+                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, 0);
+                _gl.getBufferSubData(_gl.PIXEL_PACK_BUFFER, 0, _temp_data);
+            } else {
+                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, _temp_data);
+            }
             
             _transformData(play_position_marker, _temp_data);
 
@@ -16070,6 +16091,19 @@ var _frame = function (raf_time) {
         if (parseInt(_time_infos.innerHTML, 10) !== iglobal_time) {
             _time_infos.innerHTML = iglobal_time;
         }
+    }
+    
+    if (_show_oscinfos) {
+        var c = 0;
+        for (i = 0; i < _data.length; i += 4) {
+            if (_data[i] > 0) {
+                c += 1;
+            } else if (_data[i + 1] > 0) {
+                c += 1;
+            }
+        }
+
+        _osc_infos.innerHTML = c;
     }
 
     _raf = window.requestAnimationFrame(_frame);
@@ -17205,7 +17239,10 @@ var _rewind = function () {
     } else {
         _time = 0;
         _pause_time = 0;
-        _time_infos.innerHTML = parseInt(_time, 10);
+        
+        if (_show_globaltime) {
+            _time_infos.innerHTML = parseInt(_time, 10);
+        }
     }
 };
 
@@ -17774,8 +17811,10 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     
     dialog_element.id = "fs_channel_settings_dialog";
     
-    if (!_isPowerOf2(fragment_input_channel.image.width) || !_isPowerOf2(fragment_input_channel.image.height) || fragment_input_channel.type === 1) {
-        power_of_two_wrap_options = "";
+    if (!_gl2) { // WebGL 2 does not have those limitations
+        if (!_isPowerOf2(fragment_input_channel.image.width) || !_isPowerOf2(fragment_input_channel.image.height) || fragment_input_channel.type === 1) {
+            power_of_two_wrap_options = "";
+        }
     }
     
     dialog_element.style.fontSize = "13px";
@@ -18416,11 +18455,13 @@ var _toggleDetachCodeEditor = function (toggle_ev) {
 
 var _uiInit = function () {
     var settings_ck_globaltime_elem = document.getElementById("fs_settings_ck_globaltime"),
+        settings_ck_oscinfos_elem = document.getElementById("fs_settings_ck_oscinfos"),
         settings_ck_hlmatches_elem = document.getElementById("fs_settings_ck_hlmatches"),
         settings_ck_lnumbers_elem = document.getElementById("fs_settings_ck_lnumbers"),
         settings_ck_xscrollbar_elem = document.getElementById("fs_settings_ck_xscrollbar"),
         
         fs_settings_show_globaltime = localStorage.getItem('fs-show-globaltime'),
+        fs_settings_show_oscinfos = localStorage.getItem('fs-show-oscinfos'),
         fs_settings_hlmatches = localStorage.getItem('fs-editor-hl-matches'),
         fs_settings_lnumbers = localStorage.getItem('fs-editor-show-linenumbers'),
         fs_settings_xscrollbar = localStorage.getItem('fs-editor-advanced-scrollbar');
@@ -18429,7 +18470,7 @@ var _uiInit = function () {
             title: "Session & global settings",
 
             width: "320px",
-            height: "280px",
+            height: "300px",
 
             halign: "center",
             valign: "center",
@@ -18443,6 +18484,10 @@ var _uiInit = function () {
     
     if (fs_settings_show_globaltime !== null) {
         _show_globaltime = (fs_settings_show_globaltime === "true");
+    }
+    
+    if (fs_settings_show_oscinfos !== null) {
+        _show_oscinfos = (fs_settings_show_oscinfos === "true");
     }
 
     if (fs_settings_hlmatches !== null) {
@@ -18462,6 +18507,12 @@ var _uiInit = function () {
     } else {
         settings_ck_xscrollbar_elem.checked = false;
     }
+    
+    if (_show_oscinfos) {
+        settings_ck_oscinfos_elem.checked = true;
+    } else {
+        settings_ck_oscinfos_elem.checked = false;
+    }
 
     if (_show_globaltime) {
         settings_ck_globaltime_elem.checked = true;
@@ -18480,6 +18531,16 @@ var _uiInit = function () {
     } else {
         settings_ck_lnumbers_elem.checked = false;
     }
+    
+    settings_ck_oscinfos_elem.addEventListener("change", function () {
+            _show_oscinfos = this.checked;
+        
+            if (!_show_oscinfos) {
+                _osc_infos.innerHTML = "";
+            }
+        
+            localStorage.setItem('fs-show-oscinfos', _show_oscinfos);
+        });
 
     settings_ck_globaltime_elem.addEventListener("change", function () {
             _show_globaltime = this.checked;
@@ -18532,6 +18593,7 @@ var _uiInit = function () {
         
             localStorage.setItem('fs-editor-advanced-scrollbar', _cm_advanced_scrollbar);
         });
+    settings_ck_oscinfos_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_globaltime_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_hlmatches_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_lnumbers_elem.dispatchEvent(new UIEvent('change'));
@@ -18655,9 +18717,7 @@ var _uiInit = function () {
             audio: [
                 {
                     icon: "fs-reset-icon",
-                    on_click: function () {
-                        _rewind();
-                    },
+                    on_click: _rewind,
                     tooltip: "Rewind (globalTime = 0)"
                 },
                 {
@@ -18972,6 +19032,19 @@ _fas.worker.addEventListener('message', function (m) {
         Functions.
     ************************************************************/
 
+    var _initializePBO = function () {
+        if (_gl2) {
+            if (_pbo) {
+                _gl.deleteBuffer(_pbo);  
+            }
+
+            _pbo = _gl.createBuffer();
+            _gl.bindBuffer(_gl.PIXEL_PACK_BUFFER, _pbo);
+            _gl.bufferData(_gl.PIXEL_PACK_BUFFER, 1 * _canvas.height * 4, _gl.STATIC_READ);
+            _gl.bindBuffer(_gl.PIXEL_PACK_BUFFER, null);
+        }
+    };
+    
     var _updateScore = function (update_obj, update) {
         var prev_base_freq = _audio_infos.base_freq,
             prev_octave = _audio_infos.octaves,
@@ -19007,6 +19080,8 @@ _fas.worker.addEventListener('message', function (m) {
             _gl.viewport(0, 0, _canvas.width, _canvas.height);
 
             _updatePlayMarkersHeight(_canvas_height);
+            
+            _initializePBO();
         }
 
         if (update_obj.width) {
@@ -19015,6 +19090,8 @@ _fas.worker.addEventListener('message', function (m) {
             _canvas.style.width = _canvas_width + 'px';
 
             _gl.viewport(0, 0, _canvas.width, _canvas.height);
+            
+            _initializePBO();
         }
 
         _generateOscillatorSet(_canvas_height, base_freq, octave);
@@ -19088,9 +19165,16 @@ _fas.worker.addEventListener('message', function (m) {
     CodeMirror.on(_code_editor, 'changes', function (instance, changes) {
         _shareCodeEditorChanges(changes);
     });
-
-    // WebGL
-    _gl = _canvas.getContext("webgl", _webgl_opts) || _canvas.getContext("experimental-webgl", _webgl_opts);
+    
+    // WebGL 2 check
+    _gl = _canvas.getContext("webgl2", _webgl_opts) || _canvas.getContext("experimental-webgl2", _webgl_opts);
+    if (!_gl) {
+        _gl = _canvas.getContext("webgl", _webgl_opts) || _canvas.getContext("experimental-webgl", _webgl_opts);
+    } else {
+        _gl2 = true;
+        
+        _initializePBO();
+    }
 
     if (!_gl) {
         _fail("The WebGL API is not available, please try with a WebGL ready browser.", true);

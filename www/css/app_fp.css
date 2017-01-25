@@ -450,7 +450,7 @@ hr {
         font-size: 2.4rem;
     }
     .fp-dl-table th:first-child, td:first-child {
-        display: block;
+        display: table-cell;
     }
     .fp-session-form input {
         width: 100%;
