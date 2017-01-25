@@ -553,8 +553,10 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     
     dialog_element.id = "fs_channel_settings_dialog";
     
-    if (!_isPowerOf2(fragment_input_channel.image.width) || !_isPowerOf2(fragment_input_channel.image.height) || fragment_input_channel.type === 1) {
-        power_of_two_wrap_options = "";
+    if (!_gl2) { // WebGL 2 does not have those limitations
+        if (!_isPowerOf2(fragment_input_channel.image.width) || !_isPowerOf2(fragment_input_channel.image.height) || fragment_input_channel.type === 1) {
+            power_of_two_wrap_options = "";
+        }
     }
     
     dialog_element.style.fontSize = "13px";
@@ -1195,11 +1197,13 @@ var _toggleDetachCodeEditor = function (toggle_ev) {
 
 var _uiInit = function () {
     var settings_ck_globaltime_elem = document.getElementById("fs_settings_ck_globaltime"),
+        settings_ck_oscinfos_elem = document.getElementById("fs_settings_ck_oscinfos"),
         settings_ck_hlmatches_elem = document.getElementById("fs_settings_ck_hlmatches"),
         settings_ck_lnumbers_elem = document.getElementById("fs_settings_ck_lnumbers"),
         settings_ck_xscrollbar_elem = document.getElementById("fs_settings_ck_xscrollbar"),
         
         fs_settings_show_globaltime = localStorage.getItem('fs-show-globaltime'),
+        fs_settings_show_oscinfos = localStorage.getItem('fs-show-oscinfos'),
         fs_settings_hlmatches = localStorage.getItem('fs-editor-hl-matches'),
         fs_settings_lnumbers = localStorage.getItem('fs-editor-show-linenumbers'),
         fs_settings_xscrollbar = localStorage.getItem('fs-editor-advanced-scrollbar');
@@ -1208,7 +1212,7 @@ var _uiInit = function () {
             title: "Session & global settings",
 
             width: "320px",
-            height: "280px",
+            height: "300px",
 
             halign: "center",
             valign: "center",
@@ -1222,6 +1226,10 @@ var _uiInit = function () {
     
     if (fs_settings_show_globaltime !== null) {
         _show_globaltime = (fs_settings_show_globaltime === "true");
+    }
+    
+    if (fs_settings_show_oscinfos !== null) {
+        _show_oscinfos = (fs_settings_show_oscinfos === "true");
     }
 
     if (fs_settings_hlmatches !== null) {
@@ -1241,6 +1249,12 @@ var _uiInit = function () {
     } else {
         settings_ck_xscrollbar_elem.checked = false;
     }
+    
+    if (_show_oscinfos) {
+        settings_ck_oscinfos_elem.checked = true;
+    } else {
+        settings_ck_oscinfos_elem.checked = false;
+    }
 
     if (_show_globaltime) {
         settings_ck_globaltime_elem.checked = true;
@@ -1259,6 +1273,16 @@ var _uiInit = function () {
     } else {
         settings_ck_lnumbers_elem.checked = false;
     }
+    
+    settings_ck_oscinfos_elem.addEventListener("change", function () {
+            _show_oscinfos = this.checked;
+        
+            if (!_show_oscinfos) {
+                _osc_infos.innerHTML = "";
+            }
+        
+            localStorage.setItem('fs-show-oscinfos', _show_oscinfos);
+        });
 
     settings_ck_globaltime_elem.addEventListener("change", function () {
             _show_globaltime = this.checked;
@@ -1311,6 +1335,7 @@ var _uiInit = function () {
         
             localStorage.setItem('fs-editor-advanced-scrollbar', _cm_advanced_scrollbar);
         });
+    settings_ck_oscinfos_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_globaltime_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_hlmatches_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_lnumbers_elem.dispatchEvent(new UIEvent('change'));
@@ -1434,9 +1459,7 @@ var _uiInit = function () {
             audio: [
                 {
                     icon: "fs-reset-icon",
-                    on_click: function () {
-                        _rewind();
-                    },
+                    on_click: _rewind,
                     tooltip: "Rewind (globalTime = 0)"
                 },
                 {
