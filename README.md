@@ -8,11 +8,12 @@ This is a web. spectral synthesizer powered by live [GLSL code](https://en.wikip
 
 Feature list:
 
- * Full-blown additive synthesizer powered by a wavetable
+ * Full-blown additive synthesizer powered by WebAudio oscillators OR a wavetable
  * Live coding and JIT compilation of shader code
  * Real-time, collaborative app.
  * MIDI enabled shader inputs
  * Shader inputs, webcam, textures and more
+ * Real-time analysis (logarithmic spectrum view of the output etc.)
  * Native app. powered by [Electron](http://electron.atom.io/) with built-in [C powered additive synthesizer](https://github.com/grz0zrg/fas)
  * Per-sessions discussion system
  * No authentifications (make use of *localStorage* and is *sessions* based)
@@ -21,7 +22,6 @@ Feature list:
 
  * client - main application
  * www - landing page
- * placeholder - launch landing page
  * fss - main server (discuss. system, slices)
  * fsdb - sharedb server (collaborative features)
  * fsws - web. server (only used for development)
