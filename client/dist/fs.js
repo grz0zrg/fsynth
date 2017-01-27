@@ -15392,6 +15392,16 @@ _utter_fail_element.innerHTML = "";
         _data = new Uint8Array(_canvas_height_mul4),
         _temp_data = new Uint8Array(_canvas_height_mul4),
 
+        _analysis_canvas,
+        _analysis_canvas_ctx,
+        
+        _analysis_canvas_tmp,
+        _analysis_canvas_tmp_ctx,
+        
+        _analysis_log_scale = true,
+        _analysis_colored = true,
+        _analysis_speed = 2,
+        
         _midi_out_f,
         _midi_out = true,
 
@@ -15429,6 +15439,19 @@ _utter_fail_element.innerHTML = "";
 var _ws_protocol = "ws",
     _domain = "127.0.0.1";/* jslint browser: true */
 
+var _fs_palette = {
+        0:   [0, 0, 0],
+        10:  [75, 0, 159],
+        20:  [104, 0, 251],
+        30:  [131, 0, 255],
+        40:  [155, 18,157],
+        50:  [175, 37, 0],
+        60:  [191, 59, 0],
+        70:  [206, 88, 0],
+        80:  [223, 132, 0],
+        90:  [240, 188, 0],
+        100: [255, 252, 0]
+    };
 
 /***********************************************************
     Functions.
@@ -15469,6 +15492,43 @@ var _getElementOffset = function (elem) {
         left = box.left + scrollLeft - clientLeft;
 
     return { top: Math.round(top), left: Math.round(left), width: box.width, height: box.height };
+};
+
+var _logScale = function (index, total, opt_base) {
+    var base = opt_base || 2, 
+        logmax = Math.log(total + 1) / Math.log(base),
+        exp = logmax * index / total;
+    
+    return Math.round(Math.pow(base, exp) - 1);
+};
+
+var _getColorFromPalette = function (value) {
+    var decimalised = 100 * value / 255,
+        percent = decimalised / 100,
+        floored = 10 * Math.floor(decimalised / 10),
+        distFromFloor = decimalised - floored,
+        distFromFloorPercentage = distFromFloor/10,
+        rangeToNextColor,
+        color;
+    
+    if (decimalised < 100){
+        rangeToNextColor = [
+            _fs_palette[floored + 10][0] - _fs_palette[floored + 10][0],
+            _fs_palette[floored + 10][1] - _fs_palette[floored + 10][1],
+            _fs_palette[floored + 10][2] - _fs_palette[floored + 10][2]
+        ];
+    } else {
+        rangeToNextColor = [0, 0, 0];
+    }
+
+    color = [
+        _fs_palette[floored][0] + distFromFloorPercentage * rangeToNextColor[0],
+        _fs_palette[floored][1] + distFromFloorPercentage * rangeToNextColor[1],
+        _fs_palette[floored][2] + distFromFloorPercentage * rangeToNextColor[2]
+    ];
+
+
+    return "rgb(" + color[0] +", "+color[1] +"," + color[2]+")";
 };
 
 // thank to Nick Knowlson - http://stackoverflow.com/questions/4912788/truncate-not-round-off-decimal-numbers-in-javascript
@@ -15529,7 +15589,13 @@ var _getCookie = function getCookie(name) {
     Fields.
 ************************************************************/
 
-var _audio_context = new window.AudioContext(),
+var _FS_WAVETABLE = 0,
+    _FS_OSC_NODES = 1,
+    
+    _audio_context = new window.AudioContext(),
+    
+    _analyser_node = _audio_context.createAnalyser(),
+    _analyser_fftsize = 16384,
     
     _sample_rate = _audio_context.sampleRate,
     
@@ -15554,7 +15620,12 @@ var _audio_context = new window.AudioContext(),
             return wavetable;
         })(_wavetable_size),
     
+    _osc_mode = _FS_OSC_NODES,
+    
     _oscillators,
+    
+    _periodic_wave = [],
+    _periodic_wave_n = 16,
 
     _note_time = 1 / _fps,
     _note_time_samples = Math.round(_note_time * _sample_rate),
@@ -15581,6 +15652,7 @@ var _audio_context = new window.AudioContext(),
         },
     
     _is_script_node_connected = false,
+    _is_analyser_node_connected = false,
     
     _mst_gain_node,
     _script_node;
@@ -15589,11 +15661,23 @@ var _audio_context = new window.AudioContext(),
     Functions.
 ************************************************************/
 
-var _createGainNode = function (dst) {
+var _createGainNode = function (dst, channel) {
     var gain_node = _audio_context.createGain();
-    gain_node.connect(dst);
+    gain_node.gain.value = 0.0;
+    if (channel) {
+        gain_node.connect(dst, 0, channel);
+    } else {
+        gain_node.connect(dst);
+    }
 
     return gain_node;
+};
+
+var _createMergerNode = function (dst) {
+    var merger_node = _audio_context.createChannelMerger(2);
+    merger_node.connect(dst);
+
+    return merger_node;
 };
 
 var _getOscillator = function (y) {
@@ -15614,10 +15698,35 @@ var _getFrequency = function (y) {
     return osc.freq;
 };
 
+var _generatePeriodicWaves = function (n) {
+    var real   = new Float32Array(2),
+        imag   = new Float32Array(2),
+        a1     = 0.0,
+        b1     = 1.0,
+        offset = 0.0,
+        step   = 1.0 / n,
+        i      = 0;
+    
+    _periodic_wave = [];
+    
+    for (i = 0; i <= n; i += 1) {
+        offset = 2 * Math.PI * (step * i);
+        real[1] = a1 * Math.cos(offset) - b1 * Math.sin(offset);
+        imag[1] = a1 * Math.sin(offset) + b1 * Math.cos(offset);
+
+        _periodic_wave.push(_audio_context.createPeriodicWave(real, imag));
+    }
+    
+    _periodic_wave_n = n - 1;
+};
+
 var _generateOscillatorSet = function (n, base_frequency, octaves) {
     var y = 0,
         frequency = 0.0,
         phase_step = 0.0,
+        merger_node = null,
+        gain_node_l = null,
+        gain_node_r = null,
         octave_length = n / octaves;
 
     _oscillators = [];
@@ -15625,10 +15734,25 @@ var _generateOscillatorSet = function (n, base_frequency, octaves) {
     for (y = n; y >= 0; y -= 1) {
         frequency = base_frequency * Math.pow(2, y / octave_length);
         phase_step = frequency / _audio_context.sampleRate * _wavetable_size;
+        
+        merger_node = _createMergerNode(_mst_gain_node);
+        gain_node_l = _createGainNode(merger_node, 0);
+        gain_node_r = _createGainNode(merger_node, 1);
 
         var osc = {
             freq: frequency,
+            
+            // WebAudio periodic waves
+            gain_node_l: gain_node_l,
+            gain_node_r: gain_node_r,
+            merger_node: merger_node,
+            period: 1.0 / frequency,
+            gain_l: 0,
+            gain_r: 0,
+            node: null,
+            create_node_again: true,
 
+            // wavetable
             phase_index: Math.random() * _wavetable_size, 
             phase_step: phase_step
         };
@@ -15641,23 +15765,107 @@ var _generateOscillatorSet = function (n, base_frequency, octaves) {
     _audio_infos.octaves = octaves;
 };
 
+var _stopOscillators = function () {
+    var osc = null,
+        i = 0;
+    
+    for (i = 0; i < _oscillators.length; i += 1) {
+        osc = _oscillators[i];
+        if (osc.node) {
+            osc.node.stop(_audio_context.currentTime + 0.5);
+        }
+        /*
+        if (osc.node_r) {
+            osc.node_r.stop(_audio_context.currentTime + 0.5);
+        }*/
+    }
+};
+
+var _playSlice = function (pixels_data) {
+    var data_length = pixels_data.length,
+        audio_ctx_curr_time = _audio_context.currentTime,
+        time_samples = audio_ctx_curr_time * _audio_context.sampleRate,
+        fade_factor = 0.25,
+        osc = null,
+        l = 0,
+        r = 0,
+        y = _oscillators.length - 1,
+        i = 0;
+    
+    for (i = 0; i < data_length; i += 4) {
+        l = pixels_data[i];
+        r = pixels_data[i + 1];
+        osc = _oscillators[y];
+        
+        if (l === 0) {
+            osc.gain_node_l.gain.setTargetAtTime(0.0, audio_ctx_curr_time, fade_factor);
+            
+            if (r === 0 && osc.node) {
+                osc.node.stop(audio_ctx_curr_time + 0.5);
+                osc.create_node_again = true;
+            }
+        } else {
+            osc.gain_node_l.gain.setTargetAtTime(l / 255.0, audio_ctx_curr_time, fade_factor);
+        }
+        
+        if (r === 0) {
+            osc.gain_node_r.gain.setTargetAtTime(0.0, audio_ctx_curr_time, fade_factor);
+        } else {
+            osc.gain_node_r.gain.setTargetAtTime(r / 255.0, audio_ctx_curr_time, fade_factor);
+        }
+        
+        if (l !== 0 || r !== 0) {
+            if (osc.create_node_again) {
+                osc.node = _audio_context.createOscillator();
+
+                // (n + 0.5) | 0 -> Math.round
+                osc.node.setPeriodicWave(_periodic_wave[Math.round((time_samples % osc.period) / osc.period * _periodic_wave_n)]);
+                
+                osc.node.frequency.value = osc.freq;
+
+                osc.node.connect(osc.gain_node_l);
+                osc.node.connect(osc.gain_node_r);
+                osc.node.onended = (function (osc_y) {
+                    return function () {
+                        var osc_ = _oscillators[y];
+                        if (osc.node) {
+                            osc_.node.disconnect();
+                            osc_.node = null;
+                        }
+                    };
+                })(y);
+                
+                osc.node.start();
+                
+                osc.create_node_again = false;
+            }
+        }
+
+        y -= 1;
+    }
+};
+
 var _notesWorkerAvailable = function () {
     return _notes_worker_available;
 };
 
-var _notesProcessing = function (arr, prev_arr) {    
+var _notesProcessing = function (arr, prev_arr) {   
     var worker_obj,
         
         i = 0;
+    
+    if (_osc_mode === _FS_WAVETABLE) {
+        if (_notes_worker_available) {
+            _notes_worker.postMessage({
+                    score_height: _canvas_height,
+                    data: arr.buffer,
+                    prev_data: prev_arr.buffer
+                }, [arr.buffer, prev_arr.buffer]);
 
-    if (_notes_worker_available) {
-        _notes_worker.postMessage({
-                score_height: _canvas_height,
-                data: arr.buffer,
-                prev_data: prev_arr.buffer
-            }, [arr.buffer, prev_arr.buffer]);
-
-        _notes_worker_available = false;
+            _notes_worker_available = false;
+        }
+    } else if (_osc_mode === _FS_OSC_NODES) {
+        _playSlice(arr);
     }
 };
 
@@ -15744,6 +15952,22 @@ var _audioProcess = function (audio_processing_event) {
     _curr_sample = curr_sample;
 };
 
+var _connectAnalyserNode = function () {
+    if (!_is_analyser_node_connected) {
+        _mst_gain_node.connect(_analyser_node);
+        
+        _is_analyser_node_connected = true;
+    }
+}
+
+var _disconnectAnalyserNode = function () {
+    if (_is_analyser_node_connected) {
+        _mst_gain_node.disconnect(_analyser_node);
+        
+        _is_analyser_node_connected = false;
+    }
+};
+
 var _connectScriptNode = function () {
     if (_script_node && !_is_script_node_connected) {
         _script_node.connect(_mst_gain_node);
@@ -15755,7 +15979,7 @@ var _connectScriptNode = function () {
 var _disconnectScriptNode = function () {
     if (_script_node && _is_script_node_connected) {
         _script_node.disconnect(_mst_gain_node);
-        
+
         _is_script_node_connected = false;
     }
 };
@@ -15789,21 +16013,25 @@ var _enableNotesProcessing = function () {
 ************************************************************/
 
 var _audioInit = function () {
-    _generateOscillatorSet(_canvas_height, 16.34, 10);
-
     _mst_gain_node = _createGainNode(_audio_context.destination);
     _setGain(_volume);
+    
+    _generateOscillatorSet(_canvas_height, 16.34, 10);
+    _generatePeriodicWaves(16);
 
     _script_node = _audio_context.createScriptProcessor(0, 0, 2);
     _script_node.onaudioprocess = _audioProcess;
 
-    if (!_fasEnabled()) {
+    if (!_fasEnabled() && _osc_mode === _FS_WAVETABLE) {
         _script_node.connect(_mst_gain_node);
         
         _is_script_node_connected = true;
     }
 
-    // workaround, webkit bug
+    _analyser_node.smoothingTimeConstant = 0;
+    _analyser_node.fftSize = _analyser_fftsize;
+
+    // workaround, webkit bug ?
     window._fs_sn = _script_node;
 
     _notes_worker.addEventListener('message', function (w) {
@@ -15972,6 +16200,61 @@ var _transformData = function (slice_obj, data) {
     }
 };
 
+var _drawTimeDomainSpectrum = function () {
+    var times = new Uint8Array(_analyser_node.frequencyBinCount),
+        bar_width = _analysis_canvas.width / times.length,
+        value = 0,
+        bar_height = 0,
+        i = 0;
+    
+    _analyser_node.getByteTimeDomainData(times);
+
+    _analysis_canvas_ctx.fillStyle = 'black';
+    
+    for (i = 0; i < times.length; i += 1) {
+        bar_height = _analysis_canvas.height * (times[i] / 256);
+
+        _analysis_canvas_ctx.fillRect(i * bar_width, _analysis_canvas.height - bar_height - 1, 1, 1);
+    }
+};
+
+var _drawSpectrum = function () {
+    if (_is_analyser_node_connected) {
+        var freq = new Uint8Array(_analyser_node.frequencyBinCount),
+            value = 0,
+            y = 0,
+            i = 0;
+        
+        _analyser_node.getByteFrequencyData(freq);
+
+        _analysis_canvas_tmp_ctx.drawImage(_analysis_canvas, 0, 0, _analysis_canvas.width, _analysis_canvas.height);
+
+        for (i = 0; i < freq.length; i += 1) {
+            if (_analysis_log_scale) {
+                value = freq[_logScale(i, freq.length)];
+            } else {
+                value = freq[i];
+            }
+            
+            if (_analysis_colored) {
+                _analysis_canvas_ctx.fillStyle = _getColorFromPalette(value);
+            } else {
+                value = (255 - value) + '';
+                _analysis_canvas_ctx.fillStyle = 'rgb(' + value + ',' + value + ',' + value + ')';
+            }
+            
+            y = Math.round(i / freq.length * _analysis_canvas.height);
+            
+            _analysis_canvas_ctx.fillRect(_analysis_canvas.width - _analysis_speed, _analysis_canvas.height - y, _analysis_speed, _analysis_speed);
+        }
+
+        _analysis_canvas_ctx.translate(-_analysis_speed, 0);
+        _analysis_canvas_ctx.drawImage(_analysis_canvas, 0, 0, _analysis_canvas.width, _analysis_canvas.height, 0, 0, _analysis_canvas.width, _analysis_canvas.height);
+
+        _analysis_canvas_ctx.setTransform(1, 0, 0, 1, 0, 0);
+    }  
+};
+
 var _frame = function (raf_time) {
     var i = 0, j = 0,
 
@@ -16105,6 +16388,8 @@ var _frame = function (raf_time) {
 
         _osc_infos.innerHTML = c;
     }
+    
+    _drawSpectrum();
 
     _raf = window.requestAnimationFrame(_frame);
 };/* jslint browser: true */
@@ -17205,6 +17490,7 @@ var _detachCodeEditor = function () {
 var _pause = function () {
     window.cancelAnimationFrame(_raf);
 
+    _stopOscillators();
     _disconnectScriptNode();
 
     _fs_state = 1;
@@ -17247,6 +17533,8 @@ var _rewind = function () {
 };
 
 var _stop = function () {
+    _stopOscillators();
+    
     window.cancelAnimationFrame(_raf);
 
     _disconnectScriptNode();
@@ -17281,6 +17569,9 @@ var _icon_class = {
     
     _help_dialog_id = "fs_help_dialog",
     _help_dialog,
+    
+    _analysis_dialog_id = "fs_analysis_dialog",
+    _analysis_dialog,
     
     _send_slices_settings_timeout,
     _add_slice_timeout,
@@ -18417,6 +18708,8 @@ var _toggleFas = function (toggle_ev) {
         
         _fasEnable();
         
+        _stopOscillators();
+        
         _disconnectScriptNode();
     } else {
         document.getElementById("fs_fas_status").style = "display: none";
@@ -18447,6 +18740,29 @@ var _toggleDetachCodeEditor = function (toggle_ev) {
         
         _code_editor_element.style.display = "";
     }
+};
+
+var _showSpectrumDialog = function () {
+    var analysis_dialog_content = document.getElementById(_analysis_dialog_id).childNodes[2];
+    
+    _analysis_canvas = document.createElement("canvas");
+    _analysis_canvas_ctx = _analysis_canvas.getContext('2d');
+    
+    _analysis_canvas_tmp = document.createElement("canvas");
+    _analysis_canvas_tmp_ctx = _analysis_canvas_tmp.getContext('2d');
+    
+    _analysis_canvas.width = 380;
+    _analysis_canvas.height = 380;
+    
+    _analysis_canvas_tmp.width = _analysis_canvas.width;
+    _analysis_canvas_tmp.height = _analysis_canvas.height;
+    
+    analysis_dialog_content.innerHTML = "";
+    analysis_dialog_content.appendChild(_analysis_canvas);
+    
+    _connectAnalyserNode();
+    
+    WUI_Dialog.open(_analysis_dialog);
 };
 
 /***********************************************************
@@ -18599,7 +18915,24 @@ var _uiInit = function () {
     settings_ck_lnumbers_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_xscrollbar_elem.dispatchEvent(new UIEvent('change'));  
 
+    _analysis_dialog = WUI_Dialog.create(_analysis_dialog_id, {
+            title: "Audio analysis",
 
+            width: "380px",
+            height: "380px",
+
+            halign: "center",
+            valign: "center",
+
+            open: false,
+
+            status_bar: false,
+            detachable: false,
+            draggable: true,
+        
+            on_close: _disconnectAnalyserNode
+        });
+    
     _help_dialog = WUI_Dialog.create(_help_dialog_id, {
             title: "Fragment - Help",
 
@@ -18765,6 +19098,11 @@ var _uiInit = function () {
                     toggle_state: _xyf_grid,
                     on_click: _toggleGridInfos,
                     tooltip: "Hide/Show mouse hover axis grid"
+                },
+                {
+                    icon: "fs-spectrum-icon",
+                    on_click: _showSpectrumDialog,
+                    tooltip: "Audio analysis dialog"
                 },
                 {
                     icon: "fs-code-icon",

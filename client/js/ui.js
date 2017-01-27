@@ -24,6 +24,9 @@ var _icon_class = {
     _help_dialog_id = "fs_help_dialog",
     _help_dialog,
     
+    _analysis_dialog_id = "fs_analysis_dialog",
+    _analysis_dialog,
+    
     _send_slices_settings_timeout,
     _add_slice_timeout,
     _remove_slice_timeout,
@@ -1159,6 +1162,8 @@ var _toggleFas = function (toggle_ev) {
         
         _fasEnable();
         
+        _stopOscillators();
+        
         _disconnectScriptNode();
     } else {
         document.getElementById("fs_fas_status").style = "display: none";
@@ -1189,6 +1194,29 @@ var _toggleDetachCodeEditor = function (toggle_ev) {
         
         _code_editor_element.style.display = "";
     }
+};
+
+var _showSpectrumDialog = function () {
+    var analysis_dialog_content = document.getElementById(_analysis_dialog_id).childNodes[2];
+    
+    _analysis_canvas = document.createElement("canvas");
+    _analysis_canvas_ctx = _analysis_canvas.getContext('2d');
+    
+    _analysis_canvas_tmp = document.createElement("canvas");
+    _analysis_canvas_tmp_ctx = _analysis_canvas_tmp.getContext('2d');
+    
+    _analysis_canvas.width = 380;
+    _analysis_canvas.height = 380;
+    
+    _analysis_canvas_tmp.width = _analysis_canvas.width;
+    _analysis_canvas_tmp.height = _analysis_canvas.height;
+    
+    analysis_dialog_content.innerHTML = "";
+    analysis_dialog_content.appendChild(_analysis_canvas);
+    
+    _connectAnalyserNode();
+    
+    WUI_Dialog.open(_analysis_dialog);
 };
 
 /***********************************************************
@@ -1341,7 +1369,24 @@ var _uiInit = function () {
     settings_ck_lnumbers_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_xscrollbar_elem.dispatchEvent(new UIEvent('change'));  
 
+    _analysis_dialog = WUI_Dialog.create(_analysis_dialog_id, {
+            title: "Audio analysis",
 
+            width: "380px",
+            height: "380px",
+
+            halign: "center",
+            valign: "center",
+
+            open: false,
+
+            status_bar: false,
+            detachable: false,
+            draggable: true,
+        
+            on_close: _disconnectAnalyserNode
+        });
+    
     _help_dialog = WUI_Dialog.create(_help_dialog_id, {
             title: "Fragment - Help",
 
@@ -1507,6 +1552,11 @@ var _uiInit = function () {
                     toggle_state: _xyf_grid,
                     on_click: _toggleGridInfos,
                     tooltip: "Hide/Show mouse hover axis grid"
+                },
+                {
+                    icon: "fs-spectrum-icon",
+                    on_click: _showSpectrumDialog,
+                    tooltip: "Audio analysis dialog"
                 },
                 {
                     icon: "fs-code-icon",

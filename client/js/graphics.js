@@ -156,6 +156,61 @@ var _transformData = function (slice_obj, data) {
     }
 };
 
+var _drawTimeDomainSpectrum = function () {
+    var times = new Uint8Array(_analyser_node.frequencyBinCount),
+        bar_width = _analysis_canvas.width / times.length,
+        value = 0,
+        bar_height = 0,
+        i = 0;
+    
+    _analyser_node.getByteTimeDomainData(times);
+
+    _analysis_canvas_ctx.fillStyle = 'black';
+    
+    for (i = 0; i < times.length; i += 1) {
+        bar_height = _analysis_canvas.height * (times[i] / 256);
+
+        _analysis_canvas_ctx.fillRect(i * bar_width, _analysis_canvas.height - bar_height - 1, 1, 1);
+    }
+};
+
+var _drawSpectrum = function () {
+    if (_is_analyser_node_connected) {
+        var freq = new Uint8Array(_analyser_node.frequencyBinCount),
+            value = 0,
+            y = 0,
+            i = 0;
+        
+        _analyser_node.getByteFrequencyData(freq);
+
+        _analysis_canvas_tmp_ctx.drawImage(_analysis_canvas, 0, 0, _analysis_canvas.width, _analysis_canvas.height);
+
+        for (i = 0; i < freq.length; i += 1) {
+            if (_analysis_log_scale) {
+                value = freq[_logScale(i, freq.length)];
+            } else {
+                value = freq[i];
+            }
+            
+            if (_analysis_colored) {
+                _analysis_canvas_ctx.fillStyle = _getColorFromPalette(value);
+            } else {
+                value = (255 - value) + '';
+                _analysis_canvas_ctx.fillStyle = 'rgb(' + value + ',' + value + ',' + value + ')';
+            }
+            
+            y = Math.round(i / freq.length * _analysis_canvas.height);
+            
+            _analysis_canvas_ctx.fillRect(_analysis_canvas.width - _analysis_speed, _analysis_canvas.height - y, _analysis_speed, _analysis_speed);
+        }
+
+        _analysis_canvas_ctx.translate(-_analysis_speed, 0);
+        _analysis_canvas_ctx.drawImage(_analysis_canvas, 0, 0, _analysis_canvas.width, _analysis_canvas.height, 0, 0, _analysis_canvas.width, _analysis_canvas.height);
+
+        _analysis_canvas_ctx.setTransform(1, 0, 0, 1, 0, 0);
+    }  
+};
+
 var _frame = function (raf_time) {
     var i = 0, j = 0,
 
@@ -289,6 +344,8 @@ var _frame = function (raf_time) {
 
         _osc_infos.innerHTML = c;
     }
+    
+    _drawSpectrum();
 
     _raf = window.requestAnimationFrame(_frame);
 };

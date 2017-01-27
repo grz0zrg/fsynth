@@ -199,6 +199,16 @@ var FragmentSynth = new (function () {
         _data = new Uint8Array(_canvas_height_mul4),
         _temp_data = new Uint8Array(_canvas_height_mul4),
 
+        _analysis_canvas,
+        _analysis_canvas_ctx,
+        
+        _analysis_canvas_tmp,
+        _analysis_canvas_tmp_ctx,
+        
+        _analysis_log_scale = true,
+        _analysis_colored = true,
+        _analysis_speed = 2,
+        
         _midi_out_f,
         _midi_out = true,
 

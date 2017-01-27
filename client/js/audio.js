@@ -5,7 +5,13 @@
     Fields.
 ************************************************************/
 
-var _audio_context = new window.AudioContext(),
+var _FS_WAVETABLE = 0,
+    _FS_OSC_NODES = 1,
+    
+    _audio_context = new window.AudioContext(),
+    
+    _analyser_node = _audio_context.createAnalyser(),
+    _analyser_fftsize = 16384,
     
     _sample_rate = _audio_context.sampleRate,
     
@@ -30,7 +36,12 @@ var _audio_context = new window.AudioContext(),
             return wavetable;
         })(_wavetable_size),
     
+    _osc_mode = _FS_OSC_NODES,
+    
     _oscillators,
+    
+    _periodic_wave = [],
+    _periodic_wave_n = 16,
 
     _note_time = 1 / _fps,
     _note_time_samples = Math.round(_note_time * _sample_rate),
@@ -57,6 +68,7 @@ var _audio_context = new window.AudioContext(),
         },
     
     _is_script_node_connected = false,
+    _is_analyser_node_connected = false,
     
     _mst_gain_node,
     _script_node;
@@ -65,11 +77,23 @@ var _audio_context = new window.AudioContext(),
     Functions.
 ************************************************************/
 
-var _createGainNode = function (dst) {
+var _createGainNode = function (dst, channel) {
     var gain_node = _audio_context.createGain();
-    gain_node.connect(dst);
+    gain_node.gain.value = 0.0;
+    if (channel) {
+        gain_node.connect(dst, 0, channel);
+    } else {
+        gain_node.connect(dst);
+    }
 
     return gain_node;
+};
+
+var _createMergerNode = function (dst) {
+    var merger_node = _audio_context.createChannelMerger(2);
+    merger_node.connect(dst);
+
+    return merger_node;
 };
 
 var _getOscillator = function (y) {
@@ -90,10 +114,35 @@ var _getFrequency = function (y) {
     return osc.freq;
 };
 
+var _generatePeriodicWaves = function (n) {
+    var real   = new Float32Array(2),
+        imag   = new Float32Array(2),
+        a1     = 0.0,
+        b1     = 1.0,
+        offset = 0.0,
+        step   = 1.0 / n,
+        i      = 0;
+    
+    _periodic_wave = [];
+    
+    for (i = 0; i <= n; i += 1) {
+        offset = 2 * Math.PI * (step * i);
+        real[1] = a1 * Math.cos(offset) - b1 * Math.sin(offset);
+        imag[1] = a1 * Math.sin(offset) + b1 * Math.cos(offset);
+
+        _periodic_wave.push(_audio_context.createPeriodicWave(real, imag));
+    }
+    
+    _periodic_wave_n = n - 1;
+};
+
 var _generateOscillatorSet = function (n, base_frequency, octaves) {
     var y = 0,
         frequency = 0.0,
         phase_step = 0.0,
+        merger_node = null,
+        gain_node_l = null,
+        gain_node_r = null,
         octave_length = n / octaves;
 
     _oscillators = [];
@@ -101,10 +150,25 @@ var _generateOscillatorSet = function (n, base_frequency, octaves) {
     for (y = n; y >= 0; y -= 1) {
         frequency = base_frequency * Math.pow(2, y / octave_length);
         phase_step = frequency / _audio_context.sampleRate * _wavetable_size;
+        
+        merger_node = _createMergerNode(_mst_gain_node);
+        gain_node_l = _createGainNode(merger_node, 0);
+        gain_node_r = _createGainNode(merger_node, 1);
 
         var osc = {
             freq: frequency,
+            
+            // WebAudio periodic waves
+            gain_node_l: gain_node_l,
+            gain_node_r: gain_node_r,
+            merger_node: merger_node,
+            period: 1.0 / frequency,
+            gain_l: 0,
+            gain_r: 0,
+            node: null,
+            create_node_again: true,
 
+            // wavetable
             phase_index: Math.random() * _wavetable_size, 
             phase_step: phase_step
         };
@@ -117,23 +181,107 @@ var _generateOscillatorSet = function (n, base_frequency, octaves) {
     _audio_infos.octaves = octaves;
 };
 
+var _stopOscillators = function () {
+    var osc = null,
+        i = 0;
+    
+    for (i = 0; i < _oscillators.length; i += 1) {
+        osc = _oscillators[i];
+        if (osc.node) {
+            osc.node.stop(_audio_context.currentTime + 0.5);
+        }
+        /*
+        if (osc.node_r) {
+            osc.node_r.stop(_audio_context.currentTime + 0.5);
+        }*/
+    }
+};
+
+var _playSlice = function (pixels_data) {
+    var data_length = pixels_data.length,
+        audio_ctx_curr_time = _audio_context.currentTime,
+        time_samples = audio_ctx_curr_time * _audio_context.sampleRate,
+        fade_factor = 0.25,
+        osc = null,
+        l = 0,
+        r = 0,
+        y = _oscillators.length - 1,
+        i = 0;
+    
+    for (i = 0; i < data_length; i += 4) {
+        l = pixels_data[i];
+        r = pixels_data[i + 1];
+        osc = _oscillators[y];
+        
+        if (l === 0) {
+            osc.gain_node_l.gain.setTargetAtTime(0.0, audio_ctx_curr_time, fade_factor);
+            
+            if (r === 0 && osc.node) {
+                osc.node.stop(audio_ctx_curr_time + 0.5);
+                osc.create_node_again = true;
+            }
+        } else {
+            osc.gain_node_l.gain.setTargetAtTime(l / 255.0, audio_ctx_curr_time, fade_factor);
+        }
+        
+        if (r === 0) {
+            osc.gain_node_r.gain.setTargetAtTime(0.0, audio_ctx_curr_time, fade_factor);
+        } else {
+            osc.gain_node_r.gain.setTargetAtTime(r / 255.0, audio_ctx_curr_time, fade_factor);
+        }
+        
+        if (l !== 0 || r !== 0) {
+            if (osc.create_node_again) {
+                osc.node = _audio_context.createOscillator();
+
+                // (n + 0.5) | 0 -> Math.round
+                osc.node.setPeriodicWave(_periodic_wave[Math.round((time_samples % osc.period) / osc.period * _periodic_wave_n)]);
+                
+                osc.node.frequency.value = osc.freq;
+
+                osc.node.connect(osc.gain_node_l);
+                osc.node.connect(osc.gain_node_r);
+                osc.node.onended = (function (osc_y) {
+                    return function () {
+                        var osc_ = _oscillators[y];
+                        if (osc.node) {
+                            osc_.node.disconnect();
+                            osc_.node = null;
+                        }
+                    };
+                })(y);
+                
+                osc.node.start();
+                
+                osc.create_node_again = false;
+            }
+        }
+
+        y -= 1;
+    }
+};
+
 var _notesWorkerAvailable = function () {
     return _notes_worker_available;
 };
 
-var _notesProcessing = function (arr, prev_arr) {    
+var _notesProcessing = function (arr, prev_arr) {   
     var worker_obj,
         
         i = 0;
+    
+    if (_osc_mode === _FS_WAVETABLE) {
+        if (_notes_worker_available) {
+            _notes_worker.postMessage({
+                    score_height: _canvas_height,
+                    data: arr.buffer,
+                    prev_data: prev_arr.buffer
+                }, [arr.buffer, prev_arr.buffer]);
 
-    if (_notes_worker_available) {
-        _notes_worker.postMessage({
-                score_height: _canvas_height,
-                data: arr.buffer,
-                prev_data: prev_arr.buffer
-            }, [arr.buffer, prev_arr.buffer]);
-
-        _notes_worker_available = false;
+            _notes_worker_available = false;
+        }
+    } else if (_osc_mode === _FS_OSC_NODES) {
+        _playSlice(arr);
     }
 };
 
@@ -220,6 +368,22 @@ var _audioProcess = function (audio_processing_event) {
     _curr_sample = curr_sample;
 };
 
+var _connectAnalyserNode = function () {
+    if (!_is_analyser_node_connected) {
+        _mst_gain_node.connect(_analyser_node);
+        
+        _is_analyser_node_connected = true;
+    }
+}
+
+var _disconnectAnalyserNode = function () {
+    if (_is_analyser_node_connected) {
+        _mst_gain_node.disconnect(_analyser_node);
+        
+        _is_analyser_node_connected = false;
+    }
+};
+
 var _connectScriptNode = function () {
     if (_script_node && !_is_script_node_connected) {
         _script_node.connect(_mst_gain_node);
@@ -231,7 +395,7 @@ var _connectScriptNode = function () {
 var _disconnectScriptNode = function () {
     if (_script_node && _is_script_node_connected) {
         _script_node.disconnect(_mst_gain_node);
-        
+
         _is_script_node_connected = false;
     }
 };
@@ -265,21 +429,25 @@ var _enableNotesProcessing = function () {
 ************************************************************/
 
 var _audioInit = function () {
-    _generateOscillatorSet(_canvas_height, 16.34, 10);
-
     _mst_gain_node = _createGainNode(_audio_context.destination);
     _setGain(_volume);
+    
+    _generateOscillatorSet(_canvas_height, 16.34, 10);
+    _generatePeriodicWaves(16);
 
     _script_node = _audio_context.createScriptProcessor(0, 0, 2);
     _script_node.onaudioprocess = _audioProcess;
 
-    if (!_fasEnabled()) {
+    if (!_fasEnabled() && _osc_mode === _FS_WAVETABLE) {
         _script_node.connect(_mst_gain_node);
         
         _is_script_node_connected = true;
     }
 
-    // workaround, webkit bug
+    _analyser_node.smoothingTimeConstant = 0;
+    _analyser_node.fftSize = _analyser_fftsize;
+
+    // workaround, webkit bug ?
     window._fs_sn = _script_node;
 
     _notes_worker.addEventListener('message', function (w) {

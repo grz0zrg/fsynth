@@ -1,5 +1,18 @@
 /* jslint browser: true */
 
+var _fs_palette = {
+        0:   [0, 0, 0],
+        10:  [75, 0, 159],
+        20:  [104, 0, 251],
+        30:  [131, 0, 255],
+        40:  [155, 18,157],
+        50:  [175, 37, 0],
+        60:  [191, 59, 0],
+        70:  [206, 88, 0],
+        80:  [223, 132, 0],
+        90:  [240, 188, 0],
+        100: [255, 252, 0]
+    };
 
 /***********************************************************
     Functions.
@@ -40,6 +53,43 @@ var _getElementOffset = function (elem) {
         left = box.left + scrollLeft - clientLeft;
 
     return { top: Math.round(top), left: Math.round(left), width: box.width, height: box.height };
+};
+
+var _logScale = function (index, total, opt_base) {
+    var base = opt_base || 2, 
+        logmax = Math.log(total + 1) / Math.log(base),
+        exp = logmax * index / total;
+    
+    return Math.round(Math.pow(base, exp) - 1);
+};
+
+var _getColorFromPalette = function (value) {
+    var decimalised = 100 * value / 255,
+        percent = decimalised / 100,
+        floored = 10 * Math.floor(decimalised / 10),
+        distFromFloor = decimalised - floored,
+        distFromFloorPercentage = distFromFloor/10,
+        rangeToNextColor,
+        color;
+    
+    if (decimalised < 100){
+        rangeToNextColor = [
+            _fs_palette[floored + 10][0] - _fs_palette[floored + 10][0],
+            _fs_palette[floored + 10][1] - _fs_palette[floored + 10][1],
+            _fs_palette[floored + 10][2] - _fs_palette[floored + 10][2]
+        ];
+    } else {
+        rangeToNextColor = [0, 0, 0];
+    }
+
+    color = [
+        _fs_palette[floored][0] + distFromFloorPercentage * rangeToNextColor[0],
+        _fs_palette[floored][1] + distFromFloorPercentage * rangeToNextColor[1],
+        _fs_palette[floored][2] + distFromFloorPercentage * rangeToNextColor[2]
+    ];
+
+
+    return "rgb(" + color[0] +", "+color[1] +"," + color[2]+")";
 };
 
 // thank to Nick Knowlson - http://stackoverflow.com/questions/4912788/truncate-not-round-off-decimal-numbers-in-javascript

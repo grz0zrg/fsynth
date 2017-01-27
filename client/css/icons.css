@@ -22,6 +22,10 @@
     background-image: url("../data/ui-icons/record.png");
 }
 
+.fs-spectrum-icon {
+    background-image: url("../data/ui-icons/spectrum.png");
+}
+
 .fs-cross-45-icon {
     background-image: url("../data/ui-icons/cross45.png");
 }

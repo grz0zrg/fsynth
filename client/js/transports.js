@@ -4,6 +4,7 @@
 var _pause = function () {
     window.cancelAnimationFrame(_raf);
 
+    _stopOscillators();
     _disconnectScriptNode();
 
     _fs_state = 1;
@@ -46,6 +47,8 @@ var _rewind = function () {
 };
 
 var _stop = function () {
+    _stopOscillators();
+    
     window.cancelAnimationFrame(_raf);
 
     _disconnectScriptNode();

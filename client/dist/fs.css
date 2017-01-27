@@ -894,6 +894,10 @@ span.CodeMirror-selectedtext { background: none; }
     background-image: url("../data/ui-icons/record.png");
 }
 
+.fs-spectrum-icon {
+    background-image: url("../data/ui-icons/spectrum.png");
+}
+
 .fs-cross-45-icon {
     background-image: url("../data/ui-icons/cross45.png");
 }
@@ -1220,7 +1224,7 @@ canvas {
 }
 
 .fs-input-panel {
-    width: calc(100% - 498px - 16px);
+    width: calc(100% - 534px - 16px);
     height: 32px;
 /*    
     background-color: #111111;
@@ -1496,7 +1500,7 @@ canvas {
 }
 
 .fs-middle-toolbar {
-    width: 498px;
+    width: 534px;
     
     margin: 0;
     
