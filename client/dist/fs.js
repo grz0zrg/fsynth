@@ -15775,6 +15775,7 @@ var _stopOscillators = function () {
         if (osc.node) {
             osc.node.disconnect();
             osc.node.stop(_audio_context.currentTime + 0.01);
+            osc.used = false;
         }
     }
 };
