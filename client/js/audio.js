@@ -37,6 +37,7 @@ var _FS_WAVETABLE = 0,
         })(_wavetable_size),
     
     _osc_mode = _FS_OSC_NODES,
+    _osc_fadeout = 0.25,
     
     _oscillators,
     
@@ -166,7 +167,7 @@ var _generateOscillatorSet = function (n, base_frequency, octaves) {
             gain_l: 0,
             gain_r: 0,
             node: null,
-            create_node_again: true,
+            used: false,
 
             // wavetable
             phase_index: Math.random() * _wavetable_size, 
@@ -188,12 +189,33 @@ var _stopOscillators = function () {
     for (i = 0; i < _oscillators.length; i += 1) {
         osc = _oscillators[i];
         if (osc.node) {
-            osc.node.stop(_audio_context.currentTime + 0.5);
+            osc.node.disconnect();
+            osc.node.stop(_audio_context.currentTime + 0.01);
         }
-        /*
-        if (osc.node_r) {
-            osc.node_r.stop(_audio_context.currentTime + 0.5);
-        }*/
+    }
+};
+
+var _onOscillatorEnded = function () {
+    this.node = null;
+};
+
+var _playOscillator = function (osc_obj, ts) {
+    if (!osc_obj.used) {
+        var osc_node = _audio_context.createOscillator();
+
+        osc_node.setPeriodicWave(_periodic_wave[Math.round((ts % osc_obj.period) / osc_obj.period * _periodic_wave_n)]);
+
+        osc_node.frequency.value = osc_obj.freq;
+
+        osc_node.connect(osc_obj.gain_node_l);
+        osc_node.connect(osc_obj.gain_node_r);
+        osc_node.onended = _onOscillatorEnded;
+
+        osc_node.start();
+        
+        osc_obj.node = osc_node;
+        
+        osc_obj.used = true;
     }
 };
 
@@ -201,7 +223,6 @@ var _playSlice = function (pixels_data) {
     var data_length = pixels_data.length,
         audio_ctx_curr_time = _audio_context.currentTime,
         time_samples = audio_ctx_curr_time * _audio_context.sampleRate,
-        fade_factor = 0.25,
         osc = null,
         l = 0,
         r = 0,
@@ -214,47 +235,25 @@ var _playSlice = function (pixels_data) {
         osc = _oscillators[y];
         
         if (l === 0) {
-            osc.gain_node_l.gain.setTargetAtTime(0.0, audio_ctx_curr_time, fade_factor);
-            
-            if (r === 0 && osc.node) {
-                osc.node.stop(audio_ctx_curr_time + 0.5);
-                osc.create_node_again = true;
-            }
+            osc.gain_node_l.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
         } else {
-            osc.gain_node_l.gain.setTargetAtTime(l / 255.0, audio_ctx_curr_time, fade_factor);
+            osc.gain_node_l.gain.setTargetAtTime(l / 255.0, audio_ctx_curr_time, _osc_fadeout);
+            
+            _playOscillator(osc, time_samples);
         }
         
         if (r === 0) {
-            osc.gain_node_r.gain.setTargetAtTime(0.0, audio_ctx_curr_time, fade_factor);
+            osc.gain_node_r.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
         } else {
-            osc.gain_node_r.gain.setTargetAtTime(r / 255.0, audio_ctx_curr_time, fade_factor);
+            osc.gain_node_r.gain.setTargetAtTime(r / 255.0, audio_ctx_curr_time, _osc_fadeout);
+            
+            _playOscillator(osc, time_samples);
         }
         
-        if (l !== 0 || r !== 0) {
-            if (osc.create_node_again) {
-                osc.node = _audio_context.createOscillator();
-
-                // (n + 0.5) | 0 -> Math.round
-                osc.node.setPeriodicWave(_periodic_wave[Math.round((time_samples % osc.period) / osc.period * _periodic_wave_n)]);
-                
-                osc.node.frequency.value = osc.freq;
-
-                osc.node.connect(osc.gain_node_l);
-                osc.node.connect(osc.gain_node_r);
-                osc.node.onended = (function (osc_y) {
-                    return function () {
-                        var osc_ = _oscillators[y];
-                        if (osc.node) {
-                            osc_.node.disconnect();
-                            osc_.node = null;
-                        }
-                    };
-                })(y);
-                
-                osc.node.start();
-                
-                osc.create_node_again = false;
-            }
+        if (osc.gain_node_r.gain.value === 0 && 
+            osc.gain_node_l.gain.value === 0 && osc.node) {
+            osc.node.stop(audio_ctx_curr_time + 0.1);
+            osc.used = false;
         }
 
         y -= 1;

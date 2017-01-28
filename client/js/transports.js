@@ -23,7 +23,7 @@ var _play = function () {
         return;
     }
 
-    if (!_fasEnabled()) {
+    if (!_fasEnabled() && _osc_mode === _FS_WAVETABLE) {
         _connectScriptNode();
     }
 

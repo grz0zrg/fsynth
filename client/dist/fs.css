@@ -1263,12 +1263,16 @@ canvas {
     font-size: 10pt;
 }
 
-.fs-ck-label {
+.fs-ck-container {
     color: #ffffff;
     display: inline-block;
     text-align: right;
-    width: 300px;
+    width: 150px;
     font-size: 10pt;
+}
+
+.fs-ck-label {
+    width: inherit;
 }
 
 .fs-ck-label div {
