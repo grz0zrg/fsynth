@@ -286,6 +286,8 @@ var FragmentSynth = new (function () {
         }
 
         _disableNotesProcessing();
+        
+        _stopOscillators();
 
         if (update_obj.height) {
             _canvas_height = update_obj.height;

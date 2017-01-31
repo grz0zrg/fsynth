@@ -15625,6 +15625,8 @@ var _FS_WAVETABLE = 0,
     
     _oscillators,
     
+    _stop_oscillators_timeout,
+
     _periodic_wave = [],
     _periodic_wave_n = 16,
 
@@ -15766,18 +15768,51 @@ var _generateOscillatorSet = function (n, base_frequency, octaves) {
     _audio_infos.octaves = octaves;
 };
 
-var _stopOscillators = function () {
+var _stopOscillatorsCheck = function () {
     var osc = null,
+        r = 0,
+        l = 0,
         i = 0;
     
     for (i = 0; i < _oscillators.length; i += 1) {
         osc = _oscillators[i];
         if (osc.node) {
-            osc.node.disconnect();
-            osc.node.stop(_audio_context.currentTime + 0.01);
-            osc.used = false;
+            r += osc.gain_node_r.gain.value;
+            l += osc.gain_node_l.gain.value;
         }
     }
+    
+    if (r < 0.05 && l < 0.05) { // this may be unsafe!
+        for (i = 0; i < _oscillators.length; i += 1) {
+            osc = _oscillators[i];
+            if (osc.node) {
+                osc.node.stop(_audio_context.currentTime);
+                osc.node.disconnect();
+                osc.used = false;
+            }
+        }
+    } else {
+        window.clearTimeout(_stop_oscillators_timeout);
+        _stop_oscillators_timeout = window.setTimeout(_stopOscillatorsCheck, 2000);
+    }
+};
+
+var _stopOscillators = function () {
+    var osc = null,
+        audio_ctx_curr_time = _audio_context.currentTime,
+        i = 0;
+    
+    for (i = 0; i < _oscillators.length; i += 1) {
+        osc = _oscillators[i];
+        if (osc.node) {
+            osc.gain_node_l.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
+            osc.gain_node_r.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
+        }
+    }
+    
+    // osc. gain values will be checked to stop them cleanly
+    window.clearTimeout(_stop_oscillators_timeout);
+    _stop_oscillators_timeout = window.setTimeout(_stopOscillatorsCheck, 2000);
 };
 
 var _onOscillatorEnded = function () {
@@ -15787,6 +15822,8 @@ var _onOscillatorEnded = function () {
 var _playOscillator = function (osc_obj, ts) {
     if (!osc_obj.used) {
         var osc_node = _audio_context.createOscillator();
+        
+        osc_obj.node = osc_node;
 
         osc_node.setPeriodicWave(_periodic_wave[Math.round((ts % osc_obj.period) / osc_obj.period * _periodic_wave_n)]);
 
@@ -15797,8 +15834,6 @@ var _playOscillator = function (osc_obj, ts) {
         osc_node.onended = _onOscillatorEnded;
 
         osc_node.start();
-        
-        osc_obj.node = osc_node;
         
         osc_obj.used = true;
     }
@@ -15835,8 +15870,8 @@ var _playSlice = function (pixels_data) {
             _playOscillator(osc, time_samples);
         }
         
-        if (osc.gain_node_r.gain.value === 0 && 
-            osc.gain_node_l.gain.value === 0 && osc.node) {
+        if (osc.gain_node_r.gain.value < 0.05 && // this may be unsafe!
+            osc.gain_node_l.gain.value < 0.05 && osc.node) {
             osc.node.stop(audio_ctx_curr_time + 0.1);
             osc.used = false;
         }
@@ -19461,6 +19496,8 @@ _fas.worker.addEventListener('message', function (m) {
         }
 
         _disableNotesProcessing();
+        
+        _stopOscillators();
 
         if (update_obj.height) {
             _canvas_height = update_obj.height;

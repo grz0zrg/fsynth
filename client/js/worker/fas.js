@@ -33,7 +33,7 @@ var _getAudioInfosBuffer = function (audio_infos) {
         audio_infos.base_freq <= 0) {
         return;
     }
-    
+
     var audio_infos_buffer = new ArrayBuffer(8 + 4 + 4 + 8),
         uint8_view = new Uint8Array(audio_infos_buffer, 0, 1),
         uint32_view = new Uint32Array(audio_infos_buffer, 8, 2),
@@ -55,7 +55,7 @@ var _getGainBuffer = function (audio_infos) {
 
     uint8_view[0] = 2;
     float64_view[0] = audio_infos.gain;
-    
+
     return gain_buffer;
 };
 
@@ -97,7 +97,7 @@ var _sendFrame = function (frame) {
     if (_fas_ws.readyState !== 1) {
         return;
     }
-    
+
     var frame_data = new Uint8Array(frame),
         fas_data = new Uint8Array(8 + frame_data.length);
 
@@ -152,19 +152,19 @@ var _connect = function (audio_infos) {
 
 self.onmessage = function (m) {
     "use strict";
-    
+
     var data = m.data,
-        
+
         cmd = data.cmd,
         arg = data.arg;
-    
+
     if (cmd === _FAS_ENABLE) {
         _fas = true;
-        
+
         _connect(arg);
     } else if (cmd === _FAS_DISABLE) {
         _fas = false;
-        
+
         _disconnect();
     } else if (cmd === _FAS_AUDIO_INFOS) {
         _sendAudioInfos(arg);

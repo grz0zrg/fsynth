@@ -2,19 +2,19 @@
 <html lang="en" >
     <head>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8">
-        
+
         <meta name="Keywords" content="fragment, spectral synthesizer, computer graphics, rendering, realtime, shader, webgl, glsl, additive synthesizert, synth, fsynth, real-time, collaborative, visuals, art, musical, instrument, musique concrète">
         <meta name="Description" content="Web-based collaborative spectral musical instrument driven by real-time visuals from shared GLSL scripts.">
         <meta name="Author" content="Julien Verneuil">
-        
+
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-        
+
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:site" content="@fsynth" />
         <meta name="twitter:title" content="Fragment Synthesizer" />
         <meta name="twitter:description" content="The Collaborative Spectral Synthesizer" />
         <meta name="twitter:image" content="https://www.fsynth.com/data/logo.png"/>
-        
+
         <meta property="og:url" content="https://www.fsynth.com" />
         <meta property="og:type" content="website" />
         <meta property="og:title" content="Fragment Synthesizer" />
@@ -23,11 +23,11 @@
         <meta property="og:image:secure_url" content="https://www.fsynth.com/data/logo.png" />
 
         <link rel="shortcut icon" type="image/png" href="favicon.png" />
-        
+
         <link rel="stylesheet" type="text/css" href="dist/fp.min.css"/>
-        
+
         <script type="text/javascript" src="dist/fp.min.js"></script>
-        
+
         <script>
           (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
           (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -52,7 +52,7 @@
                 <div class="row fp-title">
                     <div class="u-max-full-width column" style="text-align: center;">
                         <h4 class="hero-heading">
-                            
+
                         </h4>
                     </div>
                 </div>
@@ -144,10 +144,10 @@
                         </h5>
                         <hr/>
                         <p class="value-description">
-                            Fragment use the Web Audio API, the realtime audio synthesis is running in the same thread as the application, this impact the audio performances alot... and may result in unwanted crackles.
+                            Fragment use the Web Audio API, it need a fast CPU for the audio synthesis and a fast GPU for the visuals, unwanted crackles may happen.
                         </p>
                         <p class="value-description">
-                            As a solution, a fast native application is available which is essentially a C port of the synthesis engine, it receive pixels data from the application on localhost port 3003, once executed you can enable the native audio option (the waveform icon) from the web application to enjoy a smooth crackle-free audio experience, the application can be downloaded as a statically linked binary for these platforms :
+                            As a solution for slow CPU, a fast native application is available which is essentially a C port of the synthesis engine, it receive pixels data from the application on localhost port 3003, once executed you can enable the native audio option (the waveform icon) from the web application to enjoy a smooth crackle-free audio experience, the application can be downloaded as a statically linked binary for these platforms :
                         </p>
                         <table class="fp-dl-table u-full-width">
                             <thead>
@@ -185,6 +185,20 @@
                                         </a>
                                     </td>
                                 </tr>
+                                <tr>
+                                    <td>
+                                        14ae0656b90832f6ae71059653b5f64b
+                                    </td>
+                                    <td>
+                                        <a href="https://www.raspberrypi.org/"><img width="30" src="data/raspberry-pi-logo.png"/> Raspberry Pi</a>
+                                    </td>
+
+                                    <td class="fp-download">
+                                        <a href="dl/fas-raspberry-pi.tar.gz">
+                                            <i class="fa fa-download" aria-hidden="true"></i>
+                                        </a>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                         <p class="value-description u-pull-left fp-small-text">
@@ -205,7 +219,7 @@
         </div>
         <div class="fp-footer">
             <div class="container">
-                <div class="row">   
+                <div class="row">
                     <a href="https://github.com/grz0zrg/fsynth" style="font-size: 24px;"><i class="fa fa-github-alt" aria-hidden="true"></i></a>
                     <br/><br/>
                     Fragment © 2016 Julien Verneuil
