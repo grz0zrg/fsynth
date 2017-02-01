@@ -1,6 +1,6 @@
-# [Fragment - The Collaborative Spectral Synthesizer](https://www.fsynth.com)
-
 [![Fragment](https://www.fsynth.com/data/fs_screenshot_logo.png)](https://www.fsynth.com)
+
+# [Fragment - The Collaborative Spectral Synthesizer](https://www.fsynth.com)
 
 Source code repository for the Fragment app. which can be found at : https://www.fsynth.com
 
@@ -46,13 +46,6 @@ If you want to build it by yourself, you will have to find a way to run a pre-pr
 
  * main app. directory is /home/fs/fsynth with user "fs"
  * NGINX reverse proxy for fsdb/fss, simple NGINX rules for landing page and main app.
- 
-## Social medias
-
-[Facebook](https://www.facebook.com/fsynth/)
-[YouTube](https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ)
-[Twitter](https://twitter.com/fragmentsynth)
-[SoundCloud](https://soundcloud.com/fsynth/)
 
 ## Stuff used to make this:
 
@@ -88,6 +81,16 @@ Utilities :
  * [The Anubis programming language](http://redmine.anubis-language.com/)
 
 The repository for the early proof of concept can be found [here](https://github.com/grz0zrg/fs).
+
+## Fragment on social medias
+
+[Facebook](https://www.facebook.com/fsynth/)
+
+[YouTube](https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ)
+
+[Twitter](https://twitter.com/fragmentsynth)
+
+[SoundCloud](https://soundcloud.com/fsynth/)
 
 ## License
 
