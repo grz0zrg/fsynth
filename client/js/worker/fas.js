@@ -11,8 +11,7 @@
     Fields.
 ************************************************************/
 
-var _fas_address = "127.0.0.1:3003",
-    _fas = false,
+var _fas = false,
     _fas_timeout,
     _fas_ws,
 
@@ -119,8 +118,8 @@ var _disconnect = function () {
     clearTimeout(_fas_timeout);
 };
 
-var _connect = function (audio_infos) {
-    _fas_ws = new WebSocket("ws://" + _fas_address);
+var _connect = function (opts) {
+    _fas_ws = new WebSocket("ws://" + opts.address);
     _fas_ws.binaryType = "arraybuffer";
 
     _fas_ws.onopen = function () {
@@ -128,8 +127,8 @@ var _connect = function (audio_infos) {
                 status: "open"
             });
 
-        _sendAudioInfos(audio_infos);
-        _sendGain(audio_infos);
+        _sendAudioInfos(opts.audio_infos);
+        _sendGain(opts.audio_infos);
     };
 
     _fas_ws.onerror = function (event) {
@@ -145,7 +144,7 @@ var _connect = function (audio_infos) {
                     });
 
                 clearTimeout(_fas_timeout);
-                _fas_timeout = setTimeout(_connect, 5000, audio_infos);
+                _fas_timeout = setTimeout(_connect, 5000, opts.audio_infos);
             }
         };
 };

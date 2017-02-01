@@ -18824,7 +18824,7 @@ var _uiInit = function () {
             title: "Session & global settings",
 
             width: "320px",
-            height: "300px",
+            height: "330px",
 
             halign: "center",
             valign: "center",
@@ -19382,16 +19382,18 @@ var _uiInit = function () {
     _utterFailRemove();
 };/* jslint browser: true */
 
-
 /***********************************************************
     Fields.
 ************************************************************/
 
 var _fas = {
+        address: "127.0.0.1:3003",
         enabled: false,
         status: null,
         worker: new Worker("js/worker/fas.js")
     },
+    
+    _fas_address_input = document.getElementById("fs_fas_address"),
     
     _FAS_ENABLE = 0,
     _FAS_DISABLE = 1,
@@ -19418,7 +19420,10 @@ var _fasNotifyFast = function (cmd, data) {
 };
 
 var _fasEnable = function () {
-    _fasNotify(_FAS_ENABLE, _audio_infos);
+    _fasNotify(_FAS_ENABLE, {
+            address: _fas.address,
+            audio_infos: _audio_infos
+        });
     
     _fas.enabled = true;
 };
@@ -19447,19 +19452,35 @@ var _fasStatus = function (status) {
     Init.
 ************************************************************/
 
-_fas.worker.addEventListener('message', function (m) {
-        var data = m.data;
+var _fasInit = function () {
+    var address = localStorage.getItem("fas-address");
+    if (address !== null) {
+        _fas.address = address;
+    }
+    
+    _fas_address_input.value = _fas.address;
+    
+    _fas_address_input.addEventListener('input', function () {
+            _fas.address = this.value;
+        
+            localStorage.setItem("fas-address", _fas.address);
+        });
+    
+    _fas.worker.addEventListener('message', function (m) {
+            var data = m.data;
 
-        if (data.status === "open") {
-            _fasStatus(true);
-        } else if (data.status === "error") {
-            _fasStatus(false);
-        } else if (data.status === "close") {
-            _fasStatus(false);
-            
-            _notification("Connection to native audio was lost, trying again in ~5s, make sure it is running!", 2500);
-        }
-    }, false);
+            if (data.status === "open") {
+                _fasStatus(true);
+            } else if (data.status === "error") {
+                _fasStatus(false);
+            } else if (data.status === "close") {
+                _fasStatus(false);
+
+                _notification("Connection to native audio was lost, trying again in ~5s, make sure it is running!", 2500);
+            }
+        }, false);
+};
+
     /***********************************************************
         Functions.
     ************************************************************/
@@ -19640,6 +19661,8 @@ _fas.worker.addEventListener('message', function (m) {
     //_addPlayPositionMarker(_canvas_width - _canvas_width / 4);
 
     _uiInit();
+    
+    _fasInit();
 
     _initNetwork();
 

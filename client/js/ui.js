@@ -1243,7 +1243,7 @@ var _uiInit = function () {
             title: "Session & global settings",
 
             width: "320px",
-            height: "300px",
+            height: "330px",
 
             halign: "center",
             valign: "center",

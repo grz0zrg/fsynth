@@ -430,6 +430,8 @@ var FragmentSynth = new (function () {
     //_addPlayPositionMarker(_canvas_width - _canvas_width / 4);
 
     _uiInit();
+    
+    _fasInit();
 
     _initNetwork();
 
