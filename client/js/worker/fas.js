@@ -144,7 +144,7 @@ var _connect = function (opts) {
                     });
 
                 clearTimeout(_fas_timeout);
-                _fas_timeout = setTimeout(_connect, 5000, opts.audio_infos);
+                _fas_timeout = setTimeout(_connect, 5000, opts);
             }
         };
 };

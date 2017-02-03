@@ -196,8 +196,8 @@ var FragmentSynth = new (function () {
             },
 
         _prev_data = new Uint8Array(_canvas_height_mul4),
-        _data = new Uint8Array(_canvas_height_mul4),
         _temp_data = new Uint8Array(_canvas_height_mul4),
+        _data = new Uint8Array(_canvas_height_mul4),
 
         _analysis_canvas,
         _analysis_canvas_ctx,
