@@ -27,9 +27,9 @@ function createWindow () {
         win = null
         fas.kill("SIGINT")
         fas.stdin.write("\x03")
-	if (process.platform !== 'darwin') {
-	    app.quit()
-	}
+        if (process.platform !== 'darwin') {
+            app.quit()
+        }
     })
 }
 
