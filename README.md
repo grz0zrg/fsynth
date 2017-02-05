@@ -30,7 +30,7 @@ Feature list:
 
 ## Build
 
-Fragment was done with a custom build system which watch for changes and include files when it read /\*#include file\*/, it was made with the functional *Anubis* programming language.
+Fragment is built with a custom build system watching for changes in real-time and which include files when it read /\*#include file\*/, it execute several programs on the output files such as code minifier for production ready usage, the build system was made with the functional *Anubis* programming language.
 
 _app_fs.\*_ and _app_cm.\*_ are the entry point files used by the build system to produce a single file and a production ready file in the *dist* directory.
 
@@ -40,12 +40,13 @@ If you want to build it by yourself, you will have to find a way to run a pre-pr
 
  * *prod_files* contain a list of files and directories that will be copied to the production system
  * *prod* is a shell script which produce an archive from *prod_files*, perform additional cleaning and unarchive over SSH
- * *setup* is a script which is executed on the server after everything has been uploaded and which configure Fragment for the system
+ * *setup* is a script which is executed on the server after everything has been uploaded and which configure Fragment for the production system
 
-## Server structure
+## Server architecture
 
  * main app. directory is /home/fs/fsynth with user "fs"
  * NGINX reverse proxy for fsdb/fss, simple NGINX rules for landing page and main app.
+ * pm2 is used as a process manager
 
 ## Stuff used to make this:
 
@@ -78,6 +79,9 @@ Utilities :
  * [libflds](http://liblfds.org/) for [fas](https://github.com/grz0zrg/fas)
  * [SimpleScreenRecorder](http://www.maartenbaert.be/simplescreenrecorder/) for videos recording
  * [KDEnlive](https://kdenlive.org/) to edit the videos
+ * [Geogebra](https://kdenlive.org/) for the logo
+ * [Inkscape](https://www.inkscape.org) for the logo and some graphics
+ * [GIMP](https://www.gimp.org/) some graphics
  * [The Anubis programming language](http://redmine.anubis-language.com/)
 
 The repository for the early proof of concept can be found [here](https://github.com/grz0zrg/fs).
@@ -102,4 +106,4 @@ The biggest inspiration for all of this was [Alexander Zolotov Virtual ANS softw
 
 Also inspired by [Shadertoy](https://www.shadertoy.com)
 
-For any questions, the main forum is available [here](https://quiet.fsynth.com/)
+For any questions, a message board is available [here](https://quiet.fsynth.com/)

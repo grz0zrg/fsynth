@@ -24,7 +24,13 @@
 /*#include resize_throttler/resize_throttler.js*/
 
 window.onload = function() {
-var FragmentSynth = new (function () {
+    "use strict";
+    
+    document.body.style.overflow = "hidden";
+    
+    /*#include electron.js*/
+    
+var FragmentSynth = function (params) {
     "use strict";
 
     /***********************************************************
@@ -34,9 +40,15 @@ var FragmentSynth = new (function () {
     /*#include notification.js*/
 
     var _getSessionName = function () {
-        var url_parts = window.location.pathname.split('/');
+        var url_parts;
+        
+        if (params.session_name) {
+            return params.session_name;
+        } else {
+            url_parts = window.location.pathname.split('/');
 
-        return url_parts[url_parts.length - 1];
+            return url_parts[url_parts.length - 1];
+        }
     };
 
     window.performance = window.performance || {};
@@ -146,6 +158,10 @@ var FragmentSynth = new (function () {
             scrollbarStyle: "native",
             mode: "text/x-glsl"
         },
+        
+        _keyboard = [],
+        _keyboard_pressed = {},
+        _polyphony_max = 8,
 
         _compile_timer,
 
@@ -442,5 +458,17 @@ var FragmentSynth = new (function () {
     window.gb_code_editor_settings = _code_editor_settings;
     window.gb_code_editor = _code_editor;
     window.gb_code_editor_theme = _code_editor_theme;
-})();
+    
+    document.body.style.overflow = "visible";
+    
+    if (params.fas) {
+        _fasEnable();
+    }
+};
+    
+    if (_electronInit()) {
+        
+    } else {
+        FragmentSynth({});
+    }
 }

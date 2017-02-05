@@ -12,6 +12,7 @@ var _FS_WAVETABLE = 0,
     
     _analyser_node = _audio_context.createAnalyser(),
     _analyser_fftsize = 16384,
+    _analyser_freq_bin,
     
     _sample_rate = _audio_context.sampleRate,
     
@@ -458,7 +459,26 @@ var _disableNotesProcessing = function () {
 var _enableNotesProcessing = function () {
     _notes_worker_available = true;
 };
+/*
+var _getByteFrequencyData = function (pixels_data) {
+    var i = 0,
+        f = 0,
+        y = 0,
+        index = 0,
+        d = new Uint8Array(_analyser_node.frequencyBinCount);
+    
+    for (i = 0; i < pixels_data.length; i += 4) {
+        f = _getFrequency(y);
 
+        index = Math.round(f / _sample_rate * _analyser_node.frequencyBinCount);
+        d[index] += (pixels_data[i] + pixels_data[i + 1]) / 2;
+        
+        y += 1;
+    }
+        
+    return d;
+};
+*/
 /***********************************************************
     Init.
 ************************************************************/
@@ -481,6 +501,7 @@ var _audioInit = function () {
 
     _analyser_node.smoothingTimeConstant = 0;
     _analyser_node.fftSize = _analyser_fftsize;
+    _analyser_freq_bin = new Uint8Array(_analyser_node.frequencyBinCount);
 
     // workaround, webkit bug ?
     window._fs_sn = _script_node;

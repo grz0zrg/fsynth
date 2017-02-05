@@ -1420,7 +1420,7 @@ var _uiInit = function () {
             title: "Fragment - Help",
 
             width: "380px",
-            height: "545px",
+            height: "615px",
 
             halign: "center",
             valign: "center",
@@ -1790,6 +1790,64 @@ var _uiInit = function () {
                     m.inputs.forEach(
                         function (midi_input) {
                             midi_input.onmidimessage = function (midi_message) {
+                                var i = 0,
+                                    key, value;
+                                
+                                switch (midi_message.data[0] & 0xf0) {
+                                    case 0x90:
+                                        if (midi_message.data[2] !== 0) { // note-on
+                                            _keyboard = new Array(16);
+                                            _keyboard.fill(0);
+                                            
+                                            _keyboard_pressed[midi_message.data[1]] = {
+                                                    frq: _frequencyFromNoteNumber(midi_message.data[1]),
+                                                    vel: midi_message.data[2]
+                                                };
+                                            
+                                            i = 0;
+                                            
+                                            for (key in _keyboard_pressed) { 
+                                                value = _keyboard_pressed[key];
+                                                
+                                                _keyboard[i] = value.frq;
+                                                _keyboard[i + 1] = value.vel;
+                                                
+                                                i += 2;
+                                                
+                                                if (i > (_polyphony_max * 2)) {
+                                                    break;
+                                                }
+                                            }
+                                            
+                                            _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 2);
+                                        }
+                                        break;
+                                        
+                                    case 0x80:
+                                        delete _keyboard_pressed[midi_message.data[1]];
+                                        
+                                        _keyboard = new Array(16);
+                                        _keyboard.fill(0);
+                                        
+                                        i = 0;
+
+                                        for (key in _keyboard_pressed) { 
+                                            value = _keyboard_pressed[key];
+
+                                            _keyboard[i] = value.frq;
+                                            _keyboard[i + 1] = value.vel;
+
+                                            i += 2;
+
+                                            if (i > (_polyphony_max * 2)) {
+                                                break;
+                                            }
+                                        }
+                                        
+                                        _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 2);
+                                        break;
+                                }
+
                                 WUI_RangeSlider.submitMIDIMessage(midi_message);
                             };
                         }

@@ -122,7 +122,7 @@ var _compile = function () {
         i = 0;
     
     // add our uniforms
-    glsl_code = "precision mediump float; uniform float globalTime; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution;";
+    glsl_code = "precision mediump float; uniform float globalTime; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec2 keyboard[" + _polyphony_max + "];";
 
     // add inputs uniforms
     for (i = 0; i < _fragment_input_data.length; i += 1) {
@@ -165,6 +165,8 @@ var _compile = function () {
         _gl.useProgram(_program);
 
         _gl.uniform2f(_gl.getUniformLocation(_program, "resolution"), _canvas.width, _canvas.height);
+        
+        _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 2);
         
         // set uniforms to value from controllers
         for(ctrl_name in _controls) { 

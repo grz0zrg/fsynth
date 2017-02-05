@@ -93,6 +93,7 @@ var _detachCodeEditor = function () {
         '<html>',
             '<head>',
                 '<title>Fragment &lt; /&gt;</title>',
+                '<meta charset="utf-8">',
                 '<meta http-equiv="content-type" content="text/html; charset=utf-8">',
                 '<link rel="stylesheet" type="text/css" href="dist/cm.min.css"/>',
                 '<script type="text/javascript" src="dist/cm.min.js" defer></script>',

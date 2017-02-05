@@ -25,11 +25,8 @@ function createWindow () {
 
     win.on('closed', () => {
         win = null
-        fas.kill("SIGINT")
         fas.stdin.write("\x03")
-        if (process.platform !== 'darwin') {
-            app.quit()
-        }
+        fas.kill("SIGINT")
     })
 }
 
@@ -47,7 +44,7 @@ function fasSpawn () {
 
         var stdout = data.toString(),
             started_result;
-        started_result = stdout.search(/started and listening on port 3003/);
+        started_result = stdout.search(/started and listening/);
         if (started_result !== -1) {
             createWindow()
         }
@@ -55,6 +52,10 @@ function fasSpawn () {
 
     fas.on('close', (code) => {
         console.log(`child process exited with code ${code}`);
+
+        if (process.platform !== 'darwin') {
+            app.quit()
+        }
     });
 }
 

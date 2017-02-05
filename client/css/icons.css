@@ -97,3 +97,11 @@
     
     margin-right: 12px;
 }
+
+.fp-trash-icon {
+    background-image: url("../data/ui-icons/trash.png");
+}
+
+.fp-join-icon {
+    background-image: url("../data/ui-icons/join.png");
+}

@@ -176,30 +176,45 @@ var _drawTimeDomainSpectrum = function () {
 
 var _drawSpectrum = function () {
     if (_is_analyser_node_connected) {
-        var freq = new Uint8Array(_analyser_node.frequencyBinCount),
+        var freq_bin_length,
+            px_index = 0,
             value = 0,
+            index = 0,
             y = 0,
             i = 0;
+    
+        if (!_fas.enabled) {
+            _analyser_node.getByteFrequencyData(_analyser_freq_bin);
+        } else { // TEMPORARY
+            return;
+        }
         
-        _analyser_node.getByteFrequencyData(freq);
+        freq_bin_length = _analyser_freq_bin.length;
 
         _analysis_canvas_tmp_ctx.drawImage(_analysis_canvas, 0, 0, _analysis_canvas.width, _analysis_canvas.height);
 
-        for (i = 0; i < freq.length; i += 1) {
-            if (_analysis_log_scale) {
-                value = freq[_logScale(i, freq.length)];
+        for (i = 0; i < freq_bin_length; i += 1) {
+            if (_fas.enabled) {
+                //index = (_getFrequency(i) / _sample_rate * _analyser_freq_bin.length);
+                
+                px_index = Math.round(_getFrequency(i) / _sample_rate * _canvas_height) * 4;
+                value = Math.round((_data[px_index] + _data[px_index + 1]) / 2);
             } else {
-                value = freq[i];
+                if (_analysis_log_scale) {
+                    value = _analyser_freq_bin[_logScale(i, freq_bin_length)];
+                } else {
+                    value = _analyser_freq_bin[i];
+                } 
             }
             
+            y = Math.round(i / freq_bin_length * _analysis_canvas.height);
+            
             if (_analysis_colored) {
-                _analysis_canvas_ctx.fillStyle = _getColorFromPalette(value);
+                _analysis_canvas_ctx.fillStyle = _spectrum_colors[value];
             } else {
                 value = (255 - value) + '';
                 _analysis_canvas_ctx.fillStyle = 'rgb(' + value + ',' + value + ',' + value + ')';
             }
-            
-            y = Math.round(i / freq.length * _analysis_canvas.height);
             
             _analysis_canvas_ctx.fillRect(_analysis_canvas.width - _analysis_speed, _analysis_canvas.height - y, _analysis_speed, _analysis_speed);
         }

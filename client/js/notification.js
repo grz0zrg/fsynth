@@ -29,7 +29,7 @@ var _fail = function (message, utter) {
     if (utter) {
         document.body.innerHTML = "";
         
-        _utter_fail_element.innerHTML = '<a href="https://www.fsynth.com"><img src="data/fsynth.png" width="300"/></a>' + message;
+        _utter_fail_element.innerHTML = '<a href="https://www.fsynth.com"><img src="data/fsynth2.png" width="397"/></a>' + message;
         
         document.body.appendChild(_utter_fail_element);
     }

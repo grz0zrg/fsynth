@@ -15138,7 +15138,311 @@ var ResizeThrottler = new (function() {
     };
 })();
 window.onload = function() {
-var FragmentSynth = new (function () {
+    "use strict";
+    
+    document.body.style.overflow = "hidden";
+    
+/* jslint browser: true */
+
+var _fp_main = function (join_cb) {
+    var _welcome_message = 'Welcome back ',
+        _user_name_ls_key = 'fs-user-name',
+        _session_list_ls_key = 'fs-session-list',
+    
+        _user_name_element = document.getElementById("userName"),
+        _session_name_element = document.getElementById("sessionName"),
+        _session_btn_element = document.getElementById("sessionBtn"),
+        _session_list_element = document.getElementById("sessionList"),
+        _user_about_element = document.getElementById("userIntro"),
+        _clear_sessions_btn_element = document.getElementById("clearSessionsBtn"),
+        _browser_compatibility_element = document.getElementById("browserCompatibility"),
+        _sessions_element = document.getElementById("sessions"),
+        
+        _session_list_str = localStorage.getItem(_session_list_ls_key),
+        
+        _user_name = localStorage.getItem(_user_name_ls_key);
+    
+    var _removeSessionTable = function (element) {
+        var session_table_element = element.parentElement;
+        
+        session_table_element.parentElement.removeChild(session_table_element);
+        
+        _clear_sessions_btn_element.parentElement.removeChild(_clear_sessions_btn_element);
+    };
+    
+    var _removeSessions = function (element) {
+        element.innerHTML = "";
+        
+        localStorage.removeItem(_session_list_ls_key);
+    };
+    
+    var _getSessionName = function () {
+        if (_session_name_element.value === "") {
+            return _session_name_element.placeholder;
+        } else {
+            return _session_name_element.value;
+        }  
+    };
+    
+    var _getUserName = function () {
+        if (_user_name_element.value === "") {
+            return _user_name_element.placeholder;
+        } else {
+            return _user_name_element.value;
+        }  
+    };
+
+    var _setSession = function (name) {
+            if (join_cb) {
+                return;
+            }
+        
+            if (name.length > 128) { // TODO : Handle notification about session validation
+                return;
+            }
+        
+            _session_btn_element.href = "app/" + name;
+        };
+    
+    var _isCompatibleBrowser = function () {
+        // check browser compatibility
+    };
+    
+    var _joinSessionFn = function (name) {
+        return (function () {
+            if (join_cb) {
+                join_cb(name);
+            } else {
+                _setSession(name);
+
+                location.href = "app/" + name;
+            }
+        });
+    };
+    
+    var _deleteSessionFn = function (col_element, name) {
+        return (function () {
+            var session_list_str = localStorage.getItem(_session_list_ls_key),
+                session_list = [],
+                i = 0,
+                
+                row = col_element.parentElement;
+            
+            row.parentElement.removeChild(row);
+
+            if (session_list_str) {
+                session_list = JSON.parse(session_list_str);
+            }
+        
+            for (i = 0; i < session_list.length; i += 1) {
+                if (session_list[i] === name) {
+                    session_list.splice(i, 1)
+                    break;
+                }
+            }
+            
+            if (session_list.length > 0) {
+                localStorage.setItem(_session_list_ls_key, JSON.stringify(session_list));
+            } else {
+                _clear_sessions_btn_element.parentElement.removeChild(_clear_sessions_btn_element);
+                
+                localStorage.removeItem(_session_list_ls_key);
+            }
+            
+            // delete session settings
+            if (localStorage.getItem(name) !== null) {
+                localStorage.removeItem(name);
+            }
+        });
+    };
+    
+    var _onSessionColClick = function () {
+        var session_col = this,
+            
+            session_name = session_col.textContent;
+        
+        WUI_CircularMenu.create({
+                element: session_col,
+            
+                angle: 90
+            },
+            [
+                { icon: "fp-join-icon", tooltip: "Join session",  on_click: _joinSessionFn(session_name) },
+                { icon: "fp-trash-icon", tooltip: "Delete session",  on_click: _deleteSessionFn(session_col, session_name) }
+            ]);
+    };
+    
+    _session_name_element.placeholder = Math.random().toString(36).substr(2, 12);
+
+    _setSession(_session_name_element.placeholder);
+    
+    if (_user_name) {
+        if (!join_cb) {
+            _user_about_element.innerHTML = _welcome_message + '<span class="fp-user-name">' + _user_name + '</span>';
+        }
+        
+        _user_name_element.value = _user_name;
+    } else {
+        _sessions_element.parentElement.removeChild(_sessions_element);
+    }
+    
+    _user_name_element.addEventListener("change", function() {
+            localStorage.setItem(_user_name_ls_key, _getUserName());
+        });
+    
+    _session_name_element.addEventListener("change", function() {
+            _setSession(_session_name_element.value);
+        });
+    
+    _clear_sessions_btn_element.addEventListener("click", function () {
+            _removeSessions(_session_list_element);
+        
+            _clear_sessions_btn_element.parentElement.removeChild(_clear_sessions_btn_element);
+        });
+    
+    _session_btn_element.addEventListener("click", function (e) {
+            var session_list_str = localStorage.getItem(_session_list_ls_key),
+                session_list = [],
+                session_name = _getSessionName(),
+                i = 0;
+
+            if (session_list_str) {
+                session_list = JSON.parse(session_list_str);
+            }
+        
+            for (i = 0; i < session_list.length; i += 1) {
+                if (session_list[i] === session_name) {
+                    session_list.splice(i, 1)
+                    break;
+                }
+            }
+        
+            session_list.push(session_name);
+        
+            localStorage.setItem(_session_list_ls_key, JSON.stringify(session_list));
+        
+            localStorage.setItem(_user_name_ls_key, _getUserName());
+        
+            if (join_cb) {
+                join_cb(name);
+            }
+        });
+    
+    if (_session_list_str) {
+        var session_list = JSON.parse(_session_list_str),
+            row, col, btn,
+            i = 0;
+
+        for (i = 0; i < session_list.length; i += 1) {
+            row = document.createElement("tr");
+            col = document.createElement("td");
+            
+            _session_list_element.insertBefore(row, _session_list_element.firstChild);
+            
+            col.innerHTML = session_list[i];
+            
+            col.addEventListener("click", _onSessionColClick);
+            
+            row.appendChild(col);
+        }
+    } else {
+        _clear_sessions_btn_element.parentElement.removeChild(_clear_sessions_btn_element);
+        //_removeSessionTable(_session_list_element);
+    }
+};
+/***********************************************************
+    Fields.
+************************************************************/
+
+var _electron,
+    
+    _electron_login_dialog;
+
+/***********************************************************
+    Functions.
+************************************************************/
+
+var _isElectronApp = function () {
+    return (typeof process !== "undefined") && process.versions && (process.versions.electron !== undefined);
+};
+
+var _join = function (session_name) {
+    var body_childs = document.body.children,
+        i = 0;
+    
+    for (i = 0; i < body_childs.length; i += 1) {
+        if (body_childs[i].id === "fs_electron_login") {
+            body_childs[i].style.display = "none";
+        } else {
+            body_childs[i].style.display = "";
+        }
+    }
+    
+    FragmentSynth({
+            session_name: session_name,
+            fas: true
+        });
+};
+
+/***********************************************************
+    Init.
+************************************************************/
+
+var _electronInit = function () {
+    var electron_login = document.getElementById("fs_electron_login"),
+        
+        body_childs = document.body.children,
+        
+        i = 0;
+    
+    if (_isElectronApp()) {
+        _electron = require('electron');
+        
+        //document.body.style.backgroundColor = "#ffffff";
+         
+        for (i = 0; i < body_childs.length; i += 1) {
+            if (body_childs[i].id !== "fs_electron_login") {
+                body_childs[i].style.display = "none";
+            }
+        }
+        
+        _electron_login_dialog = WUI_Dialog.create("fs_electron_login_dialog", {
+                title: "",
+
+                width: "500px",
+                height: "400px",
+
+                halign: "center",
+                valign: "center",
+
+                open: true,
+                closable: false,
+            
+                status_bar: false,
+                detachable: false,
+                resizable: false,
+                minimizable: false,
+                draggable: false
+            });
+        
+        WUI_Tabs.create("fs_electron_login_tabs", {
+            //on_tab_click: tab_clicked,
+
+            height: "100%"
+        });
+        
+        document.getElementById("fs_app_version").innerHTML = "v" + _electron.remote.app.getVersion();
+
+        _fp_main(_join);
+        
+        return true;
+    } else {
+        document.body.removeChild(electron_login);
+    }
+    
+    return false;
+};    
+var FragmentSynth = function (params) {
     "use strict";
 
     /***********************************************************
@@ -15176,7 +15480,7 @@ var _fail = function (message, utter) {
     if (utter) {
         document.body.innerHTML = "";
         
-        _utter_fail_element.innerHTML = '<a href="https://www.fsynth.com"><img src="data/fsynth.png" width="300"/></a>' + message;
+        _utter_fail_element.innerHTML = '<a href="https://www.fsynth.com"><img src="data/fsynth2.png" width="397"/></a>' + message;
         
         document.body.appendChild(_utter_fail_element);
     }
@@ -15227,9 +15531,15 @@ var _notification = function (message, duration_ms) {
 
 _utter_fail_element.innerHTML = "";
     var _getSessionName = function () {
-        var url_parts = window.location.pathname.split('/');
+        var url_parts;
+        
+        if (params.session_name) {
+            return params.session_name;
+        } else {
+            url_parts = window.location.pathname.split('/');
 
-        return url_parts[url_parts.length - 1];
+            return url_parts[url_parts.length - 1];
+        }
     };
 
     window.performance = window.performance || {};
@@ -15339,6 +15649,10 @@ _utter_fail_element.innerHTML = "";
             scrollbarStyle: "native",
             mode: "text/x-glsl"
         },
+        
+        _keyboard = [],
+        _keyboard_pressed = {},
+        _polyphony_max = 8,
 
         _compile_timer,
 
@@ -15451,7 +15765,9 @@ var _fs_palette = {
         80:  [223, 132, 0],
         90:  [240, 188, 0],
         100: [255, 252, 0]
-    };
+    },
+    
+    _spectrum_colors = [];
 
 /***********************************************************
     Functions.
@@ -15527,7 +15843,6 @@ var _getColorFromPalette = function (value) {
         _fs_palette[floored][2] + distFromFloorPercentage * rangeToNextColor[2]
     ];
 
-
     return "rgb(" + color[0] +", "+color[1] +"," + color[2]+")";
 };
 
@@ -15542,7 +15857,11 @@ var _truncateDecimals = function (num, digits) {
     return parseFloat(finalResult);
 };
 
-var _lZeroPad = function(str, c, length) {
+var _frequencyFromNoteNumber = function (note) {
+    return 440 * Math.pow(2, (note - 69) / 12);
+};
+
+var _lZeroPad = function (str, c, length) {
     str = "" + str;
 
     while (str.length < length) {
@@ -15582,7 +15901,21 @@ var _getCookie = function getCookie(name) {
     }
     
     return "";
-};/* jslint browser: true */
+};
+
+/***********************************************************
+    Init.
+************************************************************/
+
+var _toolsInit = function () {
+    var i = 0;
+    
+    for (i = 0; i < 256; i += 1) {
+        _spectrum_colors.push(_getColorFromPalette(i));
+    }
+};
+
+_toolsInit();/* jslint browser: true */
 
 
 /***********************************************************
@@ -15596,6 +15929,7 @@ var _FS_WAVETABLE = 0,
     
     _analyser_node = _audio_context.createAnalyser(),
     _analyser_fftsize = 16384,
+    _analyser_freq_bin,
     
     _sample_rate = _audio_context.sampleRate,
     
@@ -16042,7 +16376,26 @@ var _disableNotesProcessing = function () {
 var _enableNotesProcessing = function () {
     _notes_worker_available = true;
 };
+/*
+var _getByteFrequencyData = function (pixels_data) {
+    var i = 0,
+        f = 0,
+        y = 0,
+        index = 0,
+        d = new Uint8Array(_analyser_node.frequencyBinCount);
+    
+    for (i = 0; i < pixels_data.length; i += 4) {
+        f = _getFrequency(y);
 
+        index = Math.round(f / _sample_rate * _analyser_node.frequencyBinCount);
+        d[index] += (pixels_data[i] + pixels_data[i + 1]) / 2;
+        
+        y += 1;
+    }
+        
+    return d;
+};
+*/
 /***********************************************************
     Init.
 ************************************************************/
@@ -16065,6 +16418,7 @@ var _audioInit = function () {
 
     _analyser_node.smoothingTimeConstant = 0;
     _analyser_node.fftSize = _analyser_fftsize;
+    _analyser_freq_bin = new Uint8Array(_analyser_node.frequencyBinCount);
 
     // workaround, webkit bug ?
     window._fs_sn = _script_node;
@@ -16255,30 +16609,45 @@ var _drawTimeDomainSpectrum = function () {
 
 var _drawSpectrum = function () {
     if (_is_analyser_node_connected) {
-        var freq = new Uint8Array(_analyser_node.frequencyBinCount),
+        var freq_bin_length,
+            px_index = 0,
             value = 0,
+            index = 0,
             y = 0,
             i = 0;
+    
+        if (!_fas.enabled) {
+            _analyser_node.getByteFrequencyData(_analyser_freq_bin);
+        } else { // TEMPORARY
+            return;
+        }
         
-        _analyser_node.getByteFrequencyData(freq);
+        freq_bin_length = _analyser_freq_bin.length;
 
         _analysis_canvas_tmp_ctx.drawImage(_analysis_canvas, 0, 0, _analysis_canvas.width, _analysis_canvas.height);
 
-        for (i = 0; i < freq.length; i += 1) {
-            if (_analysis_log_scale) {
-                value = freq[_logScale(i, freq.length)];
+        for (i = 0; i < freq_bin_length; i += 1) {
+            if (_fas.enabled) {
+                //index = (_getFrequency(i) / _sample_rate * _analyser_freq_bin.length);
+                
+                px_index = Math.round(_getFrequency(i) / _sample_rate * _canvas_height) * 4;
+                value = Math.round((_data[px_index] + _data[px_index + 1]) / 2);
             } else {
-                value = freq[i];
+                if (_analysis_log_scale) {
+                    value = _analyser_freq_bin[_logScale(i, freq_bin_length)];
+                } else {
+                    value = _analyser_freq_bin[i];
+                } 
             }
             
+            y = Math.round(i / freq_bin_length * _analysis_canvas.height);
+            
             if (_analysis_colored) {
-                _analysis_canvas_ctx.fillStyle = _getColorFromPalette(value);
+                _analysis_canvas_ctx.fillStyle = _spectrum_colors[value];
             } else {
                 value = (255 - value) + '';
                 _analysis_canvas_ctx.fillStyle = 'rgb(' + value + ',' + value + ',' + value + ')';
             }
-            
-            y = Math.round(i / freq.length * _analysis_canvas.height);
             
             _analysis_canvas_ctx.fillRect(_analysis_canvas.width - _analysis_speed, _analysis_canvas.height - y, _analysis_speed, _analysis_speed);
         }
@@ -16551,7 +16920,7 @@ var _compile = function () {
         i = 0;
     
     // add our uniforms
-    glsl_code = "precision mediump float; uniform float globalTime; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution;";
+    glsl_code = "precision mediump float; uniform float globalTime; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec2 keyboard[" + _polyphony_max + "];";
 
     // add inputs uniforms
     for (i = 0; i < _fragment_input_data.length; i += 1) {
@@ -16594,6 +16963,8 @@ var _compile = function () {
         _gl.useProgram(_program);
 
         _gl.uniform2f(_gl.getUniformLocation(_program, "resolution"), _canvas.width, _canvas.height);
+        
+        _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 2);
         
         // set uniforms to value from controllers
         for(ctrl_name in _controls) { 
@@ -17477,6 +17848,7 @@ var _detachCodeEditor = function () {
         '<html>',
             '<head>',
                 '<title>Fragment &lt; /&gt;</title>',
+                '<meta charset="utf-8">',
                 '<meta http-equiv="content-type" content="text/html; charset=utf-8">',
                 '<link rel="stylesheet" type="text/css" href="dist/cm.min.css"/>',
                 '<script type="text/javascript" src="dist/cm.min.js" defer></script>',
@@ -19001,7 +19373,7 @@ var _uiInit = function () {
             title: "Fragment - Help",
 
             width: "380px",
-            height: "545px",
+            height: "615px",
 
             halign: "center",
             valign: "center",
@@ -19371,6 +19743,64 @@ var _uiInit = function () {
                     m.inputs.forEach(
                         function (midi_input) {
                             midi_input.onmidimessage = function (midi_message) {
+                                var i = 0,
+                                    key, value;
+                                
+                                switch (midi_message.data[0] & 0xf0) {
+                                    case 0x90:
+                                        if (midi_message.data[2] !== 0) { // note-on
+                                            _keyboard = new Array(16);
+                                            _keyboard.fill(0);
+                                            
+                                            _keyboard_pressed[midi_message.data[1]] = {
+                                                    frq: _frequencyFromNoteNumber(midi_message.data[1]),
+                                                    vel: midi_message.data[2]
+                                                };
+                                            
+                                            i = 0;
+                                            
+                                            for (key in _keyboard_pressed) { 
+                                                value = _keyboard_pressed[key];
+                                                
+                                                _keyboard[i] = value.frq;
+                                                _keyboard[i + 1] = value.vel;
+                                                
+                                                i += 2;
+                                                
+                                                if (i > (_polyphony_max * 2)) {
+                                                    break;
+                                                }
+                                            }
+                                            
+                                            _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 2);
+                                        }
+                                        break;
+                                        
+                                    case 0x80:
+                                        delete _keyboard_pressed[midi_message.data[1]];
+                                        
+                                        _keyboard = new Array(16);
+                                        _keyboard.fill(0);
+                                        
+                                        i = 0;
+
+                                        for (key in _keyboard_pressed) { 
+                                            value = _keyboard_pressed[key];
+
+                                            _keyboard[i] = value.frq;
+                                            _keyboard[i + 1] = value.vel;
+
+                                            i += 2;
+
+                                            if (i > (_polyphony_max * 2)) {
+                                                break;
+                                            }
+                                        }
+                                        
+                                        _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 2);
+                                        break;
+                                }
+
                                 WUI_RangeSlider.submitMIDIMessage(midi_message);
                             };
                         }
@@ -19812,5 +20242,17 @@ _red_curtain_element.addEventListener("transitionend", function () {
     window.gb_code_editor_settings = _code_editor_settings;
     window.gb_code_editor = _code_editor;
     window.gb_code_editor_theme = _code_editor_theme;
-})();
+    
+    document.body.style.overflow = "visible";
+    
+    if (params.fas) {
+        _fasEnable();
+    }
+};
+    
+    if (_electronInit()) {
+        
+    } else {
+        FragmentSynth({});
+    }
 }

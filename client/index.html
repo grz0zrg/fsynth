@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta charset="utf-8">
 		<meta http-equiv="content-type" content="text/html; charset=utf-8">
 
         <meta name="apple-mobile-web-app-capable" content="yes">
@@ -164,6 +165,157 @@ void main ()
 
     <body>
         <div id="fs_red_curtain" class="fs-red-curtain"></div>
+        <div id="fs_electron_login" class="fs-electron-login" style="display: none">
+            <div class="fs-electron-login-logo">
+                <img src="data/logo3.png" width="400">
+            </div>
+            <div id="fs_electron_login_dialog">
+                <div>
+                    <div id="fs_electron_login_tabs" style="height: 100%">
+                        <div>
+                            <div>Home</div>
+                            <div>Sessions history</div>
+                            <div>News</div>
+                        </div>
+                        <div>
+                            <div>
+                                <div class="fs-login-tab">
+                                    <form class="fp-session-form">
+                                        <div class="row">
+                                            <div class="columns" style="text-align: center">
+                                                <label for="userName">User Name</label>
+                                                <br/>
+                                                <input class="fs-btn" type="text" placeholder="Anonymous" id="userName">
+                                            </div>
+                                        </div>
+                                        <br/>
+                                        <div class="row">
+                                            <div class="columns" style="text-align: center">
+                                                <label for="sessionName">Session Name</label>
+                                                <br/>
+                                                <input class="fs-btn" type="text" placeholder="d7eafpaoupljt" id="sessionName">
+                                            </div>
+                                        </div>
+                                    </form>
+                                    <p style="text-align: center">
+                                        <button id="sessionBtn" class="fs-btn fs-btn-big">
+                                            Create/Join Session
+                                        </button>
+                                    </p>
+                                </div>
+                            </div>
+                            <div>
+                                <div id="sessions" class="row fp-sessions">
+                                    <div class="column value">
+                                        <table class="fp-session-list u-full-width">
+                                            <thead>
+                                                <tr>
+                                                    <th id="userIntro"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="sessionList">
+                                            </tbody>
+                                        </table>
+                                        <div class="row fp-center-text">
+                                            <a id="clearSessionsBtn" class="fs-btn fs-btn-big">Clear history</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="fs-electron-login-logo2">
+                <img src="data/fsynth2.png" width="297">
+            </div>
+            <div id="fs_app_version" class="fs-app-version"></div>
+            <!--
+            <div class="section hero">
+                <div class="container">
+                    <div class="row">
+                        <div class="column logos">
+                            <img class="logo" src="data/logo2.png">
+                        </div>
+                    </div>
+                    <div class="row fp-title">
+                        <div class="u-max-full-width column" style="text-align: center;">
+                            <h4 class="hero-heading">
+
+                            </h4>
+                        </div>
+                    </div>
+                    <div id="sessions" class="row fp-sessions" style="display: none">
+                        <div class="column value">
+                            <table class="fp-session-list u-full-width">
+                                <thead>
+                                    <tr>
+                                        <th id="userIntro"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sessionList">
+                                </tbody>
+                            </table>
+                            <div class="row fp-center-text">
+                                <a id="clearSessionsBtn" class="button">Clear sessions history</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="column value">
+                            <p class="value-description">
+                                
+                            </p>
+                            <form class="fp-session-form">
+                                <div class="row">
+                                    <div class="columns" style="text-align: center">
+                                        <label for="userName">User Name</label>
+                                        <input class="fp-input" type="text" placeholder="Anonymous" id="userName">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="columns" style="text-align: center">
+                                        <label for="sessionName">Session Name</label>
+                                        <input class="fp-input" type="text" placeholder="d7eafpaoupljt" id="sessionName">
+                                    </div>
+                                </div>
+                            </form>
+                            <p class="value-description" style="text-align: center">
+                                <a id="sessionBtn" class="button button-primary" href="app">
+                                    Create/Join Session
+                                </a>
+                            </p>
+                            <p class="value-description" style="text-align: center">
+                                <a id="previousSessionBtn" class="button button-primary" href="app">
+                                    Show previous sessions
+                                </a>
+                            </p>
+                            <div class="fp-center-text">
+                                <a target="_blank" href="https://quiet.fsynth.com/" class="fp-social-page-scl">
+                                    <i class="fa fa-comments-o" aria-hidden="true"></i>
+                                </a>
+                                <a target="_blank" href="https://www.facebook.com/fsynth/" class="fp-social-page-fbl">
+                                    <i class="fa fa-facebook-official" aria-hidden="true"></i>
+                                </a>
+                                <a target="_blank" href="https://twitter.com/fragmentsynth" class="fp-social-page-twl">
+                                    <i class="fa fa-twitter" aria-hidden="true"></i>
+                                </a>
+                                <a target="_blank" href="https://www.soundcloud.com/fsynth/" class="fp-social-page-scl">
+                                    <i class="fa fa-soundcloud" aria-hidden="true"></i>
+                                </a>
+                                <a target="_blank" href="https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ" class="fp-social-page-ytl">
+                                    <i class="fa fa-youtube" aria-hidden="true"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            -->
+        </div>
         <div id="fs_top_panel" class="fs-top-panel">
             <div id="fs_time_infos" class="fs-time-infos"></div>
             <div class="fs-app-infos">
@@ -369,6 +521,17 @@ void main ()
                                     </li>
                                     <li>
                                         Typical usage : texture2D(iInput0, uv);
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                vec2 <span class="fs-documentation-keyword">keyboard</span> :
+                                <ul>
+                                    <li>
+                                        note frequency, velocity
+                                    </li>
+                                    <li>
+                                        Bound to any MIDI note-on/note-off events
                                     </li>
                                 </ul>
                             </li>

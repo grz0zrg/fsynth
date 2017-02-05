@@ -12,7 +12,9 @@ var _fs_palette = {
         80:  [223, 132, 0],
         90:  [240, 188, 0],
         100: [255, 252, 0]
-    };
+    },
+    
+    _spectrum_colors = [];
 
 /***********************************************************
     Functions.
@@ -88,7 +90,6 @@ var _getColorFromPalette = function (value) {
         _fs_palette[floored][2] + distFromFloorPercentage * rangeToNextColor[2]
     ];
 
-
     return "rgb(" + color[0] +", "+color[1] +"," + color[2]+")";
 };
 
@@ -103,7 +104,11 @@ var _truncateDecimals = function (num, digits) {
     return parseFloat(finalResult);
 };
 
-var _lZeroPad = function(str, c, length) {
+var _frequencyFromNoteNumber = function (note) {
+    return 440 * Math.pow(2, (note - 69) / 12);
+};
+
+var _lZeroPad = function (str, c, length) {
     str = "" + str;
 
     while (str.length < length) {
@@ -144,3 +149,17 @@ var _getCookie = function getCookie(name) {
     
     return "";
 };
+
+/***********************************************************
+    Init.
+************************************************************/
+
+var _toolsInit = function () {
+    var i = 0;
+    
+    for (i = 0; i < 256; i += 1) {
+        _spectrum_colors.push(_getColorFromPalette(i));
+    }
+};
+
+_toolsInit();
