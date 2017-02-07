@@ -504,7 +504,7 @@ var _audioInit = function () {
     _analyser_freq_bin = new Uint8Array(_analyser_node.frequencyBinCount);
 
     // workaround, webkit bug ?
-    window._fs_sn = _script_node;
+    //window._fs_sn = _script_node;
 
     _notes_worker.addEventListener('message', function (w) {
             _next_notes_data = w.data.d;

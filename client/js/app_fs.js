@@ -162,6 +162,7 @@ var FragmentSynth = function (params) {
         _keyboard = [],
         _keyboard_pressed = {},
         _polyphony_max = 8,
+        _keyboard_data_length = _polyphony_max * 3,
 
         _compile_timer,
 

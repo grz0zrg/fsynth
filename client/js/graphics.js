@@ -244,9 +244,23 @@ var _frame = function (raf_time) {
         
         fas_enabled = _fasEnabled(),
         
-        f,
+        f, v, key,
         
         buffer;
+
+    for (key in _keyboard_pressed) { 
+        v = _keyboard_pressed[key];
+
+        _keyboard[i + 2] = (date - v.time) / 1000;
+
+        i += 3;
+
+        if (i > _keyboard_data_length) {
+            break;
+        }
+    }
+    
+    _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 3);
 
     //_gl.useProgram(_program);
     _gl.uniform1f(_getUniformLocation("globalTime"), global_time);

@@ -15653,6 +15653,7 @@ _utter_fail_element.innerHTML = "";
         _keyboard = [],
         _keyboard_pressed = {},
         _polyphony_max = 8,
+        _keyboard_data_length = _polyphony_max * 3,
 
         _compile_timer,
 
@@ -16421,7 +16422,7 @@ var _audioInit = function () {
     _analyser_freq_bin = new Uint8Array(_analyser_node.frequencyBinCount);
 
     // workaround, webkit bug ?
-    window._fs_sn = _script_node;
+    //window._fs_sn = _script_node;
 
     _notes_worker.addEventListener('message', function (w) {
             _next_notes_data = w.data.d;
@@ -16677,9 +16678,23 @@ var _frame = function (raf_time) {
         
         fas_enabled = _fasEnabled(),
         
-        f,
+        f, v, key,
         
         buffer;
+
+    for (key in _keyboard_pressed) { 
+        v = _keyboard_pressed[key];
+
+        _keyboard[i + 2] = (date - v.time) / 1000;
+
+        i += 3;
+
+        if (i > _keyboard_data_length) {
+            break;
+        }
+    }
+    
+    _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 3);
 
     //_gl.useProgram(_program);
     _gl.uniform1f(_getUniformLocation("globalTime"), global_time);
@@ -16920,7 +16935,7 @@ var _compile = function () {
         i = 0;
     
     // add our uniforms
-    glsl_code = "precision mediump float; uniform float globalTime; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec2 keyboard[" + _polyphony_max + "];";
+    glsl_code = "precision mediump float; uniform float globalTime; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec3 keyboard[" + _polyphony_max + "];";
 
     // add inputs uniforms
     for (i = 0; i < _fragment_input_data.length; i += 1) {
@@ -16964,7 +16979,7 @@ var _compile = function () {
 
         _gl.uniform2f(_gl.getUniformLocation(_program, "resolution"), _canvas.width, _canvas.height);
         
-        _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 2);
+        _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 3);
         
         // set uniforms to value from controllers
         for(ctrl_name in _controls) { 
@@ -19373,7 +19388,7 @@ var _uiInit = function () {
             title: "Fragment - Help",
 
             width: "380px",
-            height: "615px",
+            height: "625px",
 
             halign: "center",
             valign: "center",
@@ -19749,12 +19764,13 @@ var _uiInit = function () {
                                 switch (midi_message.data[0] & 0xf0) {
                                     case 0x90:
                                         if (midi_message.data[2] !== 0) { // note-on
-                                            _keyboard = new Array(16);
+                                            _keyboard = new Array(_polyphony_max * 3);
                                             _keyboard.fill(0);
                                             
                                             _keyboard_pressed[midi_message.data[1]] = {
                                                     frq: _frequencyFromNoteNumber(midi_message.data[1]),
-                                                    vel: midi_message.data[2]
+                                                    vel: midi_message.data[2],
+                                                    time: Date.now()
                                                 };
                                             
                                             i = 0;
@@ -19764,22 +19780,23 @@ var _uiInit = function () {
                                                 
                                                 _keyboard[i] = value.frq;
                                                 _keyboard[i + 1] = value.vel;
+                                                _keyboard[i + 2] = Date.now();
                                                 
-                                                i += 2;
+                                                i += 3;
                                                 
-                                                if (i > (_polyphony_max * 2)) {
+                                                if (i > _keyboard_data_length) {
                                                     break;
                                                 }
                                             }
                                             
-                                            _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 2);
+                                            _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 3);
                                         }
                                         break;
                                         
                                     case 0x80:
                                         delete _keyboard_pressed[midi_message.data[1]];
                                         
-                                        _keyboard = new Array(16);
+                                        _keyboard = new Array(_polyphony_max * 3);
                                         _keyboard.fill(0);
                                         
                                         i = 0;
@@ -19789,15 +19806,16 @@ var _uiInit = function () {
 
                                             _keyboard[i] = value.frq;
                                             _keyboard[i + 1] = value.vel;
+                                            _keyboard[i + 2] = value.time;
 
-                                            i += 2;
+                                            i += 3;
 
-                                            if (i > (_polyphony_max * 2)) {
+                                            if (i > _keyboard_data_length) {
                                                 break;
                                             }
                                         }
                                         
-                                        _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 2);
+                                        _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 3);
                                         break;
                                 }
 
