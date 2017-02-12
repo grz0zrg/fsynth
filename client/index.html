@@ -367,6 +367,7 @@ void main ()
                 <div id="fs_score_base_input"></div>
                 <div id="fs_score_octave_input"></div>
                 <div id="fs_settings_osc_fade_input"></div>
+                <div id="fs_settings_max_polyphony"></div>
                 <div style="padding-top: 8px;">
                     <div class="fs-ck-container">
                         <label class="fs-ck-label">
@@ -525,13 +526,13 @@ void main ()
                                 </ul>
                             </li>
                             <li>
-                                vec2 <span class="fs-documentation-keyword">keyboard</span> :
+                                vec3 <span class="fs-documentation-keyword">keyboard</span> :
                                 <ul>
                                     <li>
-                                        note frequency, velocity
+                                        frequency, velocity, elapsed time since the key was pressed
                                     </li>
                                     <li>
-                                        Bound to any MIDI note-on/note-off events
+                                        Note : MIDI note-on/note-off events
                                     </li>
                                 </ul>
                             </li>

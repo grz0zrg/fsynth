@@ -15451,6 +15451,162 @@ var FragmentSynth = function (params) {
 
 /* jslint browser: true */
 
+var _fs_palette = {
+        0:   [0, 0, 0],
+        10:  [75, 0, 159],
+        20:  [104, 0, 251],
+        30:  [131, 0, 255],
+        40:  [155, 18,157],
+        50:  [175, 37, 0],
+        60:  [191, 59, 0],
+        70:  [206, 88, 0],
+        80:  [223, 132, 0],
+        90:  [240, 188, 0],
+        100: [255, 252, 0]
+    },
+    
+    _spectrum_colors = [];
+
+/***********************************************************
+    Functions.
+************************************************************/
+
+var _isPowerOf2 = function (value) {
+    return (value & (value - 1)) === 0;
+};
+
+var _parseInt10 = function (value) {
+    return parseInt(value, 10);
+};
+
+var _getElementOffset = function (elem) {
+    var box = elem.getBoundingClientRect(),
+        body = document.body,
+        docEl = document.documentElement,
+
+        scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop,
+        scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft,
+
+        clientTop = docEl.clientTop || body.clientTop || 0,
+        clientLeft = docEl.clientLeft || body.clientLeft || 0,
+
+        top  = box.top +  scrollTop - clientTop,
+        left = box.left + scrollLeft - clientLeft;
+
+    return { top: Math.round(top), left: Math.round(left), width: box.width, height: box.height };
+};
+
+var _logScale = function (index, total, opt_base) {
+    var base = opt_base || 2, 
+        logmax = Math.log(total + 1) / Math.log(base),
+        exp = logmax * index / total;
+    
+    return Math.round(Math.pow(base, exp) - 1);
+};
+
+var _getColorFromPalette = function (value) {
+    var decimalised = 100 * value / 255,
+        percent = decimalised / 100,
+        floored = 10 * Math.floor(decimalised / 10),
+        distFromFloor = decimalised - floored,
+        distFromFloorPercentage = distFromFloor/10,
+        rangeToNextColor,
+        color;
+    
+    if (decimalised < 100){
+        rangeToNextColor = [
+            _fs_palette[floored + 10][0] - _fs_palette[floored + 10][0],
+            _fs_palette[floored + 10][1] - _fs_palette[floored + 10][1],
+            _fs_palette[floored + 10][2] - _fs_palette[floored + 10][2]
+        ];
+    } else {
+        rangeToNextColor = [0, 0, 0];
+    }
+
+    color = [
+        _fs_palette[floored][0] + distFromFloorPercentage * rangeToNextColor[0],
+        _fs_palette[floored][1] + distFromFloorPercentage * rangeToNextColor[1],
+        _fs_palette[floored][2] + distFromFloorPercentage * rangeToNextColor[2]
+    ];
+
+    return "rgb(" + color[0] +", "+color[1] +"," + color[2]+")";
+};
+
+// thank to Nick Knowlson - http://stackoverflow.com/questions/4912788/truncate-not-round-off-decimal-numbers-in-javascript
+var _truncateDecimals = function (num, digits) {
+    var numS = num.toString(),
+        decPos = numS.indexOf('.'),
+        substrLength = decPos == -1 ? numS.length : 1 + decPos + digits,
+        trimmedResult = numS.substr(0, substrLength),
+        finalResult = isNaN(trimmedResult) ? 0 : trimmedResult;
+
+    return parseFloat(finalResult);
+};
+
+var _isFireFox = function () {
+    return (navigator.userAgent.toLowerCase().indexOf('firefox') > -1);
+};
+
+var _frequencyFromNoteNumber = function (note) {
+    return 440 * Math.pow(2, (note - 69) / 12);
+};
+
+var _lZeroPad = function (str, c, length) {
+    str = "" + str;
+
+    while (str.length < length) {
+        str = c + str;
+    }
+
+    return str;
+};
+
+var _setCookie = function (name, value, days) {
+    var d = new Date();
+    
+    d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+    
+    document.cookie = name + "=" + value + ";" + ("expires=" + d.toUTCString()) + ";path=/";
+};
+
+var _getCookie = function getCookie(name) {
+    var cookies,
+        cookie,
+        
+        i = 0;
+    
+    name = name + "=";
+    cookies = document.cookie.split(';');
+    
+    for(i = 0; i < cookies.length; i += 1) {
+        cookie = cookies[i];
+        
+        while (cookie.charAt(0) == ' ') {
+            cookie = cookie.substring(1);
+        }
+        
+        if (cookie.indexOf(name) === 0) {
+            return cookie.substring(name.length, cookie.length);
+        }
+    }
+    
+    return "";
+};
+
+/***********************************************************
+    Init.
+************************************************************/
+
+var _toolsInit = function () {
+    var i = 0;
+    
+    for (i = 0; i < 256; i += 1) {
+        _spectrum_colors.push(_getColorFromPalette(i));
+    }
+};
+
+_toolsInit();/* jslint browser: true */
+
 
 /*
     Simple double notifications system
@@ -15754,170 +15910,6 @@ _utter_fail_element.innerHTML = "";
 var _ws_protocol = "ws",
     _domain = "127.0.0.1";/* jslint browser: true */
 
-var _fs_palette = {
-        0:   [0, 0, 0],
-        10:  [75, 0, 159],
-        20:  [104, 0, 251],
-        30:  [131, 0, 255],
-        40:  [155, 18,157],
-        50:  [175, 37, 0],
-        60:  [191, 59, 0],
-        70:  [206, 88, 0],
-        80:  [223, 132, 0],
-        90:  [240, 188, 0],
-        100: [255, 252, 0]
-    },
-    
-    _spectrum_colors = [];
-
-/***********************************************************
-    Functions.
-************************************************************/
-
-var _saveLocalSessionSettings = function () {
-    var session_name = _getSessionName();
-
-    return function () {
-        try {
-            localStorage.setItem(session_name, JSON.stringify(_local_session_settings));
-        } catch (e) {
-            _notification("Can't save session local settings due to localStorage error. (local storage is likely full)");
-        }
-    };
-}();
-
-var _isPowerOf2 = function (value) {
-    return (value & (value - 1)) === 0;
-};
-
-var _parseInt10 = function (value) {
-    return parseInt(value, 10);
-};
-
-var _getElementOffset = function (elem) {
-    var box = elem.getBoundingClientRect(),
-        body = document.body,
-        docEl = document.documentElement,
-
-        scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop,
-        scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft,
-
-        clientTop = docEl.clientTop || body.clientTop || 0,
-        clientLeft = docEl.clientLeft || body.clientLeft || 0,
-
-        top  = box.top +  scrollTop - clientTop,
-        left = box.left + scrollLeft - clientLeft;
-
-    return { top: Math.round(top), left: Math.round(left), width: box.width, height: box.height };
-};
-
-var _logScale = function (index, total, opt_base) {
-    var base = opt_base || 2, 
-        logmax = Math.log(total + 1) / Math.log(base),
-        exp = logmax * index / total;
-    
-    return Math.round(Math.pow(base, exp) - 1);
-};
-
-var _getColorFromPalette = function (value) {
-    var decimalised = 100 * value / 255,
-        percent = decimalised / 100,
-        floored = 10 * Math.floor(decimalised / 10),
-        distFromFloor = decimalised - floored,
-        distFromFloorPercentage = distFromFloor/10,
-        rangeToNextColor,
-        color;
-    
-    if (decimalised < 100){
-        rangeToNextColor = [
-            _fs_palette[floored + 10][0] - _fs_palette[floored + 10][0],
-            _fs_palette[floored + 10][1] - _fs_palette[floored + 10][1],
-            _fs_palette[floored + 10][2] - _fs_palette[floored + 10][2]
-        ];
-    } else {
-        rangeToNextColor = [0, 0, 0];
-    }
-
-    color = [
-        _fs_palette[floored][0] + distFromFloorPercentage * rangeToNextColor[0],
-        _fs_palette[floored][1] + distFromFloorPercentage * rangeToNextColor[1],
-        _fs_palette[floored][2] + distFromFloorPercentage * rangeToNextColor[2]
-    ];
-
-    return "rgb(" + color[0] +", "+color[1] +"," + color[2]+")";
-};
-
-// thank to Nick Knowlson - http://stackoverflow.com/questions/4912788/truncate-not-round-off-decimal-numbers-in-javascript
-var _truncateDecimals = function (num, digits) {
-    var numS = num.toString(),
-        decPos = numS.indexOf('.'),
-        substrLength = decPos == -1 ? numS.length : 1 + decPos + digits,
-        trimmedResult = numS.substr(0, substrLength),
-        finalResult = isNaN(trimmedResult) ? 0 : trimmedResult;
-
-    return parseFloat(finalResult);
-};
-
-var _frequencyFromNoteNumber = function (note) {
-    return 440 * Math.pow(2, (note - 69) / 12);
-};
-
-var _lZeroPad = function (str, c, length) {
-    str = "" + str;
-
-    while (str.length < length) {
-        str = c + str;
-    }
-
-    return str;
-};
-
-var _setCookie = function (name, value, days) {
-    var d = new Date();
-    
-    d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-    
-    document.cookie = name + "=" + value + ";" + ("expires=" + d.toUTCString()) + ";path=/";
-};
-
-var _getCookie = function getCookie(name) {
-    var cookies,
-        cookie,
-        
-        i = 0;
-    
-    name = name + "=";
-    cookies = document.cookie.split(';');
-    
-    for(i = 0; i < cookies.length; i += 1) {
-        cookie = cookies[i];
-        
-        while (cookie.charAt(0) == ' ') {
-            cookie = cookie.substring(1);
-        }
-        
-        if (cookie.indexOf(name) === 0) {
-            return cookie.substring(name.length, cookie.length);
-        }
-    }
-    
-    return "";
-};
-
-/***********************************************************
-    Init.
-************************************************************/
-
-var _toolsInit = function () {
-    var i = 0;
-    
-    for (i = 0; i < 256; i += 1) {
-        _spectrum_colors.push(_getColorFromPalette(i));
-    }
-};
-
-_toolsInit();/* jslint browser: true */
-
 
 /***********************************************************
     Fields.
@@ -15955,7 +15947,7 @@ var _FS_WAVETABLE = 0,
             return wavetable;
         })(_wavetable_size),
     
-    _osc_mode = _FS_OSC_NODES,
+    _osc_mode = _isFireFox() ? _FS_WAVETABLE : _FS_OSC_NODES,
     _osc_fadeout = 0.25,
     
     _oscillators,
@@ -16682,6 +16674,7 @@ var _frame = function (raf_time) {
         
         buffer;
 
+    // update notes time
     for (key in _keyboard_pressed) { 
         v = _keyboard_pressed[key];
 
@@ -19199,6 +19192,7 @@ var _uiInit = function () {
         settings_ck_xscrollbar_elem = document.getElementById("fs_settings_ck_xscrollbar"),
         settings_ck_wavetable_elem = document.getElementById("fs_settings_ck_wavetable"),
         
+        fs_settings_max_polyphony = localStorage.getItem('fs-max-polyphony'),
         fs_settings_osc_fadeout = localStorage.getItem('fs-osc-fadeout'),
         fs_settings_show_globaltime = localStorage.getItem('fs-show-globaltime'),
         fs_settings_show_oscinfos = localStorage.getItem('fs-show-oscinfos'),
@@ -19211,7 +19205,7 @@ var _uiInit = function () {
             title: "Session & global settings",
 
             width: "320px",
-            height: "330px",
+            height: "360px",
 
             halign: "center",
             valign: "center",
@@ -19225,6 +19219,10 @@ var _uiInit = function () {
     
     if (fs_settings_osc_fadeout) {
         _osc_fadeout = parseFloat(fs_settings_osc_fadeout);
+    }
+    
+    if (fs_settings_max_polyphony) {
+        _polyphony_max = _parseInt10(fs_settings_max_polyphony);
     }
     
     if (fs_settings_wavetable === "true") {
@@ -19388,7 +19386,7 @@ var _uiInit = function () {
             title: "Fragment - Help",
 
             width: "380px",
-            height: "625px",
+            height: "645px",
 
             halign: "center",
             valign: "center",
@@ -19690,6 +19688,40 @@ var _uiInit = function () {
             on_change: function (new_range) { _updateScore({ octave: new_range }, true); }
         });
     
+    WUI_RangeSlider.create("fs_settings_max_polyphony", {
+            width: 120,
+            height: 8,
+
+            min: 1,
+        
+            bar: false,
+
+            step: 1,
+            scroll_step: 1,
+
+            default_value: _polyphony_max,
+            value: _polyphony_max,
+
+            title: "Polyphony",
+
+            title_min_width: 140,
+            value_min_width: 88,
+
+            on_change: function (polyphony) {
+                if (polyphony <= 0) {
+                    return;
+                }
+                
+                _polyphony_max = polyphony;
+                
+                localStorage.setItem('fs-max-polyphony', _polyphony_max);
+                
+                _keyboard_data_length = _polyphony_max * 3;
+                
+                _compile();
+            }
+        });
+    
     WUI_RangeSlider.create("fs_settings_osc_fade_input", {
             width: 120,
             height: 8,
@@ -19751,54 +19783,45 @@ var _uiInit = function () {
                 _fasNotify(_FAS_GAIN_INFOS, _audio_infos);
             }
         });
+    
+    // now useless, just safe to remove!
+    _utterFailRemove();
+};/* jslint browser: true */
 
-    if (navigator.requestMIDIAccess) {
-        navigator.requestMIDIAccess().then(
-                function (m) {
-                    m.inputs.forEach(
-                        function (midi_input) {
-                            midi_input.onmidimessage = function (midi_message) {
-                                var i = 0,
-                                    key, value;
-                                
-                                switch (midi_message.data[0] & 0xf0) {
-                                    case 0x90:
-                                        if (midi_message.data[2] !== 0) { // note-on
-                                            _keyboard = new Array(_polyphony_max * 3);
-                                            _keyboard.fill(0);
-                                            
-                                            _keyboard_pressed[midi_message.data[1]] = {
-                                                    frq: _frequencyFromNoteNumber(midi_message.data[1]),
-                                                    vel: midi_message.data[2],
-                                                    time: Date.now()
-                                                };
-                                            
-                                            i = 0;
-                                            
-                                            for (key in _keyboard_pressed) { 
-                                                value = _keyboard_pressed[key];
-                                                
-                                                _keyboard[i] = value.frq;
-                                                _keyboard[i + 1] = value.vel;
-                                                _keyboard[i + 2] = Date.now();
-                                                
-                                                i += 3;
-                                                
-                                                if (i > _keyboard_data_length) {
-                                                    break;
-                                                }
-                                            }
-                                            
-                                            _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 3);
-                                        }
-                                        break;
-                                        
-                                    case 0x80:
-                                        delete _keyboard_pressed[midi_message.data[1]];
-                                        
+
+/***********************************************************
+    Fields.
+************************************************************/
+
+/***********************************************************
+    Functions.
+************************************************************/
+
+/***********************************************************
+    Init.
+************************************************************/
+
+if (navigator.requestMIDIAccess) {
+    navigator.requestMIDIAccess().then(
+            function (m) {
+                m.inputs.forEach(
+                    function (midi_input) {
+                        midi_input.onmidimessage = function (midi_message) {
+                            var i = 0,
+                                key, value;
+                            
+                            switch (midi_message.data[0] & 0xf0) {
+                                case 0x90:
+                                    if (midi_message.data[2] !== 0) { // note-on
                                         _keyboard = new Array(_polyphony_max * 3);
                                         _keyboard.fill(0);
-                                        
+
+                                        _keyboard_pressed[midi_message.data[1]] = {
+                                                frq: _frequencyFromNoteNumber(midi_message.data[1]),
+                                                vel: midi_message.data[2],
+                                                time: Date.now()
+                                            };
+
                                         i = 0;
 
                                         for (key in _keyboard_pressed) { 
@@ -19806,7 +19829,7 @@ var _uiInit = function () {
 
                                             _keyboard[i] = value.frq;
                                             _keyboard[i + 1] = value.vel;
-                                            _keyboard[i + 2] = value.time;
+                                            _keyboard[i + 2] = Date.now();
 
                                             i += 3;
 
@@ -19814,21 +19837,43 @@ var _uiInit = function () {
                                                 break;
                                             }
                                         }
-                                        
-                                        _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 3);
-                                        break;
-                                }
 
-                                WUI_RangeSlider.submitMIDIMessage(midi_message);
-                            };
-                        }
-                    );
-            });
-    }
-    
-    // now useless, just safe to remove!
-    _utterFailRemove();
-};/* jslint browser: true */
+                                        _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 3);
+                                    }
+                                    break;
+
+                                case 0x80:
+                                    delete _keyboard_pressed[midi_message.data[1]];
+
+                                    _keyboard = new Array(_polyphony_max * 3);
+                                    _keyboard.fill(0);
+
+                                    i = 0;
+
+                                    for (key in _keyboard_pressed) { 
+                                        value = _keyboard_pressed[key];
+
+                                        _keyboard[i] = value.frq;
+                                        _keyboard[i + 1] = value.vel;
+                                        _keyboard[i + 2] = value.time;
+
+                                        i += 3;
+
+                                        if (i > _keyboard_data_length) {
+                                            break;
+                                        }
+                                    }
+
+                                    _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 3);
+                                    break;
+                            }
+
+                            WUI_RangeSlider.submitMIDIMessage(midi_message);
+                        };
+                    }
+                );
+        });
+}/* jslint browser: true */
 
 /***********************************************************
     Fields.
@@ -19945,6 +19990,18 @@ var _fasInit = function () {
             _gl.bindBuffer(_gl.PIXEL_PACK_BUFFER, null);
         }
     };
+    
+    var _saveLocalSessionSettings = function () {
+        var session_name = _getSessionName();
+
+        return function () {
+            try {
+                localStorage.setItem(session_name, JSON.stringify(_local_session_settings));
+            } catch (e) {
+                _notification("Can't save session local settings due to localStorage error. (local storage is likely full)");
+            }
+        };
+    }();
     
     var _updateScore = function (update_obj, update) {
         var prev_base_freq = _audio_infos.base_freq,

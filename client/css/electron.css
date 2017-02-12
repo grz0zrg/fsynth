@@ -1,0 +1,57 @@
+#fs_electron_login_dialog .wui-dialog-header {
+    border-bottom: none;
+    background: transparent;
+}
+
+#fs_electron_login_dialog .wui-dialog-content {
+    background: transparent;
+}
+
+#fs_electron_login_dialog {
+    border: none;
+}
+
+.fs-app-version {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    color: #ffffff;
+    padding: 8px;
+    font-size: 11pt;
+}
+
+.fs-electron-login-logo {
+    position: absolute;
+    text-align: center;
+    width: 100%;
+    margin-top: 12px;
+}
+
+.fs-electron-login-logo2 {
+    position: absolute;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 24px;
+    bottom: 0;
+}
+
+.fs-electron-login {
+    background-color: #020202;
+    background-image: url("../data/dark-tire.png");
+    width: 100%;
+    height: 100%;
+    z-index: 99999;
+    position: absolute;
+    transition: opacity 2s;
+    transition-timing-function: ease-in;
+    opacity: 1;
+}
+
+.fs-login-tab {
+    padding-top: 24px;   
+}
+
+.fs-btn-big {
+    padding: 6px;
+    text-decoration: none;
+}

@@ -37,7 +37,7 @@ var _FS_WAVETABLE = 0,
             return wavetable;
         })(_wavetable_size),
     
-    _osc_mode = _FS_OSC_NODES,
+    _osc_mode = _isFireFox() ? _FS_WAVETABLE : _FS_OSC_NODES,
     _osc_fadeout = 0.25,
     
     _oscillators,

@@ -20,18 +20,6 @@ var _fs_palette = {
     Functions.
 ************************************************************/
 
-var _saveLocalSessionSettings = function () {
-    var session_name = _getSessionName();
-
-    return function () {
-        try {
-            localStorage.setItem(session_name, JSON.stringify(_local_session_settings));
-        } catch (e) {
-            _notification("Can't save session local settings due to localStorage error. (local storage is likely full)");
-        }
-    };
-}();
-
 var _isPowerOf2 = function (value) {
     return (value & (value - 1)) === 0;
 };
@@ -102,6 +90,10 @@ var _truncateDecimals = function (num, digits) {
         finalResult = isNaN(trimmedResult) ? 0 : trimmedResult;
 
     return parseFloat(finalResult);
+};
+
+var _isFireFox = function () {
+    return (navigator.userAgent.toLowerCase().indexOf('firefox') > -1);
 };
 
 var _frequencyFromNoteNumber = function (note) {

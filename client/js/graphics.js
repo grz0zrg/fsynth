@@ -248,6 +248,7 @@ var _frame = function (raf_time) {
         
         buffer;
 
+    // update notes time
     for (key in _keyboard_pressed) { 
         v = _keyboard_pressed[key];
 

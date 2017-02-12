@@ -37,6 +37,7 @@ var FragmentSynth = function (params) {
         Globals.
     ************************************************************/
 
+    /*#include tools.js*/
     /*#include notification.js*/
 
     var _getSessionName = function () {
@@ -255,7 +256,6 @@ var FragmentSynth = function (params) {
     ************************************************************/
 
     /*#include config.js*/
-    /*#include tools.js*/
     /*#include audio.js*/
     /*#include graphics.js*/
     /*#include glsl.js*/
@@ -265,6 +265,7 @@ var FragmentSynth = function (params) {
     /*#include editor.js*/
     /*#include transports.js*/
     /*#include ui.js*/
+    /*#include midi.js*/
     /*#include fas.js*/
 
     /***********************************************************
@@ -283,6 +284,18 @@ var FragmentSynth = function (params) {
             _gl.bindBuffer(_gl.PIXEL_PACK_BUFFER, null);
         }
     };
+    
+    var _saveLocalSessionSettings = function () {
+        var session_name = _getSessionName();
+
+        return function () {
+            try {
+                localStorage.setItem(session_name, JSON.stringify(_local_session_settings));
+            } catch (e) {
+                _notification("Can't save session local settings due to localStorage error. (local storage is likely full)");
+            }
+        };
+    }();
     
     var _updateScore = function (update_obj, update) {
         var prev_base_freq = _audio_infos.base_freq,
