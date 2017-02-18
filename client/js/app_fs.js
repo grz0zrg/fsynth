@@ -125,6 +125,7 @@ var FragmentSynth = function (params) {
         _hz_infos = document.getElementById("fs_hz_infos"),
         _xy_infos = document.getElementById("fs_xy_infos"),
         _osc_infos = document.getElementById("fs_osc_infos"),
+        _poly_infos_element = document.getElementById("fs_polyphony_infos"),
 
         _haxis_infos = document.getElementById("fs_haxis_infos"),
         _vaxis_infos = document.getElementById("fs_vaxis_infos"),
@@ -160,11 +161,40 @@ var FragmentSynth = function (params) {
             mode: "text/x-glsl"
         },
         
+        // this is the amount of free uniform vectors for Fragment regular uniforms and session custom uniforms
+        // this is also used to assign uniform vectors automatically for polyphonic uses
+        // if the GPU cannot have that much uniforms (with polyphonic uses), this will be divided by two and the polyphonic computation will be done again
+        // if the GPU cannot still have that much uniforms (with polyphonic uses), there will be a polyphony limit of 16 notes, this is a safe limit for all devices nowaday
+        _free_uniform_vectors = 320,
+        
+        // note-on/note-off related stuff (MIDI keyboard etc.)
+        _keyboard = {
+            data: [],
+            data_components: 4,
+            // polyphonic capabilities is set dynamically from MAX_FRAGMENT_UNIFORM_VECTORS parameter
+            // ~221 MAX_FRAGMENT_UNIFORM_VECTORS value will be generally the default for desktop
+            // this permit a polyphony of ~60 notes with 4 components for each notes and by considering the reserved uniform vectors
+            // all this is limited by the MAX_FRAGMENT_UNIFORM_VECTORS parameter on the GPU taking into account the other Fragment uniform PLUS sessions uniform
+            // at the time of this comment in 2017, 99.9% of desktop devices support up to 221 uniform vectors while there is a 83.9% support for up to 512 uniform vectors,
+            // this amount to ~192 notes polyphony, a capability of 1024 lead to ~704 notes polyphony and so on...
+            data_length: 60 * 4,
+            // amount of allocated uniform vectors
+            uniform_vectors: 0,
+            pressed: {},
+            polyphony_max: 60,
+            polyphony: 0 // current polyphony
+        },
+        
+        _webgl = {
+            max_fragment_uniform_vector: -1
+        },
+/*
         _keyboard = [],
         _keyboard_pressed = {},
         _polyphony_max = 8,
-        _keyboard_data_length = _polyphony_max * 3,
-
+        _keyboard_data_components = 4,
+        _keyboard_data_length = _polyphony_max * _keyboard_data_components,
+*/
         _compile_timer,
 
         _undock_code_editor = false,
@@ -176,6 +206,7 @@ var FragmentSynth = function (params) {
         // settings
         _show_globaltime = false,
         _show_oscinfos = false,
+        _show_polyinfos = false,
         _cm_highlight_matches = false,
         _cm_show_linenumbers = true,
         _cm_advanced_scrollbar = false,
@@ -435,7 +466,28 @@ var FragmentSynth = function (params) {
 
         return;
     }
-
+    
+    // compute default polyphony max based on GPU capabilities
+    _webgl.max_fragment_uniform_vector = _gl.getParameter(_gl.MAX_FRAGMENT_UNIFORM_VECTORS);
+    
+    _keyboard.uniform_vectors = _webgl.max_fragment_uniform_vector - _free_uniform_vectors;
+    
+    _keyboard.data_length = _keyboard.uniform_vectors * 4;
+    _keyboard.polyphony_max = _keyboard.uniform_vectors;
+    
+    if (_keyboard.uniform_vectors <= 16) {
+        _keyboard.uniform_vectors = _webgl.max_fragment_uniform_vector - (_free_uniform_vectors / 2);
+        
+        // still not? default to 8, all devices should be fine nowaday with 32 uniform vectors
+        if (_keyboard.uniform_vectors <= 16) {
+            _keyboard.data_length = 16 * 4;
+            _keyboard.polyphony_max = 16;
+        } else {
+            _keyboard.data_length = _keyboard.uniform_vectors * 4;
+            _keyboard.polyphony_max = _keyboard.uniform_vectors;
+        }
+    }
+    
     _buildScreenAlignedQuad();
 
     _gl.viewport(0, 0, _canvas.width, _canvas.height);
@@ -460,6 +512,8 @@ var FragmentSynth = function (params) {
     //_addPlayPositionMarker(_canvas_width - _canvas_width / 4);
 
     _uiInit();
+    
+    _midiInit();
     
     _fasInit();
 

@@ -249,19 +249,19 @@ var _frame = function (raf_time) {
         buffer;
 
     // update notes time
-    for (key in _keyboard_pressed) { 
-        v = _keyboard_pressed[key];
+    for (key in _keyboard.pressed) { 
+        v = _keyboard.pressed[key];
 
-        _keyboard[i + 2] = (date - v.time) / 1000;
+        _keyboard.data[i + 2] = (date - v.time) / 1000;
 
-        i += 3;
+        i += _keyboard.data_components;
 
-        if (i > _keyboard_data_length) {
+        if (i > _keyboard.data_length) {
             break;
         }
     }
     
-    _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 3);
+    _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
 
     //_gl.useProgram(_program);
     _gl.uniform1f(_getUniformLocation("globalTime"), global_time);
@@ -373,6 +373,10 @@ var _frame = function (raf_time) {
         }
 
         _osc_infos.innerHTML = c;
+    }
+    
+    if (_show_polyinfos) {
+        _poly_infos_element.innerHTML = _keyboard.polyphony;
     }
     
     _drawSpectrum();

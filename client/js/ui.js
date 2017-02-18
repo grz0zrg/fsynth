@@ -30,7 +30,7 @@ var _icon_class = {
     _send_slices_settings_timeout,
     _add_slice_timeout,
     _remove_slice_timeout,
-    _slice_update_timeout = [{}, {}, {}],
+    _slice_update_timeout = [{}, {}, {}, {}],
     _slice_update_queue = [],
     
     _controls_dialog_id = "fs_controls_dialog",
@@ -159,8 +159,12 @@ var _domCreatePlayPositionMarker = function (hook_element, height) {
     return play_position_marker_div;
 };
 
+var _getSlice = function (play_position_marker_id) {
+    return _play_position_markers[parseInt(play_position_marker_id, 10)];
+};
+
 var _setPlayPosition = function (play_position_marker_id, x, y, submit) {
-    var play_position_marker = _play_position_markers[parseInt(play_position_marker_id, 10)],
+    var play_position_marker = _getSlice(play_position_marker_id),
         
         height = play_position_marker.height,
         
@@ -276,10 +280,12 @@ var _createMarkerSettings = function (marker_obj) {
         
         fs_slice_settings_container = document.createElement("div"),
         fs_slice_settings_x_input = document.createElement("div"),
-        fs_slice_settings_shift_input = document.createElement("div");
+        fs_slice_settings_shift_input = document.createElement("div"),
+        fs_slice_settings_channel_input = document.createElement("div");
     
     fs_slice_settings_x_input.id = "fs_slice_settings_x_input_" + marker_obj.id;
     fs_slice_settings_shift_input.id = "fs_slice_settings_shift_input_" + marker_obj.id;
+    fs_slice_settings_channel_input.id = "fs_slice_settings_channel_input_" + marker_obj.id;
     
     WUI_RangeSlider.create(fs_slice_settings_x_input, {
             width: 120,
@@ -331,16 +337,55 @@ var _createMarkerSettings = function (marker_obj) {
             value_min_width: 88,
 
             on_change: function (value) {
+                /*
                 if (_selected_slice) {
                     _selected_slice.shift = _parseInt10(value);
                     
                     _submitSliceUpdate(1, marker_obj.element.dataset.slice, { shift : value });
-                }
+                }*/
+                
+                var slice = _getSlice(marker_obj.element.dataset.slice);
+                
+                slice.shift = _parseInt10(value);
+                
+                _submitSliceUpdate(1, marker_obj.element.dataset.slice, { shift : value });
+            }
+        });
+    
+    WUI_RangeSlider.create(fs_slice_settings_channel_input, {
+            width: 120,
+            height: 8,
+
+            bar: false,
+
+            step: 1,
+
+            midi: {
+                type: "rel"   
+            },
+        
+            min: 1,
+
+            default_value: 0,
+            value: marker_obj.output_channel,
+
+            title: "FAS Output channel",
+
+            title_min_width: 140,
+            value_min_width: 88,
+
+            on_change: function (value) {
+                var slice = _getSlice(marker_obj.element.dataset.slice);
+                
+                slice.output_channel = _parseInt10(value);
+                
+                _submitSliceUpdate(3, marker_obj.element.dataset.slice, { output_channel : value });
             }
         });
     
     fs_slice_settings_container.appendChild(fs_slice_settings_x_input);
     fs_slice_settings_container.appendChild(fs_slice_settings_shift_input);
+    fs_slice_settings_container.appendChild(fs_slice_settings_channel_input);
     
     fs_slice_settings_container.id = "slice_settings_container_" + marker_obj.id;
     fs_slice_settings_container.style = "display: none";
@@ -378,7 +423,8 @@ var _submitSliceSettingsFn = function () {
         slices_settings.push({
                 x: play_position_marker.x,
                 shift: play_position_marker.shift,
-                mute: play_position_marker.mute
+                mute: play_position_marker.mute,
+                output_channel: play_position_marker.output_channel,
             });
     }
 
@@ -418,7 +464,7 @@ var _unmuteSlice = function (slice_obj, submit) {
     }
 };
 
-var _addPlayPositionMarker = function (x, shift, mute, submit) {
+var _addPlayPositionMarker = function (x, shift, mute, output_channel, submit) {
     var play_position_marker_element = _domCreatePlayPositionMarker(_canvas, _canvas_height),
         play_position_marker_id = _play_position_markers.length,
         
@@ -450,12 +496,17 @@ var _addPlayPositionMarker = function (x, shift, mute, submit) {
             min: 0,
             max: 100,
             shift: 0,
+            output_channel: 1,
             y: 0,
             height: _canvas_height,
             id: play_position_marker_id
         });
     
     play_position_marker = _play_position_markers[play_position_marker_id];
+    
+    if (output_channel !== undefined) {
+        play_position_marker.output_channel = output_channel;
+    }
     
     if (shift !== undefined) {
         play_position_marker.shift = shift;
@@ -1225,6 +1276,7 @@ var _showSpectrumDialog = function () {
 
 var _uiInit = function () {
     var settings_ck_globaltime_elem = document.getElementById("fs_settings_ck_globaltime"),
+        settings_ck_polyinfos_elem = document.getElementById("fs_settings_ck_polyinfos"),
         settings_ck_oscinfos_elem = document.getElementById("fs_settings_ck_oscinfos"),
         settings_ck_hlmatches_elem = document.getElementById("fs_settings_ck_hlmatches"),
         settings_ck_lnumbers_elem = document.getElementById("fs_settings_ck_lnumbers"),
@@ -1234,6 +1286,7 @@ var _uiInit = function () {
         fs_settings_max_polyphony = localStorage.getItem('fs-max-polyphony'),
         fs_settings_osc_fadeout = localStorage.getItem('fs-osc-fadeout'),
         fs_settings_show_globaltime = localStorage.getItem('fs-show-globaltime'),
+        fs_settings_show_polyinfos = localStorage.getItem('fs-show-polyinfos'),
         fs_settings_show_oscinfos = localStorage.getItem('fs-show-oscinfos'),
         fs_settings_hlmatches = localStorage.getItem('fs-editor-hl-matches'),
         fs_settings_lnumbers = localStorage.getItem('fs-editor-show-linenumbers'),
@@ -1244,7 +1297,7 @@ var _uiInit = function () {
             title: "Session & global settings",
 
             width: "320px",
-            height: "360px",
+            height: "390px",
 
             halign: "center",
             valign: "center",
@@ -1261,7 +1314,7 @@ var _uiInit = function () {
     }
     
     if (fs_settings_max_polyphony) {
-        _polyphony_max = _parseInt10(fs_settings_max_polyphony);
+        _keyboard.polyphony_max = _parseInt10(fs_settings_max_polyphony);
     }
     
     if (fs_settings_wavetable === "true") {
@@ -1278,6 +1331,10 @@ var _uiInit = function () {
     
     if (fs_settings_show_oscinfos !== null) {
         _show_oscinfos = (fs_settings_show_oscinfos === "true");
+    }
+    
+    if (fs_settings_show_polyinfos !== null) {
+        _show_polyinfos = (fs_settings_show_polyinfos === "true");
     }
 
     if (fs_settings_hlmatches !== null) {
@@ -1302,6 +1359,12 @@ var _uiInit = function () {
         settings_ck_oscinfos_elem.checked = true;
     } else {
         settings_ck_oscinfos_elem.checked = false;
+    }
+    
+    if (_show_polyinfos) {
+        settings_ck_polyinfos_elem.checked = true;
+    } else {
+        settings_ck_polyinfos_elem.checked = false;
     }
 
     if (_show_globaltime) {
@@ -1343,6 +1406,16 @@ var _uiInit = function () {
             }
         
             localStorage.setItem('fs-show-oscinfos', _show_oscinfos);
+        });
+    
+    settings_ck_polyinfos_elem.addEventListener("change", function () {
+            _show_polyinfos = this.checked;
+        
+            if (!_show_polyinfos) {
+                _poly_infos_element.innerHTML = "";
+            }
+        
+            localStorage.setItem('fs-show-polyinfos', _show_polyinfos);
         });
 
     settings_ck_globaltime_elem.addEventListener("change", function () {
@@ -1398,6 +1471,7 @@ var _uiInit = function () {
         });
     settings_ck_wavetable_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_oscinfos_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_polyinfos_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_globaltime_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_hlmatches_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_lnumbers_elem.dispatchEvent(new UIEvent('change'));
@@ -1738,8 +1812,8 @@ var _uiInit = function () {
             step: 1,
             scroll_step: 1,
 
-            default_value: _polyphony_max,
-            value: _polyphony_max,
+            default_value: _keyboard.polyphony_max,
+            value: _keyboard.polyphony_max,
 
             title: "Polyphony",
 
@@ -1751,11 +1825,17 @@ var _uiInit = function () {
                     return;
                 }
                 
-                _polyphony_max = polyphony;
+                _keyboard.polyphony_max = polyphony;
                 
-                localStorage.setItem('fs-max-polyphony', _polyphony_max);
+                localStorage.setItem('fs-max-polyphony', _keyboard.polyphony_max);
                 
-                _keyboard_data_length = _polyphony_max * 3;
+                _keyboard.data = [];
+                
+                _keyboard.data_length = _keyboard.polyphony_max * _keyboard.data_components;
+
+                for (i = 0; i < _keyboard.data_length; i += 1) {
+                    _keyboard.data[i] = 0;
+                }
                 
                 _compile();
             }

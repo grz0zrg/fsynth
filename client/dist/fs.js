@@ -15771,6 +15771,7 @@ _utter_fail_element.innerHTML = "";
         _hz_infos = document.getElementById("fs_hz_infos"),
         _xy_infos = document.getElementById("fs_xy_infos"),
         _osc_infos = document.getElementById("fs_osc_infos"),
+        _poly_infos_element = document.getElementById("fs_polyphony_infos"),
 
         _haxis_infos = document.getElementById("fs_haxis_infos"),
         _vaxis_infos = document.getElementById("fs_vaxis_infos"),
@@ -15806,11 +15807,40 @@ _utter_fail_element.innerHTML = "";
             mode: "text/x-glsl"
         },
         
+        // this is the amount of free uniform vectors for Fragment regular uniforms and session custom uniforms
+        // this is also used to assign uniform vectors automatically for polyphonic uses
+        // if the GPU cannot have that much uniforms (with polyphonic uses), this will be divided by two and the polyphonic computation will be done again
+        // if the GPU cannot still have that much uniforms (with polyphonic uses), there will be a polyphony limit of 16 notes, this is a safe limit for all devices nowaday
+        _free_uniform_vectors = 320,
+        
+        // note-on/note-off related stuff (MIDI keyboard etc.)
+        _keyboard = {
+            data: [],
+            data_components: 4,
+            // polyphonic capabilities is set dynamically from MAX_FRAGMENT_UNIFORM_VECTORS parameter
+            // ~221 MAX_FRAGMENT_UNIFORM_VECTORS value will be generally the default for desktop
+            // this permit a polyphony of ~60 notes with 4 components for each notes and by considering the reserved uniform vectors
+            // all this is limited by the MAX_FRAGMENT_UNIFORM_VECTORS parameter on the GPU taking into account the other Fragment uniform PLUS sessions uniform
+            // at the time of this comment in 2017, 99.9% of desktop devices support up to 221 uniform vectors while there is a 83.9% support for up to 512 uniform vectors,
+            // this amount to ~192 notes polyphony, a capability of 1024 lead to ~704 notes polyphony and so on...
+            data_length: 60 * 4,
+            // amount of allocated uniform vectors
+            uniform_vectors: 0,
+            pressed: {},
+            polyphony_max: 60,
+            polyphony: 0 // current polyphony
+        },
+        
+        _webgl = {
+            max_fragment_uniform_vector: -1
+        },
+/*
         _keyboard = [],
         _keyboard_pressed = {},
         _polyphony_max = 8,
-        _keyboard_data_length = _polyphony_max * 3,
-
+        _keyboard_data_components = 4,
+        _keyboard_data_length = _polyphony_max * _keyboard_data_components,
+*/
         _compile_timer,
 
         _undock_code_editor = false,
@@ -15822,6 +15852,7 @@ _utter_fail_element.innerHTML = "";
         // settings
         _show_globaltime = false,
         _show_oscinfos = false,
+        _show_polyinfos = false,
         _cm_highlight_matches = false,
         _cm_show_linenumbers = true,
         _cm_advanced_scrollbar = false,
@@ -16675,19 +16706,19 @@ var _frame = function (raf_time) {
         buffer;
 
     // update notes time
-    for (key in _keyboard_pressed) { 
-        v = _keyboard_pressed[key];
+    for (key in _keyboard.pressed) { 
+        v = _keyboard.pressed[key];
 
-        _keyboard[i + 2] = (date - v.time) / 1000;
+        _keyboard.data[i + 2] = (date - v.time) / 1000;
 
-        i += 3;
+        i += _keyboard.data_components;
 
-        if (i > _keyboard_data_length) {
+        if (i > _keyboard.data_length) {
             break;
         }
     }
     
-    _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 3);
+    _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
 
     //_gl.useProgram(_program);
     _gl.uniform1f(_getUniformLocation("globalTime"), global_time);
@@ -16799,6 +16830,10 @@ var _frame = function (raf_time) {
         }
 
         _osc_infos.innerHTML = c;
+    }
+    
+    if (_show_polyinfos) {
+        _poly_infos_element.innerHTML = _keyboard.polyphony;
     }
     
     _drawSpectrum();
@@ -16928,7 +16963,7 @@ var _compile = function () {
         i = 0;
     
     // add our uniforms
-    glsl_code = "precision mediump float; uniform float globalTime; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec3 keyboard[" + _polyphony_max + "];";
+    glsl_code = "precision mediump float; uniform float globalTime; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "];";
 
     // add inputs uniforms
     for (i = 0; i < _fragment_input_data.length; i += 1) {
@@ -16972,7 +17007,7 @@ var _compile = function () {
 
         _gl.uniform2f(_gl.getUniformLocation(_program, "resolution"), _canvas.width, _canvas.height);
         
-        _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 3);
+        _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
         
         // set uniforms to value from controllers
         for(ctrl_name in _controls) { 
@@ -17226,7 +17261,7 @@ var _fssConnect = function () {
                 } else if (msg.type === "msg") {
                     _addMessage(msg.userid, msg.data);
                 } else if (msg.type === "addSlice") {
-                    _addPlayPositionMarker(msg.data.x, msg.data.shift, msg.data.mute);
+                    _addPlayPositionMarker(msg.data.x, msg.data.shift, msg.data.mute, msg.data.output_channel);
                 } else if (msg.type === "delSlice") {
                     _removePlayPositionMarker(msg.data.id);
                 } else if (msg.type === "updSlice") {
@@ -17235,7 +17270,7 @@ var _fssConnect = function () {
                     _removeAllSlices();
                     
                     for (i = 0; i < msg.data.length; i += 1) {
-                        _addPlayPositionMarker(msg.data[i].x, msg.data[i].shift, msg.data[i].mute);
+                        _addPlayPositionMarker(msg.data[i].x, msg.data[i].shift, msg.data[i].mute, msg.data[i].output_channel);
                     }
                 }
             } catch (e) {
@@ -17991,7 +18026,7 @@ var _icon_class = {
     _send_slices_settings_timeout,
     _add_slice_timeout,
     _remove_slice_timeout,
-    _slice_update_timeout = [{}, {}, {}],
+    _slice_update_timeout = [{}, {}, {}, {}],
     _slice_update_queue = [],
     
     _controls_dialog_id = "fs_controls_dialog",
@@ -18120,8 +18155,12 @@ var _domCreatePlayPositionMarker = function (hook_element, height) {
     return play_position_marker_div;
 };
 
+var _getSlice = function (play_position_marker_id) {
+    return _play_position_markers[parseInt(play_position_marker_id, 10)];
+};
+
 var _setPlayPosition = function (play_position_marker_id, x, y, submit) {
-    var play_position_marker = _play_position_markers[parseInt(play_position_marker_id, 10)],
+    var play_position_marker = _getSlice(play_position_marker_id),
         
         height = play_position_marker.height,
         
@@ -18237,10 +18276,12 @@ var _createMarkerSettings = function (marker_obj) {
         
         fs_slice_settings_container = document.createElement("div"),
         fs_slice_settings_x_input = document.createElement("div"),
-        fs_slice_settings_shift_input = document.createElement("div");
+        fs_slice_settings_shift_input = document.createElement("div"),
+        fs_slice_settings_channel_input = document.createElement("div");
     
     fs_slice_settings_x_input.id = "fs_slice_settings_x_input_" + marker_obj.id;
     fs_slice_settings_shift_input.id = "fs_slice_settings_shift_input_" + marker_obj.id;
+    fs_slice_settings_channel_input.id = "fs_slice_settings_channel_input_" + marker_obj.id;
     
     WUI_RangeSlider.create(fs_slice_settings_x_input, {
             width: 120,
@@ -18292,16 +18333,55 @@ var _createMarkerSettings = function (marker_obj) {
             value_min_width: 88,
 
             on_change: function (value) {
+                /*
                 if (_selected_slice) {
                     _selected_slice.shift = _parseInt10(value);
                     
                     _submitSliceUpdate(1, marker_obj.element.dataset.slice, { shift : value });
-                }
+                }*/
+                
+                var slice = _getSlice(marker_obj.element.dataset.slice);
+                
+                slice.shift = _parseInt10(value);
+                
+                _submitSliceUpdate(1, marker_obj.element.dataset.slice, { shift : value });
+            }
+        });
+    
+    WUI_RangeSlider.create(fs_slice_settings_channel_input, {
+            width: 120,
+            height: 8,
+
+            bar: false,
+
+            step: 1,
+
+            midi: {
+                type: "rel"   
+            },
+        
+            min: 1,
+
+            default_value: 0,
+            value: marker_obj.output_channel,
+
+            title: "FAS Output channel",
+
+            title_min_width: 140,
+            value_min_width: 88,
+
+            on_change: function (value) {
+                var slice = _getSlice(marker_obj.element.dataset.slice);
+                
+                slice.output_channel = _parseInt10(value);
+                
+                _submitSliceUpdate(3, marker_obj.element.dataset.slice, { output_channel : value });
             }
         });
     
     fs_slice_settings_container.appendChild(fs_slice_settings_x_input);
     fs_slice_settings_container.appendChild(fs_slice_settings_shift_input);
+    fs_slice_settings_container.appendChild(fs_slice_settings_channel_input);
     
     fs_slice_settings_container.id = "slice_settings_container_" + marker_obj.id;
     fs_slice_settings_container.style = "display: none";
@@ -18339,7 +18419,8 @@ var _submitSliceSettingsFn = function () {
         slices_settings.push({
                 x: play_position_marker.x,
                 shift: play_position_marker.shift,
-                mute: play_position_marker.mute
+                mute: play_position_marker.mute,
+                output_channel: play_position_marker.output_channel,
             });
     }
 
@@ -18379,7 +18460,7 @@ var _unmuteSlice = function (slice_obj, submit) {
     }
 };
 
-var _addPlayPositionMarker = function (x, shift, mute, submit) {
+var _addPlayPositionMarker = function (x, shift, mute, output_channel, submit) {
     var play_position_marker_element = _domCreatePlayPositionMarker(_canvas, _canvas_height),
         play_position_marker_id = _play_position_markers.length,
         
@@ -18411,12 +18492,17 @@ var _addPlayPositionMarker = function (x, shift, mute, submit) {
             min: 0,
             max: 100,
             shift: 0,
+            output_channel: 1,
             y: 0,
             height: _canvas_height,
             id: play_position_marker_id
         });
     
     play_position_marker = _play_position_markers[play_position_marker_id];
+    
+    if (output_channel !== undefined) {
+        play_position_marker.output_channel = output_channel;
+    }
     
     if (shift !== undefined) {
         play_position_marker.shift = shift;
@@ -19186,6 +19272,7 @@ var _showSpectrumDialog = function () {
 
 var _uiInit = function () {
     var settings_ck_globaltime_elem = document.getElementById("fs_settings_ck_globaltime"),
+        settings_ck_polyinfos_elem = document.getElementById("fs_settings_ck_polyinfos"),
         settings_ck_oscinfos_elem = document.getElementById("fs_settings_ck_oscinfos"),
         settings_ck_hlmatches_elem = document.getElementById("fs_settings_ck_hlmatches"),
         settings_ck_lnumbers_elem = document.getElementById("fs_settings_ck_lnumbers"),
@@ -19195,6 +19282,7 @@ var _uiInit = function () {
         fs_settings_max_polyphony = localStorage.getItem('fs-max-polyphony'),
         fs_settings_osc_fadeout = localStorage.getItem('fs-osc-fadeout'),
         fs_settings_show_globaltime = localStorage.getItem('fs-show-globaltime'),
+        fs_settings_show_polyinfos = localStorage.getItem('fs-show-polyinfos'),
         fs_settings_show_oscinfos = localStorage.getItem('fs-show-oscinfos'),
         fs_settings_hlmatches = localStorage.getItem('fs-editor-hl-matches'),
         fs_settings_lnumbers = localStorage.getItem('fs-editor-show-linenumbers'),
@@ -19205,7 +19293,7 @@ var _uiInit = function () {
             title: "Session & global settings",
 
             width: "320px",
-            height: "360px",
+            height: "390px",
 
             halign: "center",
             valign: "center",
@@ -19222,7 +19310,7 @@ var _uiInit = function () {
     }
     
     if (fs_settings_max_polyphony) {
-        _polyphony_max = _parseInt10(fs_settings_max_polyphony);
+        _keyboard.polyphony_max = _parseInt10(fs_settings_max_polyphony);
     }
     
     if (fs_settings_wavetable === "true") {
@@ -19239,6 +19327,10 @@ var _uiInit = function () {
     
     if (fs_settings_show_oscinfos !== null) {
         _show_oscinfos = (fs_settings_show_oscinfos === "true");
+    }
+    
+    if (fs_settings_show_polyinfos !== null) {
+        _show_polyinfos = (fs_settings_show_polyinfos === "true");
     }
 
     if (fs_settings_hlmatches !== null) {
@@ -19263,6 +19355,12 @@ var _uiInit = function () {
         settings_ck_oscinfos_elem.checked = true;
     } else {
         settings_ck_oscinfos_elem.checked = false;
+    }
+    
+    if (_show_polyinfos) {
+        settings_ck_polyinfos_elem.checked = true;
+    } else {
+        settings_ck_polyinfos_elem.checked = false;
     }
 
     if (_show_globaltime) {
@@ -19304,6 +19402,16 @@ var _uiInit = function () {
             }
         
             localStorage.setItem('fs-show-oscinfos', _show_oscinfos);
+        });
+    
+    settings_ck_polyinfos_elem.addEventListener("change", function () {
+            _show_polyinfos = this.checked;
+        
+            if (!_show_polyinfos) {
+                _poly_infos_element.innerHTML = "";
+            }
+        
+            localStorage.setItem('fs-show-polyinfos', _show_polyinfos);
         });
 
     settings_ck_globaltime_elem.addEventListener("change", function () {
@@ -19359,6 +19467,7 @@ var _uiInit = function () {
         });
     settings_ck_wavetable_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_oscinfos_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_polyinfos_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_globaltime_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_hlmatches_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_lnumbers_elem.dispatchEvent(new UIEvent('change'));
@@ -19699,8 +19808,8 @@ var _uiInit = function () {
             step: 1,
             scroll_step: 1,
 
-            default_value: _polyphony_max,
-            value: _polyphony_max,
+            default_value: _keyboard.polyphony_max,
+            value: _keyboard.polyphony_max,
 
             title: "Polyphony",
 
@@ -19712,11 +19821,17 @@ var _uiInit = function () {
                     return;
                 }
                 
-                _polyphony_max = polyphony;
+                _keyboard.polyphony_max = polyphony;
                 
-                localStorage.setItem('fs-max-polyphony', _polyphony_max);
+                localStorage.setItem('fs-max-polyphony', _keyboard.polyphony_max);
                 
-                _keyboard_data_length = _polyphony_max * 3;
+                _keyboard.data = [];
+                
+                _keyboard.data_length = _keyboard.polyphony_max * _keyboard.data_components;
+
+                for (i = 0; i < _keyboard.data_length; i += 1) {
+                    _keyboard.data[i] = 0;
+                }
                 
                 _compile();
             }
@@ -19801,78 +19916,99 @@ var _uiInit = function () {
     Init.
 ************************************************************/
 
-if (navigator.requestMIDIAccess) {
-    navigator.requestMIDIAccess().then(
-            function (m) {
-                m.inputs.forEach(
-                    function (midi_input) {
-                        midi_input.onmidimessage = function (midi_message) {
-                            var i = 0,
-                                key, value;
-                            
-                            switch (midi_message.data[0] & 0xf0) {
-                                case 0x90:
-                                    if (midi_message.data[2] !== 0) { // note-on
-                                        _keyboard = new Array(_polyphony_max * 3);
-                                        _keyboard.fill(0);
+var _midiInit = function () {
+    var i = 0;
+    
+    _keyboard.data = [];
+    
+    for (i = 0; i < _keyboard.polyphony_max; i += 1) {
+        _keyboard.data[i] = 0;
+    }
 
-                                        _keyboard_pressed[midi_message.data[1]] = {
-                                                frq: _frequencyFromNoteNumber(midi_message.data[1]),
-                                                vel: midi_message.data[2],
-                                                time: Date.now()
-                                            };
+    if (navigator.requestMIDIAccess) {
+        navigator.requestMIDIAccess().then(
+                function (m) {
+                    m.inputs.forEach(
+                        function (midi_input) {
+                            midi_input.onmidimessage = function (midi_message) {
+                                var i = 0,
+                                    key, value, channel = midi_message.data[0] & 0x0f;
+
+                                switch (midi_message.data[0] & 0xf0) {
+                                    case 0x90:
+                                        if (midi_message.data[2] !== 0) { // note-on
+                                            key = channel + "_" + midi_message.data[1];
+                                            
+                                            _keyboard.data = new Array(_keyboard.data_length);
+                                            _keyboard.data.fill(0);
+
+                                            _keyboard.pressed[key] = {
+                                                    frq: _frequencyFromNoteNumber(midi_message.data[1]),
+                                                    vel: midi_message.data[2],
+                                                    time: Date.now(),
+                                                    channel: channel
+                                                };
+
+                                            i = 0;
+
+                                            for (key in _keyboard.pressed) { 
+                                                value = _keyboard.pressed[key];
+
+                                                _keyboard.data[i] = value.frq;
+                                                _keyboard.data[i + 1] = value.vel;
+                                                _keyboard.data[i + 2] = Date.now();
+                                                _keyboard.data[i + 3] = value.channel;
+
+                                                i += _keyboard.data_components;
+
+                                                if (i > _keyboard.data_length) {
+                                                    break;
+                                                }
+                                            }
+                                            
+                                            _keyboard.polyphony = i / _keyboard.data_components;
+
+                                            _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
+                                        }
+                                        break;
+
+                                    case 0x80:
+                                        key = channel + "_" + midi_message.data[1];
+                                        
+                                        delete _keyboard.pressed[key];
+
+                                        _keyboard.data = new Array(_keyboard.data_length);
+                                        _keyboard.data.fill(0);
 
                                         i = 0;
 
-                                        for (key in _keyboard_pressed) { 
-                                            value = _keyboard_pressed[key];
+                                        for (key in _keyboard.pressed) { 
+                                            value = _keyboard.pressed[key];
 
-                                            _keyboard[i] = value.frq;
-                                            _keyboard[i + 1] = value.vel;
-                                            _keyboard[i + 2] = Date.now();
+                                            _keyboard.data[i] = value.frq;
+                                            _keyboard.data[i + 1] = value.vel;
+                                            _keyboard.data[i + 2] = value.time;
+                                            _keyboard.data[i + 3] = value.channel;
 
-                                            i += 3;
+                                            i += _keyboard.data_components;
 
-                                            if (i > _keyboard_data_length) {
+                                            if (i > _keyboard.data_length) {
                                                 break;
                                             }
                                         }
+                                        
+                                        _keyboard.polyphony = i / _keyboard.data_components;
 
-                                        _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 3);
-                                    }
-                                    break;
+                                        _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
+                                        break;
+                                }
 
-                                case 0x80:
-                                    delete _keyboard_pressed[midi_message.data[1]];
-
-                                    _keyboard = new Array(_polyphony_max * 3);
-                                    _keyboard.fill(0);
-
-                                    i = 0;
-
-                                    for (key in _keyboard_pressed) { 
-                                        value = _keyboard_pressed[key];
-
-                                        _keyboard[i] = value.frq;
-                                        _keyboard[i + 1] = value.vel;
-                                        _keyboard[i + 2] = value.time;
-
-                                        i += 3;
-
-                                        if (i > _keyboard_data_length) {
-                                            break;
-                                        }
-                                    }
-
-                                    _setUniforms(_gl, "vec", _program, "keyboard", _keyboard, 3);
-                                    break;
-                            }
-
-                            WUI_RangeSlider.submitMIDIMessage(midi_message);
-                        };
-                    }
-                );
-        });
+                                WUI_RangeSlider.submitMIDIMessage(midi_message);
+                            };
+                        }
+                    );
+            });
+    }
 }/* jslint browser: true */
 
 /***********************************************************
@@ -20141,7 +20277,28 @@ var _fasInit = function () {
 
         return;
     }
-
+    
+    // compute default polyphony max based on GPU capabilities
+    _webgl.max_fragment_uniform_vector = _gl.getParameter(_gl.MAX_FRAGMENT_UNIFORM_VECTORS);
+    
+    _keyboard.uniform_vectors = _webgl.max_fragment_uniform_vector - _free_uniform_vectors;
+    
+    _keyboard.data_length = _keyboard.uniform_vectors * 4;
+    _keyboard.polyphony_max = _keyboard.uniform_vectors;
+    
+    if (_keyboard.uniform_vectors <= 16) {
+        _keyboard.uniform_vectors = _webgl.max_fragment_uniform_vector - (_free_uniform_vectors / 2);
+        
+        // still not? default to 8, all devices should be fine nowaday with 32 uniform vectors
+        if (_keyboard.uniform_vectors <= 16) {
+            _keyboard.data_length = 16 * 4;
+            _keyboard.polyphony_max = 16;
+        } else {
+            _keyboard.data_length = _keyboard.uniform_vectors * 4;
+            _keyboard.polyphony_max = _keyboard.uniform_vectors;
+        }
+    }
+    
     _buildScreenAlignedQuad();
 
     _gl.viewport(0, 0, _canvas.width, _canvas.height);
@@ -20166,6 +20323,8 @@ var _fasInit = function () {
     //_addPlayPositionMarker(_canvas_width - _canvas_width / 4);
 
     _uiInit();
+    
+    _midiInit();
     
     _fasInit();
 
@@ -20209,7 +20368,7 @@ _canvas.addEventListener('contextmenu', function(ev) {
             },
             [
                 { icon: "fs-plus-icon", tooltip: "Slice!",  on_click: function () {
-                        _addPlayPositionMarker(_cx, 0, false, true);
+                        _addPlayPositionMarker(_cx, 0, false, 0, true);
                     } }
             ]);
 
