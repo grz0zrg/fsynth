@@ -8,7 +8,7 @@ This is a web. spectral synthesizer powered by live [GLSL code](https://en.wikip
 
 Fragment can also be used for live coding visuals, they can be synchronized to sounds by using the MIDI capabilities
 
-Feature list:
+## Feature list:
 
  * Full-blown additive synthesizer powered by WebAudio oscillators, a wavetable OR a native program written in C (fastest)
  * Live coding/JIT compilation of shader code
@@ -25,14 +25,14 @@ Feature list:
 
  Note : Blue component output of the fragment shader can be used for real-time sounds/visuals sync. (it is unused by the synthesis engine) 
  
-MIDI Feature list (Integrated MIDI support with the WebMIDI API):
+## MIDI Feature list (Integrated MIDI support with the WebMIDI API):
 
  * Integrated note-on/note-off messages, note frequency, velocity, MIDI channel and elapsed time are accessible in the fragment shader
- * 704 notes polyphony with a GeForce GTX 970 GPU (16 notes polyphony is the minimum, polyphony is automatically detected from the GPU capabilities)
+ * Polyphony is automatically detected from the GPU capabilities (704 notes with a GeForce GTX 970 GPU, 16 notes is the minimum)
  * Hot plugging of MIDI devices are supported
  * MIDI enabled shader inputs
  
-Requirement:
+## Requirement:
 
  * Recent browser such as Chrome, Opera, Safari or Firefox (WebMIDI is still not supported by Firefox)
  * Recent medium GPU (Graphics Processing Unit), this app. was made and is used with a GeForce GTX 970
