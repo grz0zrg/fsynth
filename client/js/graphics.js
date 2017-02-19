@@ -335,7 +335,7 @@ var _frame = function (raf_time) {
             } else {
                 _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, _temp_data);
             }
-            
+     
             _transformData(play_position_marker, _temp_data);
 
             // merge slices data

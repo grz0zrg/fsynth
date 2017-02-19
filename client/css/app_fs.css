@@ -263,7 +263,7 @@ canvas {
 }
 
 .fs-input-panel {
-    width: calc(100% - 534px - 16px);
+    width: calc(100% - 572px - 16px);
     height: 32px;
 /*    
     background-color: #111111;
@@ -543,7 +543,7 @@ canvas {
 }
 
 .fs-middle-toolbar {
-    width: 534px;
+    width: 572px;
     
     margin: 0;
     
@@ -602,6 +602,33 @@ canvas {
     padding: 0;
     
     pointer-events: all;
+}
+
+.fs-midi-settings-device {
+    background-color: #111;
+    border-right: solid 2px #000;
+    border-bottom: solid 2px #000;
+    border-left: solid 1px #222;
+    border-top: solid 1px #222;
+    padding: 4px;
+    font-size: 10pt;
+}
+
+.fs-midi-settings-section {
+    padding-top: 4px;
+    padding-bottom: 4px;
+    font-size: 11pt;
+    text-align: center;
+}
+
+.fs-midi-settings-device > div {
+    padding: 4px;
+    font-size: 9pt;
+}
+
+.fs-midi-settings {
+    color: #ffffff;
+    padding: 4px;
 }
 
 .fs-red-curtain {

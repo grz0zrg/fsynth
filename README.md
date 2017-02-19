@@ -6,17 +6,38 @@ Source code repository for the Fragment app. which can be found at : https://www
 
 This is a web. spectral synthesizer powered by live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language).
 
+Fragment can also be used for live coding visuals, they can be synchronized to sounds by using the MIDI capabilities
+
 Feature list:
 
- * Full-blown additive synthesizer powered by WebAudio oscillators, a wavetable OR a native program written in C
- * Live coding and JIT compilation of shader code
+ * Full-blown additive synthesizer powered by WebAudio oscillators, a wavetable OR a native program written in C (fastest)
+ * Live coding/JIT compilation of shader code
  * Real-time, collaborative app.
- * MIDI enabled shader inputs
+ * Stereophonic
+ * Polyphonic
+ * Multitimbral
  * Shader inputs, webcam, textures and more
  * Real-time analysis (logarithmic spectrum view of the output etc.)
  * Native app. powered by [Electron](http://electron.atom.io/) with built-in [C powered additive synthesizer](https://github.com/grz0zrg/fas)
  * Per-sessions discussion system
+ * Global and per sessions settings automatic saving/loading; make use of *localStorage*
  * No authentifications (make use of *localStorage* and is *sessions* based)
+
+ Note : Blue component output of the fragment shader can be used for real-time sounds/visuals sync. (it is unused by the synthesis engine) 
+ 
+MIDI Feature list (Integrated MIDI support with the WebMIDI API):
+
+ * Integrated note-on/note-off messages, note frequency, velocity, MIDI channel and elapsed time are accessible in the fragment shader
+ * 704 notes polyphony with a GeForce GTX 970 GPU (16 notes polyphony is the minimum, polyphony is automatically detected from the GPU capabilities)
+ * Hot plugging of MIDI devices are supported
+ * MIDI enabled shader inputs
+ 
+Requirement:
+
+ * Recent browser such as Chrome, Opera, Safari or Firefox (WebMIDI is still not supported by Firefox)
+ * Recent medium GPU (Graphics Processing Unit), this app. was made and is used with a GeForce GTX 970
+ * Recent medium multi-core CPU (a dual core should be ok with the native program), this is required for the audio synthesis part
+ * Not necessary but a MIDI device such as a MIDI keyboard is recommended
 
 ## The project
 

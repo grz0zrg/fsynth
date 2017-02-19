@@ -147,7 +147,17 @@ var _generateOscillatorSet = function (n, base_frequency, octaves) {
         merger_node = null,
         gain_node_l = null,
         gain_node_r = null,
-        octave_length = n / octaves;
+        octave_length = n / octaves,
+        osc_obj;
+    
+    if (_oscillators) {
+        for (y = 0; y < _oscillators.length; y += 1) {
+            osc_obj = _oscillators[y];
+
+            osc_obj.merger_node.disconnect(_mst_gain_node);
+            osc_obj.node.stop();
+        }
+    }
 
     _oscillators = [];
 
@@ -176,7 +186,14 @@ var _generateOscillatorSet = function (n, base_frequency, octaves) {
             phase_index: Math.random() * _wavetable_size, 
             phase_step: phase_step
         };
-
+        
+        osc.node = _audio_context.createOscillator();
+        osc.node.setPeriodicWave(_periodic_wave[Math.round(Math.random() * _periodic_wave_n)]);
+        osc.node.frequency.value = osc.freq;
+        osc.node.connect(osc.gain_node_l);
+        osc.node.connect(osc.gain_node_r);
+        osc.node.start();
+        
         _oscillators.push(osc);
     }
     
@@ -228,17 +245,21 @@ var _stopOscillators = function () {
     }
     
     // osc. gain values will be checked to stop them cleanly
-    window.clearTimeout(_stop_oscillators_timeout);
-    _stop_oscillators_timeout = window.setTimeout(_stopOscillatorsCheck, 2000);
+    //window.clearTimeout(_stop_oscillators_timeout);
+    //_stop_oscillators_timeout = window.setTimeout(_stopOscillatorsCheck, 2000);
 };
 
 var _onOscillatorEnded = function () {
     this.node = null;
 };
 
+// this was used to allocate web audio oscillators dynamically, this was disabled because it seem unecessary, the browser seem to do it internally
+// NOTE : it introduced memory leaks
 var _playOscillator = function (osc_obj, ts) {
+    var osc_node;
+    
     if (!osc_obj.used) {
-        var osc_node = _audio_context.createOscillator();
+        osc_node = _audio_context.createOscillator();
         
         osc_obj.node = osc_node;
 
@@ -276,7 +297,7 @@ var _playSlice = function (pixels_data) {
         } else {
             osc.gain_node_l.gain.setTargetAtTime(l / 255.0, audio_ctx_curr_time, _osc_fadeout);
             
-            _playOscillator(osc, time_samples);
+            //_playOscillator(osc, time_samples);
         }
         
         if (r === 0) {
@@ -284,14 +305,14 @@ var _playSlice = function (pixels_data) {
         } else {
             osc.gain_node_r.gain.setTargetAtTime(r / 255.0, audio_ctx_curr_time, _osc_fadeout);
             
-            _playOscillator(osc, time_samples);
+            //_playOscillator(osc, time_samples);
         }
-        
+        /*
         if (osc.gain_node_r.gain.value < 0.05 && // this may be unsafe!
             osc.gain_node_l.gain.value < 0.05 && osc.node) {
             osc.node.stop(audio_ctx_curr_time + 0.1);
             osc.used = false;
-        }
+        }*/
 
         y -= 1;
     }
@@ -487,8 +508,8 @@ var _audioInit = function () {
     _mst_gain_node = _createGainNode(_audio_context.destination);
     _setGain(_volume);
     
-    _generateOscillatorSet(_canvas_height, 16.34, 10);
     _generatePeriodicWaves(16);
+    _generateOscillatorSet(_canvas_height, 16.34, 10);
 
     _script_node = _audio_context.createScriptProcessor(0, 0, 2);
     _script_node.onaudioprocess = _audioProcess;

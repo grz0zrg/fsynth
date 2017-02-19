@@ -20,6 +20,14 @@ var _fs_palette = {
     Functions.
 ************************************************************/
 
+var _webMIDISupport = function () {
+    if (navigator.requestMIDIAccess) {
+        return true;
+    } else {
+        return false;
+    }
+};
+
 var _isPowerOf2 = function (value) {
     return (value & (value - 1)) === 0;
 };

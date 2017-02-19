@@ -360,6 +360,11 @@ void main ()
         <div id="fs_right_toolbar" class="fs-right-toolbar">
 
         </div>
+        
+        <div id="fs_midi_settings_dialog">
+            <div class="fs-midi-settings">
+            </div>
+        </div>
 
         <div id="fs_settings_dialog">
             <div>
@@ -531,10 +536,10 @@ void main ()
                                 </ul>
                             </li>
                             <li>
-                                vec3 <span class="fs-documentation-keyword">keyboard</span> :
+                                vec4 <span class="fs-documentation-keyword">keyboard</span> :
                                 <ul>
                                     <li>
-                                        frequency, velocity, elapsed time since the key was pressed
+                                        frequency, velocity, elapsed time since the key was pressed, MIDI channel
                                     </li>
                                     <li>
                                         Note : MIDI note-on/note-off events

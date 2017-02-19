@@ -21,6 +21,9 @@ var _icon_class = {
     _settings_dialog_id = "fs_settings_dialog",
     _settings_dialog,
     
+    _midi_settings_dialog_id = "fs_midi_settings_dialog",
+    _midi_settings_dialog,
+    
     _help_dialog_id = "fs_help_dialog",
     _help_dialog,
     
@@ -740,6 +743,10 @@ var _showHelpDialog = function () {
 
 var _showSettingsDialog = function () {
     WUI_Dialog.open(_settings_dialog);
+};
+
+var _showMIDISettingsDialog = function () {
+    WUI_Dialog.open(_midi_settings_dialog);
 };
 
 var _showMIDIOutDialog = function () {
@@ -1475,7 +1482,23 @@ var _uiInit = function () {
     settings_ck_globaltime_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_hlmatches_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_lnumbers_elem.dispatchEvent(new UIEvent('change'));
-    settings_ck_xscrollbar_elem.dispatchEvent(new UIEvent('change'));  
+    settings_ck_xscrollbar_elem.dispatchEvent(new UIEvent('change'));
+    
+    _midi_settings_dialog = WUI_Dialog.create(_midi_settings_dialog_id, {
+            title: "MIDI settings",
+
+            width: "320px",
+            height: "390px",
+
+            halign: "center",
+            valign: "center",
+
+            open: false,
+
+            status_bar: false,
+            detachable: false,
+            draggable: true
+        });
 
     _analysis_dialog = WUI_Dialog.create(_analysis_dialog_id, {
             title: "Audio analysis",
@@ -1607,6 +1630,11 @@ var _uiInit = function () {
                     icon: "fs-gear-icon",
                     on_click: _showSettingsDialog,
                     tooltip: "Settings"
+                },
+                {
+                    icon: "fs-midi-icon",
+                    on_click: _showMIDISettingsDialog,
+                    tooltip: "MIDI Settings"
                 }
             ],
             audio: [

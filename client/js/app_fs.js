@@ -502,6 +502,10 @@ var FragmentSynth = function (params) {
 
             WUI_RangeSlider.setValue("mst_slider", _volume, true);
         }
+        
+        if ('midi_settings' in _local_session_settings) {
+            _loadMIDISettings(_local_session_settings.midi_settings);
+        }
     } else {
         _local_session_settings = {
             gain: _volume,
