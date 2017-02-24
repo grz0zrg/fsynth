@@ -15898,9 +15898,10 @@ _utter_fail_element.innerHTML = "";
                 preserveDrawingBuffer: true
             },
 
-        _prev_data = new Uint8Array(_canvas_height_mul4),
+        _prev_data = [],
         _temp_data = new Uint8Array(_canvas_height_mul4),
-        _data = new Uint8Array(_canvas_height_mul4),
+        _data = [],
+        _output_channels = 1,
 
         _analysis_canvas,
         _analysis_canvas_ctx,
@@ -16712,6 +16713,18 @@ var _drawSpectrum = function () {
     }  
 };
 
+var _allocate_frames_data = function () {
+    var i = 0;
+    
+    _data = [];
+    _prev_data = [];
+    
+    for (i = 0; i < _output_channels; i += 1) {
+        _data.push(new Uint8Array(_canvas_height_mul4));
+        _prev_data.push(new Uint8Array(_canvas_height_mul4));
+    }
+};
+
 var _frame = function (raf_time) {
     var i = 0, j = 0,
 
@@ -16728,11 +16741,14 @@ var _frame = function (raf_time) {
 
         date = new Date(),
         
+        channel = 0,
+        channel_data,
+        
         fas_enabled = _fasEnabled(),
         
         f, v, key,
         
-        buffer;
+        buffer = [];
 
     // update notes time
     for (key in _keyboard.pressed) { 
@@ -16780,7 +16796,7 @@ var _frame = function (raf_time) {
     
     if ((_notesWorkerAvailable() || fas_enabled) && _play_position_markers.length > 0) {
         if (!fas_enabled) {
-            _prev_data = new Uint8Array(_data);
+            _prev_data[0] = new Uint8Array(_data[0]);
         }
         
         if (_gl2) {
@@ -16791,19 +16807,21 @@ var _frame = function (raf_time) {
         // populate array first
         play_position_marker = _play_position_markers[0];
         
+        channel = play_position_marker.output_channel - 1;
+        
         if (play_position_marker.mute) {
-            _data = new Uint8Array(_data.length);
+            _data[channel] = new Uint8Array(_canvas_height_mul4);
         } else {
             play_position_marker_x = play_position_marker.x;
             
             if (_gl2) {
                 _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, 0);
-                _gl.getBufferSubData(_gl.PIXEL_PACK_BUFFER, 0, _data);
+                _gl.getBufferSubData(_gl.PIXEL_PACK_BUFFER, 0, _data[channel]);
             } else {
-                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, _data);
+                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, _data[channel]);
             }
-            
-            _transformData(play_position_marker, _data);
+
+            _transformData(play_position_marker, _data[channel]);
         }
 
         for (i = 1; i < _play_position_markers.length; i += 1) {
@@ -16814,6 +16832,8 @@ var _frame = function (raf_time) {
             }
             
             play_position_marker_x = play_position_marker.x;
+            
+            channel = play_position_marker.output_channel - 1;
 
             if (_gl2) {
                 _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, 0);
@@ -16824,18 +16844,22 @@ var _frame = function (raf_time) {
      
             _transformData(play_position_marker, _temp_data);
 
+            channel_data = _data[channel];
+
             // merge slices data
             for (j = 0; j < _canvas_height_mul4; j += 1) {
-                _data[j] = _data[j] + _temp_data[j];
+                channel_data[j] = channel_data[j] + _temp_data[j];
             }
         }
     
-        buffer = new Uint8Array(_data);
+        for (i = 0; i < _output_channels; i += 1) {
+            buffer.push(new Uint8Array(/*_data[i]*/_canvas_height_mul4));
+        }
         
         if (fas_enabled) {
             _fasNotifyFast(_FAS_FRAME, _data);
         } else {
-            _notesProcessing(_data, _prev_data);
+            _notesProcessing(_data[0], _prev_data[0]);
         }
         
         _data = buffer;
@@ -16849,16 +16873,22 @@ var _frame = function (raf_time) {
     }
     
     if (_show_oscinfos) {
-        var c = 0;
-        for (i = 0; i < _data.length; i += 4) {
-            if (_data[i] > 0) {
-                c += 1;
-            } else if (_data[i + 1] > 0) {
-                c += 1;
+        var arr_infos = [];
+        for (j = 0; j < _output_channels; j += 1) {
+            var c = 0;
+            
+            for (i = 0; i < _canvas_height_mul4; i += 4) {
+                if (_data[j][i] > 0) {
+                    c += 1;
+                } else if (_data[j][i + 1] > 0) {
+                    c += 1;
+                }
             }
+            
+            arr_infos.push(c);
         }
 
-        _osc_infos.innerHTML = c;
+        _osc_infos.innerHTML = arr_infos.join(" ");
     }
     
     if (_show_polyinfos) {
@@ -18268,6 +18298,21 @@ var _updatePlayMarker = function (id, obj) {
     }
 };
 
+var _computeOutputChannels = function () {
+    var i = 0, max = 0, marker;
+    
+    for (i = 0; i < _play_position_markers.length; i += 1) {
+        marker = _play_position_markers[i];
+        
+        if (max < marker.output_channel) {
+            max = marker.output_channel
+        }
+    }
+    
+    _output_channels = max;
+    _allocate_frames_data();
+};
+
 var _removePlayPositionMarker = function (marker_id, force, submit) {
 /*    if (_play_position_markers.length === 1 && force === undefined) {
         _notification("Cannot remove the remaining slice.")
@@ -18301,6 +18346,8 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
     if (submit) {
         _submitRemoveSlice(marker_id);
     }
+    
+    _computeOutputChannels();
 };
 
 var _createMarkerSettings = function (marker_obj) {
@@ -18408,6 +18455,8 @@ var _createMarkerSettings = function (marker_obj) {
                 slice.output_channel = _parseInt10(value);
                 
                 _submitSliceUpdate(3, marker_obj.element.dataset.slice, { output_channel : value });
+                
+                _computeOutputChannels();
             }
         });
     
@@ -18535,6 +18584,8 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, submit) {
     if (output_channel !== undefined) {
         play_position_marker.output_channel = output_channel;
     }
+    
+    _computeOutputChannels();
     
     if (shift !== undefined) {
         play_position_marker.shift = shift;
@@ -20249,10 +20300,17 @@ var _fasNotify = function (cmd, data) {
 };
 
 var _fasNotifyFast = function (cmd, data) {
+    var output_data_buffer = [],
+        i = 0;
+    
+    for (i = 0; i < data.length; i += 1) {
+        output_data_buffer.push(data[i].buffer);
+    }
+    
     _fas.worker.postMessage({
             cmd: cmd,
-            arg: data.buffer
-        }, [data.buffer]);
+            arg: output_data_buffer
+        }, output_data_buffer);
 };
 
 var _fasEnable = function () {
@@ -20376,9 +20434,8 @@ var _fasInit = function () {
 
             _vaxis_infos.style.height = _canvas_height + "px";
 
-            _prev_data = new Uint8Array(_canvas_height_mul4);
-            _data = new Uint8Array(_canvas_height_mul4);
             _temp_data = new Uint8Array(_canvas_height_mul4);
+            _allocate_frames_data();
 
             _gl.viewport(0, 0, _canvas.width, _canvas.height);
 
@@ -20533,6 +20590,8 @@ var _fasInit = function () {
     //_addPlayPositionMarker(_canvas_width / 4);
     //_addPlayPositionMarker(_canvas_width - _canvas_width / 4);
 
+    _allocate_frames_data();
+    
     _uiInit();
     
     _midiInit();

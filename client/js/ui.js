@@ -243,6 +243,21 @@ var _updatePlayMarker = function (id, obj) {
     }
 };
 
+var _computeOutputChannels = function () {
+    var i = 0, max = 0, marker;
+    
+    for (i = 0; i < _play_position_markers.length; i += 1) {
+        marker = _play_position_markers[i];
+        
+        if (max < marker.output_channel) {
+            max = marker.output_channel
+        }
+    }
+    
+    _output_channels = max;
+    _allocate_frames_data();
+};
+
 var _removePlayPositionMarker = function (marker_id, force, submit) {
 /*    if (_play_position_markers.length === 1 && force === undefined) {
         _notification("Cannot remove the remaining slice.")
@@ -276,6 +291,8 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
     if (submit) {
         _submitRemoveSlice(marker_id);
     }
+    
+    _computeOutputChannels();
 };
 
 var _createMarkerSettings = function (marker_obj) {
@@ -383,6 +400,8 @@ var _createMarkerSettings = function (marker_obj) {
                 slice.output_channel = _parseInt10(value);
                 
                 _submitSliceUpdate(3, marker_obj.element.dataset.slice, { output_channel : value });
+                
+                _computeOutputChannels();
             }
         });
     
@@ -510,6 +529,8 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, submit) {
     if (output_channel !== undefined) {
         play_position_marker.output_channel = output_channel;
     }
+    
+    _computeOutputChannels();
     
     if (shift !== undefined) {
         play_position_marker.shift = shift;

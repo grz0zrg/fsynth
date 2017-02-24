@@ -96,15 +96,33 @@ var _sendFrame = function (frame) {
     if (_fas_ws.readyState !== 1) {
         return;
     }
+    
+    var frame_data = new Uint8Array(frame[0]),
+        fas_data = new ArrayBuffer(8 + 4 + 4 + (frame_data.length * frame.length)),
+        uint8_view = new Uint8Array(fas_data, 0, 1),
+        uint32_view = new Uint32Array(fas_data, 8, 2),
+        data_view = [],
+        i = 0;
+    
+    uint8_view[0] = 1; // packet id
+    uint32_view[0] = frame.length;
+    uint32_view[1] = 0;
 
-    var frame_data = new Uint8Array(frame),
-        fas_data = new Uint8Array(8 + frame_data.length);
+    for (i = 0; i < frame.length; i += 1) {
+        uint8_view = new Uint8Array(fas_data, 16 + frame_data.length * i, frame_data.length);
+        
+        uint8_view.set(new Uint8Array(frame[i]));
+    }
+    
+/*
+    uint8_view[0] = 1; // packet id
+    uint32_view[0] = frame.length;
+    uint32_view[1] = 0;
 
-    fas_data[0] = 1;
     fas_data.set(frame_data, 8);
-
+*/
     try {
-        _fas_ws.send(fas_data.buffer);
+        _fas_ws.send(fas_data);
     } finally {
 
     }

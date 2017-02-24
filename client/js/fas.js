@@ -31,10 +31,17 @@ var _fasNotify = function (cmd, data) {
 };
 
 var _fasNotifyFast = function (cmd, data) {
+    var output_data_buffer = [],
+        i = 0;
+    
+    for (i = 0; i < data.length; i += 1) {
+        output_data_buffer.push(data[i].buffer);
+    }
+    
     _fas.worker.postMessage({
             cmd: cmd,
-            arg: data.buffer
-        }, [data.buffer]);
+            arg: output_data_buffer
+        }, output_data_buffer);
 };
 
 var _fasEnable = function () {

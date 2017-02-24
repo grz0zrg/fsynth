@@ -16,6 +16,7 @@ Fragment can also be used for live coding visuals, they can be synchronized to s
  * Stereophonic
  * Polyphonic
  * Multitimbral
+ * Adjustable audio output per slices
  * Shader inputs, webcam, textures and more
  * Real-time analysis (logarithmic spectrum view of the output etc.)
  * Native app. powered by [Electron](http://electron.atom.io/) with built-in [C powered additive synthesizer](https://github.com/grz0zrg/fas)
@@ -28,7 +29,7 @@ Fragment can also be used for live coding visuals, they can be synchronized to s
 ## MIDI Feature list (Integrated MIDI support with the WebMIDI API):
 
  * Integrated note-on/note-off messages, note frequency, velocity, MIDI channel and elapsed time are accessible in the fragment shader
- * Polyphony is automatically detected from the GPU capabilities (704 notes with a GeForce GTX 970 GPU, 16 notes is the minimum)
+ * Polyphony is automatically detected from the GPU capabilities (704 notes with a GeForce GTX 970 GPU, 16 notes is the minimum, maximum also depend on the shader complexity)
  * Hot plugging of MIDI devices are supported
  * MIDI enabled shader inputs
  

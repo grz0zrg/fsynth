@@ -244,9 +244,10 @@ var FragmentSynth = function (params) {
                 preserveDrawingBuffer: true
             },
 
-        _prev_data = new Uint8Array(_canvas_height_mul4),
+        _prev_data = [],
         _temp_data = new Uint8Array(_canvas_height_mul4),
-        _data = new Uint8Array(_canvas_height_mul4),
+        _data = [],
+        _output_channels = 1,
 
         _analysis_canvas,
         _analysis_canvas_ctx,
@@ -358,9 +359,8 @@ var FragmentSynth = function (params) {
 
             _vaxis_infos.style.height = _canvas_height + "px";
 
-            _prev_data = new Uint8Array(_canvas_height_mul4);
-            _data = new Uint8Array(_canvas_height_mul4);
             _temp_data = new Uint8Array(_canvas_height_mul4);
+            _allocate_frames_data();
 
             _gl.viewport(0, 0, _canvas.width, _canvas.height);
 
@@ -515,6 +515,8 @@ var FragmentSynth = function (params) {
     //_addPlayPositionMarker(_canvas_width / 4);
     //_addPlayPositionMarker(_canvas_width - _canvas_width / 4);
 
+    _allocate_frames_data();
+    
     _uiInit();
     
     _midiInit();
