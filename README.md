@@ -16,7 +16,8 @@ Fragment can also be used for live coding visuals, they can be synchronized to s
  * Stereophonic
  * Polyphonic
  * Multitimbral
- * Adjustable audio output per slices
+ * Aliasing free
+ * Adjustable audio output channel per slices
  * Shader inputs, webcam, textures and more
  * Real-time analysis (logarithmic spectrum view of the output etc.)
  * Native app. powered by [Electron](http://electron.atom.io/) with built-in [C powered additive synthesizer](https://github.com/grz0zrg/fas)
@@ -37,8 +38,8 @@ Fragment can also be used for live coding visuals, they can be synchronized to s
 
  * Recent browser such as Chrome, Opera, Safari or Firefox (WebMIDI is still not supported by Firefox)
  * Recent medium GPU (Graphics Processing Unit), this app. was made and is used with a GeForce GTX 970
- * Recent medium multi-core CPU (a dual core should be ok with the native program), this is required for the audio synthesis part
- * Not necessary but a MIDI device such as a MIDI keyboard is recommended
+ * Recent medium multi-core CPU (a dual core should be ok with the native program, a beefy CPU is needed if you use more than one output channel), this is required for the audio synthesis part
+ * Not necessary but a MIDI device such as a MIDI keyboard and a MIDI controller is recommended
 
 ## The project
 

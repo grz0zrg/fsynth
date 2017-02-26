@@ -253,7 +253,7 @@ var _frame = function (raf_time) {
         iglobal_time,
 
         date = new Date(),
-        
+
         channel = 0,
         channel_data,
         
@@ -369,6 +369,25 @@ var _frame = function (raf_time) {
             buffer.push(new Uint8Array(/*_data[i]*/_canvas_height_mul4));
         }
         
+        if (_show_oscinfos) {
+            var arr_infos = [];
+            for (j = 0; j < _output_channels; j += 1) {
+                var c = 0;
+
+                for (i = 0; i < _canvas_height_mul4; i += 4) {
+                    if (_data[j][i] > 0) {
+                        c += 1;
+                    } else if (_data[j][i + 1] > 0) {
+                        c += 1;
+                    }
+                }
+
+                arr_infos.push(c);
+            }
+
+            _osc_infos.innerHTML = arr_infos.join(" ");
+        }
+        
         if (fas_enabled) {
             _fasNotifyFast(_FAS_FRAME, _data);
         } else {
@@ -383,25 +402,6 @@ var _frame = function (raf_time) {
         if (parseInt(_time_infos.innerHTML, 10) !== iglobal_time) {
             _time_infos.innerHTML = iglobal_time;
         }
-    }
-    
-    if (_show_oscinfos) {
-        var arr_infos = [];
-        for (j = 0; j < _output_channels; j += 1) {
-            var c = 0;
-            
-            for (i = 0; i < _canvas_height_mul4; i += 4) {
-                if (_data[j][i] > 0) {
-                    c += 1;
-                } else if (_data[j][i + 1] > 0) {
-                    c += 1;
-                }
-            }
-            
-            arr_infos.push(c);
-        }
-
-        _osc_infos.innerHTML = arr_infos.join(" ");
     }
     
     if (_show_polyinfos) {

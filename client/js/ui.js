@@ -259,12 +259,6 @@ var _computeOutputChannels = function () {
 };
 
 var _removePlayPositionMarker = function (marker_id, force, submit) {
-/*    if (_play_position_markers.length === 1 && force === undefined) {
-        _notification("Cannot remove the remaining slice.")
-
-        return;
-    }
-*/
     var play_position_marker = _play_position_markers[parseInt(marker_id, 10)],
         slice_settings_container = document.getElementById("slice_settings_container_" + marker_id),
         i;
@@ -276,6 +270,10 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
     WUI.undraggable(play_position_marker.element.lastElementChild);
 
     play_position_marker.element.parentElement.removeChild(play_position_marker.element);
+    
+    WUI_RangeSlider.destroy("fs_slice_settings_x_input_" + marker_id);
+    WUI_RangeSlider.destroy("fs_slice_settings_shift_input_" + marker_id);
+    WUI_RangeSlider.destroy("fs_slice_settings_channel_input_" + marker_id);
 
     _play_position_markers.splice(marker_id, 1);
 

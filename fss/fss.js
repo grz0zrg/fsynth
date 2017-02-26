@@ -247,7 +247,7 @@ redisClient.on('connect', function() {
                         
                             redisSettingsClient.get(session, function (err, reply) {
                                     if (reply !== null) {
-                                        console.log(JSON.parse(reply));
+                                        //console.log(JSON.parse(reply));
                                         ws.send(prepareMessage("slices", { data : JSON.parse(reply) }));
                                     } else {
                                         redisSettingsClient.set(session, "[]");
@@ -311,7 +311,7 @@ redisClient.on('connect', function() {
                             if (reply !== null) {
                                 var slices = JSON.parse(reply);
                                 
-                                slices.splice(parseInt(msg.id, 10), 1);
+                                slices.splice(parseInt(msg.data.id, 10), 1);
                                 
                                 clusterWideBroadcast(ws, prepareMessage("delSlice", { data: msg.data }), client.session);
                                 
@@ -320,7 +320,7 @@ redisClient.on('connect', function() {
                         });  
                 } else if (msg.type === "updSlice") {
                     var client = fs.clients[ws.uid];
-                    
+
                     if (client === undefined) {
                         logger.error('Cannot find client id "%s"', ws.uid);
 
@@ -331,27 +331,27 @@ redisClient.on('connect', function() {
                             if (reply !== null) {
                                 var slices = JSON.parse(reply),
                                     slice =  slices[parseInt(msg.data.id, 10)];
-                            
+
                                 if (!slice) {
                                     return;
                                 }
                                 
-                                if (msg.data.obj.x) {
+                                if (msg.data.obj['x'] !== undefined) {
                                     slice.x = msg.data.obj.x;
                                 }
                                 
-                                if (msg.data.obj.shift) {
+                                if (msg.data.obj['shift'] !== undefined) {
                                     slice.shift = msg.data.obj.shift;
                                 }
-                                
-                                if (msg.data.obj.mute) {
+                            
+                                if (msg.data.obj['mute'] !== undefined) {
                                     slice.mute = msg.data.obj.mute;
                                 }
                                 
-                                if (msg.data.obj.output_channel) {
+                                if (msg.data.obj['output_channel'] !== undefined) {
                                     slice.output_channel = msg.data.obj.output_channel;
                                 }
-                                
+
                                 clusterWideBroadcast(ws, prepareMessage("updSlice", { data: msg.data }), client.session);
                                 
                                 redisSettingsClient.set(client.session, JSON.stringify(slices));

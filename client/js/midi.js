@@ -69,6 +69,10 @@ var _addMIDIDevice = function (midi_input) {
         if (midi_device_enabled) {
             midi_device_enabled_ck = "checked";
         }
+        
+        if (_midi_devices.input[midi_input.id].connected) {
+            return;
+        }
     }
 
     midi_input_element.classList.add("fs-midi-settings-device");
@@ -92,7 +96,8 @@ var _addMIDIDevice = function (midi_input) {
             version: midi_input.version,
             iid: _midi_device_uid,
             enabled: midi_device_enabled,
-            element: midi_input_element
+            element: midi_input_element,
+            connected: true
         };
 
     document.getElementById(midi_input_enabled_ck_id).addEventListener("change", function () {
@@ -123,14 +128,13 @@ var _deleteMIDIDevice = function (id) {
 
 var _onMIDIAccessChange = function (connection_event) {
     var device = connection_event.port;
-
+    
     // only inputs are supported at the moment
     if (device.type !== "input") {
         return;
     }
-    
-    if ((device.connection === "open" || device.connection === "pending") && 
-        device.state === "connected") {
+
+    if (device.state === "connected") {
         _addMIDIDevice(device);
     } else if (device.state === "disconnected") {
         _deleteMIDIDevice(device.id);
