@@ -243,21 +243,6 @@ var _updatePlayMarker = function (id, obj) {
     }
 };
 
-var _computeOutputChannels = function () {
-    var i = 0, max = 0, marker;
-    
-    for (i = 0; i < _play_position_markers.length; i += 1) {
-        marker = _play_position_markers[i];
-        
-        if (max < marker.output_channel) {
-            max = marker.output_channel
-        }
-    }
-    
-    _output_channels = max;
-    _allocate_frames_data();
-};
-
 var _removePlayPositionMarker = function (marker_id, force, submit) {
     var play_position_marker = _play_position_markers[parseInt(marker_id, 10)],
         slice_settings_container = document.getElementById("slice_settings_container_" + marker_id),

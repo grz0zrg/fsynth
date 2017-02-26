@@ -14886,6 +14886,47 @@ return CodeMirror;
     updateActiveLines(cm, sel.ranges);
   }
 });
+// CodeMirror, copyright (c) by Marijn Haverbeke and others
+// Distributed under an MIT license: http://codemirror.net/LICENSE
+
+(function(mod) {
+  if (typeof exports == "object" && typeof module == "object") // CommonJS
+    mod(require("../../lib/codemirror"));
+  else if (typeof define == "function" && define.amd) // AMD
+    define(["../../lib/codemirror"], mod);
+  else // Plain browser env
+    mod(CodeMirror);
+})(function(CodeMirror) {
+  "use strict";
+
+  CodeMirror.defineOption("fullScreen", false, function(cm, val, old) {
+    if (old == CodeMirror.Init) old = false;
+    if (!old == !val) return;
+    if (val) setFullscreen(cm);
+    else setNormal(cm);
+  });
+
+  function setFullscreen(cm) {
+    var wrap = cm.getWrapperElement();
+    cm.state.fullScreenRestore = {scrollTop: window.pageYOffset, scrollLeft: window.pageXOffset,
+                                  width: wrap.style.width, height: wrap.style.height};
+    wrap.style.width = "";
+    wrap.style.height = "auto";
+    wrap.className += " CodeMirror-fullscreen";
+    document.documentElement.style.overflow = "hidden";
+    cm.refresh();
+  }
+
+  function setNormal(cm) {
+    var wrap = cm.getWrapperElement();
+    wrap.className = wrap.className.replace(/\s*CodeMirror-fullscreen\b/, "");
+    document.documentElement.style.overflow = "";
+    var info = cm.state.fullScreenRestore;
+    wrap.style.width = info.width; wrap.style.height = info.height;
+    window.scrollTo(info.scrollLeft, info.scrollTop);
+    cm.refresh();
+  }
+});
 CodeMirror.defineMode("glsl", function(config, parserConfig) {
   var indentUnit = config.indentUnit,
       keywords = parserConfig.keywords || {},
@@ -15812,7 +15853,17 @@ _utter_fail_element.innerHTML = "";
             lineNumbers: true,
             styleActiveLine: true,
             scrollbarStyle: "native",
-            mode: "text/x-glsl"
+            mode: "text/x-glsl",
+            extraKeys: {
+                "F11": function (cm) {
+                    cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+                },
+                "Esc": function (cm) {
+                    if (cm.getOption("fullScreen")) {
+                        cm.setOption("fullScreen", false);
+                    }
+                }
+            }
         },
         
         // this is the amount of free uniform vectors for Fragment regular uniforms and session custom uniforms
@@ -16430,6 +16481,22 @@ var _disableNotesProcessing = function () {
 var _enableNotesProcessing = function () {
     _notes_worker_available = true;
 };
+
+var _computeOutputChannels = function () {
+    var i = 0, max = 0, marker;
+    
+    for (i = 0; i < _play_position_markers.length; i += 1) {
+        marker = _play_position_markers[i];
+        
+        if (max < marker.output_channel) {
+            max = marker.output_channel
+        }
+    }
+    
+    _output_channels = max;
+    _allocate_frames_data();
+};
+
 /*
 var _getByteFrequencyData = function (pixels_data) {
     var i = 0,
@@ -16450,6 +16517,7 @@ var _getByteFrequencyData = function (pixels_data) {
     return d;
 };
 */
+
 /***********************************************************
     Init.
 ************************************************************/
@@ -18296,21 +18364,6 @@ var _updatePlayMarker = function (id, obj) {
         
         WUI_RangeSlider.setValue("fs_slice_settings_shift_input_" + slice.id, slice.shift);
     }
-};
-
-var _computeOutputChannels = function () {
-    var i = 0, max = 0, marker;
-    
-    for (i = 0; i < _play_position_markers.length; i += 1) {
-        marker = _play_position_markers[i];
-        
-        if (max < marker.output_channel) {
-            max = marker.output_channel
-        }
-    }
-    
-    _output_channels = max;
-    _allocate_frames_data();
 };
 
 var _removePlayPositionMarker = function (marker_id, force, submit) {

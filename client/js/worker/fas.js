@@ -113,14 +113,7 @@ var _sendFrame = function (frame) {
         
         uint8_view.set(new Uint8Array(frame[i]));
     }
-    
-/*
-    uint8_view[0] = 1; // packet id
-    uint32_view[0] = frame.length;
-    uint32_view[1] = 0;
 
-    fas_data.set(frame_data, 8);
-*/
     try {
         _fas_ws.send(fas_data);
     } finally {

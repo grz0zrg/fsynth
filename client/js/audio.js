@@ -480,6 +480,22 @@ var _disableNotesProcessing = function () {
 var _enableNotesProcessing = function () {
     _notes_worker_available = true;
 };
+
+var _computeOutputChannels = function () {
+    var i = 0, max = 0, marker;
+    
+    for (i = 0; i < _play_position_markers.length; i += 1) {
+        marker = _play_position_markers[i];
+        
+        if (max < marker.output_channel) {
+            max = marker.output_channel
+        }
+    }
+    
+    _output_channels = max;
+    _allocate_frames_data();
+};
+
 /*
 var _getByteFrequencyData = function (pixels_data) {
     var i = 0,
@@ -500,6 +516,7 @@ var _getByteFrequencyData = function (pixels_data) {
     return d;
 };
 */
+
 /***********************************************************
     Init.
 ************************************************************/

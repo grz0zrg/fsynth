@@ -4,6 +4,7 @@
 /*#include codemirror/codemirror.css*/
 /*#include codemirror/addon/scroll/simplescrollbars.css*/
 /*#include codemirror/addon/search/matchesonscrollbar.css*/
+/*#include codemirror/addon/display/fullscreen.css*/
 /*#include FontAwesome/font-awesome.min.css*/
 
 /*#include wui.css*/
@@ -628,7 +629,7 @@ canvas {
 
 .fs-midi-settings {
     color: #ffffff;
-    padding: 4px;
+    padding: 1px;
 }
 
 .fs-red-curtain {

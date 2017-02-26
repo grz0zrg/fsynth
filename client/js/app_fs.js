@@ -15,6 +15,7 @@
 /*#include codemirror/addon/scroll/simplescrollbars.js*/
 /*#include codemirror/addon/scroll/annotatescrollbar.js*/
 /*#include codemirror/addon/selection/active-line.js*/
+/*#include codemirror/addon/display/fullscreen.js*/
 /*#include codemirror/codemirror_glsl.js*/
 
 // sharedb - https://github.com/share/sharedb
@@ -158,7 +159,17 @@ var FragmentSynth = function (params) {
             lineNumbers: true,
             styleActiveLine: true,
             scrollbarStyle: "native",
-            mode: "text/x-glsl"
+            mode: "text/x-glsl",
+            extraKeys: {
+                "F11": function (cm) {
+                    cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+                },
+                "Esc": function (cm) {
+                    if (cm.getOption("fullScreen")) {
+                        cm.setOption("fullScreen", false);
+                    }
+                }
+            }
         },
         
         // this is the amount of free uniform vectors for Fragment regular uniforms and session custom uniforms

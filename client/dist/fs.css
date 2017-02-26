@@ -895,6 +895,12 @@ span.CodeMirror-selectedtext { background: none; }
   box-sizing: border-box;
   opacity: .5;
 }
+.CodeMirror-fullscreen {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  height: auto;
+  z-index: 9;
+}
 /*!
  *  Font Awesome 4.7.0 by @davegandy - http://fontawesome.io - @fontawesome
  *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)
@@ -1656,7 +1662,7 @@ canvas {
 
 .fs-midi-settings {
     color: #ffffff;
-    padding: 4px;
+    padding: 1px;
 }
 
 .fs-red-curtain {

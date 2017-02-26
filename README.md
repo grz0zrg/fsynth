@@ -6,7 +6,7 @@ Source code repository for the Fragment app. which can be found at : https://www
 
 This is a web. spectral synthesizer powered by live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language).
 
-Fragment can also be used for live coding visuals, they can be synchronized to sounds by using the MIDI capabilities
+Fragment can also be used for live coding visuals, they can be synchronized to sounds by using the MIDI capabilities :)
 
 ## Feature list:
 
@@ -25,7 +25,8 @@ Fragment can also be used for live coding visuals, they can be synchronized to s
  * Global and per sessions settings automatic saving/loading; make use of *localStorage*
  * No authentifications (make use of *localStorage* and is *sessions* based)
 
- Note : Blue component output of the fragment shader can be used for real-time sounds/visuals sync. (it is unused by the synthesis engine) 
+ Note : Blue component output of the fragment shader can be used for real-time sounds/visuals sync. (it is unused by the synthesis engine)
+ Note : WebAudio oscillators and wavetable mode can only have two output channels (l/r) due to obvious performances issues (this may change in the future!)
  
 ## MIDI Feature list (Integrated MIDI support with the WebMIDI API):
 
@@ -70,8 +71,12 @@ If you want to build it by yourself, you will have to find a way to run a pre-pr
  * main app. directory is /home/fs/fsynth with user "fs"
  * NGINX reverse proxy for fsdb/fss, simple NGINX rules for landing page and main app.
  * pm2 is used as a process manager
+ 
+## Tips and tricks
 
-## Stuff used to make this:
+ * Pressing F11 in the GLSL code editor trigger fullscreen editor
+
+## Stuff used to make this
 
 Client :
  * [Vanilla JS](http://vanilla-js.com/) yup!
