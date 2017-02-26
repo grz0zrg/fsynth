@@ -6,14 +6,14 @@ Source code repository for the Fragment app. which can be found at : https://www
 
 This is a web. spectral synthesizer powered by live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language).
 
-Fragment can also be used for live coding visuals, they can be synchronized to sounds by using the MIDI capabilities :)
+Fragment can also be used for live coding visuals, they can be synchronized to any audio using the MIDI capabilities AND also synchronized to the synthesized sound
 
 ## Feature list:
 
  * Full-blown additive synthesizer powered by WebAudio oscillators, a wavetable OR a native program written in C (fastest)
  * Live coding/JIT compilation of shader code
  * Real-time, collaborative app.
- * Stereophonic
+ * Stereophonic or monaural
  * Polyphonic
  * Multitimbral
  * Aliasing free
@@ -25,12 +25,13 @@ Fragment can also be used for live coding visuals, they can be synchronized to s
  * Global and per sessions settings automatic saving/loading; make use of *localStorage*
  * No authentifications (make use of *localStorage* and is *sessions* based)
 
- Note : Blue component output of the fragment shader can be used for real-time sounds/visuals sync. (it is unused by the synthesis engine)
- Note : WebAudio oscillators and wavetable mode can only have two output channels (l/r) due to obvious performances issues (this may change in the future!)
+ Note: Blue component output of the fragment shader can be used for real-time sounds/visuals sync or visual feedback of functions/textures/camera. (you can have full RGB output for visuals by turning on the "monophonic" setting)
+ 
+ Note: WebAudio oscillators and wavetable mode can only have two output channels (l/r) due to obvious performances issues (this may change in the future!)
  
 ## MIDI Feature list (Integrated MIDI support with the WebMIDI API):
 
- * Integrated note-on/note-off messages, note frequency, velocity, MIDI channel and elapsed time are accessible in the fragment shader
+ * Integrated note-on/note-off messages, note frequency, velocity, MIDI channel and elapsed time are accessible in the fragment shader (not shared between users)
  * Polyphony is automatically detected from the GPU capabilities (704 notes with a GeForce GTX 970 GPU, 16 notes is the minimum, maximum also depend on the shader complexity)
  * Hot plugging of MIDI devices are supported
  * MIDI enabled shader inputs
@@ -41,6 +42,7 @@ Fragment can also be used for live coding visuals, they can be synchronized to s
  * Recent medium GPU (Graphics Processing Unit), this app. was made and is used with a GeForce GTX 970
  * Recent medium multi-core CPU (a dual core should be ok with the native program, a beefy CPU is needed if you use more than one output channel), this is required for the audio synthesis part
  * Not necessary but a MIDI device such as a MIDI keyboard and a MIDI controller is recommended
+ * Some friends to have fun with
 
 ## The project
 
@@ -74,6 +76,7 @@ If you want to build it by yourself, you will have to find a way to run a pre-pr
  
 ## Tips and tricks
 
+ * If you enable the *monophonic* setting, you have the RGB output for live coding visuals which can be fully synchronized with the synthesized sounds which will be synthesized by using the alpha channel
  * Pressing F11 in the GLSL code editor trigger fullscreen editor
 
 ## Stuff used to make this
@@ -81,7 +84,7 @@ If you want to build it by yourself, you will have to find a way to run a pre-pr
 Client :
  * [Vanilla JS](http://vanilla-js.com/) yup!
  * [WUI](https://github.com/grz0zrg/wui) vanilla collection of UI widgets for the web
- * [CodeMirror](http://codemirror.net/) for the awesome editor
+ * [CodeMirror](http://codemirror.net/) for the awesome editor and its addons/modes
  * [ShareDB](https://github.com/share/sharedb/) for the collaborative features
  * [Normalize](https://necolas.github.io/normalize.css/)
  * [Skeleton](http://getskeleton.com/) for the landing page

@@ -26,14 +26,21 @@ self.onmessage = function (m) {
         dlen = data.length,
         y = score_height - 1, i,
         volume_l, volume_r,
-        index = 0;
+        index = 0,
+        li = 0,
+        ri = 1;
+    
+    if (m.data.mono) {
+        li = 3;
+        ri = 3;
+    }
 
     for (i = 0; i < dlen; i += 4) {
-        pr = prev_data[i];
-        pg = prev_data[i + 1];
+        pr = prev_data[i + li];
+        pg = prev_data[i + ri];
 
-        r = data[i];
-        g = data[i + 1];
+        r = data[i + li];
+        g = data[i + ri];
 
         if (r > 0 || g > 0) {
             volume_l = r * inv_full_brightness;

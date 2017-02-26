@@ -1286,6 +1286,7 @@ var _showSpectrumDialog = function () {
 ************************************************************/
 
 var _uiInit = function () {
+    // there is an easier way of handling this, it may don't scale at all in the future!
     var settings_ck_globaltime_elem = document.getElementById("fs_settings_ck_globaltime"),
         settings_ck_polyinfos_elem = document.getElementById("fs_settings_ck_polyinfos"),
         settings_ck_oscinfos_elem = document.getElementById("fs_settings_ck_oscinfos"),
@@ -1293,6 +1294,7 @@ var _uiInit = function () {
         settings_ck_lnumbers_elem = document.getElementById("fs_settings_ck_lnumbers"),
         settings_ck_xscrollbar_elem = document.getElementById("fs_settings_ck_xscrollbar"),
         settings_ck_wavetable_elem = document.getElementById("fs_settings_ck_wavetable"),
+        settings_ck_monophonic_elem = document.getElementById("fs_settings_ck_monophonic"),
         
         fs_settings_max_polyphony = localStorage.getItem('fs-max-polyphony'),
         fs_settings_osc_fadeout = localStorage.getItem('fs-osc-fadeout'),
@@ -1302,13 +1304,14 @@ var _uiInit = function () {
         fs_settings_hlmatches = localStorage.getItem('fs-editor-hl-matches'),
         fs_settings_lnumbers = localStorage.getItem('fs-editor-show-linenumbers'),
         fs_settings_xscrollbar = localStorage.getItem('fs-editor-advanced-scrollbar'),
-        fs_settings_wavetable = localStorage.getItem('fs-use-wavetable');
+        fs_settings_wavetable = localStorage.getItem('fs-use-wavetable'),
+        fs_settings_monophonic = localStorage.getItem('fs-monophonic');
     
     _settings_dialog = WUI_Dialog.create(_settings_dialog_id, {
             title: "Session & global settings",
 
             width: "320px",
-            height: "390px",
+            height: "398px",
 
             halign: "center",
             valign: "center",
@@ -1319,6 +1322,14 @@ var _uiInit = function () {
             detachable: false,
             draggable: true
         });
+    
+    if (fs_settings_monophonic === "true") {
+        _audio_infos.monophonic = fs_settings_monophonic;
+        settings_ck_monophonic_elem.checked = true;
+    } else {
+        _audio_infos.monophonic = false;
+        settings_ck_monophonic_elem.checked = false;
+    }
     
     if (fs_settings_osc_fadeout) {
         _osc_fadeout = parseFloat(fs_settings_osc_fadeout);
@@ -1395,6 +1406,16 @@ var _uiInit = function () {
     } else {
         settings_ck_lnumbers_elem.checked = false;
     }
+    
+    settings_ck_monophonic_elem.addEventListener("change", function () {
+            if (this.checked) {
+                _audio_infos.monophonic = true;
+            } else {
+                _audio_infos.monophonic = false;
+            }
+        
+            localStorage.setItem('fs-monophonic', this.checked);
+        });
     
     settings_ck_wavetable_elem.addEventListener("change", function () {
             if (this.checked) {
@@ -1487,6 +1508,7 @@ var _uiInit = function () {
     settings_ck_hlmatches_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_lnumbers_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_xscrollbar_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_monophonic_elem.dispatchEvent(new UIEvent('change'));
     
     _midi_settings_dialog = WUI_Dialog.create(_midi_settings_dialog_id, {
             title: "MIDI settings",

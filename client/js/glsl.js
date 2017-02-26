@@ -118,6 +118,8 @@ var _compile = function () {
         
         ctrl_name,
         ctrl_obj,
+        
+        temp_program,
 
         i = 0;
     
@@ -148,14 +150,16 @@ var _compile = function () {
 
     frag = _createShader(_gl.FRAGMENT_SHADER, glsl_code);
 
-    _gl.deleteProgram(_program);
-
-    _program = _createAndLinkProgram(
+    temp_program = _createAndLinkProgram(
             _createShader(_gl.VERTEX_SHADER, document.getElementById("vertex-shader").text),
             frag
         );
 
-    if (_program) {
+    if (temp_program) {
+        _gl.deleteProgram(_program);
+        
+        _program = temp_program;
+        
         _uniform_location_cache = {};
         
         _fail("");
@@ -191,6 +195,6 @@ var _compile = function () {
     } else {
         _glsl_error = true;
         
-        _stop();
+        //_stop();
     }
 };

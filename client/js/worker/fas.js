@@ -92,7 +92,7 @@ var _sendGain = function (audio_infos) {
     }
 };
 
-var _sendFrame = function (frame) {
+var _sendFrame = function (frame, mono) {
     if (_fas_ws.readyState !== 1) {
         return;
     }
@@ -106,7 +106,7 @@ var _sendFrame = function (frame) {
     
     uint8_view[0] = 1; // packet id
     uint32_view[0] = frame.length;
-    uint32_view[1] = 0;
+    uint32_view[1] = mono === true ? 1 : 0;
 
     for (i = 0; i < frame.length; i += 1) {
         uint8_view = new Uint8Array(fas_data, 16 + frame_data.length * i, frame_data.length);
@@ -181,6 +181,6 @@ self.onmessage = function (m) {
     } else if (cmd === _FAS_GAIN_INFOS) {
         _sendGain(arg);
     } else if (cmd === _FAS_FRAME) {
-        _sendFrame(arg);
+        _sendFrame(arg, data.mono);
     }
 };

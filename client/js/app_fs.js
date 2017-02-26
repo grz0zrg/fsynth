@@ -199,13 +199,7 @@ var FragmentSynth = function (params) {
         _webgl = {
             max_fragment_uniform_vector: -1
         },
-/*
-        _keyboard = [],
-        _keyboard_pressed = {},
-        _polyphony_max = 8,
-        _keyboard_data_components = 4,
-        _keyboard_data_length = _polyphony_max * _keyboard_data_components,
-*/
+
         _compile_timer,
 
         _undock_code_editor = false,

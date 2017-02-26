@@ -15893,13 +15893,7 @@ _utter_fail_element.innerHTML = "";
         _webgl = {
             max_fragment_uniform_vector: -1
         },
-/*
-        _keyboard = [],
-        _keyboard_pressed = {},
-        _polyphony_max = 8,
-        _keyboard_data_components = 4,
-        _keyboard_data_length = _polyphony_max * _keyboard_data_components,
-*/
+
         _compile_timer,
 
         _undock_code_editor = false,
@@ -16069,7 +16063,8 @@ var _FS_WAVETABLE = 0,
             h: 0,
             base_freq: 0,
             octaves: 0,
-            gain: _volume
+            gain: _volume,
+            monophonic: false
         },
     
     _is_script_node_connected = false,
@@ -16286,35 +16281,31 @@ var _playSlice = function (pixels_data) {
         l = 0,
         r = 0,
         y = _oscillators.length - 1,
+        li = 0,
+        ri = 1,
         i = 0;
     
+    if (_audio_infos.monophonic) {
+        li = 3;
+        ri = 3;
+    }
+    
     for (i = 0; i < data_length; i += 4) {
-        l = pixels_data[i];
-        r = pixels_data[i + 1];
+        l = pixels_data[i + li];
+        r = pixels_data[i + ri];
         osc = _oscillators[y];
         
         if (l === 0) {
             osc.gain_node_l.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
         } else {
             osc.gain_node_l.gain.setTargetAtTime(l / 255.0, audio_ctx_curr_time, _osc_fadeout);
-            
-            //_playOscillator(osc, time_samples);
         }
         
         if (r === 0) {
             osc.gain_node_r.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
         } else {
             osc.gain_node_r.gain.setTargetAtTime(r / 255.0, audio_ctx_curr_time, _osc_fadeout);
-            
-            //_playOscillator(osc, time_samples);
         }
-        /*
-        if (osc.gain_node_r.gain.value < 0.05 && // this may be unsafe!
-            osc.gain_node_l.gain.value < 0.05 && osc.node) {
-            osc.node.stop(audio_ctx_curr_time + 0.1);
-            osc.used = false;
-        }*/
-
         y -= 1;
     }
 };
@@ -16333,7 +16324,8 @@ var _notesProcessing = function (arr, prev_arr) {
             _notes_worker.postMessage({
                     score_height: _canvas_height,
                     data: arr.buffer,
-                    prev_data: prev_arr.buffer
+                    prev_data: prev_arr.buffer,
+                    mono: _audio_infos.monophonic
                 }, [arr.buffer, prev_arr.buffer]);
 
             _notes_worker_available = false;
@@ -17086,6 +17078,8 @@ var _compile = function () {
         
         ctrl_name,
         ctrl_obj,
+        
+        temp_program,
 
         i = 0;
     
@@ -17116,14 +17110,16 @@ var _compile = function () {
 
     frag = _createShader(_gl.FRAGMENT_SHADER, glsl_code);
 
-    _gl.deleteProgram(_program);
-
-    _program = _createAndLinkProgram(
+    temp_program = _createAndLinkProgram(
             _createShader(_gl.VERTEX_SHADER, document.getElementById("vertex-shader").text),
             frag
         );
 
-    if (_program) {
+    if (temp_program) {
+        _gl.deleteProgram(_program);
+        
+        _program = temp_program;
+        
         _uniform_location_cache = {};
         
         _fail("");
@@ -17159,7 +17155,7 @@ var _compile = function () {
     } else {
         _glsl_error = true;
         
-        _stop();
+        //_stop();
     }
 };/* jslint browser: true */
 
@@ -19409,6 +19405,7 @@ var _showSpectrumDialog = function () {
 ************************************************************/
 
 var _uiInit = function () {
+    // there is an easier way of handling this, it may don't scale at all in the future!
     var settings_ck_globaltime_elem = document.getElementById("fs_settings_ck_globaltime"),
         settings_ck_polyinfos_elem = document.getElementById("fs_settings_ck_polyinfos"),
         settings_ck_oscinfos_elem = document.getElementById("fs_settings_ck_oscinfos"),
@@ -19416,6 +19413,7 @@ var _uiInit = function () {
         settings_ck_lnumbers_elem = document.getElementById("fs_settings_ck_lnumbers"),
         settings_ck_xscrollbar_elem = document.getElementById("fs_settings_ck_xscrollbar"),
         settings_ck_wavetable_elem = document.getElementById("fs_settings_ck_wavetable"),
+        settings_ck_monophonic_elem = document.getElementById("fs_settings_ck_monophonic"),
         
         fs_settings_max_polyphony = localStorage.getItem('fs-max-polyphony'),
         fs_settings_osc_fadeout = localStorage.getItem('fs-osc-fadeout'),
@@ -19425,13 +19423,14 @@ var _uiInit = function () {
         fs_settings_hlmatches = localStorage.getItem('fs-editor-hl-matches'),
         fs_settings_lnumbers = localStorage.getItem('fs-editor-show-linenumbers'),
         fs_settings_xscrollbar = localStorage.getItem('fs-editor-advanced-scrollbar'),
-        fs_settings_wavetable = localStorage.getItem('fs-use-wavetable');
+        fs_settings_wavetable = localStorage.getItem('fs-use-wavetable'),
+        fs_settings_monophonic = localStorage.getItem('fs-monophonic');
     
     _settings_dialog = WUI_Dialog.create(_settings_dialog_id, {
             title: "Session & global settings",
 
             width: "320px",
-            height: "390px",
+            height: "398px",
 
             halign: "center",
             valign: "center",
@@ -19442,6 +19441,14 @@ var _uiInit = function () {
             detachable: false,
             draggable: true
         });
+    
+    if (fs_settings_monophonic === "true") {
+        _audio_infos.monophonic = fs_settings_monophonic;
+        settings_ck_monophonic_elem.checked = true;
+    } else {
+        _audio_infos.monophonic = false;
+        settings_ck_monophonic_elem.checked = false;
+    }
     
     if (fs_settings_osc_fadeout) {
         _osc_fadeout = parseFloat(fs_settings_osc_fadeout);
@@ -19518,6 +19525,16 @@ var _uiInit = function () {
     } else {
         settings_ck_lnumbers_elem.checked = false;
     }
+    
+    settings_ck_monophonic_elem.addEventListener("change", function () {
+            if (this.checked) {
+                _audio_infos.monophonic = true;
+            } else {
+                _audio_infos.monophonic = false;
+            }
+        
+            localStorage.setItem('fs-monophonic', this.checked);
+        });
     
     settings_ck_wavetable_elem.addEventListener("change", function () {
             if (this.checked) {
@@ -19610,6 +19627,7 @@ var _uiInit = function () {
     settings_ck_hlmatches_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_lnumbers_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_xscrollbar_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_monophonic_elem.dispatchEvent(new UIEvent('change'));
     
     _midi_settings_dialog = WUI_Dialog.create(_midi_settings_dialog_id, {
             title: "MIDI settings",
@@ -20364,7 +20382,8 @@ var _fasNotifyFast = function (cmd, data) {
     
     _fas.worker.postMessage({
             cmd: cmd,
-            arg: output_data_buffer
+            arg: output_data_buffer,
+            mono: _audio_infos.monophonic
         }, output_data_buffer);
 };
 

@@ -68,7 +68,8 @@ var _FS_WAVETABLE = 0,
             h: 0,
             base_freq: 0,
             octaves: 0,
-            gain: _volume
+            gain: _volume,
+            monophonic: false
         },
     
     _is_script_node_connected = false,
@@ -285,35 +286,31 @@ var _playSlice = function (pixels_data) {
         l = 0,
         r = 0,
         y = _oscillators.length - 1,
+        li = 0,
+        ri = 1,
         i = 0;
     
+    if (_audio_infos.monophonic) {
+        li = 3;
+        ri = 3;
+    }
+    
     for (i = 0; i < data_length; i += 4) {
-        l = pixels_data[i];
-        r = pixels_data[i + 1];
+        l = pixels_data[i + li];
+        r = pixels_data[i + ri];
         osc = _oscillators[y];
         
         if (l === 0) {
             osc.gain_node_l.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
         } else {
             osc.gain_node_l.gain.setTargetAtTime(l / 255.0, audio_ctx_curr_time, _osc_fadeout);
-            
-            //_playOscillator(osc, time_samples);
         }
         
         if (r === 0) {
             osc.gain_node_r.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
         } else {
             osc.gain_node_r.gain.setTargetAtTime(r / 255.0, audio_ctx_curr_time, _osc_fadeout);
-            
-            //_playOscillator(osc, time_samples);
         }
-        /*
-        if (osc.gain_node_r.gain.value < 0.05 && // this may be unsafe!
-            osc.gain_node_l.gain.value < 0.05 && osc.node) {
-            osc.node.stop(audio_ctx_curr_time + 0.1);
-            osc.used = false;
-        }*/
-
         y -= 1;
     }
 };
@@ -332,7 +329,8 @@ var _notesProcessing = function (arr, prev_arr) {
             _notes_worker.postMessage({
                     score_height: _canvas_height,
                     data: arr.buffer,
-                    prev_data: prev_arr.buffer
+                    prev_data: prev_arr.buffer,
+                    mono: _audio_infos.monophonic
                 }, [arr.buffer, prev_arr.buffer]);
 
             _notes_worker_available = false;
