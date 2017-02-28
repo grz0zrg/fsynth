@@ -172,6 +172,15 @@ var FragmentSynth = function (params) {
             }
         },
         
+        _glsl = [{
+                program: null,
+                code: "",
+                rtexture: null,
+                buffer: null,
+                ulc: {}
+            }],
+        _current_glsl = 0,
+        
         // this is the amount of free uniform vectors for Fragment regular uniforms and session custom uniforms
         // this is also used to assign uniform vectors automatically for polyphonic uses
         // if the GPU cannot have that much uniforms (with polyphonic uses), this will be divided by two and the polyphonic computation will be done again
@@ -386,7 +395,7 @@ var FragmentSynth = function (params) {
 
         _generateOscillatorSet(_canvas_height, base_freq, octave);
 
-        _compile();
+        _compileAll();
 
         _updateCodeView();
 
@@ -448,12 +457,23 @@ var FragmentSynth = function (params) {
     _code_editor.setValue(document.getElementById("fragment-shader").text);
 
     CodeMirror.on(_code_editor, 'change', function (instance, change_obj) {
+        _glsl[_current_glsl].code = _code_editor.getValue();
+        
         clearTimeout(_compile_timer);
-        _compile_timer = setTimeout(_compile, 500);
+        _compile_timer = setTimeout(function () { 
+                var program;
+                program = _compile(_glsl[_current_glsl]);
+                
+                if (program) {
+                    _gl.deleteProgram(_glsl[_current_glsl].program);
+                    
+                    _glsl[_current_glsl].program = program;
+                }
+            }, 500);
     });
 
     CodeMirror.on(_code_editor, 'changes', function (instance, changes) {
-        _shareCodeEditorChanges(changes);
+        //_shareCodeEditorChanges(changes);
     });
     
     // WebGL 2 check
@@ -496,8 +516,15 @@ var FragmentSynth = function (params) {
     _buildScreenAlignedQuad();
 
     _gl.viewport(0, 0, _canvas.width, _canvas.height);
-
-    _compile();
+    
+    _glsl[0].code = _code_editor.getValue();
+    _glsl[0].program = _compile(_glsl[0]);
+    _glsl[0].rtexture = _create2DTexture({
+            width: _canvas.width,
+            height: _canvas.height,
+            empty: true
+        }).texture;
+    _glsl[0].buffer = _createFramebuffer(_glsl[0].rtexture);
 
     // setup user last settings for this session if any
     if (_local_session_settings) {

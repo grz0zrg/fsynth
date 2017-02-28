@@ -30,10 +30,25 @@ var _create2DTexture = function (image, default_wrap_filter, bind_now) {
     if (bind_now) {
         _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, image);
     }
+    
+    if (image.empty) {
+        _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, image.width, image.height, 0, _gl.RGBA, _gl.UNSIGNED_BYTE, null);
+    }
 
     _gl.bindTexture(_gl.TEXTURE_2D, null);
 
     return { image: image, texture: new_texture };
+};
+
+var _createFramebuffer = function (texture) {
+    var framebuffer = _gl.createFramebuffer();
+    //texture2D(iInput0, vec2(uv.x, uv.y)).r
+    _gl.bindTexture(_gl.TEXTURE_2D, texture);
+    _gl.bindFramebuffer(_gl.FRAMEBUFFER, framebuffer);
+    _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0, _gl.TEXTURE_2D, texture, 0);
+    _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
+    
+    return framebuffer;
 };
 
 var _replace2DTexture = function (image, texture) {
@@ -238,6 +253,8 @@ var _allocate_frames_data = function () {
     }
 };
 
+var feedback_texture = null;
+
 var _frame = function (raf_time) {
     var i = 0, j = 0,
 
@@ -261,8 +278,15 @@ var _frame = function (raf_time) {
         
         f, v, key,
         
+        glsl,
+        
+        prev_buffer_texture = null,
+        
+        offset = 0,
+        t_offset,
+        
         buffer = [];
-
+    
     // update notes time
     for (key in _keyboard.pressed) { 
         v = _keyboard.pressed[key];
@@ -275,37 +299,86 @@ var _frame = function (raf_time) {
             break;
         }
     }
-    
-    _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
 
-    //_gl.useProgram(_program);
-    _gl.uniform1f(_getUniformLocation("globalTime"), global_time);
-    _gl.uniform1f(_getUniformLocation("octave"), _audio_infos.octaves);
-    _gl.uniform1f(_getUniformLocation("baseFrequency"), _audio_infos.base_freq);
-    _gl.uniform4f(_getUniformLocation("mouse"), _nmx, _nmy, _cnmx, _cnmy);
-    _gl.uniform4f(_getUniformLocation("date"), date.getFullYear(), date.getMonth(), date.getDay(), date.getSeconds());
+    for (j = _glsl.length - 1; j >= 0; j -= 1) {
+        glsl = _glsl[j];
+        
+        if (j !== 0 ) {
+            _gl.bindFramebuffer(_gl.FRAMEBUFFER, glsl.buffer);
+            _gl.viewport(0, 0, _canvas_width, _canvas_height);
+            
+            _gl.useProgram(glsl.program);
+            
+            _gl.activeTexture(_gl.TEXTURE0);
+            _gl.bindTexture(_gl.TEXTURE_2D, feedback_texture);
+            _gl.uniform1i(_getUniformLocation(glsl, _input_channel_prefix + 0), 0);
+            
+            /*
+            if (feedback_texture) {
+                _gl.activeTexture(_gl.TEXTURE0);
+                _gl.bindTexture(_gl.TEXTURE_2D, feedback_texture);
+                _gl.uniform1i(_getUniformLocation(glsl, _input_channel_prefix + 0), 0)
 
-    // fragment inputs
-    for (i = 0; i < _fragment_input_data.length; i += 1) {
-        fragment_input = _fragment_input_data[i];
+                offset = 1;
+            }*/
+            
+            prev_buffer_texture = glsl.texture;
+        } else {
+            _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
+            _gl.viewport(0, 0, _canvas_width, _canvas_height);
+            
+            _gl.useProgram(glsl.program);
+            
+            if (prev_buffer_texture) {
+                _gl.activeTexture(_gl.TEXTURE0);
+                _gl.bindTexture(_gl.TEXTURE_2D, prev_buffer_texture);
+                _gl.uniform1i(_getUniformLocation(glsl, _input_channel_prefix + 0), 0);
 
-        if (fragment_input.type === 0) { // 2D texture from image
-                _gl.activeTexture(_gl.TEXTURE0 + i);
-                _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
-                _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
-        } else if (fragment_input.type === 1) { // camera
-            if (fragment_input.video_elem.readyState === fragment_input.video_elem.HAVE_ENOUGH_DATA) {
-                _gl.activeTexture(_gl.TEXTURE0 + i);
-                _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
-                _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
-
-                _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, fragment_input.image);
+                offset = 1;
             }
         }
-    }
+        
+        _setUniforms(_gl, "vec", glsl.program, "keyboard", _keyboard.data, _keyboard.data_components);
 
-    //_gl.bindBuffer(_gl.ARRAY_BUFFER, _quad_vertex_buffer);
-    _gl.drawArrays(_gl.TRIANGLE_STRIP, 0, 4);
+        _gl.uniform1f(_getUniformLocation(glsl, "globalTime"), global_time);
+        _gl.uniform1f(_getUniformLocation(glsl, "octave"), _audio_infos.octaves);
+        _gl.uniform1f(_getUniformLocation(glsl, "baseFrequency"), _audio_infos.base_freq);
+        _gl.uniform4f(_getUniformLocation(glsl, "mouse"), _nmx, _nmy, _cnmx, _cnmy);
+        _gl.uniform4f(_getUniformLocation(glsl, "date"), date.getFullYear(), date.getMonth(), date.getDay(), date.getSeconds());
+
+        // fragment inputs
+        for (i = 0; i < _fragment_input_data.length; i += 1) {
+            fragment_input = _fragment_input_data[i];
+            
+            t_offset = i + offset;
+
+            if (fragment_input.type === 0) { // 2D texture from image
+                    _gl.activeTexture(_gl.TEXTURE0 + t_offset);
+                    _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
+                    _gl.uniform1i(_getUniformLocation(glsl, _input_channel_prefix + t_offset), t_offset);
+            } else if (fragment_input.type === 1) { // camera
+                if (fragment_input.video_elem.readyState === fragment_input.video_elem.HAVE_ENOUGH_DATA) {
+                    _gl.activeTexture(_gl.TEXTURE0 + t_offset);
+                    _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
+                    _gl.uniform1i(_getUniformLocation(glsl, _input_channel_prefix + t_offset), t_offset);
+
+                    _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, fragment_input.image);
+                }
+            }
+        }
+        
+        _gl.bindBuffer(_gl.ARRAY_BUFFER, _quad_vertex_buffer);
+        _gl.drawArrays(_gl.TRIANGLE_STRIP, 0, 4);
+        
+        if (j === 0 ) {
+            _gl.bindFramebuffer(_gl.FRAMEBUFFER, _glsl[0].buffer);
+            _gl.viewport(0, 0, _canvas_width, _canvas_height);
+            
+            _gl.drawArrays(_gl.TRIANGLE_STRIP, 0, 4);
+            
+            feedback_texture = glsl.rtexture;
+        }
+    }
     
     if ((_notesWorkerAvailable() || fas_enabled) && _play_position_markers.length > 0) {
         if (!fas_enabled) {

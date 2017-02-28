@@ -854,7 +854,7 @@ var _deleteControlsFn = function (name, ids) {
         
         ctrl_group.parentElement.removeChild(ctrl_group);
 
-        _compile();
+        _compileAll();
     };
 };
 
@@ -1188,7 +1188,7 @@ var _addControls = function (type, target_window, ctrl, params) {
         _shareCtrlsAdd(controls);
     }
     
-    _compile();
+    _compileAll();
 };
 
 var _buildControls = function (ctrl_obj) {
@@ -1693,8 +1693,10 @@ var _uiInit = function () {
                     tooltip: "Convert Shadertoy shader",
 
                     on_click: function () {
-                        var input_code  = _code_editor.getValue(),
-                            output_code = input_code;
+                        var input_code  = _glsl[_current_glsl].code,
+                            output_code = input_code,
+                            
+                            temp_program;
 
                         output_code = output_code.replace(/void\s+mainImage\s*\(\s*out\s+vec4\s+fragColor\s*,\s*in\s+vec2\s+fragCoord\s*\)/, "void main ()");
                         output_code = output_code.replace(/fragCoord/g, "gl_FragCoord");
@@ -1702,10 +1704,17 @@ var _uiInit = function () {
                         output_code = output_code.replace(/iResolution/g, "resolution");
                         output_code = output_code.replace(/iGlobalTime/g, "globalTime");
                         output_code = output_code.replace(/iMouse/g, "mouse");
-
+                        
                         _code_editor.setValue(output_code);
+                        
+                        _glsl[_current_glsl].code = output_code;
 
-                        _compile();
+                        temp_program = _compile(_glsl[_current_glsl]);
+                        if (temp_program) {
+                            _gl.deleteProgram(_glsl[_current_glsl].program);
+                            
+                            _glsl[_current_glsl].program = temp_program;
+                        }
                     }
                 },
                 {
@@ -1760,6 +1769,11 @@ var _uiInit = function () {
                             title: "Image",
 
                             on_click: _loadImage
+                        },
+                        {
+                            title: "Buffer",
+
+                            on_click: (function () { _addFragmentInput("buffer"); })
                         }
                     ]
 
@@ -1891,7 +1905,7 @@ var _uiInit = function () {
                     _keyboard.data[i] = 0;
                 }
                 
-                _compile();
+                _compileAll();
             }
         });
     

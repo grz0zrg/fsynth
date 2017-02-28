@@ -5,7 +5,7 @@
     Fields.
 ************************************************************/
 
-var _uniform_location_cache = {};
+var _uniform_location_cache = [];
 
 
 /***********************************************************
@@ -99,15 +99,15 @@ var _setUniforms = function (gl_ctx, type_str, program, name, values, comps) {
     }
 };
 
-var _getUniformLocation = function (name) {
-    if (!_uniform_location_cache[name]) {
-        _uniform_location_cache[name] = _gl.getUniformLocation(_program, name);
+var _getUniformLocation = function (glsl_obj, name) {
+    if (!glsl_obj.ulc[name]) {
+        glsl_obj.ulc[name] = _gl.getUniformLocation(glsl_obj.program, name);
     }
     
-    return _uniform_location_cache[name];
+    return glsl_obj.ulc[name];
 };
 
-var _compile = function () {
+var _compile = function (glsl_obj) {
     var frag,
 
         glsl_code = "",
@@ -125,7 +125,7 @@ var _compile = function () {
     
     // add our uniforms
     glsl_code = "precision mediump float; uniform float globalTime; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "];";
-
+/*
     // add inputs uniforms
     for (i = 0; i < _fragment_input_data.length; i += 1) {
         fragment_input = _fragment_input_data[i];
@@ -135,6 +135,8 @@ var _compile = function () {
             glsl_code += "uniform sampler2D iInput" + i + ";";
         }
     }
+*/
+    glsl_code += "uniform sampler2D iInput0;";
     
     // inputs uniform from controllers
     for(ctrl_name in _controls) { 
@@ -146,7 +148,7 @@ var _compile = function () {
     }
 
     // add user fragment code
-    glsl_code += _code_editor.getValue();
+    glsl_code += glsl_obj.code;
 
     frag = _createShader(_gl.FRAGMENT_SHADER, glsl_code);
 
@@ -156,32 +158,30 @@ var _compile = function () {
         );
 
     if (temp_program) {
-        _gl.deleteProgram(_program);
+        //_program = temp_program;
         
-        _program = temp_program;
-        
-        _uniform_location_cache = {};
+        glsl_obj.ulc = {};
         
         _fail("");
 
         _clearCodeMirrorWidgets();
 
-        _gl.useProgram(_program);
+        _gl.useProgram(temp_program);
 
-        _gl.uniform2f(_gl.getUniformLocation(_program, "resolution"), _canvas.width, _canvas.height);
+        _gl.uniform2f(_gl.getUniformLocation(temp_program, "resolution"), _canvas.width, _canvas.height);
         
-        _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
+        _setUniforms(_gl, "vec", temp_program, "keyboard", _keyboard.data, _keyboard.data_components);
         
         // set uniforms to value from controllers
         for(ctrl_name in _controls) { 
             if (_controls.hasOwnProperty(ctrl_name)) {
                 ctrl_obj = _controls[ctrl_name];
                 
-                _setUniforms(_gl, ctrl_obj.type, _program, ctrl_name, ctrl_obj.values, ctrl_obj.comps);
+                _setUniforms(_gl, ctrl_obj.type, temp_program, ctrl_name, ctrl_obj.values, ctrl_obj.comps);
             }
         }
 
-        position = _gl.getAttribLocation(_program, "position");
+        position = _gl.getAttribLocation(temp_program, "position");
         _gl.enableVertexAttribArray(position);
         _gl.vertexAttribPointer(position, 2, _gl.FLOAT, false, 0, 0);
         
@@ -192,9 +192,29 @@ var _compile = function () {
                 _play();   
             }
         }
+        
+        return temp_program;
     } else {
         _glsl_error = true;
         
         //_stop();
     }
+};
+
+var _compileAll = function () {
+    var i = 0,
+        
+        tmp_program,
+        
+        glsl_obj;
+    
+    for (i = 0; i < _glsl.length; i += 1) {
+        glsl_obj = _glsl[i];
+        
+        tmp_program = _compile(glsl_obj);
+        if (tmp_program) {
+            _gl.deleteProgram(glsl_obj.program);
+            glsl_obj.program = tmp_program;
+        }
+    }  
 };
