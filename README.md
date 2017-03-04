@@ -8,6 +8,8 @@ This is a web. spectral synthesizer powered by live [GLSL code](https://en.wikip
 
 Fragment can also be used for live coding visuals, they can be synchronized to any audio using the MIDI capabilities AND also synchronized to the synthesized sound
 
+This is a sort of [Shadertoy](https://www.shadertoy.com) like synthesizer, it is compatible with most shaders written for it.
+
 ## Feature list:
 
  * Full-blown additive synthesizer powered by WebAudio oscillators, a wavetable OR a native program written in C (fastest)
@@ -18,20 +20,20 @@ Fragment can also be used for live coding visuals, they can be synchronized to a
  * Multitimbral
  * Aliasing free
  * Adjustable audio output channel per slices
- * Shader inputs, webcam, textures and more
+ * Shader inputs, webcam, textures, buffers (for persistent or incremental fx) and more
  * Real-time analysis (logarithmic spectrum view of the output etc.)
  * Native app. powered by [Electron](http://electron.atom.io/) with built-in [C powered additive synthesizer](https://github.com/grz0zrg/fas)
  * Per-sessions discussion system
  * Global and per sessions settings automatic saving/loading; make use of *localStorage*
  * No authentifications (make use of *localStorage* and is *sessions* based)
 
- Note: Blue component output of the fragment shader can be used for real-time sounds/visuals sync or visual feedback of functions/textures/camera. (you can have full RGB output for visuals by turning on the "monophonic" setting)
+ Note: Blue component output of the fragment shader can be used for real-time sounds/visuals sync or visual feedback of functions/textures/camera, it is also possible to have full RGB output for visuals by turning on the "monophonic" setting
  
  Note: WebAudio oscillators and wavetable mode can only have two output channels (l/r) due to obvious performances issues (this may change in the future!)
  
 ## MIDI Feature list (Integrated MIDI support with the WebMIDI API):
 
- * Integrated note-on/note-off messages, note frequency, velocity, MIDI channel and elapsed time are accessible in the fragment shader (not shared between users)
+ * Integrated note-on/note-off messages, note frequency, velocity, MIDI channel and elapsed time are accessible in the fragment shader (this is not shared between users)
  * Polyphony is automatically detected from the GPU capabilities (704 notes with a GeForce GTX 970 GPU, 16 notes is the minimum, maximum also depend on the shader complexity)
  * Hot plugging of MIDI devices are supported
  * MIDI enabled shader inputs
@@ -135,6 +137,6 @@ Simplified BSD license
 
 The biggest inspiration for all of this was [Alexander Zolotov Virtual ANS software](http://www.warmplace.ru/soft/ans/), thank to him.
 
-Also inspired by [Shadertoy](https://www.shadertoy.com)
+Heavily inspired by [Shadertoy](https://www.shadertoy.com) as well.
 
 For any questions, a message board is available [here](https://quiet.fsynth.com/)

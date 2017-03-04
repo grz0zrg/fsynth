@@ -1,3 +1,7 @@
+/*
+    WUI style hijacking for Fragment purposes
+*/
+
 .wui-toolbar-toggle-on {
     box-shadow: none !important;
     background-color: #00545d !important;
@@ -15,13 +19,23 @@
 }
 
 .wui-toolbar-dropdown-item {
-    border: none;
+    /*border: none;*/
     background: initial;
     background-color: rgba(16,16,16,.95);
-    border-radius: 0;
+    /*border-radius: 0;*/
 }
 
 .wui-toolbar-dropdown-item:hover {
     font-size: inherit !important;
     background-color: #141414;
+}
+
+.wui-toolbar-dropdown-item {
+    display: block;
+}
+
+.wui-toolbar-dropdown-content {
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
 }
