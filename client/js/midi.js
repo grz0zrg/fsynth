@@ -183,7 +183,7 @@ var _onMIDIMessage = function (midi_message) {
 
                 _keyboard.polyphony = i / _keyboard.data_components;
 
-                _setUniforms(_gl, "vec", _glsl[_current_glsl].program, "keyboard", _keyboard.data, _keyboard.data_components);
+                _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
             }
             break;
 
@@ -214,7 +214,7 @@ var _onMIDIMessage = function (midi_message) {
 
             _keyboard.polyphony = i / _keyboard.data_components;
 
-            _setUniforms(_gl, "vec", _glsl[_current_glsl].program, "keyboard", _keyboard.data, _keyboard.data_components);
+            _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
             break;
     }
 

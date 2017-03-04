@@ -15866,15 +15866,6 @@ _utter_fail_element.innerHTML = "";
             }
         },
         
-        _glsl = [{
-                program: null,
-                code: "",
-                rtexture: null,
-                buffer: null,
-                ulc: {}
-            }],
-        _current_glsl = 0,
-        
         // this is the amount of free uniform vectors for Fragment regular uniforms and session custom uniforms
         // this is also used to assign uniform vectors automatically for polyphonic uses
         // if the GPU cannot have that much uniforms (with polyphonic uses), this will be divided by two and the polyphonic computation will be done again
@@ -16586,25 +16577,10 @@ var _create2DTexture = function (image, default_wrap_filter, bind_now) {
     if (bind_now) {
         _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, image);
     }
-    
-    if (image.empty) {
-        _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, image.width, image.height, 0, _gl.RGBA, _gl.UNSIGNED_BYTE, null);
-    }
 
     _gl.bindTexture(_gl.TEXTURE_2D, null);
 
     return { image: image, texture: new_texture };
-};
-
-var _createFramebuffer = function (texture) {
-    var framebuffer = _gl.createFramebuffer();
-    //texture2D(iInput0, vec2(uv.x, uv.y)).r
-    _gl.bindTexture(_gl.TEXTURE_2D, texture);
-    _gl.bindFramebuffer(_gl.FRAMEBUFFER, framebuffer);
-    _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0, _gl.TEXTURE_2D, texture, 0);
-    _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
-    
-    return framebuffer;
 };
 
 var _replace2DTexture = function (image, texture) {
@@ -16809,8 +16785,6 @@ var _allocate_frames_data = function () {
     }
 };
 
-var feedback_texture = null;
-
 var _frame = function (raf_time) {
     var i = 0, j = 0,
 
@@ -16834,15 +16808,8 @@ var _frame = function (raf_time) {
         
         f, v, key,
         
-        glsl,
-        
-        prev_buffer_texture = null,
-        
-        offset = 0,
-        t_offset,
-        
         buffer = [];
-    
+
     // update notes time
     for (key in _keyboard.pressed) { 
         v = _keyboard.pressed[key];
@@ -16855,86 +16822,37 @@ var _frame = function (raf_time) {
             break;
         }
     }
+    
+    _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
 
-    for (j = _glsl.length - 1; j >= 0; j -= 1) {
-        glsl = _glsl[j];
-        
-        if (j !== 0 ) {
-            _gl.bindFramebuffer(_gl.FRAMEBUFFER, glsl.buffer);
-            _gl.viewport(0, 0, _canvas_width, _canvas_height);
-            
-            _gl.useProgram(glsl.program);
-            
-            _gl.activeTexture(_gl.TEXTURE0);
-            _gl.bindTexture(_gl.TEXTURE_2D, feedback_texture);
-            _gl.uniform1i(_getUniformLocation(glsl, _input_channel_prefix + 0), 0);
-            
-            /*
-            if (feedback_texture) {
-                _gl.activeTexture(_gl.TEXTURE0);
-                _gl.bindTexture(_gl.TEXTURE_2D, feedback_texture);
-                _gl.uniform1i(_getUniformLocation(glsl, _input_channel_prefix + 0), 0)
+    //_gl.useProgram(_program);
+    _gl.uniform1f(_getUniformLocation("globalTime"), global_time);
+    _gl.uniform1f(_getUniformLocation("octave"), _audio_infos.octaves);
+    _gl.uniform1f(_getUniformLocation("baseFrequency"), _audio_infos.base_freq);
+    _gl.uniform4f(_getUniformLocation("mouse"), _nmx, _nmy, _cnmx, _cnmy);
+    _gl.uniform4f(_getUniformLocation("date"), date.getFullYear(), date.getMonth(), date.getDay(), date.getSeconds());
 
-                offset = 1;
-            }*/
-            
-            prev_buffer_texture = glsl.texture;
-        } else {
-            _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
-            _gl.viewport(0, 0, _canvas_width, _canvas_height);
-            
-            _gl.useProgram(glsl.program);
-            
-            if (prev_buffer_texture) {
-                _gl.activeTexture(_gl.TEXTURE0);
-                _gl.bindTexture(_gl.TEXTURE_2D, prev_buffer_texture);
-                _gl.uniform1i(_getUniformLocation(glsl, _input_channel_prefix + 0), 0);
+    // fragment inputs
+    for (i = 0; i < _fragment_input_data.length; i += 1) {
+        fragment_input = _fragment_input_data[i];
 
-                offset = 1;
+        if (fragment_input.type === 0) { // 2D texture from image
+                _gl.activeTexture(_gl.TEXTURE0 + i);
+                _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
+                _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
+        } else if (fragment_input.type === 1) { // camera
+            if (fragment_input.video_elem.readyState === fragment_input.video_elem.HAVE_ENOUGH_DATA) {
+                _gl.activeTexture(_gl.TEXTURE0 + i);
+                _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
+                _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
+
+                _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, fragment_input.image);
             }
-        }
-        
-        _setUniforms(_gl, "vec", glsl.program, "keyboard", _keyboard.data, _keyboard.data_components);
-
-        _gl.uniform1f(_getUniformLocation(glsl, "globalTime"), global_time);
-        _gl.uniform1f(_getUniformLocation(glsl, "octave"), _audio_infos.octaves);
-        _gl.uniform1f(_getUniformLocation(glsl, "baseFrequency"), _audio_infos.base_freq);
-        _gl.uniform4f(_getUniformLocation(glsl, "mouse"), _nmx, _nmy, _cnmx, _cnmy);
-        _gl.uniform4f(_getUniformLocation(glsl, "date"), date.getFullYear(), date.getMonth(), date.getDay(), date.getSeconds());
-
-        // fragment inputs
-        for (i = 0; i < _fragment_input_data.length; i += 1) {
-            fragment_input = _fragment_input_data[i];
-            
-            t_offset = i + offset;
-
-            if (fragment_input.type === 0) { // 2D texture from image
-                    _gl.activeTexture(_gl.TEXTURE0 + t_offset);
-                    _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
-                    _gl.uniform1i(_getUniformLocation(glsl, _input_channel_prefix + t_offset), t_offset);
-            } else if (fragment_input.type === 1) { // camera
-                if (fragment_input.video_elem.readyState === fragment_input.video_elem.HAVE_ENOUGH_DATA) {
-                    _gl.activeTexture(_gl.TEXTURE0 + t_offset);
-                    _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
-                    _gl.uniform1i(_getUniformLocation(glsl, _input_channel_prefix + t_offset), t_offset);
-
-                    _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, fragment_input.image);
-                }
-            }
-        }
-        
-        _gl.bindBuffer(_gl.ARRAY_BUFFER, _quad_vertex_buffer);
-        _gl.drawArrays(_gl.TRIANGLE_STRIP, 0, 4);
-        
-        if (j === 0 ) {
-            _gl.bindFramebuffer(_gl.FRAMEBUFFER, _glsl[0].buffer);
-            _gl.viewport(0, 0, _canvas_width, _canvas_height);
-            
-            _gl.drawArrays(_gl.TRIANGLE_STRIP, 0, 4);
-            
-            feedback_texture = glsl.rtexture;
         }
     }
+
+    //_gl.bindBuffer(_gl.ARRAY_BUFFER, _quad_vertex_buffer);
+    _gl.drawArrays(_gl.TRIANGLE_STRIP, 0, 4);
     
     if ((_notesWorkerAvailable() || fas_enabled) && _play_position_markers.length > 0) {
         if (!fas_enabled) {
@@ -17047,7 +16965,7 @@ var _frame = function (raf_time) {
     Fields.
 ************************************************************/
 
-var _uniform_location_cache = [];
+var _uniform_location_cache = {};
 
 
 /***********************************************************
@@ -17141,15 +17059,15 @@ var _setUniforms = function (gl_ctx, type_str, program, name, values, comps) {
     }
 };
 
-var _getUniformLocation = function (glsl_obj, name) {
-    if (!glsl_obj.ulc[name]) {
-        glsl_obj.ulc[name] = _gl.getUniformLocation(glsl_obj.program, name);
+var _getUniformLocation = function (name) {
+    if (!_uniform_location_cache[name]) {
+        _uniform_location_cache[name] = _gl.getUniformLocation(_program, name);
     }
     
-    return glsl_obj.ulc[name];
+    return _uniform_location_cache[name];
 };
 
-var _compile = function (glsl_obj) {
+var _compile = function () {
     var frag,
 
         glsl_code = "",
@@ -17167,7 +17085,7 @@ var _compile = function (glsl_obj) {
     
     // add our uniforms
     glsl_code = "precision mediump float; uniform float globalTime; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "];";
-/*
+
     // add inputs uniforms
     for (i = 0; i < _fragment_input_data.length; i += 1) {
         fragment_input = _fragment_input_data[i];
@@ -17177,8 +17095,6 @@ var _compile = function (glsl_obj) {
             glsl_code += "uniform sampler2D iInput" + i + ";";
         }
     }
-*/
-    glsl_code += "uniform sampler2D iInput0;";
     
     // inputs uniform from controllers
     for(ctrl_name in _controls) { 
@@ -17190,7 +17106,7 @@ var _compile = function (glsl_obj) {
     }
 
     // add user fragment code
-    glsl_code += glsl_obj.code;
+    glsl_code += _code_editor.getValue();
 
     frag = _createShader(_gl.FRAGMENT_SHADER, glsl_code);
 
@@ -17200,30 +17116,32 @@ var _compile = function (glsl_obj) {
         );
 
     if (temp_program) {
-        //_program = temp_program;
+        _gl.deleteProgram(_program);
         
-        glsl_obj.ulc = {};
+        _program = temp_program;
+        
+        _uniform_location_cache = {};
         
         _fail("");
 
         _clearCodeMirrorWidgets();
 
-        _gl.useProgram(temp_program);
+        _gl.useProgram(_program);
 
-        _gl.uniform2f(_gl.getUniformLocation(temp_program, "resolution"), _canvas.width, _canvas.height);
+        _gl.uniform2f(_gl.getUniformLocation(_program, "resolution"), _canvas.width, _canvas.height);
         
-        _setUniforms(_gl, "vec", temp_program, "keyboard", _keyboard.data, _keyboard.data_components);
+        _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
         
         // set uniforms to value from controllers
         for(ctrl_name in _controls) { 
             if (_controls.hasOwnProperty(ctrl_name)) {
                 ctrl_obj = _controls[ctrl_name];
                 
-                _setUniforms(_gl, ctrl_obj.type, temp_program, ctrl_name, ctrl_obj.values, ctrl_obj.comps);
+                _setUniforms(_gl, ctrl_obj.type, _program, ctrl_name, ctrl_obj.values, ctrl_obj.comps);
             }
         }
 
-        position = _gl.getAttribLocation(temp_program, "position");
+        position = _gl.getAttribLocation(_program, "position");
         _gl.enableVertexAttribArray(position);
         _gl.vertexAttribPointer(position, 2, _gl.FLOAT, false, 0, 0);
         
@@ -17234,31 +17152,11 @@ var _compile = function (glsl_obj) {
                 _play();   
             }
         }
-        
-        return temp_program;
     } else {
         _glsl_error = true;
         
         //_stop();
     }
-};
-
-var _compileAll = function () {
-    var i = 0,
-        
-        tmp_program,
-        
-        glsl_obj;
-    
-    for (i = 0; i < _glsl.length; i += 1) {
-        glsl_obj = _glsl[i];
-        
-        tmp_program = _compile(glsl_obj);
-        if (tmp_program) {
-            _gl.deleteProgram(glsl_obj.program);
-            glsl_obj.program = tmp_program;
-        }
-    }  
 };/* jslint browser: true */
 
 
@@ -17909,37 +17807,11 @@ var _removeInputChannel = function (input_id) {
         fragment_input_data.elem.input_id = i;
     }
 
-    _compileAll();
+    _compile();
 };
 
-var _createInputThumb = function (input_id, image, thumb_title, on_select) {
-    var dom_image = document.createElement("img"),
-        
-        circular_menu_items = [
-                {   
-                    icon: "fs-gear-icon", tooltip: "Settings",  on_click: function () {
-                        _createChannelSettingsDialog(dom_image.input_id);
-                    }
-                },
-                /*{ icon: "fs-replace-icon", tooltip: "Replace",  on_click: function () {
-
-                    } },*/
-                {   
-                    icon: "fs-cross-45-icon", tooltip: "Delete",  on_click: function () {
-                        _input_panel_element.removeChild(dom_image);
-
-                        _removeInputChannel(dom_image.input_id);
-                    }
-                }
-            ];
-    
-    if (on_select) {
-        circular_menu_items.splice(1, 0, 
-                {   
-                    icon: "fs-shadertoy-icon", tooltip: "View",  on_click: on_select
-                }
-            );
-    }
+var _createInputThumb = function (input_id, image, thumb_title) {
+    var dom_image = document.createElement("img");
 
     if (image !== undefined) {
         dom_image.src = image.src;
@@ -17962,8 +17834,19 @@ var _createInputThumb = function (input_id, image, thumb_title, on_select) {
                 item_width:  32,
                 item_height: 32
             },
-                circular_menu_items
-            );
+            [
+                { icon: "fs-gear-icon", tooltip: "Settings",  on_click: function () {
+                        _createChannelSettingsDialog(dom_image.input_id);
+                    } },
+                /*{ icon: "fs-replace-icon", tooltip: "Replace",  on_click: function () {
+
+                    } },*/
+                { icon: "fs-cross-45-icon", tooltip: "Delete",  on_click: function () {
+                        _input_panel_element.removeChild(dom_image);
+
+                        _removeInputChannel(dom_image.input_id);
+                    } }
+            ]);
         });
 
     _input_panel_element.appendChild(dom_image);
@@ -17971,35 +17854,12 @@ var _createInputThumb = function (input_id, image, thumb_title, on_select) {
     return dom_image;
 };
 
-var _onBufferSelect = function (input_obj) {
-    return function () {
-        if (input_obj.selected) {
-            input_obj.selected = false;
-            
-            input_obj.elem.style = "";
-            
-            _current_glsl = 0;
-        } else {
-            input_obj.selected = true;
-            
-            input_obj.elem.style="border: solid 1px #ffffff";
-
-            _current_glsl = input_obj.glsl_id;
-
-            _code_editor.setValue(_glsl[_current_glsl].code);
-        }
-        
-        _code_editor.setValue(_glsl[_current_glsl].code);
-    };
-};
-
 var _addFragmentInput = function (type, input) {
     var input_thumb,
 
         data,
         image,
-        
-        elem,
+        texture,
 
         input_id = _fragment_input_data.length;
 
@@ -18018,23 +17878,23 @@ var _addFragmentInput = function (type, input) {
 
         _fragment_input_data[input_id].elem = _createInputThumb(input_id, input_thumb, _input_channel_prefix + input_id);
 
-        _compileAll();
+        _compile();
     } else if (type === "camera") {
-        elem = document.createElement('video');
-        elem.width = 320;
-        elem.height = 240;
-        elem.autoplay = true;
-        elem.loop = true;
-        elem.stream = null;
+        var video_element = document.createElement('video');
+        video_element.width = 320;
+        video_element.height = 240;
+        video_element.autoplay = true;
+        video_element.loop = true;
+        video_element.stream = null;
 
         navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia  || navigator.msGetUserMedia || navigator.oGetUserMedia;
 
         if (navigator.getUserMedia) {
             navigator.getUserMedia({ video: { mandatory: { minWidth: 640, maxWidth: 1280, minHeight: 480, maxHeight: 720, minFrameRate: 30 }, optional: [ { minFrameRate: 60 } ] },
                 audio: false }, function (media_stream) {
-                    elem.src = window.URL.createObjectURL(media_stream);
+                    video_element.src = window.URL.createObjectURL(media_stream);
 
-                    data = _create2DTexture(elem, false, false);
+                    data = _create2DTexture(video_element, false, false);
 
                     _setTextureWrapS(data.texture, "clamp");
                     _setTextureWrapT(data.texture, "clamp");
@@ -18043,7 +17903,7 @@ var _addFragmentInput = function (type, input) {
                             type: 1,
                             image: data.image,
                             texture: data.texture,
-                            video_elem: elem,
+                            video_elem: video_element,
                             flip: true,
                             elem: null,
                             media_stream: media_stream
@@ -18051,40 +17911,13 @@ var _addFragmentInput = function (type, input) {
 
                     _fragment_input_data[input_id].elem = _createInputThumb(input_id, { src: "data/ui-icons/camera.png"}, _input_channel_prefix + input_id);
 
-                    _compileAll();
+                    _compile();
                 }, function (e) {
                     _notification("Unable to capture WebCam.");
                 });
         } else {
             _notification("Cannot capture audio/video, getUserMedia function is not supported by your browser.");
         }
-    } else if (type === "buffer") {
-        data = _create2DTexture({ width: _canvas_width, height: _canvas_height, empty: true }, false, false);
-
-        _fragment_input_data.push({
-                type: 2,
-                image: null,
-                texture: data.texture,
-                flip: true,
-                elem: null,
-                buffer: _createFramebuffer(data.texture),
-                program: null,
-                code: [
-                        '\nvoid main()\n',
-                        '{\n',
-                        '    gl_FragColor = vec4(1.0,0.0,0.0,1.0);\n',
-                        '}\n'
-                    ].join(''),
-                glsl_id: _glsl.length,
-                selected: false
-            });
-        
-        _fragment_input_data[input_id].program = _compile(_fragment_input_data[input_id])
-        
-        _glsl.push(_fragment_input_data[input_id]);
-        
-        _fragment_input_data[input_id].elem = _createInputThumb(input_id, { src: "data/ui-icons/buffer.png"}, _input_channel_prefix + input_id,
-            _onBufferSelect(_fragment_input_data[input_id]));
     }
 };/* jslint browser: true */
 
@@ -19140,7 +18973,7 @@ var _deleteControlsFn = function (name, ids) {
         
         ctrl_group.parentElement.removeChild(ctrl_group);
 
-        _compileAll();
+        _compile();
     };
 };
 
@@ -19474,7 +19307,7 @@ var _addControls = function (type, target_window, ctrl, params) {
         _shareCtrlsAdd(controls);
     }
     
-    _compileAll();
+    _compile();
 };
 
 var _buildControls = function (ctrl_obj) {
@@ -19979,10 +19812,8 @@ var _uiInit = function () {
                     tooltip: "Convert Shadertoy shader",
 
                     on_click: function () {
-                        var input_code  = _glsl[_current_glsl].code,
-                            output_code = input_code,
-                            
-                            temp_program;
+                        var input_code  = _code_editor.getValue(),
+                            output_code = input_code;
 
                         output_code = output_code.replace(/void\s+mainImage\s*\(\s*out\s+vec4\s+fragColor\s*,\s*in\s+vec2\s+fragCoord\s*\)/, "void main ()");
                         output_code = output_code.replace(/fragCoord/g, "gl_FragCoord");
@@ -19990,17 +19821,10 @@ var _uiInit = function () {
                         output_code = output_code.replace(/iResolution/g, "resolution");
                         output_code = output_code.replace(/iGlobalTime/g, "globalTime");
                         output_code = output_code.replace(/iMouse/g, "mouse");
-                        
-                        _code_editor.setValue(output_code);
-                        
-                        _glsl[_current_glsl].code = output_code;
 
-                        temp_program = _compile(_glsl[_current_glsl]);
-                        if (temp_program) {
-                            _gl.deleteProgram(_glsl[_current_glsl].program);
-                            
-                            _glsl[_current_glsl].program = temp_program;
-                        }
+                        _code_editor.setValue(output_code);
+
+                        _compile();
                     }
                 },
                 {
@@ -20055,11 +19879,6 @@ var _uiInit = function () {
                             title: "Image",
 
                             on_click: _loadImage
-                        },
-                        {
-                            title: "Buffer",
-
-                            on_click: (function () { _addFragmentInput("buffer"); })
                         }
                     ]
 
@@ -20191,7 +20010,7 @@ var _uiInit = function () {
                     _keyboard.data[i] = 0;
                 }
                 
-                _compileAll();
+                _compile();
             }
         });
     
@@ -20444,7 +20263,7 @@ var _onMIDIMessage = function (midi_message) {
 
                 _keyboard.polyphony = i / _keyboard.data_components;
 
-                _setUniforms(_gl, "vec", _glsl[_current_glsl].program, "keyboard", _keyboard.data, _keyboard.data_components);
+                _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
             }
             break;
 
@@ -20475,7 +20294,7 @@ var _onMIDIMessage = function (midi_message) {
 
             _keyboard.polyphony = i / _keyboard.data_components;
 
-            _setUniforms(_gl, "vec", _glsl[_current_glsl].program, "keyboard", _keyboard.data, _keyboard.data_components);
+            _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
             break;
     }
 
@@ -20711,7 +20530,7 @@ var _fasInit = function () {
 
         _generateOscillatorSet(_canvas_height, base_freq, octave);
 
-        _compileAll();
+        _compile();
 
         _updateCodeView();
 
@@ -20773,23 +20592,12 @@ var _fasInit = function () {
     _code_editor.setValue(document.getElementById("fragment-shader").text);
 
     CodeMirror.on(_code_editor, 'change', function (instance, change_obj) {
-        _glsl[_current_glsl].code = _code_editor.getValue();
-        
         clearTimeout(_compile_timer);
-        _compile_timer = setTimeout(function () { 
-                var program;
-                program = _compile(_glsl[_current_glsl]);
-                
-                if (program) {
-                    _gl.deleteProgram(_glsl[_current_glsl].program);
-                    
-                    _glsl[_current_glsl].program = program;
-                }
-            }, 500);
+        _compile_timer = setTimeout(_compile, 500);
     });
 
     CodeMirror.on(_code_editor, 'changes', function (instance, changes) {
-        //_shareCodeEditorChanges(changes);
+        _shareCodeEditorChanges(changes);
     });
     
     // WebGL 2 check
@@ -20832,15 +20640,8 @@ var _fasInit = function () {
     _buildScreenAlignedQuad();
 
     _gl.viewport(0, 0, _canvas.width, _canvas.height);
-    
-    _glsl[0].code = _code_editor.getValue();
-    _glsl[0].program = _compile(_glsl[0]);
-    _glsl[0].rtexture = _create2DTexture({
-            width: _canvas.width,
-            height: _canvas.height,
-            empty: true
-        }).texture;
-    _glsl[0].buffer = _createFramebuffer(_glsl[0].rtexture);
+
+    _compile();
 
     // setup user last settings for this session if any
     if (_local_session_settings) {
