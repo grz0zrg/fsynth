@@ -1748,7 +1748,7 @@ var _uiInit = function () {
 
                     type: "dropdown",
 
-                    orientation: "n",
+                    orientation: "s",
 
                     items: [
                         {

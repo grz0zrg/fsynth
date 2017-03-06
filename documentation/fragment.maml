@@ -1,0 +1,427 @@
+$begin
+
+$colorrule(funny)([a-e])($rgb(10,0,130)($sup($1)))
+$colorrule(funny)([e-k])($rgb(150,0,0)($italic($1)))
+$colorrule(funny)([l-p])($rgb(100,100,0)($big($1)))
+$colorrule(funny)([p-z])($rgb(0,100,100)($sub($big($1))))
+$colorizer(funny)
+
+$define(article)(0)()
+
+$input(basis.maml)
+
+$define(p)(0)($par$par)
+$define(bigtitle)(1)($center($big($big($big($big($big($1)))))))
+$define(title)(1)($center($big($big($1))))
+$define(em)(1)($italic($1))
+
+$bigtitle(Fragment)
+$title(The Collaborative Spectral Synthesizer)
+$par
+$center(by Julien Verneuil - $mailto(contact@fsynth.com)(contact@fsynth.com))
+$p$par
+
+$center($big(This is the HTML documentation of the Fragment synthesizer.))
+
+$par
+
+$center($tlink($image(580)(fsynth_ui.png))(https://www.fsynth.com))
+
+$par
+$p
+$center($bold(Table of Contents))$par
+$tableofcontents
+
+$section(introduction)(Introduction)
+
+The $bold($tlink(Fragment synthesizer)(https://www.fsynth.com)) (also called fsynth) is a collaborative web-based musical instrument which allow direct manipulation of the sound spectrum by the use of on-the-fly GPU (Graphics Processing Unit) programming.
+$p
+Fragment is stereophonic, polyphonic, multitimbral, it support live coding of audio and visuals at the same time.
+$p
+Fragment is foremost a powerfull additive synthesizer which let you have complete control over the sound spectrum in real-time.
+$par
+
+$subsection(history)(History)
+
+$par
+
+In 2009, i discovered the $tlink(Virtual ANS)(http://www.warmplace.ru/soft/ans/) synthesizer by $tlink(Alexander Zolotov)(http://www.warmplace.ru),
+a software emulation of the Russian photoelectronic synthesizer $tlink(ANS)(http://en.wikipedia.org/wiki/ANS_synthesizer) which was created by the Russian engineer $tlink(Evgeny Murzin)(http://en.wikipedia.org/wiki/Evgeny_Murzin) from 1938 to 1958.
+$p
+I was blown away by the remarquable possibilities offered by the Virtual ANS which let you draw the sound spectrum, this is how i started to experiment with the "drawn sound" method.
+$p
+Fragment started in 2015, when i was making the first prototype of a web-based ANS-like synthesizer software which is still a work in progress, a prototype of Fragment was made in a single week, 
+the prototype was quite mature but lacked in features, i considered Fragment as a pretty but failed experiment at the time.
+$p
+In the summer 2016 while i was releasing the prototype source code, i played with it again and after tweaking the GLSL code, i was able to make some nice sounds and envision what would be possible with this technology, so i started to think about that prototype again and come up with many ideas that would make Fragment more functional and easier to use, the real work begun.
+$p
+After many hours spent crafting the software, the first version of Fragment was released in January 2017, it was quite limited at that time, Fragment has now improved alot.
+$par
+
+$subsection(capabilities)(Capabilities)
+
+$par
+
+$list(
+	$item Powerful additive synthesizer
+		$list($item Powered by WebAudio oscillators $item Powered by FAS, an independent program $item Powered by a wavetable )
+	$item Stereophonic
+	$item Monaural
+	$item Polyphonic
+		$list($item Automatically detected from the GPU capabilities $item 16 notes minimum $item 704 notes with a GeForce GTX 970 GPU)
+	$item Multitimbral
+	$item Aliasing free
+	$item Adjustable audio output channel per slices
+		$list($item Multiple audio channels are only supported with FAS)
+	$item Shader inputs, webcam, textures and more
+	$item Real-time audio output analysis
+		$list($item WebAudio only)
+	$item MIDI Enabled
+		$list($item Only with WebMIDI API enabled browsers (Google Chrome) $item Hot plugging of MIDI devices is supported)
+	$item Collaborative app.
+		$list($item MIDI and shader inputs are not synchronized between users)
+	$item Live coding/JIT compilation of shader code
+	$item Global and per sessions settings automatic saving/loading
+	$item No authentifications (sessions based)
+	$item Per-sessions discussion system)
+
+$subsection(systemrequirements)(System requirements)
+
+$par
+
+Fragment is a special kind of additive synthesizer and require a great deal of processing power in order to work properly, a medium-end GPU and CPU should work fine.
+
+$par
+
+$subsubsection(browser)(Browser)
+
+$par
+
+Fragment require a browser with full support for ECMAScript 5, CSS3, WebAudio and WebGL.
+$p
+Well-tested and compatible browsers include Firefox 51.x and Chrome 55.x but Fragment may work with previous version of those browsers as well.
+$p
+It is known to work on recent version of Safari and Opera as well.
+
+$par
+
+$subsubsection(cpu)(CPU)
+
+$par
+
+Fragment may be quite hungry in term of computing resources, a dual core with high clock speed is recommended, a CPU with more cores can be useful if you just want to use the browser for audio output.
+$p
+Several methods are provided to synthesize sounds, each with performances pros and cons:
+$par
+$list(
+	$item FAS ($bold(recommended)): $list($item Very fast $item Multiple output support with soundcard choice $item Many settings $item Can run on a dedicated computer such as a Raspberry PI $item Dedicated program which receive Fragment data over the network)
+	$item WebAudio oscillators: $list($item Fastest under Chrome $item May not work with Firefox $item Require a fast CPU $item Integrated global "release" envelope)
+	$item Wavetable (not recommended): $list($item Most compatible browser method $item Will produce crackles))
+
+$subsubsection(gpu)(GPU)
+
+$par
+
+Fragment was developed and tested with a NVIDIA GeForce GTX 970 GPU, a powerful GPU may be required if:
+$par
+$list(
+	$item you want a greater score resolution
+	$item you want to do visuals alongside audio
+	$item you are doing complex things/use many inputs in your shader
+	$item you want greater polyphonic/harmonics capabilities)
+
+$section(howitwork)(Technical details)
+
+$par
+
+Fragment is an additive synthesizer, it let you have full control over the timbral qualities of your sounds by the mean of GPU programming.
+$p
+Unlike other additive synthesizer software, there is no need for knobs, sliders or any other controllers to sculpt your sounds, all of that is done by generating visuals which will determine your sounds harmonic content and dynamic characteristics.
+$p
+While Fragment may seem overwhelming at first, the only thing that is required to produce sounds with it is to know how to generate the visuals.
+$p
+The goal of this section is to clarify the inner working of Fragment.
+$p
+
+$subsection(additive)(Additive synthesis)
+
+$par
+
+Fragment is foremost a powerful additive synthesizer which make an extended use of additive synthesis.
+$p
+Additive synthesis is a sound synthesis technique that creates timbre by adding sine waves together.
+$p
+Adding sine waves together produce a timbre, the timbre qualities are defined by its harmonic content and dynamic characteristics of its harmonic content.
+$p
+Fragment can produce any timbres with selectable accuracy.
+$p
+The only limit to the amount of sine waves that can be added by Fragment is the limit of the available processing power.
+$p
+For example, on a Raspberry PI 3 (1.2GHz 64-bit quad-core ARMv8 CPU) ~700 oscillators can be played simultaneously using two cores.
+$p
+
+$subsection(score)(The graphical score)
+
+$par
+
+Fragment graphical score represent the sound spectrum which is generated by the GPU from a fragment program.
+$p
+The fragment program (also known as fragment shaders) is executed by the GPU and compute the color and other attributes of each "fragment" - a technical term which usually mean a single pixel.
+$p
+The graphical score represent a kind of sonic canvas where the X axis represent time and the Y axis represent frequencies, you "paint" the graphical score by writing a fragment program which will be executed for each pixels of the graphical score.
+$p
+What you hear in Fragment is determined by the choice of "slices" of the graphical score, slices are vertical bits of the graphical score which are merged together and produce an audible result.
+$p
+The frequency mapping of the graphical score is fixed by a logarithmic formula, altough the formula cannot be changed right now, some parameters are available to fine tune the frequency map.
+
+$p
+
+$section(gui)(User interface)
+
+$par
+
+Fragment user interface is quite easy to get once you figure out its layout.
+
+$p
+
+$subsection(infosbar)(The informations bar)
+
+$par
+
+The information bar at the top convey minor and major informations such as:
+
+$list(
+	$item connectivity status
+	$item your online name
+	$item various informations which can be enabled or disabled such as:
+	$list(
+		$item the current frequency under the mouse cursor
+		$item the actual number of simultaneous MIDI notes
+		$item the actual number of oscillators playing)
+	$item the playback time
+	$item a gain controller (master volume))
+
+$subsection(graphicalscore)(The graphical score)
+
+$par
+
+You can slice the graphical score by right-clicking on it and click on the + icon, this will add a vertical bar which will capture that part of the canvas.
+
+$p
+
+You are free to add any number of slices.
+
+$p
+
+$subsubsection(graphicalscoreslice)(Slice)
+
+$par
+
+Slices are an important part of Fragment since without them, there will be no sounds.
+
+$p
+
+The following actions are possible by right-clicking on a slice:
+
+$list(
+	$item mute/unmute
+	$list($item the synthesis engine will ignore a muted slice)
+	$item open the slice settings which posses the following controllers:
+	$list(
+		$item X Offset: the slice horizontal position which can be controlled by a MIDI controller
+		$item Y Shift: a non-represented vertical position which will pitch the slice audio up or down
+		$item FAS Output channel: the l/r output channel which will be used by FAS for that slice)
+	$item deletion)
+
+$subsection(toolbar)(The toolbar)
+
+$par
+
+The toolbar is a collection of tools and settings which are grouped by sections:
+
+$list(
+	$item help
+	$item social
+	$list(
+		$item session live chat
+		$item direct link to the community board)
+	$item settings
+  $list(
+  	$item global settings
+  	$item MIDI settings)
+  $item transport
+  $list(
+  	$item reset playback time to 0
+  	$item play/pause
+  	$item FAS enable/disable)
+  $item helpers
+  $list(
+  	$item ShaderToy converter
+  	$item frequency details (hover the mouse over the canvas)
+  	$item analysis dialog (not applicable when FAS is enabled)
+  	$item clone the code editor in a separate window)
+	$item fragment inputs
+	$list(
+		$item uniform controls
+		$item add complex inputs))
+
+$subsection(finputs)(The fragment inputs)
+
+$par
+
+The fragment inputs are a collection of added inputs.
+
+$p
+
+$subsection(codeditor)(The code editor)
+
+$par
+
+The fragment editor is one of the most important tool of Fragment since it allow the visuals to be generated.
+
+$p
+
+The fragment program is compiled as you type without interrupting sounds/visuals output if there is an error, this enable powerful live coding.
+
+$p
+
+The changes that you make in the code editor are automatically saved for that session, changes are also synchronized in real-time between all the users of the session you are currently in, this is the collaborative nature of Fragment.
+
+$p
+
+The code editor is powered by the CodeMirror library, it feature many neat things such as:
+
+$list(
+	$item GLSL syntax highlighting
+	$item highlight matches
+	$item brackets/parentheses opening/end highlights
+	$item fullscreen editor by pressing F11
+	$item integrated compilation errors/messages (does not interrupt sounds/visuals)
+	$item line numbers
+	$item many bundled editor themes)
+	
+Many of these features can be changed in the global settings dialog.
+
+$p
+
+If you experience audio stuttering as you type, it is recommended to detach the code editor, due to the complexity of the web and the complexity of Fragment, many things are not as optimal as they should be.
+
+$p
+
+$subsection(midilearn)(MIDI learn functionality)
+
+$par
+
+MIDI learn is a neat feature of Fragment which enable any MIDI learn enabled widget to be controlled by a MIDI controller.
+
+$p
+
+The red square appearing on the UI interface widgets is the MIDI learn functionality, it only appear on WebMIDI enabled browsers such as Chrome and Opera and on widgets which are allowed to be controlled by MIDI.
+
+$p
+
+By left clicking on the red square, it turn green and any inputs from the enabled MIDI devices will be captured by the widget.
+
+$p
+
+Once the MIDI input is captured, the green square become red again (which is a locked state) and the MIDI control will be assigned to the widget.
+
+$p
+
+It is possible to reset the MIDI control assigned to the widget by clicking on the red square and clicking again on the green square.
+
+$p
+
+$section(gpuprogramming)(GPU programming)
+
+Fragment usage of the GPU is restricted to a single fragment program which will be executed for each pixels of the graphical score.
+
+$p
+
+The fragment program is written in GLSL (OpenGL Shading Language) which has a syntax quite similar to the C language but is much simpler to learn.
+
+$p
+
+
+
+
+$section(tipsntricks)(Tips'n'tricks)
+
+$par
+
+$p
+
+$section(examples)(Examples)
+
+$par
+
+$section(contribute)(Contributing)
+
+Fragment is a free and open source software released under the term of the BSDv2 license.
+
+$p
+
+Any contributions from the documentation to the synthesis engine are welcome!
+
+$p
+
+The source code is available on $tlink(GitHub)(https://github.com/grz0zrg/fsynth).
+
+$par
+
+FAS source code is also available on $tlink(GitHub)(https://github.com/grz0zrg/fas).
+
+$p
+
+$section(links)(Links)
+
+$list(
+	$item $tlink(Fragment Synthesizer website)(https://www.fsynth.com)
+	$item $tlink(Fragment Synthesizer forum)(https://quiet.fsynth.com)
+	$item $tlink(Fragment source code)(https://github.com/grz0zrg/fsynth)
+	$item $tlink(FAS source code)(https://github.com/grz0zrg/fas)
+	$item $tlink(Facebook)(https://www.facebook.com/fsynth/)
+	$item $tlink(YouTube)(https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ)
+	$item $tlink(Twitter)(https://twitter.com/fragmentsynth)
+	$item $tlink(SoundCloud)(https://soundcloud.com/fsynth/))
+	
+$section(credits)(Credits)
+
+$list(
+	$item Testing: $list($item Franz Khrum)
+	$item Ideas: $list(
+		$item $tlink(Virtual ANS)(http://www.warmplace.ru/soft/ans/)
+		$item $tlink(ShaderToy)(https://www.shadertoy.com/))
+	$item Tools: $list(
+		$item $tlink(The Anubis programming language)(http://redmine.anubis-language.com/)
+		$item $tlink(Inkscape)(https://www.inkscape.org)
+		$item $tlink(Geogebra)(https://www.geogebra.org)
+		$item $tlink(The GIMP)(https://www.gimp.org)
+		$item $tlink(KDEnlive)(https://kdenlive.org)
+		$item $tlink(SimpleScreenRecorder)(http://www.maartenbaert.be/simplescreenrecorder/)
+		$item $tlink(libflds)(http://liblfds.org)
+		$item $tlink(portaudio)(http://www.portaudio.com)
+		$item $tlink(libwebsockets)(https://libwebsockets.org)
+		$item $tlink(Brackets)(http://brackets.io/)
+		$item $tlink(fa2png)(http://fa2png.io/)
+		$item $tlink(FontAwesome)(http://fontawesome.io/)
+		$item $tlink(CodeMirror)(http://codemirror.net/)
+		$item $tlink(ShareDB)(https://github.com/share/sharedb/)
+		$item $tlink(Normalize)(https://necolas.github.io/normalize.css/)
+		$item $tlink(Skeleton)(http://getskeleton.com/)
+		$item $tlink(NodeJS)(https://nodejs.org/en/)
+		$item $tlink(NGINX)(https://www.nginx.com/)
+		$item $tlink(Flarum)(http://flarum.org/)
+		$item $tlink(pm2)(https://github.com/Unitech/pm2)
+		$item $tlink(MongoDB)(https://www.mongodb.com/)
+		$item $tlink(Redis)(https://redis.io/)
+		$item $tlink(Winston)(https://github.com/winstonjs/winston)
+		$item $tlink(Express)(http://expressjs.com/)
+		$item $tlink(strong-cluster-control)(https://github.com/strongloop/strong-cluster-control)))
+$par
+
+$center($big($big($big($big($colorize(funny)(Thank you!))))))
+$par
+$center(last update: 2017-05-03)
+
+$end

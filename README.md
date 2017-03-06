@@ -53,6 +53,7 @@ This is a sort of [Shadertoy](https://www.shadertoy.com) like synthesizer, it is
  * fss - main server (discuss. system, slices)
  * fsdb - sharedb server (collaborative features)
  * fsws - web. server (only used for development)
+ * documentation - MAML (Minimalist Anubis Markup Language) with the latest HTML doc.
  * main.js - Electron app. file
  * common.js - Servers config. files
 
@@ -116,6 +117,7 @@ Utilities :
  * [Inkscape](https://www.inkscape.org) for the logo and some graphics
  * [GIMP](https://www.gimp.org/) some graphics
  * [The Anubis programming language](http://redmine.anubis-language.com/)
+ * [Minimalist Anubis Markup Language](http://redmine.anubis-language.com/)
 
 The repository for the early proof of concept can be found [here](https://github.com/grz0zrg/fs).
 

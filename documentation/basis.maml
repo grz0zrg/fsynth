@@ -1,0 +1,92 @@
+
+
+     basis.maml
+     
+     A set of common usage macros for MAML. 
+
+$begin
+$//////////////////////////////////////////////////////   
+$// Some colors
+$define(_ivory)         (0)(230,230,210)      $define(ivory)        (1)($rgb($_ivory)($1))
+$define(_azure)         (0)(190,210,210)      $define(azure)        (1)($rgb($_azure)($1))
+$define(_lavender)      (0)(200,200,220)      $define(lavender)     (1)($rgb($_lavender)($1))
+$define(_white)         (0)(255,255,255)      $define(white)        (1)($rgb($_white)($1))
+$define(_black)         (0)(000,000,000)      $define(black)        (1)($rgb($_black)($1))
+$define(_grey)          (0)(190,190,190)      $define(grey)         (1)($rgb($_grey)($1))
+$define(_navy)          (0)(000,000,128)      $define(navy)         (1)($rgb($_navy)($1))
+$define(_blue)          (0)(000,000,255)      $define(blue)         (1)($rgb($_blue)($1))
+$define(_turquoise)     (0)(064,224,208)      $define(turquoise)    (1)($rgb($_turquoise)($1))
+$define(_cyan)          (0)(000,255,255)      $define(cyan)         (1)($rgb($_cyan)($1))
+$define(_darkgreen)     (0)(000,100,000)      $define(darkgreen)    (1)($rgb($_darkgreen)($1))
+$define(_green)         (0)(000,255,000)      $define(green)        (1)($rgb($_green)($1))
+$define(_yellow)        (0)(255,255,000)      $define(yellow)       (1)($rgb($_yellow)($1))
+$define(_gold)          (0)(255,195,000)      $define(gold)         (1)($rgb($_gold)($1))
+$define(_sienna)        (0)(160,082,045)      $define(sienna)       (1)($rgb($_sienna)($1))
+$define(_caramel)       (0)(210,105,030)      $define(caramel)      (1)($rgb($_caramel)($1))
+$define(_chocolate)     (0)(105,055,020)      $define(chocolate)    (1)($rgb($_chocolate)($1))
+$define(_salmon)        (0)(233,150,122)      $define(salmon)       (1)($rgb($_salmon)($1))
+$define(_orange)        (0)(255,165,000)      $define(orange)       (1)($rgb($_orange)($1))
+$define(_red)           (0)(255,000,000)      $define(red)          (1)($rgb($_red)($1))
+$define(_darkred)       (0)(110,000,000)      $define(darkred)      (1)($rgb($_darkred)($1))
+$define(_pink)          (0)(255,182,193)      $define(pink)         (1)($rgb($_pink)($1))
+$define(_magenta)       (0)(255,000,255)      $define(magenta)      (1)($rgb($_magenta)($1))
+$define(_purple)        (0)(160,032,240)      $define(purple)       (1)($rgb($_purple)($1))
+
+
+
+
+$//////////////////////////////////////////////////////   
+$// The style 'article'. 
+$// This style requires that $article is defined. 
+$if($defined(article))
+(
+$pushcounter(sec)(0)$pushcounter(subsec)(0)$pushcounter(subsubsec)(0)$//       counters for sections etc...
+$accumulator(tableofcontents)$//                                             accumulator for the table of contents
+$// Layout for section titles. 
+$if($defined(seclayout))()($define(seclayout)(1)($par$big($big($bold($1)))$par$par))
+$if($defined(subseclayout))()($define(subseclayout)(1)($par$big($bold($1))$par))
+$if($defined(subsubseclayout))()($define(subsubseclayout)(1)($par$bold($1)$par))
+$// Layout for table of contents lines. 
+$if($defined(tocsec))()($define(tocsec)(1)($bold($1)$par))
+$if($defined(tocsubsec))()($define(tocsubsec)(1)($box(20)()$1$par))
+$if($defined(tocsubsubsec))()($define(tocsubsubsec)(1)($box(40)()$1$par))
+$define(tableofcontents)(0)($postpone($content(tableofcontents)))
+$define(section)(2)
+       ($setcounter(subsec)(0)$addtocounter(sec)(1)$label($1)$seclayout($countervalue(sec). $2)$//
+$append(tableofcontents)($ref($1)($tocsec($countervalue(sec). $2))))
+$define(subsection)(2)
+       ($setcounter(subsubsec)(0)$addtocounter(subsec)(1)$label($1)$subseclayout($countervalue(sec).$countervalue(subsec). $2)$//
+$append(tableofcontents)($ref($1)($tocsubsec($countervalue(sec).$countervalue(subsec). $2))))
+$define(subsubsection)(2)
+       ($addtocounter(subsubsec)(1)$label($1)$subsubseclayout($countervalue(sec).$countervalue(subsec).$countervalue(subsubsec). $2)$//
+$append(tableofcontents)($ref($1)($tocsubsubsec($countervalue(sec).$countervalue(subsec).$countervalue(subsubsec). $2))))
+)()
+   
+
+$//////////////////////////////////////////////////////   
+$// The style 'book'. 
+$// This style requires that $book is defined. 
+$if($defined(book))
+(
+$pushcounter(chap)(0)$pushcounter(sec)(0)$pushcounter(subsec)(0)$pushcounter(subsubsec)(0)$//       counters for sections etc...
+$accumulator(tableofcontents)$//                                             accumulator for the table of contents
+$define(tableofcontents)(0)($postpone($content(tableofcontents)))
+$define(chapter)(2)
+       ($setcounter(sec)(0)$addtocounter(chap)(1)$label($1)$chaplayout($countervalue(chap). $2)$//
+$append(tableofcontents)($ref($1)($tocchap($countervalue(chap). $2))))
+$define(section)(2)
+       ($setcounter(subsec)(0)$addtocounter(sec)(1)$label($1)$seclayout($countervalue(sec). $2)$//
+$append(tableofcontents)($ref($1)($tocsec($countervalue(sec). $2))))
+$define(subsection)(2)
+       ($setcounter(subsubsec)(0)$addtocounter(subsec)(1)$label($1)$subseclayout($countervalue(sec).$countervalue(subsec). $2)$//
+$append(tableofcontents)($ref($1)($tocsubsec($countervalue(sec).$countervalue(subsec). $2))))
+$define(subsubsection)(2)
+       ($addtocounter(subsubsec)(1)$label($1)$subsubseclayout($countervalue(sec).$countervalue(subsec).$countervalue(subsubsec). $2)$//
+$append(tableofcontents)($ref($1)($tocsubsubsec($countervalue(sec).$countervalue(subsec).$countervalue(subsubsec). $2))))
+)()
+   
+
+$////////////////////////////////////////////////////// 
+
+$end
+     
