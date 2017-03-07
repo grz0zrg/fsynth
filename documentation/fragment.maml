@@ -64,7 +64,7 @@ $par
 
 $list(
 	$item Powerful additive synthesizer
-		$list($item Powered by WebAudio oscillators $item Powered by FAS, an independent program $item Powered by a wavetable )
+		$list($item Powered by WebAudio oscillators $item Powered by $ref(fas)(FAS), an independent program $item Powered by a wavetable )
 	$item Stereophonic
 	$item Monaural
 	$item Polyphonic
@@ -72,7 +72,7 @@ $list(
 	$item Multitimbral
 	$item Aliasing free
 	$item Adjustable audio output channel per slices
-		$list($item Multiple audio channels are only supported with FAS)
+		$list($item Multiple audio channels are only supported with $ref(fas)(FAS))
 	$item Shader inputs, webcam, textures and more
 	$item Real-time audio output analysis
 		$list($item WebAudio only)
@@ -114,7 +114,7 @@ $p
 Several methods are provided to synthesize sounds, each with performances pros and cons:
 $par
 $list(
-	$item FAS ($bold(recommended)): $list($item Very fast $item Multiple output support with soundcard choice $item Many settings $item Can run on a dedicated computer such as a Raspberry PI $item Dedicated program which receive Fragment data over the network)
+	$item $ref(fas)(FAS) ($bold(recommended)): $list($item Very fast $item Multiple output support with soundcard choice $item Many settings $item Can run on a dedicated computer such as a Raspberry PI $item Dedicated program which receive Fragment data over the network)
 	$item WebAudio oscillators: $list($item Fastest under Chrome $item May not work with Firefox $item Require a fast CPU $item Integrated global "release" envelope)
 	$item Wavetable (not recommended): $list($item Most compatible browser method $item Will produce crackles))
 
@@ -176,11 +176,100 @@ The frequency mapping of the graphical score is fixed by a logarithmic formula, 
 
 $p
 
+$subsection(fas)(FAS)
+
+$par
+
+FAS (Fragment Audio Server) is the Fragment synthesis engine acting as a server, it is an external independent program written with the C language for very fast audio synthesis.
+
+$p
+
+It is recommended to use Fragment with FAS enabled or use the standalone version of Fragment which include FAS.
+
+$p
+
+The advantage of using FAS is that it provide the best audio performances along with audio device choice, multiple audio output per slices, sample rate choice and realtime scheduling under Linux.
+
+$p
+
+Fragment communicate with FAS by sending data through the network when the FAS option is enabled, FAS can run on any machines independently of the Fragment application, it gather the pixels data from Fragment in real-time, compute things and deliver the audio through the selected audio device.
+
+$p
+
+FAS can be downloaded on the Fragment $tlink(homepage)(https://www.fsynth.com), it can also be compiled from sources on $tlink(GitHub)(https://github.com/grz0zrg/fas).
+
+$p
+
+FAS is provided as an executable for the following platforms at the moment:
+
+$list(
+	$item Windows x86/x64 32/64 bits
+	$item Linux x86/x64 32/64 bits
+	$item Raspberry PI (~700 oscillators can play at the same time under optimized system))
+
+Here is a list of the program arguments which FAS support (along with the default settings if not provided):
+
+$list(
+	$item --h
+	$list(
+		$item show the program arguments)
+	$item --device -1
+	$list(
+		$item the id of the audio device to use (running FAS without arguments once will print the devices found along with their id and informations))
+	$item --iface 127.0.0.1
+	$list(
+		$item the address on which to listen)
+	$item --port 3003
+	$list(
+		$item the network port on which to listen)
+	$item --output_channels 2
+	$list(
+		$item the number of output channels, the value must be an even number)
+	$item --alsa_realtime_scheduling 0
+	$list(
+		$item enable/disabled ALSA realtime scheduling, a Linux only parameter)
+	$item --sample_rate 44100
+	$list(
+		$item can be any sample rate supported by the selected audio device)
+	$item --frames 512
+	$list(
+		$item the audio buffer size, this have an effect on audio latency and CPU usage)
+	$item --wavetable_size 8192
+	$list(
+		$item the wavetable size, the default value should be enough for most uses)
+	$item --fps 60
+	$list(
+		$item this setting is provided in case Fragment does not capture slices at 60 fps, on most setup Fragment try to capture slices at 60 fps)
+	$item --ssl 0
+		$list(
+			$item this is provided to use FAS over SSL (not recommended at all!))
+	$item --max_height 4096
+		$list(
+			$item if you set the score height above 4096 pixels in Fragment, keep in mind that you must increase this!)
+	$item --deflate 0
+		$list(
+			$item a value of 1 will enable deflate compressed packets (not recommended))
+	$item --rx_buffer_size 4096
+		$list(
+			$item FAS will fragment packets which are bigger than the default value)
+	$item --frames_queue_size 7
+		$list(
+			$item this is the length of the maximum number of frames waiting in the queue
+			$item this is an important parameter, if you increase this too much the audio will be delayed)
+	$item --commands_queue_size 16
+		$list(
+			$item this is the same as frames_queue_size except for commands (gain changes etc.)
+			$item should be a power of 2 and positive integer))
+	
+Once run, you can stop the FAS application by pressing any keys.
+
+$p
+
 $section(gui)(User interface)
 
 $par
 
-Fragment user interface is quite easy to get once you figure out its layout.
+Fragment user interface is quite easy to get once you figure out its layout, it is composed of a few panes with very specific roles, here is the list of panes along with detailed informations of their functions and supported actions.
 
 $p
 
@@ -209,7 +298,7 @@ You can slice the graphical score by right-clicking on it and click on the + ico
 
 $p
 
-You are free to add any number of slices.
+You are free to add any number of slices, many slices may have an impact on performances.
 
 $p
 
@@ -217,7 +306,15 @@ $subsubsection(graphicalscoreslice)(Slice)
 
 $par
 
-Slices are an important part of Fragment since without them, there will be no sounds.
+Slices are an important part of Fragment, there will be no sounds if you don't add at least one slice.
+
+$p
+
+The purpose of slices is to capture vertical parts of the score which will be fed to the additive synthesis engine, they are like turntable needles, they can be dragged around in real-time by the mouse or by a MIDI controller.
+
+$p
+
+Slices can be moved by dragging them on the X axis, to do so, maintain the left mouse button on a slice and move the mouse cursor around.
 
 $p
 
@@ -230,14 +327,14 @@ $list(
 	$list(
 		$item X Offset: the slice horizontal position which can be controlled by a MIDI controller
 		$item Y Shift: a non-represented vertical position which will pitch the slice audio up or down
-		$item FAS Output channel: the l/r output channel which will be used by FAS for that slice)
+		$item $ref(fas)(FAS) Output channel: the l/r output channel which will be used by FAS for that slice)
 	$item deletion)
 
 $subsection(toolbar)(The toolbar)
 
 $par
 
-The toolbar is a collection of tools and settings which are grouped by sections:
+The toolbar is a collection of tools and settings which are grouped by sections, here is a detailed list of the toolbar items:
 
 $list(
 	$item help
@@ -247,29 +344,62 @@ $list(
 		$item direct link to the community board)
 	$item settings
   $list(
-  	$item global settings
-  	$item MIDI settings)
+  	$item $ref(globalsettingsdialog)(session and global settings)
+  	$item $ref(midisettingsdialog)(MIDI settings))
   $item transport
   $list(
   	$item reset playback time to 0
   	$item play/pause
-  	$item FAS enable/disable)
+  	$item $ref(fas)(FAS enable/disable))
   $item helpers
   $list(
-  	$item ShaderToy converter
+  	$item $tlink(ShaderToy)(https://www.shadertoy.com) converter
   	$item frequency details (hover the mouse over the canvas)
   	$item analysis dialog (not applicable when FAS is enabled)
   	$item clone the code editor in a separate window)
 	$item fragment inputs
 	$list(
-		$item uniform controls
-		$item add complex inputs))
+		$item $ref(uniformsdialog)(uniforms)
+		$item $ref(finputs)(add complex inputs)))
 
 $subsection(finputs)(The fragment inputs)
 
 $par
 
-The fragment inputs are a collection of added inputs.
+Fragment inputs are complex inputs which can be used in the fragment program.
+
+$p
+
+The fragment inputs panel is a list of the added complex inputs, each of them appear as a thumbnail near the $bold(add complex inputs button), nothing will be shown if no complex inputs were added.
+
+$p
+
+All complex inputs can be used as 2D textures (texture2d) in the fragment program, they are defined as $bold(iInputN) where N is the id of the input starting from 0.
+
+$p
+
+You can find the input id by hovering over the thumbnail.
+
+$p
+
+You can add one by clicking on the "add complex inputs" button, here is a list of the available complex inputs:
+
+$list(
+	$item image file
+	$item webcam
+	$list(
+		$item allow the real-time webcam video to be used in the fragment program)
+	$item audio file)
+	
+By right clicking on a the complex input thumbnail, the following actions appear:
+
+$list(
+	$item delete
+	$item complex input settings dialog)
+	
+The complex input settings dialog have several options:
+
+TODO
 
 $p
 
@@ -277,15 +407,15 @@ $subsection(codeditor)(The code editor)
 
 $par
 
-The fragment editor is one of the most important tool of Fragment since it allow the visuals to be generated.
+The fragment editor is one of the most important tool of Fragment since it allow the user to generate the visuals which are fed to the additive synthesis engine.
 
 $p
 
-The fragment program is compiled as you type without interrupting sounds/visuals output if there is an error, this enable powerful live coding.
+The fragment program is compiled as you type in the code editor without interrupting sounds/visuals output even if an error is present, this enable powerful live coding.
 
 $p
 
-The changes that you make in the code editor are automatically saved for that session, changes are also synchronized in real-time between all the users of the session you are currently in, this is the collaborative nature of Fragment.
+The changes that you make in the code editor are automatically saved per named sessions, changes are also synchronized in real-time between all the users of the session you are currently in, this is the collaborative nature of Fragment.
 
 $p
 
@@ -300,11 +430,11 @@ $list(
 	$item line numbers
 	$item many bundled editor themes)
 	
-Many of these features can be changed in the global settings dialog.
+Some of the code editor features can be enabled/disabled in the $ref(globalsettingsdialog)(global settings dialog).
 
 $p
 
-If you experience audio stuttering as you type, it is recommended to detach the code editor, due to the complexity of the web and the complexity of Fragment, many things are not as optimal as they should be.
+If you experience audio stuttering as you type, it is recommended to detach the code editor off the main window, due to the complexity of the web and the complexity of the Fragment application, many things are not as optimal as they should be.
 
 $p
 
@@ -316,11 +446,11 @@ MIDI learn is a neat feature of Fragment which enable any MIDI learn enabled wid
 
 $p
 
-The red square appearing on the UI interface widgets is the MIDI learn functionality, it only appear on WebMIDI enabled browsers such as Chrome and Opera and on widgets which are allowed to be controlled by MIDI.
+The red square appearing on an UI interface widget indicate that the MIDI learn functionality is supported for that widget, it only appear on WebMIDI enabled browsers such as Chrome and Opera and on widgets which are allowed to be controlled by MIDI.
 
 $p
 
-By left clicking on the red square, it turn green and any inputs from the enabled MIDI devices will be captured by the widget.
+By left clicking on the red square, it turn green and any inputs from the $ref(midisettingsdialog)(enabled MIDI devices) will be captured by the widget.
 
 $p
 
@@ -328,11 +458,83 @@ Once the MIDI input is captured, the green square become red again (which is a l
 
 $p
 
-It is possible to reset the MIDI control assigned to the widget by clicking on the red square and clicking again on the green square.
+It is possible to reset the MIDI control assigned to the widget by clicking on the red square and clicking again on the green square aka double clicking.
 
 $p
 
-$section(gpuprogramming)(GPU programming)
+$subsection(globalsettingsdialog)(The session/global settings dialog)
+
+$par
+
+
+
+$p
+
+$subsection(midisettingsdialog)(The MIDI settings dialog)
+
+$par
+
+The MIDI settings dialog show all the MIDI input devices found at this time, by default there is no MIDI input devices enabled, you can enable MIDI devices by checking the checkbox below the MIDI device name.
+
+$p
+
+Once enabled, Fragment will receive all MIDI messages from that device.
+
+$p
+
+Fragment support hot plugging of MIDI devices, any MIDI devices which are plugged or unplugged while Fragment is running will be added or removed in the MIDI settings dialog.
+
+$p
+
+Fragment keep track of your MIDI settings choice for particual devices per sessions, this mean that if a MIDI device is enabled, when you quit Fragment or that the MIDI device is unplugged and you launch again Fragment and that the MIDI device is plugged in, Fragment will enable it automatically.
+
+$p
+
+$subsection(uniformsdialog)(The uniforms dialog)
+
+$par
+
+The uniforms dialog is a very powerful functionality.
+
+$p
+
+It enable you to define fragment program uniforms (aka variables) which are synced with all users in the session and are controllable by any MIDI input devices enabled.
+
+$p
+
+All the uniforms added will be shown in the uniforms dialog and will be defined automatically in the fragment program, you can then just use the symbol name in the code editor.
+
+$p
+
+You can add the following scalar uniforms types:
+
+$list(
+	$item bool
+	$item int
+	$item float)
+	
+If count is higher than 1, Fragment will add the scalar uniforms as an array.
+
+$p
+	
+You can also add vector uniforms of the following types (note: the components field determine the number of components for the following uniform type):
+
+$list(
+	$item bvec2
+	$item bvec3
+	$item bvec4
+	$item ivec2
+	$item ivec3
+	$item ivec4
+	$item vec2
+	$item vec3
+	$item vec4)
+
+If count is higher than 1, Fragment will add the vector uniforms as an array.
+
+$p
+
+$section(gpuprogramming)(How to produce sounds by programming the GPU)
 
 Fragment usage of the GPU is restricted to a single fragment program which will be executed for each pixels of the graphical score.
 
@@ -342,16 +544,15 @@ The fragment program is written in GLSL (OpenGL Shading Language) which has a sy
 
 $p
 
-
-
-
 $section(tipsntricks)(Tips'n'tricks)
 
 $par
 
+$subsection(bezier)(Cubic bezier curves)
+
 $p
 
-$section(examples)(Examples)
+$section(example)(Example)
 
 $par
 
@@ -369,7 +570,7 @@ The source code is available on $tlink(GitHub)(https://github.com/grz0zrg/fsynth
 
 $par
 
-FAS source code is also available on $tlink(GitHub)(https://github.com/grz0zrg/fas).
+$ref(fas)(FAS) source code is also available on $tlink(GitHub)(https://github.com/grz0zrg/fas).
 
 $p
 
