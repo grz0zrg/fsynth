@@ -73,8 +73,7 @@ var WUI_CircularMenu=new function(){"use strict";var a=[],b=0,c={item:"wui-circu
 })("docReady", window);
 // modify this previous line to pass in your own method name 
 // and object for the method to be attached to
-
-docReady(function() {
+var _fp_main = function (join_cb) {
     var _welcome_message = 'Welcome back ',
         _user_name_ls_key = 'fs-user-name',
         _session_list_ls_key = 'fs-session-list',
@@ -123,6 +122,10 @@ docReady(function() {
     };
 
     var _setSession = function (name) {
+            if (join_cb) {
+                return;
+            }
+        
             if (name.length > 128) { // TODO : Handle notification about session validation
                 return;
             }
@@ -136,9 +139,13 @@ docReady(function() {
     
     var _joinSessionFn = function (name) {
         return (function () {
-            _setSession(name);
+            if (join_cb) {
+                join_cb(name);
+            } else {
+                _setSession(name);
 
-            location.href = "app/" + name;
+                location.href = "app/" + name;
+            }
         });
     };
     
@@ -199,7 +206,9 @@ docReady(function() {
     _setSession(_session_name_element.placeholder);
     
     if (_user_name) {
-        _user_about_element.innerHTML = _welcome_message + '<span class="fp-user-name">' + _user_name + '</span>';
+        if (!join_cb) {
+            _user_about_element.innerHTML = _welcome_message + '<span class="fp-user-name">' + _user_name + '</span>';
+        }
         
         _user_name_element.value = _user_name;
     } else {
@@ -242,6 +251,10 @@ docReady(function() {
             localStorage.setItem(_session_list_ls_key, JSON.stringify(session_list));
         
             localStorage.setItem(_user_name_ls_key, _getUserName());
+        
+            if (join_cb) {
+                join_cb(name);
+            }
         });
     
     if (_session_list_str) {
@@ -265,4 +278,5 @@ docReady(function() {
         _clear_sessions_btn_element.parentElement.removeChild(_clear_sessions_btn_element);
         //_removeSessionTable(_session_list_element);
     }
-});
+};
+docReady(_fp_main);

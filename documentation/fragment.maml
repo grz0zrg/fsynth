@@ -38,7 +38,7 @@ The $bold($tlink(Fragment synthesizer)(https://www.fsynth.com)) (also called fsy
 $p
 Fragment is stereophonic, polyphonic, multitimbral, it support live coding of audio and visuals at the same time.
 $p
-Fragment is foremost a powerfull additive synthesizer which let you have complete control over the sound spectrum in real-time.
+Fragment is first and foremost a powerfull additive synthesizer which let you have complete control over the sound spectrum in real-time with direct visual feedback.
 $par
 
 $subsection(history)(History)
@@ -48,7 +48,7 @@ $par
 In 2009, i discovered the $tlink(Virtual ANS)(http://www.warmplace.ru/soft/ans/) synthesizer by $tlink(Alexander Zolotov)(http://www.warmplace.ru),
 a software emulation of the Russian photoelectronic synthesizer $tlink(ANS)(http://en.wikipedia.org/wiki/ANS_synthesizer) which was created by the Russian engineer $tlink(Evgeny Murzin)(http://en.wikipedia.org/wiki/Evgeny_Murzin) from 1938 to 1958.
 $p
-I was blown away by the remarquable possibilities offered by the Virtual ANS which let you draw the sound spectrum, this is how i started to experiment with the "drawn sound" method.
+I was blown away by the remarquable possibilities offered by the Virtual ANS which let you draw the sound spectrum over time, i then discovered programs such as MetaSynth or $tlink(HighC)(https://highc.org), this is how i started to experiment with the "drawn sound" method.
 $p
 Fragment started in 2015, when i was making the first prototype of a web-based ANS-like synthesizer software which is still a work in progress, a prototype of Fragment was made in a single week, 
 the prototype was quite mature but lacked in features, i considered Fragment as a pretty but failed experiment at the time.
@@ -147,13 +147,13 @@ $subsection(additive)(Additive synthesis)
 
 $par
 
-Fragment is foremost a powerful additive synthesizer which make an extended use of additive synthesis.
+Fragment is first and foremost a powerful additive synthesizer which make an extended use of additive synthesis.
 $p
 Additive synthesis is a sound synthesis technique that creates timbre by adding sine waves together.
 $p
-Adding sine waves together produce a timbre, the timbre qualities are defined by its harmonic content and dynamic characteristics of its harmonic content.
+Adding sine waves produce a timbre, the timbre qualities is defined by its harmonic content and dynamic characteristics of the harmonic content.
 $p
-Fragment can produce any timbres with selectable accuracy.
+Fragment can produce any timbres with precise accuracy.
 $p
 The only limit to the amount of sine waves that can be added by Fragment is the limit of the available processing power.
 $p
@@ -466,7 +466,59 @@ $subsection(globalsettingsdialog)(The session/global settings dialog)
 
 $par
 
+The session & global settings dialog content:
 
+$list(
+	$item Score width
+	$list(
+		$item The score width in pixels units)
+	$item Score height
+	$list(
+		$item The score height in pixels units
+		$item Higher height = better resolution in term of frequencies)
+	$item Score base frequency
+	$list(
+		$item Determine the base frequency in hertz units)
+	$item Score octave range
+	$list(
+		$item Control the range of frequencies)
+	$item Osc. fadeout
+	$list(
+		$item WebAudio fadeout time (like "release" parameter in other synts, WebAudio oscillators only))
+	$item Polyphony
+	$list(
+		$item Maximum polyphony)
+	$item Show globalTime
+	$list(
+		$item Hide/Show the globalTime in the informations bar)
+	$item Show osc. infos
+	$list(
+		$item Hide/Show the number of oscillators playing simultaneously in the informations bar)
+	$item Show poly. infos
+	$list(
+		$item Hide/Show the polyphony infos for per output channels in the informations bar)
+	$item Show line numbers
+	$list(
+		$item Hide/Show the line number in the code editor)
+	$item Advanced scrollbar
+	$list(
+		$item Enable/disable a better looking scrollbar for the code editor)
+	$item Highlight matches
+	$list(
+		$item Enable/disable matches highlight in the code editor (when something is selected))
+	$item Monophonic
+	$list(
+		$item Enable/disable monophonic mode
+		$item If monophonic is enabled, only the alpha value is used by the synthesis engine, the full RGB output can then be used for visuals)
+	$item Wavetable
+	$list(
+		$item Enable/disable the synthesis engine wavetable feature (uglier audio output but may be the less CPU intensive mode))
+	$item Editor theme
+	$list(
+		$item A list of themes for the code editor)
+	$item FAS address
+	$list(
+		$item The location of $ref(fas)(FAS (Fragment Audio Server)) on the network))
 
 $p
 
@@ -478,7 +530,7 @@ The MIDI settings dialog show all the MIDI input devices found at this time, by 
 
 $p
 
-Once enabled, Fragment will receive all MIDI messages from that device.
+Once enabled, Fragment will receive any MIDI messages from that device.
 
 $p
 
@@ -534,7 +586,7 @@ If count is higher than 1, Fragment will add the vector uniforms as an array.
 
 $p
 
-$section(gpuprogramming)(How to produce sounds by programming the GPU)
+$section(gpuprogramming)(How to produce sounds by programming your GPU)
 
 Fragment usage of the GPU is restricted to a single fragment program which will be executed for each pixels of the graphical score.
 
@@ -608,6 +660,7 @@ $list(
 		$item $tlink(FontAwesome)(http://fontawesome.io/)
 		$item $tlink(CodeMirror)(http://codemirror.net/)
 		$item $tlink(ShareDB)(https://github.com/share/sharedb/)
+		$item $tlink(live-server)(https://www.npmjs.com/package/live-server)
 		$item $tlink(Normalize)(https://necolas.github.io/normalize.css/)
 		$item $tlink(Skeleton)(http://getskeleton.com/)
 		$item $tlink(NodeJS)(https://nodejs.org/en/)
