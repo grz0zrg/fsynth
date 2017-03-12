@@ -91,6 +91,20 @@ var _fp_main = function (join_cb) {
         
         _user_name = localStorage.getItem(_user_name_ls_key);
     
+    var _backToTopCb = function () {
+        var scroll_top = document.documentElement.scrollTop || document.body.scrollTop,
+            back_to_top = document.getElementById("back_to_top"),
+            display_at_y = 500;
+
+        if (scroll_top < display_at_y && 
+            back_to_top.style.display !== "none") {
+            back_to_top.style.display = "none";
+        } else if (scroll_top >= display_at_y &&
+                   back_to_top.style.display === "none") {
+            back_to_top.style.display = "block";
+        }
+    };
+    
     var _removeSessionTable = function (element) {
         var session_table_element = element.parentElement;
         
@@ -278,5 +292,9 @@ var _fp_main = function (join_cb) {
         _clear_sessions_btn_element.parentElement.removeChild(_clear_sessions_btn_element);
         //_removeSessionTable(_session_list_element);
     }
+    
+    window.addEventListener("scroll", _backToTopCb);
+    
+    _backToTopCb();
 };
 docReady(_fp_main);

@@ -49,7 +49,7 @@
 }
 
 /* For devices larger than 550px */
-@media (min-width: 550px) {
+@media (min-width: 750px) {
   .container {
     width: 80%; }
   .column,

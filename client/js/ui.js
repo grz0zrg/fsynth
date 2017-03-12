@@ -146,6 +146,10 @@ var _domCreatePlayPositionMarker = function (hook_element, height) {
     
     play_position_marker_div.className = "play-position-marker";
     
+    if (_show_slicebar) {
+        play_position_marker_div.classList.add("play-position-marker-bar");
+    }
+    
     decoration_div.style.top = "0px";
     //decoration_div2.style.top = "0";
     
@@ -535,8 +539,8 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, submit) {
         });
     WUI.lockDraggable(play_position_marker_element, 'y');
     
-    play_position_marker_element.addEventListener('click', function (ev) {
-            _updateSliceSettingsDialog(play_position_marker);
+    play_position_marker_element.addEventListener('dblclick', function (ev) {
+            _updateSliceSettingsDialog(play_position_marker, true);
         });
     
     play_position_marker_element.addEventListener('contextmenu', function(ev) {
@@ -1295,12 +1299,15 @@ var _uiInit = function () {
         settings_ck_xscrollbar_elem = document.getElementById("fs_settings_ck_xscrollbar"),
         settings_ck_wavetable_elem = document.getElementById("fs_settings_ck_wavetable"),
         settings_ck_monophonic_elem = document.getElementById("fs_settings_ck_monophonic"),
+        settings_ck_slicebar_elem = document.getElementById("fs_settings_ck_slicebar"),
+        settings_ck_slices_elem = document.getElementById("fs_settings_ck_slices"),
         
         fs_settings_max_polyphony = localStorage.getItem('fs-max-polyphony'),
         fs_settings_osc_fadeout = localStorage.getItem('fs-osc-fadeout'),
         fs_settings_show_globaltime = localStorage.getItem('fs-show-globaltime'),
         fs_settings_show_polyinfos = localStorage.getItem('fs-show-polyinfos'),
         fs_settings_show_oscinfos = localStorage.getItem('fs-show-oscinfos'),
+        fs_settings_show_slicebar = localStorage.getItem('fs-show-slicebar'),
         fs_settings_hlmatches = localStorage.getItem('fs-editor-hl-matches'),
         fs_settings_lnumbers = localStorage.getItem('fs-editor-show-linenumbers'),
         fs_settings_xscrollbar = localStorage.getItem('fs-editor-advanced-scrollbar'),
@@ -1311,7 +1318,7 @@ var _uiInit = function () {
             title: "Session & global settings",
 
             width: "320px",
-            height: "398px",
+            height: "408px",
 
             halign: "center",
             valign: "center",
@@ -1357,6 +1364,10 @@ var _uiInit = function () {
     
     if (fs_settings_show_polyinfos !== null) {
         _show_polyinfos = (fs_settings_show_polyinfos === "true");
+    }
+
+    if (fs_settings_show_slicebar !== null) {
+        _show_slicebar = (fs_settings_show_slicebar === "true");
     }
 
     if (fs_settings_hlmatches !== null) {
@@ -1407,6 +1418,12 @@ var _uiInit = function () {
         settings_ck_lnumbers_elem.checked = false;
     }
     
+    if (_show_slicebar) {
+        settings_ck_slicebar_elem.checked = true;
+    } else {
+        settings_ck_slicebar_elem.checked = false;
+    }
+    
     settings_ck_monophonic_elem.addEventListener("change", function () {
             if (this.checked) {
                 _audio_infos.monophonic = true;
@@ -1448,6 +1465,40 @@ var _uiInit = function () {
             }
         
             localStorage.setItem('fs-show-polyinfos', _show_polyinfos);
+        });
+    
+    settings_ck_slicebar_elem.addEventListener("change", function () {
+            var elements = document.getElementsByClassName("play-position-marker"),
+                i = 0;
+        
+            _show_slicebar = this.checked;
+        
+            if (!_show_slicebar) {
+                for(i = elements.length - 1; i >= 0; --i) {
+                    elements[i].classList.remove("play-position-marker-bar");
+                }   
+            } else {
+                for(i = elements.length - 1; i >= 0; --i) {
+                    elements[i].classList.add("play-position-marker-bar");
+                } 
+            }
+        
+            localStorage.setItem('fs-show-slicebar', _show_slicebar);
+        });
+    
+    settings_ck_slices_elem.addEventListener("change", function () {
+            var elements = document.getElementsByClassName("play-position-marker"),
+                i = 0;
+        
+            if (!this.checked) {
+                for(i = elements.length - 1; i >= 0; --i) {
+                    elements[i].classList.add("fs-hide");
+                }   
+            } else {
+                for(i = elements.length - 1; i >= 0; --i) {
+                    elements[i].classList.remove("fs-hide");
+                } 
+            }
         });
 
     settings_ck_globaltime_elem.addEventListener("change", function () {
@@ -1509,6 +1560,8 @@ var _uiInit = function () {
     settings_ck_lnumbers_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_xscrollbar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_monophonic_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_slicebar_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_slices_elem.dispatchEvent(new UIEvent('change'));
     
     _midi_settings_dialog = WUI_Dialog.create(_midi_settings_dialog_id, {
             title: "MIDI settings",
@@ -1548,7 +1601,7 @@ var _uiInit = function () {
             title: "Fragment - Help",
 
             width: "380px",
-            height: "645px",
+            height: "585px",
 
             halign: "center",
             valign: "center",
@@ -1672,7 +1725,7 @@ var _uiInit = function () {
                 {
                     icon: "fs-pause-icon",
                     type: "toggle",
-                    toggle_state: (_fs_state === 1 ? false : true),
+                    toggle_state: (_fs_state === 1 ? true : false),
                     on_click: _togglePlay,
                     tooltip: "Play/Pause"
                 },

@@ -15203,6 +15203,20 @@ var _fp_main = function (join_cb) {
         
         _user_name = localStorage.getItem(_user_name_ls_key);
     
+    var _backToTopCb = function () {
+        var scroll_top = document.documentElement.scrollTop || document.body.scrollTop,
+            back_to_top = document.getElementById("back_to_top"),
+            display_at_y = 500;
+
+        if (scroll_top < display_at_y && 
+            back_to_top.style.display !== "none") {
+            back_to_top.style.display = "none";
+        } else if (scroll_top >= display_at_y &&
+                   back_to_top.style.display === "none") {
+            back_to_top.style.display = "block";
+        }
+    };
+    
     var _removeSessionTable = function (element) {
         var session_table_element = element.parentElement;
         
@@ -15390,6 +15404,10 @@ var _fp_main = function (join_cb) {
         _clear_sessions_btn_element.parentElement.removeChild(_clear_sessions_btn_element);
         //_removeSessionTable(_session_list_element);
     }
+    
+    window.addEventListener("scroll", _backToTopCb);
+    
+    _backToTopCb();
 };
 /***********************************************************
     Fields.
@@ -15906,6 +15924,7 @@ _utter_fail_element.innerHTML = "";
         _show_globaltime = false,
         _show_oscinfos = false,
         _show_polyinfos = false,
+        _show_slicebar = true,
         _cm_highlight_matches = false,
         _cm_show_linenumbers = true,
         _cm_advanced_scrollbar = false,
@@ -17149,12 +17168,12 @@ var _compile = function () {
             _glsl_error = false;
 
             if (_fs_state === 0) {
-                _play();   
+                _play(false);   
             }
         }
     } else {
         _glsl_error = true;
-        
+
         //_stop();
     }
 };/* jslint browser: true */
@@ -18068,14 +18087,14 @@ var _pause = function () {
 
     _fs_state = 1;
 
-    if (_glsl_error) {
-        return;
-    }
+    //if (_glsl_error) {
+    //    return;
+    //}
 
     _pause_time = performance.now();
 };
 
-var _play = function () {
+var _play = function (update_global_time) {
     _fs_state = 0;
 
     if (_glsl_error) {
@@ -18089,7 +18108,10 @@ var _play = function () {
     window.cancelAnimationFrame(_raf);
     _raf = window.requestAnimationFrame(_frame);
 
-    _time += (performance.now() - _pause_time);
+    if (update_global_time === undefined) {
+        _time += (performance.now() - _pause_time);
+    }
+    
 };
 
 var _rewind = function () {
@@ -18264,6 +18286,10 @@ var _domCreatePlayPositionMarker = function (hook_element, height) {
         decoration_div2 = document.createElement("div");
     
     play_position_marker_div.className = "play-position-marker";
+    
+    if (_show_slicebar) {
+        play_position_marker_div.classList.add("play-position-marker-bar");
+    }
     
     decoration_div.style.top = "0px";
     //decoration_div2.style.top = "0";
@@ -18654,8 +18680,8 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, submit) {
         });
     WUI.lockDraggable(play_position_marker_element, 'y');
     
-    play_position_marker_element.addEventListener('click', function (ev) {
-            _updateSliceSettingsDialog(play_position_marker);
+    play_position_marker_element.addEventListener('dblclick', function (ev) {
+            _updateSliceSettingsDialog(play_position_marker, true);
         });
     
     play_position_marker_element.addEventListener('contextmenu', function(ev) {
@@ -19414,12 +19440,15 @@ var _uiInit = function () {
         settings_ck_xscrollbar_elem = document.getElementById("fs_settings_ck_xscrollbar"),
         settings_ck_wavetable_elem = document.getElementById("fs_settings_ck_wavetable"),
         settings_ck_monophonic_elem = document.getElementById("fs_settings_ck_monophonic"),
+        settings_ck_slicebar_elem = document.getElementById("fs_settings_ck_slicebar"),
+        settings_ck_slices_elem = document.getElementById("fs_settings_ck_slices"),
         
         fs_settings_max_polyphony = localStorage.getItem('fs-max-polyphony'),
         fs_settings_osc_fadeout = localStorage.getItem('fs-osc-fadeout'),
         fs_settings_show_globaltime = localStorage.getItem('fs-show-globaltime'),
         fs_settings_show_polyinfos = localStorage.getItem('fs-show-polyinfos'),
         fs_settings_show_oscinfos = localStorage.getItem('fs-show-oscinfos'),
+        fs_settings_show_slicebar = localStorage.getItem('fs-show-slicebar'),
         fs_settings_hlmatches = localStorage.getItem('fs-editor-hl-matches'),
         fs_settings_lnumbers = localStorage.getItem('fs-editor-show-linenumbers'),
         fs_settings_xscrollbar = localStorage.getItem('fs-editor-advanced-scrollbar'),
@@ -19430,7 +19459,7 @@ var _uiInit = function () {
             title: "Session & global settings",
 
             width: "320px",
-            height: "398px",
+            height: "408px",
 
             halign: "center",
             valign: "center",
@@ -19476,6 +19505,10 @@ var _uiInit = function () {
     
     if (fs_settings_show_polyinfos !== null) {
         _show_polyinfos = (fs_settings_show_polyinfos === "true");
+    }
+
+    if (fs_settings_show_slicebar !== null) {
+        _show_slicebar = (fs_settings_show_slicebar === "true");
     }
 
     if (fs_settings_hlmatches !== null) {
@@ -19526,6 +19559,12 @@ var _uiInit = function () {
         settings_ck_lnumbers_elem.checked = false;
     }
     
+    if (_show_slicebar) {
+        settings_ck_slicebar_elem.checked = true;
+    } else {
+        settings_ck_slicebar_elem.checked = false;
+    }
+    
     settings_ck_monophonic_elem.addEventListener("change", function () {
             if (this.checked) {
                 _audio_infos.monophonic = true;
@@ -19567,6 +19606,40 @@ var _uiInit = function () {
             }
         
             localStorage.setItem('fs-show-polyinfos', _show_polyinfos);
+        });
+    
+    settings_ck_slicebar_elem.addEventListener("change", function () {
+            var elements = document.getElementsByClassName("play-position-marker"),
+                i = 0;
+        
+            _show_slicebar = this.checked;
+        
+            if (!_show_slicebar) {
+                for(i = elements.length - 1; i >= 0; --i) {
+                    elements[i].classList.remove("play-position-marker-bar");
+                }   
+            } else {
+                for(i = elements.length - 1; i >= 0; --i) {
+                    elements[i].classList.add("play-position-marker-bar");
+                } 
+            }
+        
+            localStorage.setItem('fs-show-slicebar', _show_slicebar);
+        });
+    
+    settings_ck_slices_elem.addEventListener("change", function () {
+            var elements = document.getElementsByClassName("play-position-marker"),
+                i = 0;
+        
+            if (!this.checked) {
+                for(i = elements.length - 1; i >= 0; --i) {
+                    elements[i].classList.add("fs-hide");
+                }   
+            } else {
+                for(i = elements.length - 1; i >= 0; --i) {
+                    elements[i].classList.remove("fs-hide");
+                } 
+            }
         });
 
     settings_ck_globaltime_elem.addEventListener("change", function () {
@@ -19628,6 +19701,8 @@ var _uiInit = function () {
     settings_ck_lnumbers_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_xscrollbar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_monophonic_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_slicebar_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_slices_elem.dispatchEvent(new UIEvent('change'));
     
     _midi_settings_dialog = WUI_Dialog.create(_midi_settings_dialog_id, {
             title: "MIDI settings",
@@ -19667,7 +19742,7 @@ var _uiInit = function () {
             title: "Fragment - Help",
 
             width: "380px",
-            height: "645px",
+            height: "585px",
 
             halign: "center",
             valign: "center",
@@ -19791,7 +19866,7 @@ var _uiInit = function () {
                 {
                     icon: "fs-pause-icon",
                     type: "toggle",
-                    toggle_state: (_fs_state === 1 ? false : true),
+                    toggle_state: (_fs_state === 1 ? true : false),
                     on_click: _togglePlay,
                     tooltip: "Play/Pause"
                 },
@@ -19867,7 +19942,7 @@ var _uiInit = function () {
 
                     type: "dropdown",
 
-                    orientation: "n",
+                    orientation: "s",
 
                     items: [
                         {
@@ -20674,7 +20749,7 @@ var _fasInit = function () {
 
     _initNetwork();
 
-    _play();
+    //_play();
     
 /* jslint browser: true */
 
@@ -20797,13 +20872,18 @@ document.addEventListener('mousemove', function (e) {
         }
    });
 
+document.getElementById("fs_ui_doc_btn").addEventListener("click", function () {
+        window.open("https://www.fsynth.com/documentation", '_blank');
+    });
+
 document.getElementById("fs_ui_help_btn").addEventListener("click", function () {
         window.open("data/guide/fs.png", '_blank');
     });
-
+/*
 document.getElementById("fs_glsl_help_btn").addEventListener("click", function () {
         window.open("https://www.khronos.org/registry/gles/specs/2.0/GLSL_ES_Specification_1.0.17.pdf", '_blank');
     });
+*/
 
 var _on_window_resize = function () {
     _updateAllPlayPosition();

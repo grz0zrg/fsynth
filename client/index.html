@@ -388,6 +388,10 @@ void main ()
                             <div>Show poly. infos</div>&nbsp;
                             <input id="fs_settings_ck_polyinfos" type="checkbox">
                         </label>
+                        <label class="fs-ck-label">
+                            <div>Show slices bar</div>&nbsp;
+                            <input id="fs_settings_ck_slicebar" type="checkbox">
+                        </label>
                     </div>
                     <div class="fs-ck-container">
                         <label class="fs-ck-label">
@@ -401,6 +405,10 @@ void main ()
                         <label class="fs-ck-label">
                             <div>Highlight matches</div>&nbsp;
                             <input id="fs_settings_ck_hlmatches" type="checkbox">
+                        </label>
+                        <label class="fs-ck-label">
+                            <div>Show slices</div>&nbsp;
+                            <input id="fs_settings_ck_slices" type="checkbox" checked>
                         </label>
                     </div>
                 </div>
@@ -481,7 +489,12 @@ void main ()
             <div>
                 <div>
                     <div class="fs-help-content">
-                        <button id="fs_ui_help_btn" class="fs-btn fs-btn-default">UI Help</button><br/><button id="fs_glsl_help_btn" class="fs-btn fs-btn-wide fs-btn-default">OpenGL Shading Language ES</button>
+                        <button id="fs_ui_doc_btn" class="fs-btn fs-btn-default">Documentation</button>
+                        <button id="fs_ui_help_btn" class="fs-btn fs-btn-default">UI Help</button>
+<!--
+                        <br/>
+                        <button id="fs_glsl_help_btn" class="fs-btn fs-btn-wide fs-btn-default">OpenGL Shading Language ES</button>
+-->
                     </div>
                     <div class="fs-documentation">
                         Pre-defined shader inputs

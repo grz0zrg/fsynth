@@ -212,6 +212,7 @@ var FragmentSynth = function (params) {
         _show_globaltime = false,
         _show_oscinfos = false,
         _show_polyinfos = false,
+        _show_slicebar = true,
         _cm_highlight_matches = false,
         _cm_show_linenumbers = true,
         _cm_advanced_scrollbar = false,
@@ -530,7 +531,7 @@ var FragmentSynth = function (params) {
 
     _initNetwork();
 
-    _play();
+    //_play();
     
     /*#include events.js*/
     

@@ -22,7 +22,7 @@ video {
 
 hr {
     margin-top: 1rem;
-    margin-bottom: 1rem;
+    margin-bottom: 2rem;
 }
 
 @font-face {
@@ -116,10 +116,6 @@ hr {
 
 .fp-third-row form {
     margin-bottom: 0;
-}
-
-.fp-sessions {
-    padding-bottom: 3rem;
 }
 
 .fb-share-button span {
@@ -217,7 +213,6 @@ hr {
     font-size: 22px;
     line-height: 1px;
     margin-bottom: 0px;
-    padding: 7px;
     text-align: center;
     text-decoration: none;
     
@@ -341,29 +336,45 @@ hr {
 }
 
 .fp-features li {
-    margin-bottom: 0;
-}
-
-.fp-features li:before {    
-    font-family: 'FontAwesome';
-    content: "\f00c";
-    margin:0 5px 0 -15px;
+    text-align: left;
 }
 
 .fp-requirements {
     list-style: square;
     margin-left: 24px;
+    text-align: left;
 }
 
 .fp-requirements li {
     margin-bottom: 0;
 }
 
+.fp-footer a {
+    text-decoration: none;
+    font-weight: bold;
+    color: #000000;
+}
+
+.fp-footer form {
+    margin-bottom: 0;
+}
+
+.fp-back-to-top {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    padding: 12px;
+    color: #000000;
+}
+
+.fp-back-to-top i {
+    font-size: 24pt !important;
+}
+
 /* Sections
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 
 .section {
-    padding: 4rem 0 4rem;
     text-align: center;
 }
 
@@ -467,7 +478,15 @@ hr {
 @media (min-width: 200px) {
     .fp-header {
         text-align: center;
-        height: 98px;
+        height: 102px;
+    }
+    
+    .fp-join-session-text {
+        position: absolute;
+        top: 80px;
+        right: 0;
+        left: 0;
+        font-size: 12px;
     }
     
     .fp-header .column {
@@ -476,6 +495,7 @@ hr {
     
     .section {
         /*padding: 12rem 0 11rem;*/
+        padding: 0;
     }
     .hero {
         /*padding-bottom: 12rem;*/
@@ -495,9 +515,12 @@ hr {
         */
     }
     .logo-right {
-        position: relative;
         max-width: 100%;
-        margin: 0;/*3rem auto -8rem;*/
+        margin: auto;/*3rem auto -8rem;*/
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
     }
     .logo + .logo {
 /*
@@ -519,19 +542,15 @@ hr {
     .fp-about-heading {
         margin-top: 0;
     }
+    /*
     .fp-dl-table th:first-child, td:first-child {
         display: none;
-    }
+    }*/
     
     /* Navbar */
-
-    .navbar + .docs-section {
-        border-top-width: 0;
-    }
-
     .navbar,
     .navbar-spacer {
-        display: block;
+        display: none;
         width: auto;
         position: relative;
         height: 6.5rem;
@@ -541,92 +560,72 @@ hr {
         border-bottom: 1px solid #e3e3e3;
     }
 
-    .navbar-spacer {
-        display: none;
-    }
-
-    .navbar > .container {
-        width: 100%;
-    }
-
-    .navbar-list {
-        list-style: none;
-        margin-bottom: 0;
-        text-align: center;
-    }
-
-    .navbar-item {
-        position: relative;
-        float: left;
-        margin-bottom: 0;
-    }
-
-    .navbar-link {
-        text-transform: uppercase;
-        font-size: 7pt;
-        font-weight: 600;
-        letter-spacing: .2rem;
-        margin-left: 22px;
-        text-decoration: none;
-        line-height: 9.5rem;
-        color: #222;
-    }
-
-    .navbar-link.active {
-        color: #33C3F0;
-    }
-
-    .has-docked-nav .navbar {
-        position: relative;
-        top: 0;
-        left: 0;
-    }
-
-    .has-docked-nav .navbar-spacer {
-        display: block;
+    
+    .fp-fork-me {
+        display: none;   
     }
     
-    .has-docked-nav .navbar > .container {
-        width: 80%;
+    .fp-social-sticky {
+        display: none;   
+    }
+    
+    .fp-anchor {
+        padding-top: 10px;
+    }
+    
+    .fp-features {
+        list-style: square;
+    }
+    
+    .fp-features li {
+        margin-bottom: 2px;
+    }
+    
+    .fp-features li:before {    
+        display: none;
+    }
+    
+    .fp-sessions {
+        padding-bottom: 0;
+    }
+    
+    .fp-try > div > p:first-child {
+        display: none;
     }
 }
 
 /* Bigger than 550 */
-
+/*
 @media (min-width: 550px) {
+    .fp-header {
+        height: 78px;
+        text-align: left;
+    }
+    
     .section {
         padding: 12rem 0 11rem;
     }
     .hero {
-        /*padding-bottom: 12rem;*/
         text-align: left;
-        /*height: 165px;*/
     }
+    .offset-by-one.column {
+        margin-left: 4.66666666667%;
+    }
+    
     .logo {
         position: relative;
         max-width: 70%;
         margin: 3rem auto -8rem;
-/*
-        position: absolute;
-        top: -7rem;
-        right: 3rem;
-        max-height: 362px;
-        z-index: 3;*/
     }
     .logo-right {
         position: fixed;
         max-width: 100%;
         margin: 0;
+        top: auto;
+        left: auto;
+        right: auto;
     }
     .logo + .logo {
-/*
-        top: -6rem;
-        display: block;
-        max-width: 73.8%;
-        right: 0;
-        z-index: 2;
-        max-height: 338px;
-*/
     }
     .hero-heading {
         font-size: 2.4rem;
@@ -637,12 +636,113 @@ hr {
     .fp-session-form input {
         width: 100%;
     }
-}
+    .navbar,
+    .navbar-spacer {
+        display: block;
+    }
+    
+    .fp-social {
+        padding: 7px;
+    }
+    
+    .fp-social-sticky {
+        display: block;   
+    }
+    
+    .fp-anchor {
+        padding-top: 19px;
+        margin-top: -19px;
+    }
+    
+    .fp-features li {
+        margin-bottom: 0;
+    }
+    
+    .fp-features li:before {    
+        font-family: 'FontAwesome';
+        content: "\f00c";
+        margin:0 5px 0 -15px;
+    }
+    
+    .navbar + .docs-section {
+        border-top-width: 0;
+    }
+    
+    .navbar,
+    .navbar-spacer {
+        display: block;
+        width: 80%;
+        position: fixed;
+        height: 6.5rem;
+        background: #fff;
+        z-index: 99;
+        border-bottom: 1px solid #e3e3e3;
+    }
+    
+    .navbar-spacer {
+        display: none;
+    }
+    
+    .navbar > .container {
+        width: 100%;
+    }
+    
+    .navbar-list {
+        float: right;
+        list-style: none;
+        text-align: left;
+        margin-bottom: 0;
+    }
+    
+    .navbar-item {
+        position: relative;
+        float: left;
+        margin-bottom: 0;
+    }
+    
+    .navbar-link {
+        text-transform: uppercase;
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: .2rem;
+        margin-left: 22px;
+        text-decoration: none;
+        line-height: 9.5rem;
+        color: #222;
+    }
+    
+    .navbar-link.active {
+        color: #33C3F0;
+    }
+    
+    .has-docked-nav .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+    }
+    
+    .has-docked-nav .navbar-spacer {
+        display: block;
+    }
+    
+    .has-docked-nav .navbar > .container {
+        width: 80%;
+    }
+    
+    .one-half.column {
+        width: auto;
+    }
+}*/
 
 
 /* Bigger than 750 */
 
 @media (min-width: 750px) {
+    .navbar,
+    .navbar-spacer {
+        width: 80%;
+    }
+    
     .hero {
         /*height: 388px;*/
     }
@@ -655,15 +755,18 @@ hr {
         margin: 3rem auto -8rem;
     }
     .logo-right {
-        position: relative;
+        position: fixed;
         max-width: 100%;
         margin: 0;
+        top: auto;
+        left: auto;
+        right: auto;
     }
     .section {
         padding: 14rem 0 15rem;
     }
     .hero {
-        padding: 0 0 14rem;
+        padding: 0 0 0;
     }
     .section-description {
         max-width: 60%;
@@ -673,29 +776,171 @@ hr {
     .categories {
         padding: 15rem 0 8rem;
     }
+    
+    .one-half.column {
+        width: 48%;
+    }
+    
+    .hero-heading {
+        font-size: 2.4rem;
+    }
+    
+    .navbar,
+    .navbar-spacer {
+        display: block;
+    }
+    
+    .navbar + .docs-section {
+        border-top-width: 0;
+    }
+    
+    .navbar,
+    .navbar-spacer {
+        display: block;
+        width: 80%;
+        position: fixed;
+        height: 6.5rem;
+        background: #fff;
+        z-index: 99;
+        border-bottom: 1px solid #e3e3e3;
+    }
+    
+    .navbar-spacer {
+        display: none;
+    }
+    
+    .navbar > .container {
+        width: 100%;
+    }
+    
+    .navbar-list {
+        float: right;
+        list-style: none;
+        text-align: left;
+        margin-bottom: 0;
+    }
+    
+    .navbar-item {
+        position: relative;
+        float: left;
+        margin-bottom: 0;
+    }
+    
+    .navbar-link {
+        text-transform: uppercase;
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 0;
+        margin-left: 10px;
+        text-decoration: none;
+        line-height: 9.5rem;
+        color: #222;
+    }
+    
+    .navbar-link.active {
+        color: #33C3F0;
+    }
+    
+    .has-docked-nav .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+    }
+    
+    .has-docked-nav .navbar-spacer {
+        display: block;
+    }
+    
+    .has-docked-nav .navbar > .container {
+        width: 80%;
+    }
+    
+    .offset-by-one.column {
+        margin-left: 4.66666666667%;
+    }
+    
+    .fp-sessions {
+        padding-bottom: 3rem;
+    }
+    
+    .fp-join-session-text {
+        position: static;
+        top: auto;
+        right: auto;
+        left: auto;
+        font-size: 1em;
+    }
+    
+    .fp-try > div > p:first-child {
+        display: block;
+    }
+    
     .fp-session-form input {
         width: 100%;
     }
     
     .fp-header {
-        height: 0px;
-        text-align: center;
+        height: 78px;
+        text-align: left;
     }
     
     .fp-header .column {
-        float: right;   
+        float: left;   
     }
     
     .fp-header .offset-by-one.column {
-        position: absolute;
-        right: 0;
-        top: 0;
+        right: auto;
+        top: auto;
+    }
+    
+    .fp-dl-table th:first-child, td:first-child {
+        display: table-cell;
+    }
+    .fp-session-form input {
+        width: 100%;
+    }
+    .fp-social {
+        padding: 7px;
+    }
+    
+    .fp-social-sticky {
+        display: block;   
+    }
+    
+    .fp-anchor {
+        padding-top: 19px;
+        margin-top: -19px;
+    }
+    
+    .fp-features li {
+        margin-bottom: 0;
+    }
+    
+    .fp-features li:before {    
+        font-family: 'FontAwesome';
+        content: "\f00c";
+        margin:0 5px 0 -15px;
     }
 }
 
+@media (min-width: 970px) {
+    .navbar-link {
+        letter-spacing: .2rem;
+        margin-left: 22px;
+        font-size: 10px;
+    }
+}
 
 @media (min-width: 1216px) {
-
+    .navbar,
+    .navbar-spacer {
+        width: 960px;
+    }
+    
+    .navbar-link {
+        font-size: 11px;
+    }
+    
     .fp-header {
         height: 78px;
         text-align: left;
@@ -705,53 +950,6 @@ hr {
         position: fixed;
     }
     
-  /* Navbar */
-  .navbar + .docs-section {
-    border-top-width: 0; }
-  .navbar,
-  .navbar-spacer {
-    display: block;
-    width: 960px;
-    position: fixed;
-    height: 6.5rem;
-    background: #fff;
-    z-index: 99;
-    /*border-top: 1px solid #eee;*/
-    border-bottom: 1px solid #e3e3e3; }
-  .navbar-spacer {
-    display: none; }
-  .navbar > .container {
-    width: 100%; }
-  .navbar-list {
-    float: right;
-    list-style: none;
-    text-align: left;
-    margin-bottom: 0; }
-  .navbar-item {
-    position: relative;
-    float: left;
-    margin-bottom: 0; }
-  .navbar-link {
-    text-transform: uppercase;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: .2rem;
-    margin-left: 22px;
-    text-decoration: none;
-    line-height: 9.5rem;
-    color: #222; }
-  .navbar-link.active {
-    color: #33C3F0; }
-  .has-docked-nav .navbar {
-    position: fixed;
-    top: 0;
-    left: 0; }
-  .has-docked-nav .navbar-spacer {
-    display: block; }
-  /* Re-overiding the width 100% declaration to match size of % based container */
-  .has-docked-nav .navbar > .container {
-    width: 80%; }
-    
     .fp-header .offset-by-one.column {
         right: auto;
         top: auto;
@@ -759,5 +957,21 @@ hr {
     
     .fp-header .column {
         float: left;   
+    }
+    
+    .fp-fork-me {
+        display: block;   
+    }
+    
+    .fp-fork-me img {
+        display: block;
+        position: fixed;
+        top: 0;
+        right: 0;
+        border: 0;
+    }
+    
+    .offset-by-one.column {
+        margin-left: 8.66666666667%;
     }
 }

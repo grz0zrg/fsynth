@@ -1,5 +1,7 @@
 $begin
 
+$loadadm(maml_html5.adm)
+
 $colorrule(funny)([a-e])($rgb(10,0,130)($sup($1)))
 $colorrule(funny)([e-k])($rgb(150,0,0)($italic($1)))
 $colorrule(funny)([l-p])($rgb(100,100,0)($big($1)))
@@ -98,10 +100,15 @@ $subsubsection(browser)(Browser)
 $par
 
 Fragment require a browser with full support for ECMAScript 5, CSS3, WebAudio and WebGL.
+
 $p
 Well-tested and compatible browsers include Firefox 51.x and Chrome 55.x but Fragment may work with previous version of those browsers as well.
 $p
 It is known to work on recent version of Safari and Opera as well.
+
+$p
+
+Fragment support the WebGL 2 API which improve performances and enable some advanced features which are only available if the browser support the WebGL 2 API.
 
 $par
 
@@ -131,8 +138,6 @@ $list(
 	$item you want greater polyphonic/harmonics capabilities)
 
 $section(howitwork)(Technical details)
-
-$par
 
 Fragment is an additive synthesizer, it let you have full control over the timbral qualities of your sounds by the mean of GPU programming.
 $p
@@ -172,9 +177,22 @@ The graphical score represent a kind of sonic canvas where the X axis represent 
 $p
 What you hear in Fragment is determined by the choice of "slices" of the graphical score, slices are vertical bits of the graphical score which are merged together and produce an audible result.
 $p
-The frequency mapping of the graphical score is fixed by a logarithmic formula, altough the formula cannot be changed right now, some parameters are available to fine tune the frequency map.
-
+The frequency mapping of the graphical score is fixed by a logarithmic formula, altough the formula cannot be changed right now, some parameters are available in the settings dialog to fine tune the frequency map.
 $p
+The frequency mapping is defined by the formula:
+$par
+
+$latex($$f(y)=a*(2^{\frac{y}{n/o}})$$)
+
+Where:
+
+$list(
+	$item $bold(a) is is the starting frequency
+	$item $bold(y) the vertical position
+	$item $bold(n) the number of oscillators (which is the height of the canvas)
+	$item $bold(o) the octave count)
+
+$par
 
 $subsection(fas)(FAS)
 
@@ -269,11 +287,21 @@ $section(gui)(User interface)
 
 $par
 
-Fragment user interface is quite easy to get once you figure out its layout, it is composed of a few panes with very specific roles, here is the list of panes along with detailed informations of their functions and supported actions.
+
+$tlink($center($image(600)(ui_help.png)))(ui_help.png)
+$tlink($center(Click to view the full image))(ui_help.png)
 
 $p
 
-$subsection(infosbar)(The informations bar)
+Fragment user interface is quite easy to get once you figure out its layout.
+
+$p
+
+It is composed of a few parts with very specific roles, here is the list of parts along with detailed informations of their functions and supported actions.
+
+$p
+
+$subsection(infobar)(The information bar)
 
 $par
 
@@ -294,7 +322,7 @@ $subsection(graphicalscore)(The graphical score)
 
 $par
 
-You can slice the graphical score by right-clicking on it and click on the + icon, this will add a vertical bar which will capture that part of the canvas.
+You can slice the graphical score by right-clicking on it and clicking on the + icon, this will add a vertical bar which will capture that part of the canvas.
 
 $p
 
@@ -310,11 +338,15 @@ Slices are an important part of Fragment, there will be no sounds if you don't a
 
 $p
 
-The purpose of slices is to capture vertical parts of the score which will be fed to the additive synthesis engine, they are like turntable needles, they can be dragged around in real-time by the mouse or by a MIDI controller.
+The purpose of slices is to capture vertical parts of the canvas which will be fed to the additive synthesis engine, they are like turntable needles, they can be dragged around in real-time by the mouse or by a MIDI controller.
 
 $p
 
 Slices can be moved by dragging them on the X axis, to do so, maintain the left mouse button on a slice and move the mouse cursor around.
+
+$p
+
+Double-clicking on a slice open its settings dialog directly.
 
 $p
 
@@ -354,8 +386,8 @@ $list(
   $item helpers
   $list(
   	$item $tlink(ShaderToy)(https://www.shadertoy.com) converter
-  	$item frequency details (hover the mouse over the canvas)
-  	$item analysis dialog (not applicable when FAS is enabled)
+  	$item canvas axis details which appear when the canvas is hovered by the cursor
+  	$item analysis dialog (not working when FAS is enabled)
   	$item clone the code editor in a separate window)
 	$item fragment inputs
 	$list(
@@ -366,7 +398,7 @@ $subsection(finputs)(The fragment inputs)
 
 $par
 
-Fragment inputs are complex inputs which can be used in the fragment program.
+Fragment inputs are complex inputs which can be used in the fragment program as a 2D texture.
 
 $p
 
@@ -378,7 +410,7 @@ All complex inputs can be used as 2D textures (texture2d) in the fragment progra
 
 $p
 
-You can find the input id by hovering over the thumbnail.
+You can find the input id by hovering over the thumbnail or in the title of the complex input settings dialog.
 
 $p
 
@@ -396,10 +428,29 @@ By right clicking on a the complex input thumbnail, the following actions appear
 $list(
 	$item delete
 	$item complex input settings dialog)
-	
+
 The complex input settings dialog have several options:
 
-TODO
+$par
+
+$list(
+	$item filter
+	$list(
+		$item nearest: no interpolation
+		$item linear: linear interpolation)
+	$item Wrap S
+	$list(
+		$item clamp: stop horizontally when outside the (0,0) to (1,1) range
+		$item repeat: repeat horizontally when outside the (0,0) to (1,1) range
+		$item mirrored repeat: same as repeat but mirrored)
+	$item Wrap T
+	$list(
+		$item clamp: stop vertically when outside the (0,0) to (1,1) range
+		$item repeat: repeat vertically when outside the (0,0) to (1,1) range
+		$item mirrored repeat: same as repeat but mirrored)
+	$item VFlip: flip the texture vertically)
+
+Note: The "repeat" and "mirrored" Wrap S/T option will be unavailable if your browser does not support the WebGL 2 API, it is only available by adding images with power-of-2 dimensions (128x64, 256x256 etc.) or by using a browser with WebGL 2 support.
 
 $p
 
@@ -408,6 +459,10 @@ $subsection(codeditor)(The code editor)
 $par
 
 The fragment editor is one of the most important tool of Fragment since it allow the user to generate the visuals which are fed to the additive synthesis engine.
+
+$p
+
+$tlink(GLSL)(https://www.khronos.org/files/opengles_shading_language.pdf) code is what you type in the code editor to generate the visuals.
 
 $p
 
@@ -497,6 +552,9 @@ $list(
 	$item Show poly. infos
 	$list(
 		$item Hide/Show the polyphony infos for per output channels in the informations bar)
+	$item Show slices bar
+	$list(
+		$item Hide/Show slices vertical bar)
 	$item Show line numbers
 	$list(
 		$item Hide/Show the line number in the code editor)
@@ -506,6 +564,9 @@ $list(
 	$item Highlight matches
 	$list(
 		$item Enable/disable matches highlight in the code editor (when something is selected))
+	$item Show slices
+	$list(
+		$item Hide/Show slices, can be useful for visuals, this settings is not saved)
 	$item Monophonic
 	$list(
 		$item Enable/disable monophonic mode
@@ -520,9 +581,7 @@ $list(
 	$list(
 		$item The location of $ref(fas)(FAS (Fragment Audio Server)) on the network))
 
-$p
-
-$subsection(midisettingsdialog)(The MIDI settings dialog)
+$subsection(midisettingsdialog)(MIDI settings dialog)
 
 $par
 
@@ -542,7 +601,7 @@ Fragment keep track of your MIDI settings choice for particual devices per sessi
 
 $p
 
-$subsection(uniformsdialog)(The uniforms dialog)
+$subsection(uniformsdialog)(Uniforms dialog)
 
 $par
 

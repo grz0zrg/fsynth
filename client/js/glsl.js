@@ -189,12 +189,12 @@ var _compile = function () {
             _glsl_error = false;
 
             if (_fs_state === 0) {
-                _play();   
+                _play(false);   
             }
         }
     } else {
         _glsl_error = true;
-        
+
         //_stop();
     }
 };

@@ -560,7 +560,9 @@ canvas {
     
     width: 1px;
     /*height: 100%;*/
-    
+}
+
+.play-position-marker-bar {
     background-color: #aaaa00;
 }
 

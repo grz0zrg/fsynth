@@ -900,7 +900,7 @@ span.CodeMirror-selectedtext { background: none; }
   top: 0; left: 0; right: 0; bottom: 0;
   height: auto;
   z-index: 9;
-    opacity: 0.75;
+    opacity: 0.8;
 }
 /*!
  *  Font Awesome 4.7.0 by @davegandy - http://fontawesome.io - @fontawesome
@@ -1608,7 +1608,9 @@ canvas {
     
     width: 1px;
     /*height: 100%;*/
-    
+}
+
+.play-position-marker-bar {
     background-color: #aaaa00;
 }
 

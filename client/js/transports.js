@@ -9,14 +9,14 @@ var _pause = function () {
 
     _fs_state = 1;
 
-    if (_glsl_error) {
-        return;
-    }
+    //if (_glsl_error) {
+    //    return;
+    //}
 
     _pause_time = performance.now();
 };
 
-var _play = function () {
+var _play = function (update_global_time) {
     _fs_state = 0;
 
     if (_glsl_error) {
@@ -30,7 +30,10 @@ var _play = function () {
     window.cancelAnimationFrame(_raf);
     _raf = window.requestAnimationFrame(_frame);
 
-    _time += (performance.now() - _pause_time);
+    if (update_global_time === undefined) {
+        _time += (performance.now() - _pause_time);
+    }
+    
 };
 
 var _rewind = function () {

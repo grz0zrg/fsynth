@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" >
     <head>
+        <title>Fragment - The Collaborative Spectral Synthesizer</title>
+        
 		<meta http-equiv="content-type" content="text/html; charset=utf-8">
 
-        <meta name="Keywords" content="fragment, spectral synthesizer, computer graphics, rendering, realtime, shader, webgl, glsl, additive synthesizert, synth, fsynth, real-time, collaborative, visuals, art, musical, instrument, musique concrète">
-        <meta name="Description" content="Web-based collaborative spectral musical instrument driven by real-time visuals from shared GLSL scripts.">
+        <meta name="Keywords" content="fragment, spectral synthesizer, computer graphics, rendering, realtime, shader, webgl, glsl, additive, synthesizer, additive synthesizer, synth, fsynth, real-time, collaborative, visuals, art, musical, instrument, musique concrète">
+        <meta name="Description" content="Web-based collaborative spectral and additive musical instrument driven by real-time visuals from shared GLSL scripts.">
         <meta name="Author" content="Julien Verneuil">
         
         <meta name="google-site-verification" content="K2MJfisbFX9cJSttXAsLUqCXdKT9fKzCWNU28HePxWw" />
@@ -30,27 +32,80 @@
 
         <script type="text/javascript" src="dist/fp.min.js"></script>
 
-        <script>
-          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-          })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
-          ga('create', 'UA-90338960-1', 'auto');
-          ga('send', 'pageview');
-
+        <!-- Piwik -->
+        <script type="text/javascript">
+          var _paq = _paq || [];
+          _paq.push(['trackPageView']);
+          _paq.push(['enableLinkTracking']);
+          (function() {
+            var u="//piwik.fsynth.com/";
+            _paq.push(['setTrackerUrl', u+'piwik.php']);
+            _paq.push(['setSiteId', '1']);
+            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+            g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+          })();
         </script>
-
-        <title>Fragment - The Collaborative Spectral Synthesizer</title>
+        <!-- End Piwik Code -->
     </head>
     <body>
+        <noscript><p><img src="//piwik.fsynth.com/piwik.php?idsite=1&rec=1" style="border:0;" alt="" /></p></noscript>
+        <a class="fp-fork-me" href="https://github.com/grz0zrg/fsynth"><img src="data/fork_me.png" alt="Fork me on GitHub" data-canonical-src="data/fork_me.png"></a>
         <div class="section hero">
             <div class="container">
-                <div class="row">
-                    <div class="column logos">
-                        <img class="logo" src="data/logo.png">
+                <nav class="navbar">
+                    <div class="container">
+                        <ul class="navbar-list">
+                            <li class="navbar-item">
+                                <a class="navbar-link" href="#try">Try</a>
+                            </li>
+                            <li class="navbar-item">
+                                <a class="navbar-link" href="#about">
+                                    About
+                                </a>
+                            </li>
+<!--
+                            <li class="navbar-item">
+                                <a class="navbar-link" href="#features" data-popover="#features">Features</a>
+                            </li>
+-->
+                            <li class="navbar-item">
+                                <a class="navbar-link" href="#downloads">
+                                    <i class="fa fa-download" aria-hidden="true"></i>
+                                    Downloads
+                                </a>
+                            </li>
+                            <li class="navbar-item">
+                                <a class="navbar-link" href="https://www.fsynth.com/documentation">
+                                    Documentation
+                                </a>
+                            </li>
+                            <li class="navbar-item">
+                                <a class="navbar-link" href="https://quiet.fsynth.com">
+                                    <i class="fa fa-comments-o" aria-hidden="true"></i>
+                                    Forum
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+                <div id="try" class="fp-header row">
+                    <div class="one-half column offset-by-one">
+                        <img class="logo-right" width="320" src="data/logo_continuous.png" alt="Fragment">
+                    </div>
+                    <div class="one-half column logos-right">
+                        <h4 class="hero-heading">
+
+                        </h4>
                     </div>
                 </div>
+<!--
+                <div class="row">
+                    <div class="column logos">
+                        <img class="logo" width="200" src="data/logo.png">
+                    </div>
+                </div>
+-->
+<!--
                 <div class="row fp-title">
                     <div class="u-max-full-width column" style="text-align: center;">
                         <h4 class="hero-heading">
@@ -58,6 +113,7 @@
                         </h4>
                     </div>
                 </div>
+-->
                 <div id="sessions" class="row fp-sessions">
                     <div class="column value">
                         <table class="fp-session-list u-full-width">
@@ -74,12 +130,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="row">
+                <div class="fp-try row">
                     <div class="one-half column value">
                         <p class="value-description">
-                            <strong>Fragment</strong> is a web-based spectral musical instrument driven by real-time visuals generated by its users from shared <a href="https://en.wikipedia.org/wiki/OpenGL_Shading_Language">GLSL scripts</a>.
                         </p>
-                        <p class="value-description fp-center-text" style="font-style: italic;">
+                        <p class="fp-join-session-text value-description fp-center-text">
+                            Web-based additive synthesizer and live coding environment.
+                        </p>
+                        <p class="fp-join-session-heading value-description fp-center-text">
                             Join a session and start to experiment!
                         </p>
                         <form class="fp-session-form">
@@ -94,67 +152,177 @@
                                 </div>
                             </div>
                         </form>
-                        <p class="value-description" style="text-align: center">
+                        <p class="fp-join-session value-description" style="text-align: center">
                             <a id="sessionBtn" class="button button-primary" href="app">
                                 Create/Join Session
                             </a>
                         </p>
+                        <div>
+                            <div class="fp-center-text">
+    <!--
+                                <a target="_blank" href="https://quiet.fsynth.com/" class="fp-social-page-scl">
+                                    <i class="fa fa-comments-o" aria-hidden="true"></i>
+                                </a>
+    -->
+                                <a target="_blank" href="https://www.facebook.com/fsynth/" class="fp-social-page-fbl">
+                                    <i class="fa fa-facebook-official" aria-hidden="true"></i>
+                                </a>
+                                <a target="_blank" href="https://twitter.com/fragmentsynth" class="fp-social-page-twl">
+                                    <i class="fa fa-twitter" aria-hidden="true"></i>
+                                </a>
+                                <a target="_blank" href="https://www.soundcloud.com/fsynth/" class="fp-social-page-scl">
+                                    <i class="fa fa-soundcloud" aria-hidden="true"></i>
+                                </a>
+                                <a target="_blank" href="https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ" class="fp-social-page-ytl">
+                                    <i class="fa fa-youtube" aria-hidden="true"></i>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                     <div class="one-half column value">
                         <video preload controls>
                             <source src="data/video.mp4" />
                         </video>
-                        <div class="fp-center-text">
-                            <a target="_blank" href="https://quiet.fsynth.com/" class="fp-social-page-scl">
-                                <i class="fa fa-comments-o" aria-hidden="true"></i>
-                            </a>
-                            <a target="_blank" href="https://www.facebook.com/fsynth/" class="fp-social-page-fbl">
-                                <i class="fa fa-facebook-official" aria-hidden="true"></i>
-                            </a>
-                            <a target="_blank" href="https://twitter.com/fragmentsynth" class="fp-social-page-twl">
-                                <i class="fa fa-twitter" aria-hidden="true"></i>
-                            </a>
-                            <a target="_blank" href="https://www.soundcloud.com/fsynth/" class="fp-social-page-scl">
-                                <i class="fa fa-soundcloud" aria-hidden="true"></i>
-                            </a>
-                            <a target="_blank" href="https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ" class="fp-social-page-ytl">
-                                <i class="fa fa-youtube" aria-hidden="true"></i>
-                            </a>
+                    </div>
+                </div>
+                <div id="about" class="fp-anchor row">
+                    <div class="column value">
+                        <h5 class="fp-about-heading value-heading">
+                            About
+                        </h5>
+                        <hr/>
+                        <p class="fp-margin fp-justify value-description">
+                            Fragment is a fully featured additive synthesizer and live coding platform offering a unique approach for the web.
+                            <br/><br/>
+                            Fragment add sine waves to produce sounds from vertical slices containing the pixels data of a graphical canvas, each horizontal lines of the canvas is associated with a pure sine wave generator, the sine wave frequency is determined by the pixel position on the vertical axis, all the vertical slices are then "fed" to the synthesis engine which translate the pixels data to audio data, the pixels data value (red and green channel) determine the amplitude of the associated sine wave for each audio channels (it is stereophonic) and the vertical position of the pixel determine which sine wave generator is active, the synthesizer is mainly controlled by the visuals generated from the GLSL script.
+                            <br/><br/>
+                            This synthesizer support the WebMIDI API which is only supported by <i class="fa fa-chrome" aria-hidden="true"></i> <strong>Chrome</strong> and <i class="fa fa-opera" aria-hidden="true"></i> <strong>Opera</strong> browser at the moment.
+                            <br/><br/>
+                            If you have any questions or require help, a <a href="https://www.fsynth.com/documentation">documentation</a> and a <a href="https://quiet.fsynth.com">discussion board</a> is available.
+                        </p>
+                    </div>
+                </div>
+                <div id="features" class="fp-anchor row">
+                    <div class="column value">
+                        <h5 class="value-heading">
+                            Features
+                        </h5>
+                        <hr/>
+                        <div class="fp-margin fp-justify value-description">
+                            <ul class="fp-features">
+                                <li>
+                                    Powerful additive synthesizer powered by WebAudio oscillators, a wavetable OR a native program written in C (fastest)
+                                </li>
+                                <li>
+                                    Complete live coding environment with JIT compilation of shader code
+                                </li>
+                                <li>
+                                    Real-time, collaborative app.
+                                </li>
+                                <li>
+                                    Stereophonic or monaural
+                                </li>
+                                <li>
+                                    Polyphonic
+                                </li>
+                                <li>
+                                    Multitimbral
+                                </li>
+                                <li>
+                                    Aliasing free
+                                </li>
+                                <li>
+                                    Multiple audio output channels per slice
+                                </li>
+                                <li>
+                                    Shader inputs (webcam, images, variables...)
+                                </li>
+                                <li>
+                                    Real-time analysis
+                                </li>
+                                <li>
+                                    Native app. powered by Electron with built-in C additive synthesis engine
+                                </li>
+                                <li>
+                                    Audio synthesis can be done on a dedicated computer on the network
+                                </li>
+                                <li>
+                                    Per-sessions discussion system
+                                </li>
+                                <li>
+                                    Sessions based (no authentifications needed)
+                                </li>
+                                <li>
+                                    Smart automatic settings save/load
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>
-                <div class="row">
+                <div class="fp-anchor row">
                     <div class="column value">
                         <h5 class="value-heading">
-                            How does it work ?
+                            MIDI Features
                         </h5>
                         <hr/>
-                        <p class="value-description">
-                            Fragment add sine waves together to produce sounds, the software gather frequencies from vertical slices containing the pixels data of a graphical WebGL powered canvas, each horizontal lines of the score is associated to a pure sine wave generator, all the vertical slices are grouped into one before being "fed" to the synthesis engine, the pixels data (red and green channel) determine the amplitude of the associated sine wave for each audio channels (it is stereophonic) and the vertical position of the pixel determine which sine wave generator is active, the synthesizer is mainly controlled by the visuals generated from the GLSL script.
-                            <br/><br/>
-                            The synthesizer support the WebMIDI API which is only supported by <i class="fa fa-chrome" aria-hidden="true"></i> <strong>Chrome</strong> and <i class="fa fa-opera" aria-hidden="true"></i> <strong>Opera</strong> at the moment, it is possible to assign controllers to widgets and controls the GLSL script "uniform" variables.
-                            <br/><br/>
-                            Fragment can be used locally or online, peoples can join and share sessions to experiment together.
-                            <br/><br/>
-                            If you have any questions or require help, a discussion board is available <a href="https://quiet.fsynth.com">here</a>.
+                        <div class="fp-margin fp-justify value-description">
+                            <ul class="fp-features">
+                                <li>
+                                    Integrated MIDI support for notes with related MIDI data access in the fragment shader
+                                </li>
+                                <li>
+                                    Hot plugging of MIDI input devices
+                                </li>
+                                <li>
+                                    MIDI enabled widgets with MIDI learn feature
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
-                <div class="row">
+                <div class="fp-anchor row">
+                    <div class="column value">
+                        <h5 class="value-heading">
+                            Requirements
+                        </h5>
+                        <hr/>
+                        <div class="fp-margin fp-justify value-description">
+                            <ul class="fp-requirements">
+                                <li>
+                                    Browser such as Chrome, Opera, Safari or Firefox for the web app. (WebMIDI is not supported by Firefox)
+                                </li>
+                                <li>
+                                    Medium-end GPU (Graphics Processing Unit), it was made with a NVIDIA GeForce GTX 970
+                                </li>
+                                <li>
+                                    Medium-end multi-core CPU
+                                </li>
+                                <li>
+                                    A MIDI device such as a MIDI keyboard/controller is recommended
+                                </li>
+                                <li>
+                                    Some friends to design sounds with!
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div id="downloads" class="fp-anchor row">
                     <div class="column value">
                         <h5 class="value-heading">
                             Crackling audio ? There is a solution!
                         </h5>
                         <hr/>
-                        <p class="value-description">
+                        <p class="fp-margin fp-justify value-description">
                             Fragment use the Web Audio API, it need a fast CPU for the audio synthesis and a fast GPU for the visuals, unwanted crackles may happen.
                         </p>
-                        <p class="value-description">
+                        <p class="fp-margin fp-justify value-description">
                             As a solution for slow CPU, a fast native application is available which is essentially a C port of the synthesis engine, it receive pixels data from the application on localhost port 3003, once executed you can enable the native audio option (the waveform icon) from the web application to enjoy a smooth crackle-free audio experience, the application can be downloaded as a statically linked binary for these platforms :
                         </p>
                         <table class="fp-dl-table u-full-width">
                             <thead>
                                 <tr>
-                                    <th>Checksum</th>
+                                    <th>MD5 Checksum</th>
                                     <th>Platform</th>
                                     <th>Download</th>
                                 </tr>
@@ -162,7 +330,7 @@
                             <tbody>
                                 <tr>
                                     <td>
-                                        9c8393f22fd9d21778af64273be87ff9
+                                        -
                                     </td>
                                     <td>
                                         <i class="fa fa-windows" aria-hidden="true"></i> 32/64 Bits
@@ -175,7 +343,7 @@
                                 </tr>
                                 <tr>
                                     <td>
-                                        3a1fc37f3089fe7d7acab31047f4388d
+                                        b54fa0a108e9fafff8279597cbff51e8
                                     </td>
                                     <td>
                                         <i class="fa fa-linux" aria-hidden="true"></i> 32/64 Bits
@@ -189,10 +357,10 @@
                                 </tr>
                                 <tr>
                                     <td>
-                                        14ae0656b90832f6ae71059653b5f64b
+                                        3fcfdbdfb5c624b123ea699071e8fb00
                                     </td>
                                     <td>
-                                        <a href="https://www.raspberrypi.org/"><img width="30" src="data/raspberry-pi-logo.png"/> Raspberry Pi</a>
+                                        <a href="https://www.raspberrypi.org/"><img width="30" src="data/raspberry-pi-logo.png"/ alt="Raspberry PI logo"> Raspberry Pi</a>
                                     </td>
 
                                     <td class="fp-download">
@@ -224,19 +392,21 @@
                 <div class="row">
                     <a href="https://github.com/grz0zrg/fsynth" style="font-size: 24px;"><i class="fa fa-github-alt" aria-hidden="true"></i></a>
                     <br/><br/>
-                    Fragment © 2016 Julien Verneuil
+                    Fragment © 2016 - 2017
                     <br/>
-                    <span style="font-size: 9pt">Collaborative Spectral Synthesizer</span>
+                    Made with <span style="color: #ff0000"><i class="fa fa-heart" aria-hidden="true"></i></span> by <a href="https://github.com/grz0zrg">Julien Verneuil</a>
                     <br/>
-                    <span style="font-size: 8pt; color: #006400">contact<span style="display:none">i</span> at <span style="display:none">love</span>fsynth dot com</span>
+                    <span style="font-size: 9pt">The Collaborative Spectral Synthesizer</span>
+                    <br/>
+                    <span style="font-size: 10pt; color: #004344; font-weight: bold">contact<span style="display:none">i</span> at <span style="display:none">love</span>fsynth dot com</span>
                     <br/><br/>
                     <div class="fp-center-text">
                         <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
                             <input type="hidden" name="cmd" value="_s-xclick">
                             <input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----
                             ">
-                            <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-                            <img alt="" border="0" src="https://www.paypalobjects.com/fr_FR/i/scr/pixel.gif" width="1" height="1">
+                            <input type="image" src="data/btn_donate_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+                            <img alt="" border="0" src="data/pixel.gif" width="1" height="1">
                         </form>
                     </div>
                 </div>
@@ -249,5 +419,8 @@
             <a target="_blank" href="https://plus.google.com/share?url=https://www.fsynth.com" class="fp-social fp-social-gplus"></a>
             <a target="_blank" href="https://www.tumblr.com/share/link?url=https://www.fsynth.com" class="fp-social fp-social-tumblr"></a>
         </div>
+        <a id="back_to_top" href="#" class="fp-back-to-top" style="display: none">
+            <i class="fa fa-arrow-circle-up"></i>
+        </a>
     </body>
 </html>
