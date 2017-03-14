@@ -209,7 +209,7 @@ var FragmentSynth = function (params) {
         _glsl_error = false,
         
         // settings
-        _show_globaltime = false,
+        _show_globaltime = true,
         _show_oscinfos = false,
         _show_polyinfos = false,
         _show_slicebar = true,

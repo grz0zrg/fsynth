@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="en" >
     <head>
-        <title>Fragment - The Collaborative Spectral Synthesizer</title>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
         
-		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+        
+        <title>Fragment - The Collaborative Spectral Synthesizer</title>
 
-        <meta name="Keywords" content="fragment, spectral synthesizer, computer graphics, rendering, realtime, shader, webgl, glsl, additive, synthesizer, additive synthesizer, synth, fsynth, real-time, collaborative, visuals, art, musical, instrument, musique concrète">
+        <meta name="Keywords" content="fragment, spectral synthesizer, computer graphics, rendering, realtime, shader, webgl, glsl, additive, synthesizer, additive synthesizer, synth, fsynth, real-time, softsynth, synthesizer, collaborative, visuals, live, coding, art, musical, instrument, musique concrète">
         <meta name="Description" content="Web-based collaborative spectral and additive musical instrument driven by real-time visuals from shared GLSL scripts.">
         <meta name="Author" content="Julien Verneuil">
         
         <meta name="google-site-verification" content="K2MJfisbFX9cJSttXAsLUqCXdKT9fKzCWNU28HePxWw" />
-
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:site" content="@fsynth" />
@@ -30,7 +30,7 @@
 
         <link rel="stylesheet" type="text/css" href="dist/fp.min.css"/>
 
-        <script type="text/javascript" src="dist/fp.min.js"></script>
+        <script type="text/javascript" src="dist/fp.min.js" defer></script>
 
         <!-- Piwik -->
         <script type="text/javascript">
@@ -63,11 +63,6 @@
                                     About
                                 </a>
                             </li>
-<!--
-                            <li class="navbar-item">
-                                <a class="navbar-link" href="#features" data-popover="#features">Features</a>
-                            </li>
--->
                             <li class="navbar-item">
                                 <a class="navbar-link" href="#downloads">
                                     <i class="fa fa-download" aria-hidden="true"></i>
@@ -98,22 +93,6 @@
                         </h4>
                     </div>
                 </div>
-<!--
-                <div class="row">
-                    <div class="column logos">
-                        <img class="logo" width="200" src="data/logo.png">
-                    </div>
-                </div>
--->
-<!--
-                <div class="row fp-title">
-                    <div class="u-max-full-width column" style="text-align: center;">
-                        <h4 class="hero-heading">
-
-                        </h4>
-                    </div>
-                </div>
--->
                 <div id="sessions" class="row fp-sessions">
                     <div class="column value">
                         <table class="fp-session-list u-full-width">
@@ -140,7 +119,7 @@
                         <p class="fp-join-session-heading value-description fp-center-text">
                             Join a session and start to experiment!
                         </p>
-                        <form class="fp-session-form">
+                        <div class="fp-session-form">
                             <div class="row">
                                 <div class="six columns" style="text-align: center">
                                     <label for="userName">User Name</label>
@@ -151,7 +130,7 @@
                                     <input class="fp-input" type="text" placeholder="d7eafpaoupljt" id="sessionName">
                                 </div>
                             </div>
-                        </form>
+                        </div>
                         <p class="fp-join-session value-description" style="text-align: center">
                             <a id="sessionBtn" class="button button-primary" href="app">
                                 Create/Join Session
@@ -159,11 +138,6 @@
                         </p>
                         <div>
                             <div class="fp-center-text">
-    <!--
-                                <a target="_blank" href="https://quiet.fsynth.com/" class="fp-social-page-scl">
-                                    <i class="fa fa-comments-o" aria-hidden="true"></i>
-                                </a>
-    -->
                                 <a target="_blank" href="https://www.facebook.com/fsynth/" class="fp-social-page-fbl">
                                     <i class="fa fa-facebook-official" aria-hidden="true"></i>
                                 </a>
@@ -181,7 +155,7 @@
                     </div>
                     <div class="one-half column value">
                         <video preload controls>
-                            <source src="data/video.mp4" />
+                            <source src="data/video.mp4" type="video/mp4"/>
                         </video>
                     </div>
                 </div>
@@ -317,7 +291,7 @@
                             Fragment use the Web Audio API, it need a fast CPU for the audio synthesis and a fast GPU for the visuals, unwanted crackles may happen.
                         </p>
                         <p class="fp-margin fp-justify value-description">
-                            As a solution for slow CPU, a fast native application is available which is essentially a C port of the synthesis engine, it receive pixels data from the application on localhost port 3003, once executed you can enable the native audio option (the waveform icon) from the web application to enjoy a smooth crackle-free audio experience, the application can be downloaded as a statically linked binary for these platforms :
+                            As a solution for slow CPU, a fast native application is available which is essentially a C port of the synthesis engine, it receive pixels data from the application on localhost port 3003, once executed you can enable the native audio option (the waveform icon) from the web application to enjoy a smooth crackle-free audio experience and many other neat features like audio device choice and multiple audio output, the application can be downloaded as a statically linked binary for these platforms :
                         </p>
                         <table class="fp-dl-table u-full-width">
                             <thead>
@@ -330,7 +304,7 @@
                             <tbody>
                                 <tr>
                                     <td>
-                                        -
+                                        8162d8026c44e2617974c5a5abe8f971
                                     </td>
                                     <td>
                                         <i class="fa fa-windows" aria-hidden="true"></i> 32/64 Bits
@@ -360,7 +334,7 @@
                                         3fcfdbdfb5c624b123ea699071e8fb00
                                     </td>
                                     <td>
-                                        <a href="https://www.raspberrypi.org/"><img width="30" src="data/raspberry-pi-logo.png"/ alt="Raspberry PI logo"> Raspberry Pi</a>
+                                        <a href="https://www.raspberrypi.org/"><img width="30" src="data/raspberry-pi-logo.png" alt="Raspberry PI logo"> Raspberry Pi</a>
                                     </td>
 
                                     <td class="fp-download">
@@ -405,8 +379,8 @@
                             <input type="hidden" name="cmd" value="_s-xclick">
                             <input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----
                             ">
-                            <input type="image" src="data/btn_donate_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-                            <img alt="" border="0" src="data/pixel.gif" width="1" height="1">
+                            <input type="image" src="data/btn_donate_LG.gif" style="border: 0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+                            <img alt="" style="border: 0" src="data/pixel.gif" width="1" height="1">
                         </form>
                     </div>
                 </div>

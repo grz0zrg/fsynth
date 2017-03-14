@@ -632,6 +632,7 @@ canvas {
 .fs-midi-settings {
     color: #ffffff;
     padding: 1px;
+    overflow: overlay;
 }
 
 .fs-red-curtain {

@@ -27,7 +27,7 @@ $center($big(This is the HTML documentation of the Fragment synthesizer.))
 
 $par
 
-$center($tlink($image(580)(fsynth_ui.png))(https://www.fsynth.com))
+$center($tlink($image(580)(images/fsynth_ui.png))(https://www.fsynth.com))
 
 $par
 $p
@@ -283,13 +283,71 @@ Once run, you can stop the FAS application by pressing any keys.
 
 $p
 
+$section(sessions)(Sessions)
+
+$par
+
+Fragment sessions are isolated spaces which are open to all peoples who has access to the session name, they can be joined by going to the Fragment $tlink(homepage)(https://www.fsynth.com) or by typing the session name directly into the address bar as demonstrated below.
+
+$p
+
+You can join any sessions directly from your browser address bar by replacing "yoursessionname" for the URL shown below by the session name you want to join or create:
+
+$p
+
+$center(https://www.fsynth.com/app/$bold(yoursessionname))
+
+$par
+
+Fragment store sessions content and settings on a server which mean that any of the synchronizable actions in the session such as the code editor content, canvas settings, slices and $ref(uniformsdialog)(uniform inputs) are automatically saved $bold(if) Fragment is connected.
+
+$p
+
+Fragment synchronize the code editor content, slices, canvas settings and $ref(uniformsdialog)(uniform inputs) across all the users in the session in real-time which mean that you can jam with your friends if you share the session URL.
+
+$p
+
+Note that MIDI note messages are not synchronized between users due to technical constraints but you can still add $ref(uniformsdialog)(uniform inputs) and assign MIDI devices to control them, their values are synchronized between users but it might be not real-time.
+
+$p
+
+Some settings are saved locally on your browser, some of them are global (like the username and settings related to the editor) and some of them are saved per sessions such as the MIDI settings and gain.
+
+$p
+
+Fragment is respectful of the user and does not store any informations related to the user outside the boundary designed by the application focus.
+
+$p
+
+$section(homepage)(The homepage)
+
+$par
+
+The Fragment $tlink(homepage)(https://www.fsynth.com) can be used to retrieve the various sessions that you joined, a sessions list will be shown once you joined at least one session.
+
+$tlink($center($image(600)(images/homepage_sessions.png)))(images/homepage_sessions.png)
+
+$par
+
+You can join a session from the list by clicking on it and by clicking on the door icon.
+
+$p
+
+You can remove a session from the list by clicking on it and by clicking on the trash icon.
+
+$p
+
+You can also clear the sessions history by clicking on the corresponding button, it will not delete the session content, just your settings for that session, a deleted session can be joined back from the homepage form or by the browser address bar if you know its name.
+
+$p
+
 $section(gui)(User interface)
 
 $par
 
 
-$tlink($center($image(600)(ui_help.png)))(ui_help.png)
-$tlink($center(Click to view the full image))(ui_help.png)
+$tlink($center($image(600)(images/ui_help.png)))(images/ui_help.png)
+$tlink($center(Click to view the full image))(images/ui_help.png)
 
 $p
 
@@ -301,16 +359,52 @@ It is composed of a few parts with very specific roles, here is the list of part
 
 $p
 
+$subsection(dialogs)(Dialogs)
+
+$par
+
+There is many dialogs in Fragment, they are composed of a title bar with some actions, the dialog content and sometimes a status bar, dialogs hover above the rest of the application, you can move them around and close them, some are also resizable, minimizable and detachable in a separate window.
+
+$p
+
+To resize them, place your mouse cursor on the bottom left corner of the dialog, click and drag to the desired size.
+
+$p
+
+$tlink($center($image(600)(gif/dialog_resize.gif)))(gif/dialog_resize.gif)
+
+$par
+
+A mnimized dialog will take less space on the screen by only displaying the title bar.
+
+$p
+
+Here is a list of dialog actions (in the order by which they appear from left to right):
+
+$p
+
+$tlink($center($image(74)(images/dialog_actions.png)))(images/dialog_actions.png)
+
+$list(
+	$item close the dialog
+	$item minimize/maximize
+	$item detach the dialog in a new window)
+
 $subsection(infobar)(The information bar)
 
 $par
 
-The information bar at the top convey minor and major informations such as:
+The information bar at the top convey minor and major informations such as (in order from left to right):
 
 $list(
 	$item connectivity status
+	$list(
+		$item a red indicator signal that the connection to this service failed
+		$item the service name can be found by hovering the cursor on the icon)
 	$item your online name
-	$item various informations which can be enabled or disabled such as:
+	$list(
+		$item you can change your username by clicking on it)
+	$item various informations which can be enabled or disabled in the settings dialog such as:
 	$list(
 		$item the current frequency under the mouse cursor
 		$item the actual number of simultaneous MIDI notes
@@ -326,7 +420,11 @@ You can slice the graphical score by right-clicking on it and clicking on the + 
 
 $p
 
-You are free to add any number of slices, many slices may have an impact on performances.
+$tlink($center($image(600)(gif/add_slices.gif)))(gif/add_slices.gif)
+
+$par
+
+You are free to add any number of slices, adding many slices may have an impact on performances.
 
 $p
 
@@ -342,13 +440,21 @@ The purpose of slices is to capture vertical parts of the canvas which will be f
 
 $p
 
-Slices can be moved by dragging them on the X axis, to do so, maintain the left mouse button on a slice and move the mouse cursor around.
+Slices can be moved by dragging them on the X axis, to do so, maintain the left mouse button on a slice and move the mouse cursor around on the horizontal axis.
 
 $p
 
-Double-clicking on a slice open its settings dialog directly.
+$tlink($center($image(600)(gif/dragging_slices.gif)))(gif/dragging_slices.gif)
+
+$par
+
+Double-clicking on a slice open its settings dialog directly:
 
 $p
+
+$tlink($center($image(326)(images/slice_settings.png)))(images/slice_settings.png)
+
+$par
 
 The following actions are possible by right-clicking on a slice:
 
@@ -362,11 +468,31 @@ $list(
 		$item $ref(fas)(FAS) Output channel: the l/r output channel which will be used by FAS for that slice)
 	$item deletion)
 
+Here is how you can mute a slice:
+
+$p
+
+$tlink($center($image(600)(gif/mute_slice.gif)))(gif/mute_slice.gif)
+
+$par
+
+Here is how you can delete a slice:
+
+$p
+
+$tlink($center($image(600)(gif/remove_slices.gif)))(gif/remove_slices.gif)
+
+$p
+
 $subsection(toolbar)(The toolbar)
 
 $par
 
-The toolbar is a collection of tools and settings which are grouped by sections, here is a detailed list of the toolbar items:
+$tlink($center($image(574)(images/toolbar.png)))(images/toolbar.png)
+
+$par
+
+The toolbar is a collection of tools and settings which are grouped by sections, here is a detailed list of the toolbar items (in order from left to right):
 
 $list(
 	$item help
@@ -387,7 +513,7 @@ $list(
   $list(
   	$item $tlink(ShaderToy)(https://www.shadertoy.com) converter
   	$item canvas axis details which appear when the canvas is hovered by the cursor
-  	$item analysis dialog (not working when FAS is enabled)
+  	$item $ref(analysis)(analysis dialog) (not working when FAS is enabled)
   	$item clone the code editor in a separate window)
 	$item fragment inputs
 	$list(
@@ -429,6 +555,10 @@ $list(
 	$item delete
 	$item complex input settings dialog)
 
+$tlink($center($image(600)(gif/fragment_input.gif)))(gif/fragment_input.gif)
+	
+$par
+	
 The complex input settings dialog have several options:
 
 $par
@@ -453,6 +583,22 @@ $list(
 Note: The "repeat" and "mirrored" Wrap S/T option will be unavailable if your browser does not support the WebGL 2 API, it is only available by adding images with power-of-2 dimensions (128x64, 256x256 etc.) or by using a browser with WebGL 2 support.
 
 $p
+
+$subsection(analysis)(Analysis dialog)
+
+$par
+
+The analysis dialog is a real-time spectogram view of the audio output.
+
+$p
+
+Note: When FAS is enabled, no spectrogram will be shown.
+
+$p
+
+$tlink($center($image(600)(gif/analysis_dialog.gif)))(gif/analysis_dialog.gif)
+
+$par
 
 $subsection(codeditor)(The code editor)
 
@@ -501,7 +647,12 @@ MIDI learn is a neat feature of Fragment which enable any MIDI learn enabled wid
 
 $p
 
-The red square appearing on an UI interface widget indicate that the MIDI learn functionality is supported for that widget, it only appear on WebMIDI enabled browsers such as Chrome and Opera and on widgets which are allowed to be controlled by MIDI.
+$tlink($center($image(104)(images/midi_learn.png)))(images/midi_learn.png)
+$center(The red square indicate MIDI learn functionality support for this widget)
+
+$par
+
+The red square appearing on an UI interface widget indicate that the MIDI learn functionality is supported for the widget, it only appear on WebMIDI enabled browsers such as Chrome and Opera and on widgets which are allowed to be controlled by MIDI.
 
 $p
 
@@ -521,7 +672,11 @@ $subsection(globalsettingsdialog)(The session/global settings dialog)
 
 $par
 
-The session & global settings dialog content:
+$tlink($center($image(347)(images/settings.png)))(images/settings.png)
+
+$par
+
+The session & global settings dialog content (in order from top to bottom):
 
 $list(
 	$item Score width
@@ -585,6 +740,10 @@ $subsection(midisettingsdialog)(MIDI settings dialog)
 
 $par
 
+$tlink($center($image(325)(images/midi_settings.png)))(images/midi_settings.png)
+
+$par
+
 The MIDI settings dialog show all the MIDI input devices found at this time, by default there is no MIDI input devices enabled, you can enable MIDI devices by checking the checkbox below the MIDI device name.
 
 $p
@@ -598,6 +757,33 @@ Fragment support hot plugging of MIDI devices, any MIDI devices which are plugge
 $p
 
 Fragment keep track of your MIDI settings choice for particual devices per sessions, this mean that if a MIDI device is enabled, when you quit Fragment or that the MIDI device is unplugged and you launch again Fragment and that the MIDI device is plugged in, Fragment will enable it automatically.
+
+$p
+
+$subsection(sessionchat)(Session chat dialog)
+
+$par
+
+$tlink($center($image(600)(images/session_chat.png)))(images/session_chat.png)
+
+$par
+
+The session chat dialog allow discussions with all users in the current session.
+
+$p
+
+It is a simple but effective chatbox that you can resize, move around or detach. it has three parts:
+
+$list(
+	$item messages list
+	$item users list
+	$item input)
+
+The green user in the user list indicate yourself.
+
+$p
+
+You can send a message to all users in the session by clicking on the input then typing your message and pressing ENTER.
 
 $p
 
@@ -652,6 +838,25 @@ Fragment usage of the GPU is restricted to a single fragment program which will 
 $p
 
 The fragment program is written in GLSL (OpenGL Shading Language) which has a syntax quite similar to the C language but is much simpler to learn.
+
+$p
+
+You can do anything from ray-traced 3D to drawing simple lines and define their behaviors with Fragment.
+
+$p
+
+If you want to design sounds with Fragment, you will probably want to define the in/harmonics and their behaviors with curves altough it is possible to design sounds by other methods.
+
+$p
+
+Fragment has many pre-defined uniforms variable which can be used to animate and interact with things, here are all the pre-defined uniforms that you can use directly in the code editor:
+
+$list(
+	$item -)
+	
+$par
+
+
 
 $p
 

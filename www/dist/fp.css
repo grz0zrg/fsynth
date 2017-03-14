@@ -1445,6 +1445,16 @@ hr {
     .fp-try > div > p:first-child {
         display: none;
     }
+    
+    .fp-dl-table td:first-child {
+        font-size: 7px;
+    }
+}
+
+@media (min-width: 550px) {
+    .fp-dl-table td:first-child {
+        font-size: 15px;
+    }
 }
 
 /* Bigger than 550 */
