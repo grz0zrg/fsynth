@@ -16842,7 +16842,7 @@ var _frame = function (raf_time) {
         }
     }
     
-    _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
+    _gl.uniform4fv(_getUniformLocation("keyboard"), _keyboard.data);
 
     //_gl.useProgram(_program);
     _gl.uniform1f(_getUniformLocation("globalTime"), global_time);
@@ -17036,8 +17036,22 @@ var _createShader = function (shader_type, shader_code) {
     return shader;
 };
 
+var _getUniformLocation = function (name, program) {
+    var prog = _program;
+    
+    if (!_uniform_location_cache[name]) {
+        if (program !== undefined) {
+            prog = program;
+        }
+        
+        _uniform_location_cache[name] = _gl.getUniformLocation(prog, name);
+    }
+    
+    return _uniform_location_cache[name];
+};
+
 var _setUniform = function (gl_ctx, type_str, program, name, value) {
-    var uniform_location = gl_ctx.getUniformLocation(program, name);
+    var uniform_location = _getUniformLocation(name, program);//gl_ctx.getUniformLocation(program, name);
     
     if (type_str === "bool" || type_str === "int" || type_str === "uint") {
         gl_ctx.uniform1i(uniform_location, value);
@@ -17047,7 +17061,8 @@ var _setUniform = function (gl_ctx, type_str, program, name, value) {
 };
 
 var _setUniforms = function (gl_ctx, type_str, program, name, values, comps) {
-    var uniform_location = gl_ctx.getUniformLocation(program, name);
+    var uniform_location = _getUniformLocation(name, program);
+    //var uniform_location = gl_ctx.getUniformLocation(program, name);
     
     if (type_str === "bool" || 
         type_str === "int" || 
@@ -17076,14 +17091,6 @@ var _setUniforms = function (gl_ctx, type_str, program, name, values, comps) {
             }
         }
     }
-};
-
-var _getUniformLocation = function (name) {
-    if (!_uniform_location_cache[name]) {
-        _uniform_location_cache[name] = _gl.getUniformLocation(_program, name);
-    }
-    
-    return _uniform_location_cache[name];
 };
 
 var _compile = function () {
@@ -20696,7 +20703,7 @@ var _fasInit = function () {
     
     _keyboard.uniform_vectors = _webgl.max_fragment_uniform_vector - _free_uniform_vectors;
     
-    _keyboard.data_length = _keyboard.uniform_vectors * 4;
+    _keyboard.data_length = _keyboard.uniform_vectors * _keyboard.data_components;
     _keyboard.polyphony_max = _keyboard.uniform_vectors;
     
     if (_keyboard.uniform_vectors <= 16) {
@@ -20704,10 +20711,10 @@ var _fasInit = function () {
         
         // still not? default to 8, all devices should be fine nowaday with 32 uniform vectors
         if (_keyboard.uniform_vectors <= 16) {
-            _keyboard.data_length = 16 * 4;
+            _keyboard.data_length = 16 * _keyboard.data_components;
             _keyboard.polyphony_max = 16;
         } else {
-            _keyboard.data_length = _keyboard.uniform_vectors * 4;
+            _keyboard.data_length = _keyboard.uniform_vectors * _keyboard.data_components;
             _keyboard.polyphony_max = _keyboard.uniform_vectors;
         }
     }

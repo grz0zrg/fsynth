@@ -276,7 +276,7 @@ var _frame = function (raf_time) {
         }
     }
     
-    _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
+    _gl.uniform4fv(_getUniformLocation("keyboard"), _keyboard.data);
 
     //_gl.useProgram(_program);
     _gl.uniform1f(_getUniformLocation("globalTime"), global_time);

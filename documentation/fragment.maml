@@ -857,7 +857,54 @@ There is also many applications that let you create stunning visuals in your bro
 
 $p
 
-Several methods exists to produce sounds through visuals with a fragment program, one approach consist of using simple one dimensional curves which will have several conditional transformations and other processing applied to them by taking into account the global time.
+$subsection(glsles)(OpenGL Shading Language)
+
+$par
+
+The Khronos Group (authors of the language specification) released several reference cards of the Fragment GLSL specification, the reference cards are compact reference of the full language specification which can be used in conjunctions with code samples to learn the OpenGL Shading Language quickly.
+
+$p
+
+Since there is plenty of resources to learn the OpenGL Shading Language, the documentation provided in this section will only provide the official reference cards which are enough to learn from to understand all the GLSL code that will follow.
+
+$p
+
+As Fragment can use WebGL 2.0 if your browser has support for it, the reference cards for both WebGL 1.0 GLSL and WebGL 2.0 GLSL (more functionalities) is provided, keep in mind that if Fragment run fine with your browser, you can safely use the WebGL 1.0 GLSL reference card as a starting point:
+
+$list(
+	$item WebGL 1.0 OpenGL Shading Language
+	$list(
+		$item $tlink(Page 1 PDF)(pdf/webgl1_glsl_1.pdf)
+		$item $tlink(Page 2 PDF)(pdf/webgl1_glsl_2.pdf))
+	$item WebGL 2.0 OpenGL Shading Language
+	$list(
+		$item $tlink(Page 1 PDF)(pdf/webgl2_glsl_1.pdf)
+		$item $tlink(Page 2 PDF)(pdf/webgl2_glsl_2.pdf)
+		$item $tlink(Page 3 PDF)(pdf/webgl2_glsl_3.pdf))
+)
+
+$p
+
+$subsection(harmonics)(Producing harmonics)
+
+$par
+
+It is difficult to define precisely the attributes of a complex sound, simplistic models would say that all complex sounds are a combination of a fundamental frequency and harmonics which are integer multiple of the fundamental frequency but as you can find on the $tlink(Wikipedia article on timbre)(https://en.wikipedia.org/wiki/Timbre), there is many more attributes altough the fundamental frequency and harmonics is a good starting point.
+
+$p
+
+Here is an excerpt of timbre major attributes by Robert Erickson taken from the Wikipedia page:
+
+$list(
+	$item The range between tonal and noiselike character
+	$item The spectral envelope
+	$item The time envelope in terms of rise, duration, and decay
+	$item The changes both of spectral envelope (formant-glide) and fundamental frequency (micro-intonation)
+	$item The prefix, or onset of a sound, quite dissimilar to the ensuing lasting vibration)
+
+$p
+
+To produce sounds with visuals, an approach consist of using horizontal lines which will constitute all the frequencies contained by our sound, those horizontal lines will have several conditional transformations and other processing applied to them which will depend individually or not on dynamical parameters such as time.
 
 $p
 

@@ -478,7 +478,7 @@ var FragmentSynth = function (params) {
     
     _keyboard.uniform_vectors = _webgl.max_fragment_uniform_vector - _free_uniform_vectors;
     
-    _keyboard.data_length = _keyboard.uniform_vectors * 4;
+    _keyboard.data_length = _keyboard.uniform_vectors * _keyboard.data_components;
     _keyboard.polyphony_max = _keyboard.uniform_vectors;
     
     if (_keyboard.uniform_vectors <= 16) {
@@ -486,10 +486,10 @@ var FragmentSynth = function (params) {
         
         // still not? default to 8, all devices should be fine nowaday with 32 uniform vectors
         if (_keyboard.uniform_vectors <= 16) {
-            _keyboard.data_length = 16 * 4;
+            _keyboard.data_length = 16 * _keyboard.data_components;
             _keyboard.polyphony_max = 16;
         } else {
-            _keyboard.data_length = _keyboard.uniform_vectors * 4;
+            _keyboard.data_length = _keyboard.uniform_vectors * _keyboard.data_components;
             _keyboard.polyphony_max = _keyboard.uniform_vectors;
         }
     }
