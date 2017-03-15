@@ -448,7 +448,7 @@ $tlink($center($image(600)(gif/dragging_slices.gif)))(gif/dragging_slices.gif)
 
 $par
 
-Double-clicking on a slice open its settings dialog directly:
+Double-clicking on a slice open its settings dialog directly:+
 
 $p
 
@@ -612,9 +612,13 @@ $tlink(GLSL)(https://www.khronos.org/files/opengles_shading_language.pdf) code i
 
 $p
 
-The fragment program is compiled as you type in the code editor without interrupting sounds/visuals output even if an error is present, this enable powerful live coding.
+The fragment program is compiled as you type, if the compilation fail, the code editor will notice you with a floating message and with a red message at the lines that cause the compilation to fail, all of that without interrupting sounds/visuals output, this enable powerful live coding.
 
 $p
+
+$tlink($center($image(600)(gif/glsl_inline_report.gif)))(gif/glsl_inline_report.gif)
+
+$par
 
 The changes that you make in the code editor are automatically saved per named sessions, changes are also synchronized in real-time between all the users of the session you are currently in, this is the collaborative nature of Fragment.
 
@@ -833,7 +837,7 @@ $p
 
 $section(gpuprogramming)(How to produce sounds by programming your GPU)
 
-Fragment usage of the GPU is restricted to a single fragment program which will be executed for each pixels of the graphical score.
+Fragment usage of the GPU is restricted to a single fragment program which will be executed by the GPU for each pixels of the graphical score.
 
 $p
 
@@ -841,9 +845,33 @@ The fragment program is written in GLSL (OpenGL Shading Language) which has a sy
 
 $p
 
-You can do anything from ray-traced 3D to drawing simple lines and define their behaviors with Fragment.
+You can do anything from ray-traced 3D to drawing simple lines and define their behaviors with Fragment, the only requirement is high school mathematics.
 
 $p
+
+This documentation focus on the audio synthesis aspect of Fragment as there is already plenty resources covering the creation of stunning visuals with GLSL programs on the web.
+
+$p
+
+There is also many applications that let you create stunning visuals in your browser by the same method, one of the most popular one and compatible with Fragment (by using the convert ShaderToy button of the toolbar) is $tlink(ShaderToy)(https://www.shadertoy.com/), this program let you build visuals and audio at the same time, just like Fragment but with a more conventional approach to audio synthesis.
+
+$p
+
+Several methods exists to produce sounds through visuals with a fragment program, one approach consist of using simple one dimensional curves which will have several conditional transformations and other processing applied to them by taking into account the global time.
+
+$p
+
+$subsection(globaltime)(Global time)
+
+$par
+
+The global time is one of the most important pre-defined variable in Fragment, it is a playback time that increase continually, it can only be reset or paused by using the corresponding toolbar button, the global time is a precise clock which can be used to trigger events and dynamically alter the visuals.
+
+$p
+
+$subsection(predefuniforms)(Pre-defined uniforms)
+
+$par
 
 If you want to design sounds with Fragment, you will probably want to define the in/harmonics and their behaviors with curves altough it is possible to design sounds by other methods.
 
