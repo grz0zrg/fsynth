@@ -16814,6 +16814,8 @@ var _frame = function (raf_time) {
         
         fragment_input,
         
+        time_now = performance.now(),
+        
         global_time = (raf_time - _time) / 1000,
         
         iglobal_time,
@@ -16891,6 +16893,10 @@ var _frame = function (raf_time) {
         if (play_position_marker.mute) {
             _data[channel] = new Uint8Array(_canvas_height_mul4);
         } else {
+            if (play_position_marker.frame_increment != 0) {
+                _setPlayPosition(play_position_marker.id, play_position_marker.x + play_position_marker.frame_increment, play_position_marker.y, false, true);
+            }
+            
             play_position_marker_x = play_position_marker.x;
             
             if (_gl2) {
@@ -16908,6 +16914,10 @@ var _frame = function (raf_time) {
             
             if (play_position_marker.mute) {
                 continue;
+            }
+            
+            if (play_position_marker.frame_increment != 0) {
+                _setPlayPosition(play_position_marker.id, play_position_marker.x + play_position_marker.frame_increment, play_position_marker.y, false, true);
             }
             
             play_position_marker_x = play_position_marker.x;
@@ -17110,7 +17120,7 @@ var _compile = function () {
         i = 0;
     
     // add our uniforms
-    glsl_code = "precision mediump float; uniform float globalTime; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "];";
+    glsl_code = "precision mediump float; uniform float globalTime; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "];float htoy(float frequency) {return (resolution.y - (resolution.y - (log(frequency / baseFrequency) / log(2.)) * (resolution.y / octave))) / resolution.y;}";
 
     // add inputs uniforms
     for (i = 0; i < _fragment_input_data.length; i += 1) {
@@ -18318,7 +18328,7 @@ var _getSlice = function (play_position_marker_id) {
     return _play_position_markers[parseInt(play_position_marker_id, 10)];
 };
 
-var _setPlayPosition = function (play_position_marker_id, x, y, submit) {
+var _setPlayPosition = function (play_position_marker_id, x, y, submit, dont_update_slider) {
     var play_position_marker = _getSlice(play_position_marker_id),
         
         height = play_position_marker.height,
@@ -18326,10 +18336,16 @@ var _setPlayPosition = function (play_position_marker_id, x, y, submit) {
         canvas_offset = _getElementOffset(_canvas),
 
         bottom;
+    
+    if (play_position_marker.x < 0) {
+        x = _canvas_width_m1; 
+    } else if (play_position_marker.x > _canvas_width_m1) {
+        x = 0;
+    }
 
     play_position_marker.x = x;
-    
-    play_position_marker.element.style.left = (x + canvas_offset.left + 1) + "px";
+
+    play_position_marker.element.style.left = (parseInt(x, 10) + canvas_offset.left + 1) + "px";
 /*
     if (y !== undefined) {
         bottom = y + height;
@@ -18337,7 +18353,9 @@ var _setPlayPosition = function (play_position_marker_id, x, y, submit) {
         play_position_marker.y = y;
     }
 */  
-    WUI_RangeSlider.setValue("fs_slice_settings_x_input_" + play_position_marker.id, x);
+    if (dont_update_slider === undefined) {
+        WUI_RangeSlider.setValue("fs_slice_settings_x_input_" + play_position_marker.id, x);
+    }
     
     if (submit) {
         _submitSliceUpdate(0, play_position_marker_id, { x : x }); 
@@ -18436,11 +18454,13 @@ var _createMarkerSettings = function (marker_obj) {
         fs_slice_settings_container = document.createElement("div"),
         fs_slice_settings_x_input = document.createElement("div"),
         fs_slice_settings_shift_input = document.createElement("div"),
-        fs_slice_settings_channel_input = document.createElement("div");
+        fs_slice_settings_channel_input = document.createElement("div"),
+        fs_slice_settings_bpm = document.createElement("div");
     
     fs_slice_settings_x_input.id = "fs_slice_settings_x_input_" + marker_obj.id;
     fs_slice_settings_shift_input.id = "fs_slice_settings_shift_input_" + marker_obj.id;
     fs_slice_settings_channel_input.id = "fs_slice_settings_channel_input_" + marker_obj.id;
+    fs_slice_settings_bpm.id = "fs_slice_settings_bpm_" + marker_obj.id;
     
     WUI_RangeSlider.create(fs_slice_settings_x_input, {
             width: 120,
@@ -18540,8 +18560,36 @@ var _createMarkerSettings = function (marker_obj) {
             }
         });
     
+    WUI_RangeSlider.create(fs_slice_settings_bpm, {
+            width: 120,
+            height: 8,
+
+            bar: false,
+
+            step: 0.01,
+
+            midi: {
+                type: "rel"   
+            },
+        
+            default_value: 0,
+            value: marker_obj.frame_increment,
+
+            title: "Increment per frame",
+
+            title_min_width: 140,
+            value_min_width: 88,
+
+            on_change: function (value) {
+                var slice = _getSlice(marker_obj.element.dataset.slice);
+                
+                slice.frame_increment = parseFloat(value);
+            }
+        });
+    
     fs_slice_settings_container.appendChild(fs_slice_settings_x_input);
     fs_slice_settings_container.appendChild(fs_slice_settings_shift_input);
+    fs_slice_settings_container.appendChild(fs_slice_settings_bpm);
     fs_slice_settings_container.appendChild(fs_slice_settings_channel_input);
     
     fs_slice_settings_container.id = "slice_settings_container_" + marker_obj.id;
@@ -18653,6 +18701,7 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, submit) {
             min: 0,
             max: 100,
             shift: 0,
+            frame_increment: 0,
             output_channel: 1,
             y: 0,
             height: _canvas_height,
@@ -20321,7 +20370,7 @@ var _onMIDIMessage = function (midi_message) {
 
                 _keyboard.pressed[key] = {
                         frq: _frequencyFromNoteNumber(midi_message.data[1]),
-                        vel: midi_message.data[2],
+                        vel: midi_message.data[2] / 127,
                         time: Date.now(),
                         channel: channel
                     };

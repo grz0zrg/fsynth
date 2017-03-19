@@ -8,6 +8,17 @@ $colorrule(funny)([l-p])($rgb(100,100,0)($big($1)))
 $colorrule(funny)([p-z])($rgb(0,100,100)($sub($big($1))))
 $colorizer(funny)
 
+$colorrule(glsl)(void|const|float|int|vec2|vec3|vec4|if|else|continue|for|return|highp)($rgb(10,0,130)($1))
+$colorrule(glsl)(gl_FragColor|gl_FragCoord|clamp|pow|exp|mod|floor)($rgb(0,100,0)($1))
+$colorrule(glsl)(resolution|globalTime|htoy)($rgb(0,100,100)($1))
+$colorrule(glsl)([0-9]+)($rgb(130,0,130)($1))
+$colorrule(glsl)([0-9]+#.[0-9]*)($rgb(130,0,0)($1))
+$colorrule(glsl)(#/#/.*)($rgb(60,20,20)($1))
+$colorrule(glsl)(#*|#+|#-|#/|#==|#=|#<|#>|#+=|#*=)($rgb(10,100,80)($1))
+$colorizer(glsl)
+
+$define(glslcode)(1)($code(230,235,220)($colorize(glsl)($par$nolist($1)$par$par)))
+
 $define(article)(0)()
 
 $input(basis.maml)
@@ -38,10 +49,10 @@ $section(introduction)(Introduction)
 
 The $bold($tlink(Fragment synthesizer)(https://www.fsynth.com)) (also called fsynth) is a collaborative web-based musical instrument which allow direct manipulation of the sound spectrum by the use of on-the-fly GPU (Graphics Processing Unit) programming.
 $p
-Fragment is stereophonic, polyphonic, multitimbral, it support live coding of audio and visuals at the same time.
+Fragment is stereophonic, polyphonic, multitimbral and support live coding of audio and visuals at the same time.
 $p
 Fragment is first and foremost a powerfull additive synthesizer which let you have complete control over the sound spectrum in real-time with direct visual feedback.
-$par
+$p
 
 $subsection(history)(History)
 
@@ -58,11 +69,9 @@ $p
 In the summer 2016 while i was releasing the prototype source code, i played with it again and after tweaking the GLSL code, i was able to make some nice sounds and envision what would be possible with this technology, so i started to think about that prototype again and come up with many ideas that would make Fragment more functional and easier to use, the real work begun.
 $p
 After many hours spent crafting the software, the first version of Fragment was released in January 2017, it was quite limited at that time, Fragment has now improved alot.
-$par
+$p
 
 $subsection(capabilities)(Capabilities)
-
-$par
 
 $list(
 	$item Powerful additive synthesizer
@@ -91,9 +100,9 @@ $subsection(systemrequirements)(System requirements)
 
 $par
 
-Fragment is a special kind of additive synthesizer and require a great deal of processing power in order to work properly, a medium-end GPU and CPU should work fine.
+Fragment is a special kind of additive synthesizer which require a great deal of processing power in order to work properly, a medium-end GPU and CPU should work fine.
 
-$par
+$p
 
 $subsubsection(browser)(Browser)
 
@@ -105,12 +114,15 @@ $p
 Well-tested and compatible browsers include Firefox 51.x and Chrome 55.x but Fragment may work with previous version of those browsers as well.
 $p
 It is known to work on recent version of Safari and Opera as well.
+$p
+
+Chrome or Chromium browser is recommended due to its good audio implementation.
 
 $p
 
 Fragment support the WebGL 2 API which improve performances and enable some advanced features which are only available if the browser support the WebGL 2 API.
 
-$par
+$p
 
 $subsubsection(cpu)(CPU)
 
@@ -132,16 +144,18 @@ $par
 Fragment was developed and tested with a NVIDIA GeForce GTX 970 GPU, a powerful GPU may be required if:
 $par
 $list(
-	$item you want a greater score resolution
+	$item you want higher score resolution
 	$item you want to do visuals alongside audio
 	$item you are doing complex things/use many inputs in your shader
 	$item you want greater polyphonic/harmonics capabilities)
 
-$section(howitwork)(Technical details)
+$section(howitwork)(Concepts)
 
 Fragment is an additive synthesizer, it let you have full control over the timbral qualities of your sounds by the mean of GPU programming.
 $p
 Unlike other additive synthesizer software, there is no need for knobs, sliders or any other controllers to sculpt your sounds, all of that is done by generating visuals which will determine your sounds harmonic content and dynamic characteristics.
+$p
+There is many features in Fragment which allow any creative minds to produce complex soundsc in different ways and even with external tools, i suggest all the readers to look at great softwares like the $tlink(IanniX sequencer)(https://www.iannix.org) and to use it with Fragment using the MIDI capabilities.
 $p
 While Fragment may seem overwhelming at first, the only thing that is required to produce sounds with it is to know how to generate the visuals.
 $p
@@ -156,9 +170,9 @@ Fragment is first and foremost a powerful additive synthesizer which make an ext
 $p
 Additive synthesis is a sound synthesis technique that creates timbre by adding sine waves together.
 $p
-Adding sine waves produce a timbre, the timbre qualities is defined by its harmonic content and dynamic characteristics of the harmonic content.
+Adding sine waves produce a timbre, the timbre qualities is mainly defined by its harmonic content and the dynamic characteristics of the harmonic content.
 $p
-Fragment can produce any timbres with precise accuracy.
+Fragment can theoritically produce any timbres with precise accuracy.
 $p
 The only limit to the amount of sine waves that can be added by Fragment is the limit of the available processing power.
 $p
@@ -175,7 +189,9 @@ The fragment program (also known as fragment shaders) is executed by the GPU and
 $p
 The graphical score represent a kind of sonic canvas where the X axis represent time and the Y axis represent frequencies, you "paint" the graphical score by writing a fragment program which will be executed for each pixels of the graphical score.
 $p
-What you hear in Fragment is determined by the choice of "slices" of the graphical score, slices are vertical bits of the graphical score which are merged together and produce an audible result.
+What you hear in Fragment is determined by the position of "slices" which are added on the graphical score, slices are vertical bits of the graphical score which are merged together and produce an audible result.
+$p
+The content of slices is captured at the rate of display refresh rate which conventionally should be 60fps most of the time.
 $p
 The frequency mapping of the graphical score is fixed by a logarithmic formula, altough the formula cannot be changed right now, some parameters are available in the settings dialog to fine tune the frequency map.
 $p
@@ -191,14 +207,66 @@ $list(
 	$item $bold(y) the vertical position
 	$item $bold(n) the number of oscillators (which is the height of the canvas)
 	$item $bold(o) the octave count)
+	
+$section(sessions)(Sessions)
+
+Fragment sessions are isolated spaces which are open to all peoples who has access to the session name, they can be joined by going to the Fragment $tlink(homepage)(https://www.fsynth.com) or by typing the session name directly into the address bar as demonstrated below.
+
+$p
+
+You can join any sessions directly from your browser address bar by replacing "yoursessionname" for the URL shown below by the session name you want to join or create:
+
+$p
+
+$center(https://www.fsynth.com/app/$bold(yoursessionname))
 
 $par
 
-$subsection(fas)(FAS)
+Fragment store sessions content and settings on a server which mean that any of the synchronizable actions in the session such as the code editor content, canvas settings, slices and $ref(uniformsdialog)(uniform inputs) are automatically saved $bold(if) Fragment is connected.
+
+$p
+
+Fragment synchronize the code editor content, slices, canvas settings and $ref(uniformsdialog)(uniform inputs) across all the users in the session in real-time which mean that you can jam with your friends if you share the session URL.
+
+$p
+
+Note that MIDI note messages are not synchronized between users due to technical constraints but you can still add $ref(uniformsdialog)(uniform inputs) and assign MIDI devices to control them, their values are synchronized between users.
+
+$p
+
+Some settings are saved locally on your browser, some of them are global (like the username and settings related to the editor) and some of them are saved per sessions such as the MIDI settings and gain.
+
+$p
+
+Fragment is respectful of the user and does not store any informations related to the user outside the boundary defined by the application focus.
+
+$p
+
+$subsection(homepage)(Homepage and sessions history)
 
 $par
 
-FAS (Fragment Audio Server) is the Fragment synthesis engine acting as a server, it is an external independent program written with the C language for very fast audio synthesis.
+The Fragment $tlink(homepage)(https://www.fsynth.com) can be used to retrieve the various sessions that you joined, a session list will be shown once you joined at least one session.
+
+$tlink($center($image(600)(images/homepage_sessions.png)))(images/homepage_sessions.png)
+
+$par
+
+You can join a session from the list by clicking on it and by clicking on the door icon.
+
+$p
+
+You can remove a session from the list by clicking on it and by clicking on the trash icon.
+
+$p
+
+You can also clear the sessions history by clicking on the corresponding button, it will not delete the session content, just your settings for that session and the session will removed from the list, a deleted session can be joined back from the homepage form or by the browser address bar if you know its name.
+
+$p
+
+$section(fas)(FAS)
+
+FAS (Fragment Audio Server) is the Fragment synthesis engine as a server, it is an external independent program written with the C language for very fast real-time audio synthesis.
 
 $p
 
@@ -283,68 +351,7 @@ Once run, you can stop the FAS application by pressing any keys.
 
 $p
 
-$section(sessions)(Sessions)
-
-$par
-
-Fragment sessions are isolated spaces which are open to all peoples who has access to the session name, they can be joined by going to the Fragment $tlink(homepage)(https://www.fsynth.com) or by typing the session name directly into the address bar as demonstrated below.
-
-$p
-
-You can join any sessions directly from your browser address bar by replacing "yoursessionname" for the URL shown below by the session name you want to join or create:
-
-$p
-
-$center(https://www.fsynth.com/app/$bold(yoursessionname))
-
-$par
-
-Fragment store sessions content and settings on a server which mean that any of the synchronizable actions in the session such as the code editor content, canvas settings, slices and $ref(uniformsdialog)(uniform inputs) are automatically saved $bold(if) Fragment is connected.
-
-$p
-
-Fragment synchronize the code editor content, slices, canvas settings and $ref(uniformsdialog)(uniform inputs) across all the users in the session in real-time which mean that you can jam with your friends if you share the session URL.
-
-$p
-
-Note that MIDI note messages are not synchronized between users due to technical constraints but you can still add $ref(uniformsdialog)(uniform inputs) and assign MIDI devices to control them, their values are synchronized between users but it might be not real-time.
-
-$p
-
-Some settings are saved locally on your browser, some of them are global (like the username and settings related to the editor) and some of them are saved per sessions such as the MIDI settings and gain.
-
-$p
-
-Fragment is respectful of the user and does not store any informations related to the user outside the boundary designed by the application focus.
-
-$p
-
-$section(homepage)(The homepage)
-
-$par
-
-The Fragment $tlink(homepage)(https://www.fsynth.com) can be used to retrieve the various sessions that you joined, a sessions list will be shown once you joined at least one session.
-
-$tlink($center($image(600)(images/homepage_sessions.png)))(images/homepage_sessions.png)
-
-$par
-
-You can join a session from the list by clicking on it and by clicking on the door icon.
-
-$p
-
-You can remove a session from the list by clicking on it and by clicking on the trash icon.
-
-$p
-
-You can also clear the sessions history by clicking on the corresponding button, it will not delete the session content, just your settings for that session, a deleted session can be joined back from the homepage form or by the browser address bar if you know its name.
-
-$p
-
-$section(gui)(User interface)
-
-$par
-
+$section(gui)(The user interface)
 
 $tlink($center($image(600)(images/ui_help.png)))(images/ui_help.png)
 $tlink($center(Click to view the full image))(images/ui_help.png)
@@ -436,7 +443,7 @@ Slices are an important part of Fragment, there will be no sounds if you don't a
 
 $p
 
-The purpose of slices is to capture vertical parts of the canvas which will be fed to the additive synthesis engine, they are like turntable needles, they can be dragged around in real-time by the mouse or by a MIDI controller.
+The purpose of slices is to capture the pixels of vertical parts of the canvas which will be fed to the additive synthesis engine, they are like turntable needles, they can be dragged around in real-time by the mouse or by a MIDI controller, you can use programs like $tlink(IanniX)(https://www.iannix.org) to move them following certain kind of patterns.
 
 $p
 
@@ -448,7 +455,7 @@ $tlink($center($image(600)(gif/dragging_slices.gif)))(gif/dragging_slices.gif)
 
 $par
 
-Double-clicking on a slice open its settings dialog directly:+
+Double-clicking on a slice open its settings dialog directly:
 
 $p
 
@@ -464,7 +471,8 @@ $list(
 	$item open the slice settings which posses the following controllers:
 	$list(
 		$item X Offset: the slice horizontal position which can be controlled by a MIDI controller
-		$item Y Shift: a non-represented vertical position which will pitch the slice audio up or down
+		$item Y Shift: pitch the slice audio up or down (there is no visual representation of this)
+		$item Increment per frame: This allow the slice to move left or right automatically, this is the increment value per frames
 		$item $ref(fas)(FAS) Output channel: the l/r output channel which will be used by FAS for that slice)
 	$item deletion)
 
@@ -482,7 +490,7 @@ $p
 
 $tlink($center($image(600)(gif/remove_slices.gif)))(gif/remove_slices.gif)
 
-$p
+$par
 
 $subsection(toolbar)(The toolbar)
 
@@ -639,7 +647,7 @@ Some of the code editor features can be enabled/disabled in the $ref(globalsetti
 
 $p
 
-If you experience audio stuttering as you type, it is recommended to detach the code editor off the main window, due to the complexity of the web and the complexity of the Fragment application, many things are not as optimal as they should be.
+If you experience audio stuttering as you type, it is recommended to detach the code editor off the main window, due to the complexity of the web and the complexity of the Fragment application, many things are not as optimal as they should be, you may hear audio crackles due to browser reflow.
 
 $p
 
@@ -861,7 +869,7 @@ $subsection(glsles)(OpenGL Shading Language)
 
 $par
 
-The Khronos Group (authors of the language specification) released several reference cards of the Fragment GLSL specification, the reference cards are compact reference of the full language specification which can be used in conjunctions with code samples to learn the OpenGL Shading Language quickly.
+The Khronos Group (authors of the language specification) released several reference cards of the GLSL specification, the reference cards are compact reference of the full language specification which can be used in conjunctions with code samples to learn the OpenGL Shading Language quickly.
 
 $p
 
@@ -875,7 +883,9 @@ $list(
 	$item WebGL 1.0 OpenGL Shading Language
 	$list(
 		$item $tlink(Page 1 PDF)(pdf/webgl1_glsl_1.pdf)
-		$item $tlink(Page 2 PDF)(pdf/webgl1_glsl_2.pdf))
+		$item $tlink(Page 2 PDF)(pdf/webgl1_glsl_2.pdf)))
+
+$list(
 	$item WebGL 2.0 OpenGL Shading Language
 	$list(
 		$item $tlink(Page 1 PDF)(pdf/webgl2_glsl_1.pdf)
@@ -883,13 +893,23 @@ $list(
 		$item $tlink(Page 3 PDF)(pdf/webgl2_glsl_3.pdf))
 )
 
+Here is a simple example of GLSL code that Fragment accept which just set all pixels to black :
+
+$glslcode(
+  void main () {
+    gl_FragColor = vec4(0., 0., 0., 0.);
+  }
+)
+
+In the subsequent GLSL code, $rgb(10,0,130)(blue words) are GLSL keywords, $rgb(130,0,0)(red) are float values and $rgb(0,130,0)(green words) are pre-defined specific definitions or functions.
+
 $p
 
-$subsection(harmonics)(Producing harmonics)
+$subsection(harmonics)(The timbre)
 
 $par
 
-It is difficult to define precisely the attributes of a complex sound, simplistic models would say that all complex sounds are a combination of a fundamental frequency and harmonics which are integer multiple of the fundamental frequency but as you can find on the $tlink(Wikipedia article on timbre)(https://en.wikipedia.org/wiki/Timbre), there is many more attributes altough the fundamental frequency and harmonics is a good starting point.
+It is difficult to define precisely the attributes of a complex sound, simplistic models would say that all complex sounds are a combination of a fundamental frequency and the harmonics which are integer multiple of the fundamental frequency but as you can find on the $tlink(Wikipedia article on timbre)(https://en.wikipedia.org/wiki/Timbre), there is many more attributes.
 
 $p
 
@@ -902,11 +922,372 @@ $list(
 	$item The changes both of spectral envelope (formant-glide) and fundamental frequency (micro-intonation)
 	$item The prefix, or onset of a sound, quite dissimilar to the ensuing lasting vibration)
 
+$subsection(linedrawing)(Drawing the fundamental)
+
+$par
+
+The fundamental is the simplest constituent of our timbre (its pitch and lowest frequency) and also the fundamental basis for building the harmonics (also called overtones) etc.
+
 $p
 
-To produce sounds with visuals, an approach consist of using horizontal lines which will constitute all the frequencies contained by our sound, those horizontal lines will have several conditional transformations and other processing applied to them which will depend individually or not on dynamical parameters such as time.
+We will produce a fundamental by drawing a horizontal lines and later on its harmonics, all of that will constitute all the frequencies contained by our sound (aka harmonics, partials etc.), those horizontal lines will have several conditional transformations and other processing applied to them later on to produce complex sounds.
 
 $p
+
+Here is how to draw a horizontal line which will produce a fundamental 440Hz sine wave:
+
+$par
+
+$glslcode(
+  void main () {
+    // get normalized coordinates [0, 1] of the current fragment (pixel)
+    vec2 uv = gl_FragCoord.xy / resolution;
+    
+    float frequency = 440.;
+    float l = 0.;
+    float r = 0.;
+    
+    // because this code is executed for each fragments
+    // the horizontal line is defined mathematically
+    // by a simple function: y^2 where y is offseted
+    // by the normalized vertical position of our 440Hz frequency
+    float v = pow(uv.y - htoy(frequency), 2.);
+    
+    // we will increase the steepness of the previous function
+    // we "catch" our vertical position with the function: y^2 * b
+    // this is like an imperfect narrow bandpass filter
+    // but just narrow enough so that only our line come "up"
+    float bandwidth = 700000.;
+    v *= bandwidth;
+    
+    // generate the color for left and right channels aka red and green output color
+    // we take care of reversing the value so that the line is seen
+    // we also clamp it to [0, 1], this is a safety measure for later on
+    l += clamp(1. - v, 0., 1.);
+    r += clamp(1. - v, 0., 1.);
+    
+    // plot the line
+    // Fragment use the RED and GREEN component
+    // for the LEFT and RIGHT audio channel in stereophonic mode
+    // if monophonic mode is enabled, the alpha component will be used for the audio
+    // in this case all other components are unused
+    // thus the blue component can be used for visuals or debugging etc.
+    gl_FragColor = vec4(l, r, 0., 0.);
+  }
+)
+
+$par
+
+Where:
+
+$list(
+	$item $bold($rgb(0,100,100)(resolution)) is a pre-defined Fragment uniform of type vec2 which contain the score $bold(width) and $bold(height)
+	$item $bold($rgb(0,100,100)(htoy)) is a pre-defined Fragment function which take a frequency in Hertz as argument and output its score $bold(normalized vertical position)
+)
+
+If you have troubles understanding this code, i urge you to plot all the functions in a normalized space with a tool such as $tlink(desmos)(https://www.desmos.com/calculator), keep in mind that this code is run for every pixels!
+
+$p
+
+You can verify that the produced horizontal line is a 440Hz sine wave by enabling the axis details tool in the toolbar and point your cursor on the horizontal line:
+
+$p
+
+$tlink($center($image(600)(gif/freq_details.gif)))(gif/freq_details.gif)
+
+$par
+
+You might be surprised to see that this is actually not exactly a 440Hz sine wave, the value is rounded due to the way $ref(score)(frequencies are mapped), this can be fixed by increasing the score height to get a more precise mapping, this will require higher processing power however.
+
+$par
+
+The function that we use here is also imperfect even if it work in most cases and has good performances, it is imperfect because at some frequencies, the color intensity of our horizontal will be shared on frequencies "in between", this is due to the mathematical function that we use, this can be attenuated by lowering the bandwidth but doing that may actually have the inverse effect, drawing a perfect horizontal line in all cases with a fragment shader can be quite tricky altough not impossible.
+
+$par
+
+$subsection(harmonics)(Drawing harmonics)
+
+$par
+
+Harmonics are defined as positive integer multiple of the frequency of the fundamental.
+
+$p
+
+We will extend the previous code by adding a loop:
+
+$par
+
+$glslcode(
+  void main () {
+    vec2 uv = gl_FragCoord.xy / resolution;
+    
+    float l = 0.;
+    float r = 0.;
+    float base_frequency = 440.;
+    float bandwidth = 700000.;
+    
+    // the number of harmonics that we want (including the fundamental)
+    // we define it as "const" because the current GLSL spec.
+    // does not allow dynamic variables for loops index
+    const float harmonics = 8.;
+    
+    // draw a horizontal line for each harmonics
+    // including the fundamental (that is why it is starting at 1.)
+    for (float i = 1.; i < harmonics; i += 1.) {
+      // multiply the fundamental frequency by the index of the current harmonic
+      float v = pow(uv.y - htoy(base_frequency * i), 2.);
+
+      v *= bandwidth;
+
+      l += clamp(1. - v, 0., 1.);
+      r += clamp(1. - v, 0., 1.);
+    }
+    
+    gl_FragColor = vec4(l, r, 0., 0.);
+  }
+)
+
+$par
+
+The produced timbre is actually too raw because all our harmonics have the same value...
+
+$p
+
+We can fix that by attenuating the higher frequencies, an exponential attenuation provide good results generally in audio due to the way we work, we could also just attribute different intensity for each of our harmonics:
+
+$par
+
+$glslcode(
+  void main () {
+    vec2 uv = gl_FragCoord.xy / resolution;
+    
+    float l = 0.;
+    float r = 0.;
+    float base_frequency = 440.;
+    float bandwidth = 700000.;
+    
+    float attenuation_constant = 1.95;
+    
+    const float harmonics = 8.;
+    
+    for (float i = 1.; i < harmonics; i += 1.) {
+      // exponentially attenuate higher frequencies
+      float a = 1. / pow(i, attenuation_constant);
+      float v = pow(uv.y - htoy(base_frequency * i), 2.);
+
+      v *= bandwidth;
+
+      l += clamp(1. - v, 0., 1.) * a;
+      r += clamp(1. - v, 0., 1.) * a;
+    }
+    
+    gl_FragColor = vec4(l, r, 0., 0.);
+  }
+)
+
+$par
+
+The output is now smoother, our simple timbre sound much better... we will see next how we can play our simple timbre with a MIDI keyboard.
+
+$par
+
+$subsection(midiplay)(Playing with a MIDI keyboard)
+
+$par
+
+You must have a WebMIDI supported browser (such as Chrome or Opera) to use MIDI messages with Fragment.
+
+$p
+
+Once your MIDI keyboard is plugged in, you can go in the Fragment MIDI devices and enable it.
+
+$p
+
+The MIDI data will now be available in a pre-defined $bold(vec4 array) named $bold(keyboard), the array length is the actual polyphony capability of Fragment, the array contain a series of vec4 items, a vec4 item contain:
+
+$list(
+	$item the note-on frequency
+	$item the note velocity
+	$item the elapsed time since the key was pressed
+	$item the MIDI channel)
+
+Important note: There is no notions of "note-off" in Fragment, a note-off is simply an item filled with 0, Fragment will add note-on in order and will reorder the array as necessary, this mean that you can loop over all items and break the loop if an item component is equal to 0.
+
+$p
+
+Here is how you can use your MIDI keyboard:
+
+$par
+
+$glslcode(
+  void main () {
+    vec2 uv = gl_FragCoord.xy / resolution;
+    
+    float l = 0.;
+    float r = 0.;
+    float base_frequency = 440.;
+    float bandwidth = 700000.;
+    
+    const float harmonics = 8.;
+    
+    // 8 notes polyphony
+    // this can be increased up to the maximal polyphonic capabilities
+    // of Fragment for your platform
+    for (int k = 0; k < 8; k += 1) {
+    	// we get the note-on data
+      vec4 data = keyboard[k];
+      
+      float kfrq = data.x; // frequency
+      float kvel = data.y; // velocity
+      float ktim = data.z; // elpased time
+      float kchn = data.w; // channel
+      
+      // we quit as soon as there is no more note-on data
+      if (kfrq == 0.) {
+       	break; 
+      }
+      
+      for (float i = 1.; i < harmonics; i += 1.) {
+        float a = 1. / pow(i, 1.95);
+        // we apply the note-on frequency
+        float v = pow(uv.y - htoy(kfrq * i), 2.);
+
+        v *= bandwidth;
+
+        // we apply the velocity
+        l += clamp(1. - v, 0., 1.) * a * kvel;
+        r += clamp(1. - v, 0., 1.) * a * kvel;
+      }
+    }
+    
+    // notice how the blue channel is used
+    // this help to get a better visual feedback of the harmonics
+    gl_FragColor = vec4(l, r, l * 64., 0.);
+  }
+)
+
+$par
+
+You can now play something with your MIDI keyboard and hear your basic timbre!
+
+$p
+
+You might find the loop kind of weird, why we can't just get all availables notes without having to break etc.? This is because the GLSL spec. for the version that is used by the browsers is quite limited when it come to loop features...
+
+$par
+
+$subsection(envelope)(Simple AR-like envelope)
+
+$par
+
+Our timbre is nice but still too simple, we can fix that by applying an envelope, a mathematical function which will determine the timbre behaviors by taking into account the elapsed time when we hit the keys of our MIDI keyboard.
+
+$p
+
+Fragment allow any envelopes to be done by mathematically defining them, one of the simplest envelope is AR (Attack and Release):
+
+$par
+
+$glslcode(
+  // a simple function which define 
+  // simple smoothed AR-like envelopes with only two parameters
+  // plot it or see the details of this function below
+  float impulse(float k, float x) {
+    float h = k * x;
+    return h * exp(1.0 - h);
+  }
+
+  void main () {
+    vec2 uv = gl_FragCoord.xy / resolution;
+    
+    float l = 0.;
+    float r = 0.;
+    float base_frequency = 440.;
+    float bandwidth = 700000.;
+    
+    const float harmonics = 8.;
+    
+    for (int k = 0; k < 8; k += 1) {
+      vec4 data = keyboard[k];
+      
+      float kfrq = data.x;
+      float kvel = data.y;
+      float ktim = data.z;
+      float kchn = data.w;
+      
+      if (kfrq == 0.) {
+       	break; 
+      }
+      
+      // we apply our envelope, this envelope has a quite fast attack and release
+      float env = kvel * impulse(6.8, ktim * 2.);
+      
+      for (float i = 1.; i < harmonics; i += 1.) {
+        float a = 1. / pow(i, 1.95);
+        float v = pow(uv.y - htoy(kfrq * i), 2.);
+
+        v *= bandwidth;
+
+        l += (clamp(1. - v, 0., 1.) * a * env);
+        r += (clamp(1. - v, 0., 1.) * a * env);
+      }
+    }
+    
+    gl_FragColor = vec4(l, r, l * 64., 0.);
+  }
+)
+
+$par
+
+The sound is much more pleasant! You can change the parameters of the envelope to generate other kinds of envelope such as one with long attack or long release etc. you could apply different envelopes to different notes or apply different envelopes to some harmonics, anything is possible with Fragment.
+
+$p
+
+Here is a good preview of the model of envelopes that the $bold(impulse) function generate:
+
+$p
+
+$tlink($center($image(512)(images/impulse.png)))(images/impulse.png)
+
+$par
+
+$subsection(sequence)(Sequence)
+
+$par
+
+We will see in this section how to do a 16 or N steps sequences with Fragment, we will use the $ref(uniformsdialog)(uniforms dialog) to define an array of values which will hold the frequency data of our sequence.
+
+$p
+
+You can do that by opening the $ref(uniformsdialog)(uniforms dialog) and then adding an array of uniforms named $bold(sequence) as pictured below:
+
+$p
+
+$tlink($center($image(235)(images/sequence.png)))(images/sequence.png)
+
+$par
+
+Many values should appear now in the uniforms dialog, you can change the frequency value for each steps.
+
+$p
+
+Here is the code to play a sequence automatically:
+
+$par
+
+$glslcode(
+
+)
+
+$par
+
+$subsection(harmonics)(Drawing harmonics)
+
+$par
+
+
+
+$par
 
 $subsection(globaltime)(Global time)
 
@@ -920,10 +1301,6 @@ $subsection(predefuniforms)(Pre-defined uniforms)
 
 $par
 
-If you want to design sounds with Fragment, you will probably want to define the in/harmonics and their behaviors with curves altough it is possible to design sounds by other methods.
-
-$p
-
 Fragment has many pre-defined uniforms variable which can be used to animate and interact with things, here are all the pre-defined uniforms that you can use directly in the code editor:
 
 $list(
@@ -932,18 +1309,6 @@ $list(
 $par
 
 
-
-$p
-
-$section(tipsntricks)(Tips'n'tricks)
-
-$par
-
-$subsection(bezier)(Cubic bezier curves)
-
-$p
-
-$section(example)(Example)
 
 $par
 

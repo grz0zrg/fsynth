@@ -170,7 +170,7 @@ var _getSlice = function (play_position_marker_id) {
     return _play_position_markers[parseInt(play_position_marker_id, 10)];
 };
 
-var _setPlayPosition = function (play_position_marker_id, x, y, submit) {
+var _setPlayPosition = function (play_position_marker_id, x, y, submit, dont_update_slider) {
     var play_position_marker = _getSlice(play_position_marker_id),
         
         height = play_position_marker.height,
@@ -178,10 +178,16 @@ var _setPlayPosition = function (play_position_marker_id, x, y, submit) {
         canvas_offset = _getElementOffset(_canvas),
 
         bottom;
+    
+    if (play_position_marker.x < 0) {
+        x = _canvas_width_m1; 
+    } else if (play_position_marker.x > _canvas_width_m1) {
+        x = 0;
+    }
 
     play_position_marker.x = x;
-    
-    play_position_marker.element.style.left = (x + canvas_offset.left + 1) + "px";
+
+    play_position_marker.element.style.left = (parseInt(x, 10) + canvas_offset.left + 1) + "px";
 /*
     if (y !== undefined) {
         bottom = y + height;
@@ -189,7 +195,9 @@ var _setPlayPosition = function (play_position_marker_id, x, y, submit) {
         play_position_marker.y = y;
     }
 */  
-    WUI_RangeSlider.setValue("fs_slice_settings_x_input_" + play_position_marker.id, x);
+    if (dont_update_slider === undefined) {
+        WUI_RangeSlider.setValue("fs_slice_settings_x_input_" + play_position_marker.id, x);
+    }
     
     if (submit) {
         _submitSliceUpdate(0, play_position_marker_id, { x : x }); 
@@ -288,11 +296,13 @@ var _createMarkerSettings = function (marker_obj) {
         fs_slice_settings_container = document.createElement("div"),
         fs_slice_settings_x_input = document.createElement("div"),
         fs_slice_settings_shift_input = document.createElement("div"),
-        fs_slice_settings_channel_input = document.createElement("div");
+        fs_slice_settings_channel_input = document.createElement("div"),
+        fs_slice_settings_bpm = document.createElement("div");
     
     fs_slice_settings_x_input.id = "fs_slice_settings_x_input_" + marker_obj.id;
     fs_slice_settings_shift_input.id = "fs_slice_settings_shift_input_" + marker_obj.id;
     fs_slice_settings_channel_input.id = "fs_slice_settings_channel_input_" + marker_obj.id;
+    fs_slice_settings_bpm.id = "fs_slice_settings_bpm_" + marker_obj.id;
     
     WUI_RangeSlider.create(fs_slice_settings_x_input, {
             width: 120,
@@ -392,8 +402,36 @@ var _createMarkerSettings = function (marker_obj) {
             }
         });
     
+    WUI_RangeSlider.create(fs_slice_settings_bpm, {
+            width: 120,
+            height: 8,
+
+            bar: false,
+
+            step: 0.01,
+
+            midi: {
+                type: "rel"   
+            },
+        
+            default_value: 0,
+            value: marker_obj.frame_increment,
+
+            title: "Increment per frame",
+
+            title_min_width: 140,
+            value_min_width: 88,
+
+            on_change: function (value) {
+                var slice = _getSlice(marker_obj.element.dataset.slice);
+                
+                slice.frame_increment = parseFloat(value);
+            }
+        });
+    
     fs_slice_settings_container.appendChild(fs_slice_settings_x_input);
     fs_slice_settings_container.appendChild(fs_slice_settings_shift_input);
+    fs_slice_settings_container.appendChild(fs_slice_settings_bpm);
     fs_slice_settings_container.appendChild(fs_slice_settings_channel_input);
     
     fs_slice_settings_container.id = "slice_settings_container_" + marker_obj.id;
@@ -505,6 +543,7 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, submit) {
             min: 0,
             max: 100,
             shift: 0,
+            frame_increment: 0,
             output_channel: 1,
             y: 0,
             height: _canvas_height,

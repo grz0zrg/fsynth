@@ -131,7 +131,7 @@ var _compile = function () {
         i = 0;
     
     // add our uniforms
-    glsl_code = "precision mediump float; uniform float globalTime; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "];";
+    glsl_code = "precision mediump float; uniform float globalTime; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "];float htoy(float frequency) {return (resolution.y - (resolution.y - (log(frequency / baseFrequency) / log(2.)) * (resolution.y / octave))) / resolution.y;}";
 
     // add inputs uniforms
     for (i = 0; i < _fragment_input_data.length; i += 1) {

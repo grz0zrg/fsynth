@@ -159,7 +159,7 @@ var _onMIDIMessage = function (midi_message) {
 
                 _keyboard.pressed[key] = {
                         frq: _frequencyFromNoteNumber(midi_message.data[1]),
-                        vel: midi_message.data[2],
+                        vel: midi_message.data[2] / 127,
                         time: Date.now(),
                         channel: channel
                     };

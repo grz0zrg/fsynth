@@ -248,6 +248,8 @@ var _frame = function (raf_time) {
         
         fragment_input,
         
+        time_now = performance.now(),
+        
         global_time = (raf_time - _time) / 1000,
         
         iglobal_time,
@@ -325,6 +327,10 @@ var _frame = function (raf_time) {
         if (play_position_marker.mute) {
             _data[channel] = new Uint8Array(_canvas_height_mul4);
         } else {
+            if (play_position_marker.frame_increment != 0) {
+                _setPlayPosition(play_position_marker.id, play_position_marker.x + play_position_marker.frame_increment, play_position_marker.y, false, true);
+            }
+            
             play_position_marker_x = play_position_marker.x;
             
             if (_gl2) {
@@ -342,6 +348,10 @@ var _frame = function (raf_time) {
             
             if (play_position_marker.mute) {
                 continue;
+            }
+            
+            if (play_position_marker.frame_increment != 0) {
+                _setPlayPosition(play_position_marker.id, play_position_marker.x + play_position_marker.frame_increment, play_position_marker.y, false, true);
             }
             
             play_position_marker_x = play_position_marker.x;
