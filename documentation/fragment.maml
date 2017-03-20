@@ -9,7 +9,7 @@ $colorrule(funny)([p-z])($rgb(0,100,100)($sub($big($1))))
 $colorizer(funny)
 
 $colorrule(glsl)(void|const|float|int|vec2|vec3|vec4|if|else|continue|for|return|highp)($rgb(10,0,130)($1))
-$colorrule(glsl)(gl_FragColor|gl_FragCoord|clamp|pow|exp|mod|floor)($rgb(0,100,0)($1))
+$colorrule(glsl)(##define|gl_FragColor|gl_FragCoord|clamp|pow|exp|mod|floor|sin|cos|tan|log)($rgb(0,100,0)($1))
 $colorrule(glsl)(resolution|globalTime|htoy)($rgb(0,100,100)($1))
 $colorrule(glsl)([0-9]+)($rgb(130,0,130)($1))
 $colorrule(glsl)([0-9]+#.[0-9]*)($rgb(130,0,0)($1))
@@ -893,7 +893,7 @@ $list(
 		$item $tlink(Page 3 PDF)(pdf/webgl2_glsl_3.pdf))
 )
 
-Here is a simple example of GLSL code that Fragment accept which just set all pixels to black :
+Here is a simple example of GLSL code that Fragment accept which just set all pixels to black:
 
 $glslcode(
   void main () {
@@ -905,6 +905,48 @@ In the subsequent GLSL code, $rgb(10,0,130)(blue words) are GLSL keywords, $rgb(
 
 $p
 
+$subsection(predefuniforms)(Pre-defined uniforms)
+
+$par
+
+Fragment has many pre-defined uniform variables which can be used to animate/modulate things, here are all the pre-defined uniforms along with their type that can be used directly in your code:
+
+$list(
+	$item $bold(vec2) $rgb(0,100,100)(resolution)
+	$list(
+		$item score/viewport resolution in pixels units)
+	$item $bold(float) $rgb(0,100,100)(globalTime)
+	$list(
+		$item playback time in seconds)
+	$item $bold(float) $rgb(0,100,100)(baseFrequency)
+	$list(
+		$item score base frequency)
+	$item $bold(float) $rgb(0,100,100)(octave)
+	$list(
+		$item score octave range)
+	$item $bold(vec4) $rgb(0,100,100)(mouse)
+	$list(
+		$item mouse pixel coords updated when the left mouse button is down on the canvas)
+	$item $bold(vec4) $rgb(0,100,100)(date)
+	$list(
+		$item year
+		$item month
+		$item day
+		$item time in seconds)
+	$item $bold(sampler2D) $rgb(0,100,100)(iInput)$rgb(0,100,100)($bold(N))
+	$list(
+		$item typical usage: texture2D(iInput0, uv))
+	$item $bold(vec4[N]) $rgb(0,100,100)(keyboard)
+	$list(
+		$item note-on frequency
+		$item note-on velocity
+		$item note-on elapsed time
+		$item note-on MIDI channel)
+	$item $bold(function) $rgb(0,100,100)(htoy)
+	$list(
+		$item take a frequency as argument and return its normalized vertical position on the canvas)
+)
+	
 $subsection(harmonics)(The timbre)
 
 $par
@@ -1003,7 +1045,7 @@ $par
 
 The function that we use here is also imperfect even if it work in most cases and has good performances, it is imperfect because at some frequencies, the color intensity of our horizontal will be shared on frequencies "in between", this is due to the mathematical function that we use, this can be attenuated by lowering the bandwidth but doing that may actually have the inverse effect, drawing a perfect horizontal line in all cases with a fragment shader can be quite tricky altough not impossible.
 
-$par
+$p
 
 $subsection(harmonics)(Drawing harmonics)
 
@@ -1089,7 +1131,7 @@ $par
 
 The output is now smoother, our simple timbre sound much better... we will see next how we can play our simple timbre with a MIDI keyboard.
 
-$par
+$p
 
 $subsection(midiplay)(Playing with a MIDI keyboard)
 
@@ -1174,7 +1216,7 @@ $p
 
 You might find the loop kind of weird, why we can't just get all availables notes without having to break etc.? This is because the GLSL spec. for the version that is used by the browsers is quite limited when it come to loop features...
 
-$par
+$p
 
 $subsection(envelope)(Simple AR-like envelope)
 
@@ -1249,7 +1291,7 @@ $p
 
 $tlink($center($image(512)(images/impulse.png)))(images/impulse.png)
 
-$par
+$p
 
 $subsection(sequence)(Sequence)
 
@@ -1267,7 +1309,7 @@ $tlink($center($image(235)(images/sequence.png)))(images/sequence.png)
 
 $par
 
-Many values should appear now in the uniforms dialog, you can change the frequency value for each steps.
+Many values should appear now in the uniforms dialog, you can change the frequency value for each steps with your keyboard, mouse or by assigning a MIDI control to each steps.
 
 $p
 
@@ -1276,41 +1318,118 @@ Here is the code to play a sequence automatically:
 $par
 
 $glslcode(
+// we define the PI constant
+// note: the "#define" keyword cannot start on the very first line
+#define pi 3.141592653
 
+float impulse(float k, float x) {
+    float h = k * x;
+    return h * exp(1.0 - h);
+}
+
+void main () {
+    vec2 uv = gl_FragCoord.xy / resolution;
+    
+    float l = 0.;
+    float r = 0.;
+    float base_frequency = 440.;
+    float bandwidth = 700000.;
+  
+    // we just redefine globalTime for convenience
+    // globalTime is a pre-defined Fragment uniform
+    // which hold the time since Fragment started to play
+    // you can "rewind" it by clicking on the corresponding toolbar button
+    float time = globalTime;
+    
+    // increase the number of harmonics so we get a richer sound
+    const float harmonics = 16.;
+
+    // we will override "keyboard" because GLSL
+    // does not permit us to assign by index dynamically
+    // we will have 8 notes polyphony (copied from "keyboard" + the sequence)
+    vec4 notes[9];
+  	
+    // our sequence have 16 steps
+    float seq_length = 16.;
+  
+    // we use the "mod" function with the length of the sequence
+    // this play our sequence over and over, 4 notes per seconds
+    int seq_index = int(floor(mod(time * 4., seq_length)));
+
+    // this is a GLSL trick to get the current step frequency
+    // we do that because "sequence[seq_index]" is not accepted
+    // this is a limitation of the current WebGL spec.
+    // which do not allow dynamical indexes for arrays...
+    float seq_frq = 0.;
+    for (int k = 0; k < 16; k += 1) {
+      if (k == seq_index) {
+        seq_frq = sequence[k];
+      }
+    }
+
+    // now we just copy 8 notes from the "keyboard" array
+    // which will allow us to play 8 notes at the same time
+    // with a MIDI keyboard
+    for (int k = 0; k < 8; k += 1) {
+      notes[k] = keyboard[k];
+    }
+
+    // we assign the current sequence note
+    // notice how we make the note duration
+    // perfectly fit within its lifetime
+    // it goes on, hit its peak and go down
+    // before passing to the next
+    notes[9] = vec4(seq_frq, 1., 0.5 * (1. + sin((pi * 1.5) + 2. * pi * time)), 0.);
+    
+    // we loop over our 9 notes
+    for (int k = 0; k < 9; k += 1) {
+      // notice that we no more use "keyboard"
+      // but our overriden "keyboard" array with our sequence within
+      vec4 data = notes[k];
+      
+      float kfrq = data.x;
+      float kvel = data.y;
+      float ktim = data.z;
+      float kchn = data.w;
+
+      float env = kvel * impulse(1., ktim);
+      
+      for (float i = 1.; i < harmonics; i += 1.) {
+        float a = 1. / pow(i, 1.95);
+        float v = pow(uv.y - htoy(kfrq * i), 2.);
+
+        v *= bandwidth;
+
+        l += (clamp(1. - v, 0., 1.) * a * env);
+        r += (clamp(1. - v, 0., 1.) * a * env);
+      }
+    }
+    
+    gl_FragColor = vec4(l, r, 0., 0.);
+  }
 )
 
 $par
 
-$subsection(harmonics)(Drawing harmonics)
-
-$par
-
-
-
-$par
-
-$subsection(globaltime)(Global time)
-
-$par
-
-The global time is one of the most important pre-defined variable in Fragment, it is a playback time that increase continually, it can only be reset or paused by using the corresponding toolbar button, the global time is a precise clock which can be used to trigger events and dynamically alter the visuals.
+You should hear a sequence of notes which you can play along with a MIDI keyboard.
 
 $p
 
-$subsection(predefuniforms)(Pre-defined uniforms)
+An autonomous sequence is relatively complicated because of the current WebGL spec. limitation which do not allow dynamical indexes, however this is still relatively simple and can be extended easily to allow many other sequences to play at the same time.
+
+$p
+
+We strongly recommend that peoples use Fragment with a MIDI sequencer such as $tlink(LMMS)(https://www.lmms.io), $tlink(IanniX)(https://www.iannix.org), $tlink(Renoise)(https://www.renoise.com/), $tlink(Muse)(http://muse-sequencer.org) or any other MIDI capable sequencers, sequences can be done very easily within a sequencer and many effects can be added to the audio output.
+
+$p
+
+$subsection(globaltime)(Note on globalTime)
 
 $par
 
-Fragment has many pre-defined uniforms variable which can be used to animate and interact with things, here are all the pre-defined uniforms that you can use directly in the code editor:
+The global time is one of the most important pre-defined variable in Fragment, it is a playback time that increase continually as soon as you hit the play button on the toolbar, it can only be reset or paused by using the corresponding toolbar button, the global time is a precise clock which can be used to trigger events and dynamically alter the visuals.
 
-$list(
-	$item -)
-	
-$par
-
-
-
-$par
+$p
 
 $section(contribute)(Contributing)
 
