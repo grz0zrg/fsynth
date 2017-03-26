@@ -247,7 +247,9 @@ var FragmentSynth = function (params) {
         _play_position_markers = [],
 
         _webgl_opts = {
-                preserveDrawingBuffer: true
+                preserveDrawingBuffer: true,
+                antialias: true,
+                depth: false
             },
 
         _prev_data = [],

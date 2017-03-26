@@ -116,7 +116,7 @@ $p
 It is known to work on recent version of Safari and Opera as well.
 $p
 
-Chrome or Chromium browser is recommended due to its good audio implementation.
+Chrome or Chromium browser is recommended.
 
 $p
 
@@ -1095,7 +1095,7 @@ The produced timbre is actually too raw because all our harmonics have the same 
 
 $p
 
-We can fix that by attenuating the higher frequencies, an exponential attenuation provide good results generally in audio due to the way we work, we could also just attribute different intensity for each of our harmonics:
+We can fix that by attenuating the higher frequencies, an exponential attenuation provide good results generally in audio due to the way humans brain interpret sounds, we could also just attribute different intensity for each of our harmonics:
 
 $par
 
@@ -1167,8 +1167,9 @@ $glslcode(
     
     float l = 0.;
     float r = 0.;
-    float base_frequency = 440.;
     float bandwidth = 700000.;
+    
+    float attenuation_constant = 1.95;
     
     const float harmonics = 8.;
     
@@ -1185,12 +1186,14 @@ $glslcode(
       float kchn = data.w; // channel
       
       // we quit as soon as there is no more note-on data
+      // this is optional but it might help with performances
+      // so we don't compute harmonics uselessly
       if (kfrq == 0.) {
        	break; 
       }
       
       for (float i = 1.; i < harmonics; i += 1.) {
-        float a = 1. / pow(i, 1.95);
+        float a = 1. / pow(i, attenuation_constant);
         // we apply the note-on frequency
         float v = pow(uv.y - htoy(kfrq * i), 2.);
 
@@ -1214,7 +1217,7 @@ You can now play something with your MIDI keyboard and hear your basic timbre!
 
 $p
 
-You might find the loop kind of weird, why we can't just get all availables notes without having to break etc.? This is because the GLSL spec. for the version that is used by the browsers is quite limited when it come to loop features...
+You might find the loop kind of weird, why we don't just loop over all note-on messages? This is because the GLSL spec. for the version that is used by the browsers is quite limited when it come to loop features... for example, it does not allow dynamicals indexes.
 
 $p
 
@@ -1232,8 +1235,10 @@ $par
 
 $glslcode(
   // a simple function which define 
-  // simple smoothed AR-like envelopes with only two parameters
+  // smooth AR-like envelopes, fast attack and slow decays
   // plot it or see the details of this function below
+  // it's maximum, which is 1.0, happens at exactly x = 1 / k
+  // use k to control the stretching of the function
   float impulse(float k, float x) {
     float h = k * x;
     return h * exp(1.0 - h);
@@ -1244,8 +1249,9 @@ $glslcode(
     
     float l = 0.;
     float r = 0.;
-    float base_frequency = 440.;
     float bandwidth = 700000.;
+    
+    float attenuation_constant = 1.95;
     
     const float harmonics = 8.;
     
@@ -1261,11 +1267,13 @@ $glslcode(
        	break; 
       }
       
-      // we apply our envelope, this envelope has a quite fast attack and release
-      float env = kvel * impulse(6.8, ktim * 2.);
+      // we apply the envelope, this envelope has a fast attack
+      // of 62.5ms and a release of 555ms
+      float env_attack = ktim * 16.;
+      float env = kvel * impulse(1., env_attack);
       
       for (float i = 1.; i < harmonics; i += 1.) {
-        float a = 1. / pow(i, 1.95);
+        float a = 1. / pow(i, attenuation_constant);
         float v = pow(uv.y - htoy(kfrq * i), 2.);
 
         v *= bandwidth;
@@ -1275,21 +1283,164 @@ $glslcode(
       }
     }
     
-    gl_FragColor = vec4(l, r, l * 64., 0.);
+    gl_FragColor = vec4(l, r, l + r, 0.);
   }
 )
 
 $par
 
-The sound is much more pleasant! You can change the parameters of the envelope to generate other kinds of envelope such as one with long attack or long release etc. you could apply different envelopes to different notes or apply different envelopes to some harmonics, anything is possible with Fragment.
+The sound is much more pleasant! You can change the parameters of the envelope to apply other kinds of envelopes.
 
 $p
 
-Here is a good preview of the model of envelopes that the $bold(impulse) function generate:
+Here is a good preview of the envelope models that the $bold(impulse) function generate:
 
 $p
 
 $tlink($center($image(512)(images/impulse.png)))(images/impulse.png)
+
+The sound is still not very interesting yet but now that we know how to generate the envelope, we can do many things such as applying a different envelope to each harmonics:
+
+$par
+
+$glslcode(
+  float impulse(float k, float x) {
+    float h = k * x;
+    return h * exp(1.0 - h);
+  }
+
+  void main () {
+    vec2 uv = gl_FragCoord.xy / resolution;
+    
+    float l = 0.;
+    float r = 0.;
+    float bandwidth = 700000.;
+    
+    float attenuation_constant = 1.95;
+    
+    // we will now increase the amount of harmonics
+    const float harmonics = 16.;
+    
+    for (int k = 0; k < 8; k += 1) {
+      vec4 data = keyboard[k];
+      
+      float kfrq = data.x;
+      float kvel = data.y;
+      float ktim = data.z;
+      float kchn = data.w;
+      
+      if (kfrq == 0.) {
+       	break; 
+      }
+
+      float env_attack = ktim * 16.;
+      
+      for (float i = 1.; i < harmonics; i += 1.) {
+        float a = 1. / pow(i, attenuation_constant);
+        float v = pow(uv.y - htoy(kfrq * i), 2.);
+
+        v *= bandwidth;
+        
+        // we stretch the envelope per harmonics
+        float env_stretch = i / harmonics;
+        float env = kvel * impulse(env_stretch, env_attack);
+
+        l += (clamp(1. - v, 0., 1.) * a * env);
+        r += (clamp(1. - v, 0., 1.) * a * env);
+      }
+    }
+    
+    gl_FragColor = vec4(l, r, l + r, 0.);
+  }
+)
+
+$par
+
+The timbre produced by this code is very pleasant, all high frequencies harmonics decay very fast while the fundamental decay slowly, you can hear multiple versions of this by varying parameters such as the attack time or the attenuation constant etc., a very fast attack time sound very pleasant now.
+
+$p
+
+$subsection(morphing)(Morphing between parameters)
+
+$par
+
+We will now look into getting a better timbre by morphing parameters such at the attenuation or frequencies, due to the nature of Fragment, almost everything can be morphed easily by using mathematical functions:
+
+$par
+
+$glslcode(
+  float impulse(float k, float x) {
+    float h = k * x;
+    return h * exp(1.0 - h);
+  }
+
+  void main () {
+    vec2 uv = gl_FragCoord.xy / resolution;
+    
+    float l = 0.;
+    float r = 0.;
+    float bandwidth = 700000.;
+    
+    float attenuation_constant = 1.95;
+    
+    const float harmonics = 16.;
+    
+    for (int k = 0; k < 8; k += 1) {
+      vec4 data = keyboard[k];
+      
+      float kfrq = data.x;
+      float kvel = data.y;
+      float ktim = data.z;
+      float kchn = data.w;
+      
+      if (kfrq == 0.) {
+       	break; 
+      }
+
+      float env_attack = ktim * 16.;
+      
+      // we create a mixing function
+      float mix_f = 0.5 * (1. + sin(ktim * 20.));
+      
+      for (float i = 1.; i < harmonics; i += 1.) {
+        float a = 1. / pow(i, attenuation_constant);
+        
+        // we setup another attenuation value which
+        // is a bit higher than the previous one
+        float a2 = 1. / pow(i, attenuation_constant * 1.3);
+        
+        float v = pow(uv.y - htoy(kfrq * i), 2.);
+        
+        v *= bandwidth;
+        
+        float env_stretch = i / harmonics;
+        float env = impulse(env_stretch, env_attack);
+
+        // we now mix our attenuations so that
+        // higher harmonics oscillate between both 
+        // kind of attenuations smoothly
+        a = mix(a, a2, mix_f);
+
+        l += (clamp(1. - v, 0., 1.) * a * env);
+        r += (clamp(1. - v, 0., 1.) * a * env);
+      }
+    }
+    
+    gl_FragColor = vec4(l, r, l + r, 0.);
+  }
+)
+
+$par
+
+This sound just nice! This is just an example but you can now imagine the amount of possibilities, very complex timbres can be created easily by applying custom functions and mixing between several parameters!
+
+$par
+
+Fragment offer a limitless landscape for any creative minds willing to experiment.
+
+$par
+
+We could have some fun by also varying the frequency per harmonics etc.
 
 $p
 
@@ -1415,11 +1566,11 @@ You should hear a sequence of notes which you can play along with a MIDI keyboar
 
 $p
 
-An autonomous sequence is relatively complicated because of the current WebGL spec. limitation which do not allow dynamical indexes, however this is still relatively simple and can be extended easily to allow many other sequences to play at the same time.
+An autonomous sequence is relatively easy and can also be done by using the $bold(mod) function.
 
 $p
 
-We strongly recommend that peoples use Fragment with a MIDI sequencer such as $tlink(LMMS)(https://www.lmms.io), $tlink(IanniX)(https://www.iannix.org), $tlink(Renoise)(https://www.renoise.com/), $tlink(Muse)(http://muse-sequencer.org) or any other MIDI capable sequencers, sequences can be done very easily within a sequencer and many effects can be added to the audio output.
+We strongly recommend that peoples use Fragment with a MIDI sequencer such as $tlink(LMMS)(https://www.lmms.io), $tlink(IanniX)(https://www.iannix.org), $tlink(Renoise)(https://www.renoise.com/), $tlink(MusE)(http://muse-sequencer.org) or any other MIDI capable sequencers, sequences can be done very easily within a sequencer and many effects can be added to the audio output.
 
 $p
 
