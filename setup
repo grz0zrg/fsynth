@@ -3,8 +3,8 @@ common_js="
 var fss_port = 4001,
     fsdb_port = 4002;
 
-exports.allow_fss_origin = [\"https://www.fsynth.com:8042\", \"https://fsynth.com:8042\"];
-exports.allow_fsdb_origin = [\"https://www.fsynth.com:8042\", \"https://fsynth.com:8042\"];
+exports.allow_fss_origin = [\"https://www.fsynth.com:8042\", \"https://fsynth.com:8042\", \"https://www.fsynth.com\", \"https://fsynth.com\"];
+exports.allow_fsdb_origin = [\"https://www.fsynth.com:8042\", \"https://fsynth.com:8042\", \"https://www.fsynth.com\", \"https://fsynth.com\"];
 
 exports.fss_port = fss_port;
 exports.fsdb_port = fsdb_port;"
