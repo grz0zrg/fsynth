@@ -31,10 +31,7 @@ $define(_darkred)       (0)(110,000,000)      $define(darkred)      (1)($rgb($_d
 $define(_pink)          (0)(255,182,193)      $define(pink)         (1)($rgb($_pink)($1))
 $define(_magenta)       (0)(255,000,255)      $define(magenta)      (1)($rgb($_magenta)($1))
 $define(_purple)        (0)(160,032,240)      $define(purple)       (1)($rgb($_purple)($1))
-
-
-
-
+$//
 $//////////////////////////////////////////////////////   
 $// The style 'article'. 
 $// This style requires that $article is defined. 
@@ -43,50 +40,34 @@ $if($defined(article))
 $pushcounter(sec)(0)$pushcounter(subsec)(0)$pushcounter(subsubsec)(0)$//       counters for sections etc...
 $accumulator(tableofcontents)$//                                             accumulator for the table of contents
 $// Layout for section titles. 
-$if($defined(seclayout))()($define(seclayout)(1)($par$big($big($bold($1)))$par$par))
-$if($defined(subseclayout))()($define(subseclayout)(1)($par$big($bold($1))$par))
+$if($defined(seclayout))()($define(seclayout)(1)($par$big($big($bold($1)))$par))
+$if($defined(subseclayout))()($define(subseclayout)(1)($big($bold($1))$par))
 $if($defined(subsubseclayout))()($define(subsubseclayout)(1)($par$bold($1)$par))
 $// Layout for table of contents lines. 
-$if($defined(tocsec))()($define(tocsec)(1)($bold($1)$par))
-$if($defined(tocsubsec))()($define(tocsubsec)(1)($box(20)()$1$par))
-$if($defined(tocsubsubsec))()($define(tocsubsubsec)(1)($box(40)()$1$par))
-$define(tableofcontents)(0)($postpone($content(tableofcontents)))
-$define(section)(2)
-       ($setcounter(subsec)(0)$addtocounter(sec)(1)$label($1)$seclayout($countervalue(sec). $2)$//
-$append(tableofcontents)($ref($1)($tocsec($countervalue(sec). $2))))
-$define(subsection)(2)
-       ($setcounter(subsubsec)(0)$addtocounter(subsec)(1)$label($1)$subseclayout($countervalue(sec).$countervalue(subsec). $2)$//
-$append(tableofcontents)($ref($1)($tocsubsec($countervalue(sec).$countervalue(subsec). $2))))
-$define(subsubsection)(2)
-       ($addtocounter(subsubsec)(1)$label($1)$subsubseclayout($countervalue(sec).$countervalue(subsec).$countervalue(subsubsec). $2)$//
-$append(tableofcontents)($ref($1)($tocsubsubsec($countervalue(sec).$countervalue(subsec).$countervalue(subsubsec). $2))))
+$if($defined(tocsec))()($define(tocsec)(1)($nl$bold($1)$nl))
+$if($defined(tocsubsec))()($define(tocsubsec)(1)($box(20)()$1$nl))
+$if($defined(tocsubsubsec))()($define(tocsubsubsec)(1)($box(40)()$1$nl))
+$define(tableofcontents)(0)($ifhtml($postpone($content(tableofcontents)))$ifpdf($latex({\parskip0mm\tableofcontents})))
+$define(section)(1)
+       ($ifhtml($setcounter(subsec)(0)$addtocounter(sec)(1)$label(sec$countervalue(sec))$seclayout($countervalue
+           (sec). $1)$append(tableofcontents)($ref(sec$countervalue(sec))($tocsec($countervalue(sec). $1))))$ifpdf($latex(\section{)$1$latex(})))
+$define(subsection)(1)
+       ($ifhtml($setcounter(subsubsec)(0)$addtocounter(subsec)(1)$label(subsec$countervalue(sec)_$countervalue
+           (subsec))$subseclayout($countervalue(sec).$countervalue
+             (subsec). $1)$append(tableofcontents)($ref(subsec$countervalue(sec)_$countervalue(subsec))($tocsubsec($countervalue
+            (sec).$countervalue(subsec). $1))))$ifpdf($latex(\subsection{)$1$latex(})))
+$define(subsubsection)(1)
+       ($ifhtml($addtocounter(subsubsec)(1)$label(subsubsec$countervalue(sec)_$countervalue(subsec)_$countervalue
+            (subsubsec))$subsubseclayout($countervalue(sec).$countervalue(subsec).$countervalue
+               (subsubsec). $1)$append(tableofcontents)($ref(subsubsec$countervalue(sec)_$countervalue(subsec)_$countervalue
+            (subsubsec))($tocsubsubsec($countervalue(sec).$countervalue(subsec).$countervalue
+                    (subsubsec).$1))))$ifpdf($latex(\subsubsection{)$1$latex(})))
 )()
-   
-
+$//
 $//////////////////////////////////////////////////////   
 $// The style 'book'. 
 $// This style requires that $book is defined. 
-$if($defined(book))
-(
-$pushcounter(chap)(0)$pushcounter(sec)(0)$pushcounter(subsec)(0)$pushcounter(subsubsec)(0)$//       counters for sections etc...
-$accumulator(tableofcontents)$//                                             accumulator for the table of contents
-$define(tableofcontents)(0)($postpone($content(tableofcontents)))
-$define(chapter)(2)
-       ($setcounter(sec)(0)$addtocounter(chap)(1)$label($1)$chaplayout($countervalue(chap). $2)$//
-$append(tableofcontents)($ref($1)($tocchap($countervalue(chap). $2))))
-$define(section)(2)
-       ($setcounter(subsec)(0)$addtocounter(sec)(1)$label($1)$seclayout($countervalue(sec). $2)$//
-$append(tableofcontents)($ref($1)($tocsec($countervalue(sec). $2))))
-$define(subsection)(2)
-       ($setcounter(subsubsec)(0)$addtocounter(subsec)(1)$label($1)$subseclayout($countervalue(sec).$countervalue(subsec). $2)$//
-$append(tableofcontents)($ref($1)($tocsubsec($countervalue(sec).$countervalue(subsec). $2))))
-$define(subsubsection)(2)
-       ($addtocounter(subsubsec)(1)$label($1)$subsubseclayout($countervalue(sec).$countervalue(subsec).$countervalue(subsubsec). $2)$//
-$append(tableofcontents)($ref($1)($tocsubsubsec($countervalue(sec).$countervalue(subsec).$countervalue(subsubsec). $2))))
-)()
-   
-
+$//   
 $////////////////////////////////////////////////////// 
-
 $end
      

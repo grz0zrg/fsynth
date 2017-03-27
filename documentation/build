@@ -1,0 +1,6 @@
+#!/bin/sh
+anbexec maml documentation -pdf
+pdflatex documentation.tex
+pdflatex documentation.tex
+pdflatex documentation.tex
+mv documentation.pdf fragment_documentation.pdf
