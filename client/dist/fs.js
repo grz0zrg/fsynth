@@ -15208,6 +15208,10 @@ var _fp_main = function (join_cb) {
             back_to_top = document.getElementById("back_to_top"),
             display_at_y = 500;
 
+        if (!back_to_top) {
+            return;
+        }
+        
         if (scroll_top < display_at_y && 
             back_to_top.style.display !== "none") {
             back_to_top.style.display = "none";
@@ -15415,7 +15419,14 @@ var _fp_main = function (join_cb) {
 
 var _electron,
     
-    _electron_login_dialog;
+    _fasInfos,
+    
+    _fas_devices,
+    
+    _electron_login_dialog,
+    
+    _fs_fas_device = null,
+    _chosen_fas_device = 0;
 
 /***********************************************************
     Functions.
@@ -15443,6 +15454,64 @@ var _join = function (session_name) {
         });
 };
 
+var _updateDeviceInfos = function (index) {
+    var fas_infos_elem = document.getElementById("fs_fas_infos"),
+        
+        device = _fas_devices[index],
+        
+        html = "<ul>";
+    
+    html += "<li>max input channels: " + device.inchn + "</li>";
+    html += "<li>max output channels: " + device.ouchn + "</li>";
+    html += "<li>default samplerate: " + parseInt(device.smpr, 10) + "</li>";
+    html += "</ul>";
+    
+    fas_infos_elem.innerHTML = html;
+};
+
+var _onDeviceSelected = function (index) {
+    _chosen_fas_device = index;
+    
+    _updateDeviceInfos(index);
+    
+    // TODO: relaunch FAS
+};
+
+var _onDeviceInfos = function (devices) {
+    _fas_devices = devices;
+    
+    var device_names = [],
+        
+        i = 0;
+    
+    for (i = 0; i < _fas_devices.length; i += 1) {
+        device_names.push(_fas_devices[i].name);
+    }
+    
+    device_names.reverse();
+    
+    WUI_DropDown.destroy("fs_fas_device");
+    
+    WUI_DropDown.create("fs_fas_device", {
+            width: "440px",
+            height: "24px",
+
+            vspacing: 4,
+
+            ms_before_hiding: 1000,
+
+            selected_id: _chosen_fas_device,
+
+            vertical: true,
+
+            on_item_selected: _onDeviceSelected
+        },
+        device_names
+    );
+    
+    _updateDeviceInfos(_chosen_fas_device);
+};
+
 /***********************************************************
     Init.
 ************************************************************/
@@ -15455,7 +15524,11 @@ var _electronInit = function () {
         i = 0;
     
     if (_isElectronApp()) {
+        document.body.classList.add("login");
+        
         _electron = require('electron');
+        
+        _fasInfos = _electron.remote.getGlobal('fasInfos');
         
         //document.body.style.backgroundColor = "#ffffff";
          
@@ -15481,7 +15554,7 @@ var _electronInit = function () {
                 detachable: false,
                 resizable: false,
                 minimizable: false,
-                draggable: false
+                draggable: false,
             });
         
         WUI_Tabs.create("fs_electron_login_tabs", {
@@ -15493,6 +15566,10 @@ var _electronInit = function () {
         document.getElementById("fs_app_version").innerHTML = "v" + _electron.remote.app.getVersion();
 
         _fp_main(_join);
+        
+        electron_login.style.display = "";
+        
+        _fasInfos(_onDeviceInfos);
         
         return true;
     } else {
@@ -16578,6 +16655,17 @@ var _buildScreenAlignedQuad = function() {
     _gl.bufferData(_gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), _gl.STATIC_DRAW);
 };
 
+var _createFramebuffer = function (texture) {
+    var framebuffer = _gl.createFramebuffer();
+
+    _gl.bindTexture(_gl.TEXTURE_2D, texture);
+    _gl.bindFramebuffer(_gl.FRAMEBUFFER, framebuffer);
+    _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0, _gl.TEXTURE_2D, texture, 0);
+    _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
+    
+    return framebuffer;
+};
+
 var _create2DTexture = function (image, default_wrap_filter, bind_now) {
     var new_texture = _gl.createTexture();
 
@@ -17074,8 +17162,7 @@ var _setUniform = function (gl_ctx, type_str, program, name, value) {
 
 var _setUniforms = function (gl_ctx, type_str, program, name, values, comps) {
     var uniform_location = _getUniformLocation(name, program);
-    //var uniform_location = gl_ctx.getUniformLocation(program, name);
-    
+
     if (type_str === "bool" || 
         type_str === "int" || 
         type_str === "uint") {

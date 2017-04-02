@@ -480,6 +480,83 @@ th {
 .fs-btn-big {
     padding: 6px;
     text-decoration: none;
+}
+
+.fp-session-list {
+    width: 100%;
+}
+
+.fp-sessions {
+    text-align: center;
+}
+
+#sessionList tr {
+    height: 26px;   
+}
+
+#sessionList tr:hover {
+    cursor: pointer; 
+}
+
+.login {
+    background-image: url("../data/dark-tire.png");
+}
+
+.fp-social-page-fbl {
+    font-size: 26px;
+    
+    color: #3b5998;
+    
+    text-decoration: none;
+}
+
+.fp-social-page-fbl:hover {
+    cursor: pointer;
+}
+
+.fp-social-page-twl {
+    font-size: 26px;
+    
+    color: #00aced;
+    
+    text-decoration: none;
+}
+
+.fp-social-page-twl:hover {
+    cursor: pointer;
+}
+
+.fp-social-page-scl {
+    font-size: 26px;
+    
+    color: #ff3a00;
+    
+    text-decoration: none;
+}
+
+.fp-social-page-scl:hover {
+    cursor: pointer;
+}
+
+.fp-social-page-ytl {
+    font-size: 26px;
+    
+    color: #cd201f;
+    
+    text-decoration: none;
+}
+
+.fp-social-page-ytl:hover {
+    cursor: pointer;
+}
+
+.fp-center-text {
+    text-align: center;
+}
+
+.social a {
+    background-color: white;
+    padding: 4px;
 }/* BASICS */
 
 .CodeMirror {

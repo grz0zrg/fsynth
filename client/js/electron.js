@@ -8,7 +8,14 @@
 
 var _electron,
     
-    _electron_login_dialog;
+    _fasInfos,
+    
+    _fas_devices,
+    
+    _electron_login_dialog,
+    
+    _fs_fas_device = null,
+    _chosen_fas_device = 0;
 
 /***********************************************************
     Functions.
@@ -36,6 +43,64 @@ var _join = function (session_name) {
         });
 };
 
+var _updateDeviceInfos = function (index) {
+    var fas_infos_elem = document.getElementById("fs_fas_infos"),
+        
+        device = _fas_devices[index],
+        
+        html = "<ul>";
+    
+    html += "<li>max input channels: " + device.inchn + "</li>";
+    html += "<li>max output channels: " + device.ouchn + "</li>";
+    html += "<li>default samplerate: " + parseInt(device.smpr, 10) + "</li>";
+    html += "</ul>";
+    
+    fas_infos_elem.innerHTML = html;
+};
+
+var _onDeviceSelected = function (index) {
+    _chosen_fas_device = index;
+    
+    _updateDeviceInfos(index);
+    
+    // TODO: relaunch FAS
+};
+
+var _onDeviceInfos = function (devices) {
+    _fas_devices = devices;
+    
+    var device_names = [],
+        
+        i = 0;
+    
+    for (i = 0; i < _fas_devices.length; i += 1) {
+        device_names.push(_fas_devices[i].name);
+    }
+    
+    device_names.reverse();
+    
+    WUI_DropDown.destroy("fs_fas_device");
+    
+    WUI_DropDown.create("fs_fas_device", {
+            width: "440px",
+            height: "24px",
+
+            vspacing: 4,
+
+            ms_before_hiding: 1000,
+
+            selected_id: _chosen_fas_device,
+
+            vertical: true,
+
+            on_item_selected: _onDeviceSelected
+        },
+        device_names
+    );
+    
+    _updateDeviceInfos(_chosen_fas_device);
+};
+
 /***********************************************************
     Init.
 ************************************************************/
@@ -48,7 +113,11 @@ var _electronInit = function () {
         i = 0;
     
     if (_isElectronApp()) {
+        document.body.classList.add("login");
+        
         _electron = require('electron');
+        
+        _fasInfos = _electron.remote.getGlobal('fasInfos');
         
         //document.body.style.backgroundColor = "#ffffff";
          
@@ -74,7 +143,7 @@ var _electronInit = function () {
                 detachable: false,
                 resizable: false,
                 minimizable: false,
-                draggable: false
+                draggable: false,
             });
         
         WUI_Tabs.create("fs_electron_login_tabs", {
@@ -86,6 +155,10 @@ var _electronInit = function () {
         document.getElementById("fs_app_version").innerHTML = "v" + _electron.remote.app.getVersion();
 
         _fp_main(_join);
+        
+        electron_login.style.display = "";
+        
+        _fasInfos(_onDeviceInfos);
         
         return true;
     } else {

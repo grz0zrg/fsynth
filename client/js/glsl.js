@@ -83,8 +83,7 @@ var _setUniform = function (gl_ctx, type_str, program, name, value) {
 
 var _setUniforms = function (gl_ctx, type_str, program, name, values, comps) {
     var uniform_location = _getUniformLocation(name, program);
-    //var uniform_location = gl_ctx.getUniformLocation(program, name);
-    
+
     if (type_str === "bool" || 
         type_str === "int" || 
         type_str === "uint") {

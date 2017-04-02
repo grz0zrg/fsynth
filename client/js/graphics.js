@@ -10,6 +10,17 @@ var _buildScreenAlignedQuad = function() {
     _gl.bufferData(_gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), _gl.STATIC_DRAW);
 };
 
+var _createFramebuffer = function (texture) {
+    var framebuffer = _gl.createFramebuffer();
+
+    _gl.bindTexture(_gl.TEXTURE_2D, texture);
+    _gl.bindFramebuffer(_gl.FRAMEBUFFER, framebuffer);
+    _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0, _gl.TEXTURE_2D, texture, 0);
+    _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
+    
+    return framebuffer;
+};
+
 var _create2DTexture = function (image, default_wrap_filter, bind_now) {
     var new_texture = _gl.createTexture();
 

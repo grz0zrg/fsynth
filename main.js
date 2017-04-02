@@ -5,6 +5,7 @@ const spawn = require('child_process').spawn;
 
 let win
 let fas
+let fas_tmp
 
 function createWindow () {
     win = new BrowserWindow({
@@ -24,9 +25,9 @@ function createWindow () {
     win.webContents.openDevTools()
 
     win.on('closed', () => {
-        win = null
-        fas.stdin.write("\x03")
-        fas.kill("SIGINT")
+        win = null;
+        fas.stdin.write("\x03");
+        //fas.kill("SIGINT")
     })
 }
 
@@ -46,20 +47,60 @@ function fasSpawn () {
             started_result;
         started_result = stdout.search(/started and listening/);
         if (started_result !== -1) {
-            createWindow()
+            createWindow();
         }
     });
 
     fas.on('close', (code) => {
-        console.log(`child process exited with code ${code}`);
+        console.log(`FAS exited with code ${code}`);
 
         if (process.platform !== 'darwin') {
-            app.quit()
+            app.quit();
         }
     });
 }
 
-app.on('ready', fasSpawn)
+global.fasInfos = function (mcb) {
+    var fas_output = "";
+    
+    fas_tmp = spawn(path.join(__dirname, 'fas/fas'), ['--i'], {
+            cwd: path.join(__dirname, 'fas')
+        });
+
+    fas_tmp.stderr.on('data', (data) => {
+        console.log("stderr: " + data.toString());
+    });
+
+    fas_tmp.stdout.on('data', (data) => {
+        fas_output += data.toString();
+    });
+    
+    fas_tmp.on('close', (code) => {
+        console.log(`FAS exited with code ${code}`);
+        
+        var regex = /PortAudio device (\d+) - ([\s|\S]+?)=+\n  max input channels : (\d+)\n  max output channels : (\d+)\n  default low input latency : ([-|\d|\.]+)\n  default low output latency : ([-|\d|\.]+)\n  default high input latency : ([-|\d|\.]+)\n  default high output latency : ([-|\d|\.]+)\n  default sample rate : ([\d|\.]+)/g;
+        var matches;
+        var audio_devices = [];
+        
+        while (matches = regex.exec(fas_output)) {
+            audio_devices.push({
+                id:    matches[1],
+                name:  matches[2],
+                inchn: matches[3],
+                ouchn: matches[4],
+                linl:  matches[5],
+                loul:  matches[6],
+                hinl:  matches[7],
+                houl:  matches[8],
+                smpr:  matches[9]
+            });
+        }
+        
+        mcb(audio_devices);
+    });
+}
+
+app.on('ready', fasSpawn);
 
 /*app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
@@ -69,7 +110,7 @@ app.on('ready', fasSpawn)
 
 app.on('activate', () => {
     if (win === null) {
-        createWindow()
+        createWindow();
     }
 })
 
@@ -159,5 +200,5 @@ const template = [
     }
   ]
 
-const menu = Menu.buildFromTemplate(template)
-Menu.setApplicationMenu(menu)
+const menu = Menu.buildFromTemplate(template);
+Menu.setApplicationMenu(menu);
