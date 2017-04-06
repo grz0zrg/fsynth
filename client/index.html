@@ -167,7 +167,9 @@ void main ()
         <div id="fs_red_curtain" class="fs-red-curtain"></div>
         <div id="fs_electron_login" class="fs-electron-login" style="display: none">
             <div class="fs-electron-login-logo">
-                <img src="data/logo3.png" width="400">
+                <a href="https://www.fsynth.com">
+                    <img src="data/logo3.png" width="400">
+                </a>
             </div>
             <div id="fs_electron_login_dialog">
                 <div>
@@ -238,21 +240,45 @@ void main ()
                                     </div>
                                 </div>
                             </div>
-                            <div>
-                                <div style="text-align: center">
-                                    <div style="padding-top: 12px; padding-bottom: 8px">
-                                        Audio device:
-                                    </div>
-                                    <div id="fs_fas_device"></div>
+                            <div class="fs-fas-settings">
+                                <div>
+                                    <label class="fs-input-label" for="fs_select_editor_themes">Audio device:</label>
+                                    <select id="fs_fas_device" class="fs-btn">
+                                        
+                                    </select>
+                                    <!--<div id="fs_fas_device"></div>-->
                                 </div>
                                 <div id="fs_fas_infos"></div>
+                                <div>
+                                    <label class="fs-input-label" for="fs_fas_samplerate">Sample rate</label>
+                                    <input id="fs_fas_samplerate" class="fs-btn" type="text" value="44100">
+                                </div>
+                                <div>
+                                    <label class="fs-input-label" for="fs_fas_audiobuffer">Audio buffer size</label>
+                                    <input id="fs_fas_audiobuffer" class="fs-btn" type="text" value="512">
+                                </div>
+                                <div>
+                                    <label class="fs-input-label" for="fs_fas_outputchannels">Output channels</label>
+                                    <input id="fs_fas_outputchannels" class="fs-btn" type="text" value="2">
+                                </div>
+                                <div>
+                                    <label class="fs-input-label" for="fs_fas_framesqueue">Frames queue size</label>
+                                    <input id="fs_fas_framesqueue" class="fs-btn" type="text" value="7">
+                                </div>
+                                <br/>
+                                <label class="fs-ck-label">
+                                    <div>ALSA realtime scheduling</div>&nbsp;
+                                    <input id="fs_fas_ck_alsart" type="checkbox">
+                                </label>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="fs-electron-login-logo2">
-                <img src="data/fsynth2.png" width="297">
+                <a href="https://www.fsynth.com">
+                    <img src="data/fsynth2.png" width="297">
+                </a>
             </div>
             <div id="fs_app_version" class="fs-app-version"></div>
             <!--

@@ -31,14 +31,31 @@ function createWindow () {
     })
 }
 
-function fasSpawn () {
-    fas = spawn(path.join(__dirname, 'fas/fas'), [], {
+function fasClose(code) {
+    console.log(`FAS exited with code ${code}`);
+/*
+    if (process.platform !== 'darwin') {
+        app.quit();
+    }
+*/
+}
+
+function fasSpawn(params) {
+    if (params === undefined) {
+        params = [];
+    }
+    
+    fas = spawn(path.join(__dirname, 'fas/fas'), params, {
             cwd: path.join(__dirname, 'fas')
         });
-
+    
     fas.stderr.on('data', (data) => {
         console.log("stderr: " + data.toString());
     });
+    
+    fas.stderr.on('error', (data) => { });
+    fas.stdin.on('error', (data) => { });
+    fas.stdout.on('error', (data) => { });
 
     fas.stdout.on('data', (data) => {
         console.log("stdout: " + data.toString());
@@ -47,18 +64,30 @@ function fasSpawn () {
             started_result;
         started_result = stdout.search(/started and listening/);
         if (started_result !== -1) {
-            createWindow();
+            if (!win) {
+                createWindow();
+            }
+            
+            console.log("FAS started.");
         }
     });
+    
+    fas.removeListener('close', fasClose);
 
-    fas.on('close', (code) => {
-        console.log(`FAS exited with code ${code}`);
-
-        if (process.platform !== 'darwin') {
-            app.quit();
-        }
-    });
+    fas.on('close', fasClose);
 }
+
+global.fasRestart = function (params) {
+    fas.removeListener('close', fasClose);
+    
+    fas.on('close', (code) => {
+        console.log(`FAS exited with code ${code} after restart`);
+        
+        fasSpawn(params);
+    });
+    
+    fas.stdin.write("\x03");
+};
 
 global.fasInfos = function (mcb) {
     var fas_output = "";
@@ -68,7 +97,7 @@ global.fasInfos = function (mcb) {
         });
 
     fas_tmp.stderr.on('data', (data) => {
-        console.log("stderr: " + data.toString());
+        //console.log("stderr: " + data.toString());
     });
 
     fas_tmp.stdout.on('data', (data) => {
@@ -76,7 +105,7 @@ global.fasInfos = function (mcb) {
     });
     
     fas_tmp.on('close', (code) => {
-        console.log(`FAS exited with code ${code}`);
+        console.log(`fasInfos: FAS exited with code ${code}`);
         
         var regex = /PortAudio device (\d+) - ([\s|\S]+?)=+\n  max input channels : (\d+)\n  max output channels : (\d+)\n  default low input latency : ([-|\d|\.]+)\n  default low output latency : ([-|\d|\.]+)\n  default high input latency : ([-|\d|\.]+)\n  default high output latency : ([-|\d|\.]+)\n  default sample rate : ([\d|\.]+)/g;
         var matches;

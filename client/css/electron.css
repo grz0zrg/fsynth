@@ -132,3 +132,16 @@
     background-color: white;
     padding: 4px;
 }
+
+.fs-fas-settings {
+    font-size: 10pt;
+}
+
+.fs-fas-settings label {
+    width: 120px;
+}
+
+.fs-fas-settings .fs-btn {
+    margin-top: 2px;
+    margin-bottom: 2px;
+}

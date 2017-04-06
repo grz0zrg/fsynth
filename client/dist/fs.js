@@ -15420,6 +15420,7 @@ var _fp_main = function (join_cb) {
 var _electron,
     
     _fasInfos,
+    _fasRestart,
     
     _fas_devices,
     
@@ -15454,6 +15455,17 @@ var _join = function (session_name) {
         });
 };
 
+var _restartFas = function () {
+    var opts = [];
+    
+    if (_chosen_fas_device) {
+        opts.push("--device");
+        opts.push(_chosen_fas_device);
+    }
+    
+    _fasRestart(opts);
+};
+
 var _updateDeviceInfos = function (index) {
     var fas_infos_elem = document.getElementById("fs_fas_infos"),
         
@@ -15469,45 +15481,59 @@ var _updateDeviceInfos = function (index) {
     fas_infos_elem.innerHTML = html;
 };
 
-var _onDeviceSelected = function (index) {
-    _chosen_fas_device = index;
+var _onDeviceSelected = function (e) {
+    var selected_option = e.target.options[e.target.selectedIndex],
+        device_id = parseInt(selected_option.dataset.id, 10),
+        device_name = e.target.value;
     
-    _updateDeviceInfos(index);
+    _chosen_fas_device = device_id;
     
-    // TODO: relaunch FAS
+    _updateDeviceInfos(device_id);
+    
+    localStorage.setItem('fs-fas-device-id', device_id);
+    localStorage.setItem('fs-fas-device-name', device_name);
+    
+    _restartFas();
 };
 
 var _onDeviceInfos = function (devices) {
     _fas_devices = devices;
     
-    var device_names = [],
+    var device_select = document.getElementById("fs_fas_device"),
+        
+        selected_device_id = localStorage.getItem('fs-fas-device-id'),
+        selected_device_name = localStorage.getItem('fs-fas-device-name'),
+        
+        fas_device,
+        
+        selected = "",
         
         i = 0;
     
-    for (i = 0; i < _fas_devices.length; i += 1) {
-        device_names.push(_fas_devices[i].name);
+    if (selected_device_id === null) {
+        selected_device_id = 0;
+    } else {
+        selected_device_id = parseInt(selected_device_id, 10);
     }
     
-    device_names.reverse();
+    _chosen_fas_device = selected_device_id;
     
-    WUI_DropDown.destroy("fs_fas_device");
+    device_select.addEventListener("change", _onDeviceSelected);
     
-    WUI_DropDown.create("fs_fas_device", {
-            width: "440px",
-            height: "24px",
-
-            vspacing: 4,
-
-            ms_before_hiding: 1000,
-
-            selected_id: _chosen_fas_device,
-
-            vertical: true,
-
-            on_item_selected: _onDeviceSelected
-        },
-        device_names
-    );
+    device_select.innerHTML = "";
+    
+    for (i = _fas_devices.length - 1; i > 0; i -= 1) {
+        fas_device = _fas_devices[i];
+        
+        if (fas_device.id === selected_device_id &&
+            fas_device.name === selected_device_name) {
+            selected = " selected"
+        } else {
+            selected = "";
+        }
+        
+        device_select.innerHTML += "<option data-id=\"" + fas_device.id + "\"" + selected + ">" + fas_device.name + "</option>";
+    }
     
     _updateDeviceInfos(_chosen_fas_device);
 };
@@ -15529,6 +15555,7 @@ var _electronInit = function () {
         _electron = require('electron');
         
         _fasInfos = _electron.remote.getGlobal('fasInfos');
+        _fasRestart = _electron.remote.getGlobal('fasRestart');
         
         //document.body.style.backgroundColor = "#ffffff";
          
