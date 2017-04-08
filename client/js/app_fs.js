@@ -142,6 +142,14 @@ var FragmentSynth = function (params) {
 
         _render_width = _canvas_width,
         _render_height = _canvas_height,
+        
+        _feedback = {
+            enabled: true,
+            pframe: [],
+            index: 0,
+            program: null,
+            texture: null
+        },
 
         _code_editor,
         _code_editor_element = document.getElementById("code"),
@@ -412,6 +420,8 @@ var FragmentSynth = function (params) {
                     prev_base_freq, base_freq
                 ]);
         }
+        
+        _buildFeedback();
     };
 
     /***********************************************************
@@ -546,6 +556,8 @@ var FragmentSynth = function (params) {
     if (params.fas) {
         _fasEnable();
     }
+    
+    _buildFeedback();
 };
     
     if (_electronInit()) {

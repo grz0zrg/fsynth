@@ -20,7 +20,8 @@ This is a sort of [Shadertoy](https://www.shadertoy.com) like synthesizer, it is
  * Multitimbral
  * Aliasing free
  * Adjustable audio output channel per slices
- * Shader inputs, webcam, textures, buffers (for persistent or incremental fx) and more
+ * Feedback via framebuffer (for fx like reverb, delay, Release part of envelopes)
+ * Shader inputs, webcam, textures and more to come
  * Real-time analysis (logarithmic spectrum view of the output etc.)
  * Native app. powered by [Electron](http://electron.atom.io/) with built-in [C powered additive synthesizer](https://github.com/grz0zrg/fas)
  * Per-sessions discussion system
@@ -28,16 +29,16 @@ This is a sort of [Shadertoy](https://www.shadertoy.com) like synthesizer, it is
  * No authentifications (make use of *localStorage* and is *sessions* based)
 
  Note: Blue component output of the fragment shader can be used for real-time sounds/visuals sync or visual feedback of functions/textures/camera, it is also possible to have full RGB output for visuals by turning on the "monophonic" setting
- 
+
  Note: WebAudio oscillators and wavetable mode can only have two output channels (l/r) due to obvious performances issues (this may change in the future!)
- 
+
 ## MIDI Feature list (Integrated MIDI support with the WebMIDI API):
 
  * Integrated note-on/note-off messages, note frequency, velocity, MIDI channel and elapsed time are accessible in the fragment shader (this is not shared between users)
  * Polyphony is automatically detected from the GPU capabilities (704 notes with a GeForce GTX 970 GPU, 16 notes is the minimum, maximum also depend on the shader complexity)
  * Hot plugging of MIDI devices are supported
  * MIDI enabled shader inputs
- 
+
 ## Requirement:
 
  * Recent browser such as Chrome, Opera, Safari or Firefox (WebMIDI is still not supported by Firefox)
@@ -52,10 +53,10 @@ This is a sort of [Shadertoy](https://www.shadertoy.com) like synthesizer, it is
  * www - landing page
  * fss - main server (discuss. system, slices)
  * fsdb - sharedb server (collaborative features)
- * fsws - web. server (only used for development)
- * documentation - MAML (Minimalist Anubis Markup Language) with the latest HTML doc.
+ * fsws - web. server (only used for development or local installation)
+ * documentation - MAML (Minimalist Anubis Markup Language) with the latest HTML and PDF doc.
  * main.js - Electron app. file
- * common.js - Servers config. files
+ * common.js - Server config. file
 
 ## Build
 
@@ -71,12 +72,16 @@ If you want to build it by yourself, you will have to find a way to run a pre-pr
  * *prod* is a shell script which produce an archive from *prod_files*, perform additional cleaning and unarchive over SSH
  * *setup* is a script which is executed on the server after everything has been uploaded and which configure Fragment for the production system
 
-## Server architecture
+## How to setup your own
 
- * main app. directory is /home/fs/fsynth with user "fs"
- * NGINX reverse proxy for fsdb/fss, simple NGINX rules for landing page and main app.
- * pm2 is used as a process manager
- 
+Fragment use MongoDB and Redis database, once those are installed, it is easy to run it localy:
+
+ * clone this repository
+ * cd fss & npm install & node fss
+ * cd fsdb & npm install & node fsdb
+ * cd fsws & npm install & node fsws
+ * point your browser to http://127.0.0.1:3000
+
 ## Tips and tricks
 
  * If you enable the *monophonic* setting, you have the RGB output for live coding visuals which can be fully synchronized with the synthesized sounds which will be synthesized by using the alpha channel

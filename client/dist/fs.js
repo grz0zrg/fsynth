@@ -15958,6 +15958,14 @@ _utter_fail_element.innerHTML = "";
 
         _render_width = _canvas_width,
         _render_height = _canvas_height,
+        
+        _feedback = {
+            enabled: true,
+            pframe: [],
+            index: 0,
+            program: null,
+            texture: null
+        },
 
         _code_editor,
         _code_editor_element = document.getElementById("code"),
@@ -16672,7 +16680,6 @@ var _audioInit = function () {
 };
 /* jslint browser: true */
 
-
 var _buildScreenAlignedQuad = function() {
     var position;
 
@@ -16712,6 +16719,10 @@ var _create2DTexture = function (image, default_wrap_filter, bind_now) {
     
     if (bind_now) {
         _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, image);
+    }
+    
+    if (image.empty) {
+        _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, image.width, image.height, 0, _gl.RGBA, _gl.UNSIGNED_BYTE, null);
     }
 
     _gl.bindTexture(_gl.TEXTURE_2D, null);
@@ -16811,6 +16822,54 @@ var _flipYTexture = function (texture, flip) {
     _gl.bindTexture(_gl.TEXTURE_2D, texture);
     _gl.pixelStorei(_gl.UNPACK_FLIP_Y_WEBGL, flip);
     _gl.bindTexture(_gl.TEXTURE_2D, null);
+};
+
+var _buildFeedback = function () {
+    if (_feedback.enabled) {
+        if (_feedback.program) {
+            _gl.deleteProgram(_program);
+        }
+        
+        _feedback.program = _createAndLinkProgram(
+                _createShader(_gl.VERTEX_SHADER, document.getElementById("vertex-shader").text),
+                _createShader(_gl.FRAGMENT_SHADER, [
+                    "precision mediump float;",
+                    "uniform vec2 resolution;",
+                    "uniform sampler2D texture;",
+                    "void main () {",
+                    "    vec2 uv = gl_FragCoord.xy / resolution;",
+                    "    vec4 c = texture2D(texture, uv);",
+                    "    gl_FragColor = c;",
+                    "}"].join(""))
+            );
+        
+        if (!_feedback.program) {
+            _feedback.enabled = false;
+            return;
+        }
+        
+        _gl.useProgram(_feedback.program);
+        _gl.uniform2f(_gl.getUniformLocation(_feedback.program, "resolution"), _canvas.width, _canvas.height);
+        
+        if (_feedback.pframe.data) {
+            if (_feedback.pframe.data.texture) {
+                _gl.deleteTexture(_feedback.pframe.data.texture);
+            }
+        }
+        
+        if (_feedback.pframe.buffer) {
+            _gl.deleteFrameBuffer(_feedback.pframe.buffer);
+        }
+        
+        _feedback.pframe[0] = { data: null, buffer: null };
+        _feedback.pframe[1] = { data: null, buffer: null };
+        
+        _feedback.pframe[0].data = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true });
+        _feedback.pframe[0].buffer = _createFramebuffer(_feedback.pframe[0].data.texture);
+        
+        _feedback.pframe[1].data = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true });
+        _feedback.pframe[1].buffer = _createFramebuffer(_feedback.pframe[1].data.texture);
+    }
 };
 
 var _transformData = function (slice_obj, data) {
@@ -16922,7 +16981,7 @@ var _allocate_frames_data = function () {
 };
 
 var _frame = function (raf_time) {
-    var i = 0, j = 0,
+    var i = 0, j = 0, o = 0,
 
         play_position_marker,
         play_position_marker_x = 0,
@@ -16930,6 +16989,9 @@ var _frame = function (raf_time) {
         fsas_data,
         
         fragment_input,
+        
+        current_frame,
+        previous_frame,
         
         time_now = performance.now(),
         
@@ -16959,6 +17021,22 @@ var _frame = function (raf_time) {
         if (i > _keyboard.data_length) {
             break;
         }
+    }
+    
+    if (_feedback.enabled) {
+        current_frame = _feedback.pframe[_feedback.index];
+        previous_frame = _feedback.pframe[(_feedback.index + 1) % 2];
+        
+        _gl.bindFramebuffer(_gl.FRAMEBUFFER, current_frame.buffer);
+        _gl.viewport(0, 0, _canvas_width, _canvas_height);
+        
+        _gl.useProgram(_program);
+        
+        o = _fragment_input_data.length;
+        
+        _gl.activeTexture(_gl.TEXTURE0 + o);
+        _gl.bindTexture(_gl.TEXTURE_2D, previous_frame.data.texture);
+        _gl.uniform1i(_getUniformLocation("pFrame", _program), o);
     }
     
     _gl.uniform4fv(_getUniformLocation("keyboard"), _keyboard.data);
@@ -16991,6 +17069,21 @@ var _frame = function (raf_time) {
 
     //_gl.bindBuffer(_gl.ARRAY_BUFFER, _quad_vertex_buffer);
     _gl.drawArrays(_gl.TRIANGLE_STRIP, 0, 4);
+    
+    if (_feedback.enabled) {
+        _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
+        _gl.viewport(0, 0, _canvas_width, _canvas_height);
+        _gl.useProgram(_feedback.program);
+        
+        _gl.activeTexture(_gl.TEXTURE0);
+        _gl.bindTexture(_gl.TEXTURE_2D, current_frame.data.texture);
+        _gl.uniform1i(_getUniformLocation("texture", _feedback.program), 0);
+        
+        _gl.drawArrays(_gl.TRIANGLE_STRIP, 0, 4);
+        
+        _feedback.index += 1;
+        _feedback.index = _feedback.index % 2;
+    }
     
     if ((_notesWorkerAvailable() || fas_enabled) && _play_position_markers.length > 0) {
         if (!fas_enabled) {
@@ -17236,7 +17329,14 @@ var _compile = function () {
         i = 0;
     
     // add our uniforms
-    glsl_code = "precision mediump float; uniform float globalTime; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "];float htoy(float frequency) {return (resolution.y - (resolution.y - (log(frequency / baseFrequency) / log(2.)) * (resolution.y / octave))) / resolution.y;}";
+    glsl_code = "precision mediump float; uniform float globalTime; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "];"
+    
+    if (_feedback.enabled) {
+        glsl_code += "uniform sampler2D pFrame;";
+    }
+    
+    // add htoy
+    glsl_code += "float htoy(float frequency) {return (resolution.y - (resolution.y - (log(frequency / baseFrequency) / log(2.)) * (resolution.y / octave))) / resolution.y;}";
 
     // add inputs uniforms
     for (i = 0; i < _fragment_input_data.length; i += 1) {
@@ -20476,6 +20576,8 @@ var _onMIDIMessage = function (midi_message) {
         return;
     }
     
+    _gl.useProgram(_program);
+    
     switch (midi_message.data[0] & 0xf0) {
         case 0x90:
             if (midi_message.data[2] !== 0) { // note-on
@@ -20800,6 +20902,8 @@ var _fasInit = function () {
                     prev_base_freq, base_freq
                 ]);
         }
+        
+        _buildFeedback();
     };
 
     /***********************************************************
@@ -21078,6 +21182,8 @@ _red_curtain_element.addEventListener("transitionend", function () {
     if (params.fas) {
         _fasEnable();
     }
+    
+    _buildFeedback();
 };
     
     if (_electronInit()) {
