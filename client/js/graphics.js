@@ -145,6 +145,8 @@ var _flipYTexture = function (texture, flip) {
 };
 
 var _buildFeedback = function () {
+    var i = 0, frame;
+    
     if (_feedback.enabled) {
         if (_feedback.program) {
             _gl.deleteProgram(_program);
@@ -165,20 +167,27 @@ var _buildFeedback = function () {
         
         if (!_feedback.program) {
             _feedback.enabled = false;
+            
+            _notification("Could not enable feedback feature.");
+            
             return;
         }
         
-        _gl.useProgram(_feedback.program);
+        _useProgram(_feedback.program);
         _gl.uniform2f(_gl.getUniformLocation(_feedback.program, "resolution"), _canvas.width, _canvas.height);
         
-        if (_feedback.pframe.data) {
-            if (_feedback.pframe.data.texture) {
-                _gl.deleteTexture(_feedback.pframe.data.texture);
+        for (i = 0; i < _feedback.pframe.length; i += 1) {
+            frame = _feedback.pframe[i];
+            
+            if (frame.data) {
+                if (frame.data.texture) {
+                    _gl.deleteTexture(frame.data.texture);
+                }
             }
-        }
-        
-        if (_feedback.pframe.buffer) {
-            _gl.deleteFrameBuffer(_feedback.pframe.buffer);
+
+            if (frame.buffer) {
+                _gl.deleteFramebuffer(frame.buffer);
+            }
         }
         
         _feedback.pframe[0] = { data: null, buffer: null };
@@ -190,6 +199,8 @@ var _buildFeedback = function () {
         _feedback.pframe[1].data = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true });
         _feedback.pframe[1].buffer = _createFramebuffer(_feedback.pframe[1].data.texture);
     }
+    
+    _compile();
 };
 
 var _transformData = function (slice_obj, data) {
@@ -350,7 +361,7 @@ var _frame = function (raf_time) {
         _gl.bindFramebuffer(_gl.FRAMEBUFFER, current_frame.buffer);
         _gl.viewport(0, 0, _canvas_width, _canvas_height);
         
-        _gl.useProgram(_program);
+        _useProgram(_program);
         
         o = _fragment_input_data.length;
         
@@ -393,7 +404,7 @@ var _frame = function (raf_time) {
     if (_feedback.enabled) {
         _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
         _gl.viewport(0, 0, _canvas_width, _canvas_height);
-        _gl.useProgram(_feedback.program);
+        _useProgram(_feedback.program);
         
         _gl.activeTexture(_gl.TEXTURE0);
         _gl.bindTexture(_gl.TEXTURE_2D, current_frame.data.texture);

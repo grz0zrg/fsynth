@@ -1338,6 +1338,7 @@ var _uiInit = function () {
         settings_ck_xscrollbar_elem = document.getElementById("fs_settings_ck_xscrollbar"),
         settings_ck_wavetable_elem = document.getElementById("fs_settings_ck_wavetable"),
         settings_ck_monophonic_elem = document.getElementById("fs_settings_ck_monophonic"),
+        settings_ck_feedback_elem = document.getElementById("fs_settings_ck_feedback"),
         settings_ck_slicebar_elem = document.getElementById("fs_settings_ck_slicebar"),
         settings_ck_slices_elem = document.getElementById("fs_settings_ck_slices"),
         
@@ -1351,13 +1352,14 @@ var _uiInit = function () {
         fs_settings_lnumbers = localStorage.getItem('fs-editor-show-linenumbers'),
         fs_settings_xscrollbar = localStorage.getItem('fs-editor-advanced-scrollbar'),
         fs_settings_wavetable = localStorage.getItem('fs-use-wavetable'),
-        fs_settings_monophonic = localStorage.getItem('fs-monophonic');
+        fs_settings_monophonic = localStorage.getItem('fs-monophonic'),
+        fs_settings_feedback = localStorage.getItem('fs-feedback');
     
     _settings_dialog = WUI_Dialog.create(_settings_dialog_id, {
             title: "Session & global settings",
 
             width: "320px",
-            height: "408px",
+            height: "418px",
 
             halign: "center",
             valign: "center",
@@ -1370,11 +1372,25 @@ var _uiInit = function () {
         });
     
     if (fs_settings_monophonic === "true") {
-        _audio_infos.monophonic = fs_settings_monophonic;
+        _audio_infos.monophonic = true;
         settings_ck_monophonic_elem.checked = true;
     } else {
         _audio_infos.monophonic = false;
         settings_ck_monophonic_elem.checked = false;
+    }
+    
+    if (fs_settings_feedback === "true") {
+        _feedback.enabled = true;
+        settings_ck_feedback_elem.checked = true;
+    } else if (fs_settings_feedback === null) {
+        if (_feedback.enabled) {
+            settings_ck_feedback_elem.checked = true;
+        } else {
+            settings_ck_feedback_elem.checked = false;
+        }
+    } else {
+        _feedback.enabled = false;
+        settings_ck_feedback_elem.checked = false;
     }
     
     if (fs_settings_osc_fadeout) {
@@ -1472,6 +1488,19 @@ var _uiInit = function () {
         
             localStorage.setItem('fs-monophonic', this.checked);
         });
+
+    settings_ck_feedback_elem.addEventListener("change", function () {
+            if (this.checked) {
+                _feedback.enabled = true;
+            } else {
+                _feedback.enabled = false;
+            }
+        
+            localStorage.setItem('fs-feedback', this.checked);
+        
+            _buildFeedback();
+        });
+    
     
     settings_ck_wavetable_elem.addEventListener("change", function () {
             if (this.checked) {
@@ -1599,6 +1628,7 @@ var _uiInit = function () {
     settings_ck_lnumbers_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_xscrollbar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_monophonic_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_feedback_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_slicebar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_slices_elem.dispatchEvent(new UIEvent('change'));
     

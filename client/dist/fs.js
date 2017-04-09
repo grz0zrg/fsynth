@@ -16825,6 +16825,8 @@ var _flipYTexture = function (texture, flip) {
 };
 
 var _buildFeedback = function () {
+    var i = 0, frame;
+    
     if (_feedback.enabled) {
         if (_feedback.program) {
             _gl.deleteProgram(_program);
@@ -16845,20 +16847,27 @@ var _buildFeedback = function () {
         
         if (!_feedback.program) {
             _feedback.enabled = false;
+            
+            _notification("Could not enable feedback feature.");
+            
             return;
         }
         
-        _gl.useProgram(_feedback.program);
+        _useProgram(_feedback.program);
         _gl.uniform2f(_gl.getUniformLocation(_feedback.program, "resolution"), _canvas.width, _canvas.height);
         
-        if (_feedback.pframe.data) {
-            if (_feedback.pframe.data.texture) {
-                _gl.deleteTexture(_feedback.pframe.data.texture);
+        for (i = 0; i < _feedback.pframe.length; i += 1) {
+            frame = _feedback.pframe[i];
+            
+            if (frame.data) {
+                if (frame.data.texture) {
+                    _gl.deleteTexture(frame.data.texture);
+                }
             }
-        }
-        
-        if (_feedback.pframe.buffer) {
-            _gl.deleteFrameBuffer(_feedback.pframe.buffer);
+
+            if (frame.buffer) {
+                _gl.deleteFramebuffer(frame.buffer);
+            }
         }
         
         _feedback.pframe[0] = { data: null, buffer: null };
@@ -16870,6 +16879,8 @@ var _buildFeedback = function () {
         _feedback.pframe[1].data = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true });
         _feedback.pframe[1].buffer = _createFramebuffer(_feedback.pframe[1].data.texture);
     }
+    
+    _compile();
 };
 
 var _transformData = function (slice_obj, data) {
@@ -17030,7 +17041,7 @@ var _frame = function (raf_time) {
         _gl.bindFramebuffer(_gl.FRAMEBUFFER, current_frame.buffer);
         _gl.viewport(0, 0, _canvas_width, _canvas_height);
         
-        _gl.useProgram(_program);
+        _useProgram(_program);
         
         o = _fragment_input_data.length;
         
@@ -17073,7 +17084,7 @@ var _frame = function (raf_time) {
     if (_feedback.enabled) {
         _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
         _gl.viewport(0, 0, _canvas_width, _canvas_height);
-        _gl.useProgram(_feedback.program);
+        _useProgram(_feedback.program);
         
         _gl.activeTexture(_gl.TEXTURE0);
         _gl.bindTexture(_gl.TEXTURE_2D, current_frame.data.texture);
@@ -17204,7 +17215,8 @@ var _frame = function (raf_time) {
     Fields.
 ************************************************************/
 
-var _uniform_location_cache = {};
+var _uniform_location_cache = {},
+    _current_program;
 
 
 /***********************************************************
@@ -17256,6 +17268,13 @@ var _createShader = function (shader_type, shader_code) {
     return shader;
 };
 
+var _useProgram = function (program) {
+    if (_current_program !== program) {
+        _gl.useProgram(program);
+        _current_program = program;
+    }
+};
+
 var _getUniformLocation = function (name, program) {
     var prog = _program;
     
@@ -17263,7 +17282,7 @@ var _getUniformLocation = function (name, program) {
         if (program !== undefined) {
             prog = program;
         }
-        
+
         _uniform_location_cache[name] = _gl.getUniformLocation(prog, name);
     }
     
@@ -17378,7 +17397,7 @@ var _compile = function () {
 
         _clearCodeMirrorWidgets();
 
-        _gl.useProgram(_program);
+        _useProgram(_program);
 
         _gl.uniform2f(_gl.getUniformLocation(_program, "resolution"), _canvas.width, _canvas.height);
         
@@ -19712,6 +19731,7 @@ var _uiInit = function () {
         settings_ck_xscrollbar_elem = document.getElementById("fs_settings_ck_xscrollbar"),
         settings_ck_wavetable_elem = document.getElementById("fs_settings_ck_wavetable"),
         settings_ck_monophonic_elem = document.getElementById("fs_settings_ck_monophonic"),
+        settings_ck_feedback_elem = document.getElementById("fs_settings_ck_feedback"),
         settings_ck_slicebar_elem = document.getElementById("fs_settings_ck_slicebar"),
         settings_ck_slices_elem = document.getElementById("fs_settings_ck_slices"),
         
@@ -19725,13 +19745,14 @@ var _uiInit = function () {
         fs_settings_lnumbers = localStorage.getItem('fs-editor-show-linenumbers'),
         fs_settings_xscrollbar = localStorage.getItem('fs-editor-advanced-scrollbar'),
         fs_settings_wavetable = localStorage.getItem('fs-use-wavetable'),
-        fs_settings_monophonic = localStorage.getItem('fs-monophonic');
+        fs_settings_monophonic = localStorage.getItem('fs-monophonic'),
+        fs_settings_feedback = localStorage.getItem('fs-feedback');
     
     _settings_dialog = WUI_Dialog.create(_settings_dialog_id, {
             title: "Session & global settings",
 
             width: "320px",
-            height: "408px",
+            height: "418px",
 
             halign: "center",
             valign: "center",
@@ -19744,11 +19765,25 @@ var _uiInit = function () {
         });
     
     if (fs_settings_monophonic === "true") {
-        _audio_infos.monophonic = fs_settings_monophonic;
+        _audio_infos.monophonic = true;
         settings_ck_monophonic_elem.checked = true;
     } else {
         _audio_infos.monophonic = false;
         settings_ck_monophonic_elem.checked = false;
+    }
+    
+    if (fs_settings_feedback === "true") {
+        _feedback.enabled = true;
+        settings_ck_feedback_elem.checked = true;
+    } else if (fs_settings_feedback === null) {
+        if (_feedback.enabled) {
+            settings_ck_feedback_elem.checked = true;
+        } else {
+            settings_ck_feedback_elem.checked = false;
+        }
+    } else {
+        _feedback.enabled = false;
+        settings_ck_feedback_elem.checked = false;
     }
     
     if (fs_settings_osc_fadeout) {
@@ -19846,6 +19881,19 @@ var _uiInit = function () {
         
             localStorage.setItem('fs-monophonic', this.checked);
         });
+
+    settings_ck_feedback_elem.addEventListener("change", function () {
+            if (this.checked) {
+                _feedback.enabled = true;
+            } else {
+                _feedback.enabled = false;
+            }
+        
+            localStorage.setItem('fs-feedback', this.checked);
+        
+            _buildFeedback();
+        });
+    
     
     settings_ck_wavetable_elem.addEventListener("change", function () {
             if (this.checked) {
@@ -19973,6 +20021,7 @@ var _uiInit = function () {
     settings_ck_lnumbers_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_xscrollbar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_monophonic_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_feedback_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_slicebar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_slices_elem.dispatchEvent(new UIEvent('change'));
     
@@ -20575,8 +20624,8 @@ var _onMIDIMessage = function (midi_message) {
     if (!midi_device.enabled) {
         return;
     }
-    
-    _gl.useProgram(_program);
+
+    _useProgram(_program);
     
     switch (midi_message.data[0] & 0xf0) {
         case 0x90:

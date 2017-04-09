@@ -5,7 +5,8 @@
     Fields.
 ************************************************************/
 
-var _uniform_location_cache = {};
+var _uniform_location_cache = {},
+    _current_program;
 
 
 /***********************************************************
@@ -57,6 +58,13 @@ var _createShader = function (shader_type, shader_code) {
     return shader;
 };
 
+var _useProgram = function (program) {
+    if (_current_program !== program) {
+        _gl.useProgram(program);
+        _current_program = program;
+    }
+};
+
 var _getUniformLocation = function (name, program) {
     var prog = _program;
     
@@ -64,7 +72,7 @@ var _getUniformLocation = function (name, program) {
         if (program !== undefined) {
             prog = program;
         }
-        
+
         _uniform_location_cache[name] = _gl.getUniformLocation(prog, name);
     }
     
@@ -179,7 +187,7 @@ var _compile = function () {
 
         _clearCodeMirrorWidgets();
 
-        _gl.useProgram(_program);
+        _useProgram(_program);
 
         _gl.uniform2f(_gl.getUniformLocation(_program, "resolution"), _canvas.width, _canvas.height);
         

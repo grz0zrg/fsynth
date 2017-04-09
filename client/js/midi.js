@@ -148,8 +148,8 @@ var _onMIDIMessage = function (midi_message) {
     if (!midi_device.enabled) {
         return;
     }
-    
-    _gl.useProgram(_program);
+
+    _useProgram(_program);
     
     switch (midi_message.data[0] & 0xf0) {
         case 0x90:

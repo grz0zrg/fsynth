@@ -11,6 +11,7 @@ $//
 $colorrule(glsl)(void|const|float|int|vec2|vec3|vec4|if|else|continue|for|return|highp)($rgb(10,0,130)($1))
 $colorrule(glsl)(##define|gl_FragColor|gl_FragCoord|clamp|pow|exp|mod|floor|sin|cos|tan|log)($rgb(0,100,0)($1))
 $colorrule(glsl)(resolution|globalTime|htoy)($rgb(0,100,100)($1))
+$//$colorrule(glsl)([a-zA-Z_]+[0-9]+)($1)
 $colorrule(glsl)([0-9]+)($rgb(130,0,130)($1))
 $colorrule(glsl)([0-9]+#.[0-9]*)($rgb(130,0,0)($1))
 $colorrule(glsl)(#/#/.*)($rgb(60,20,20)($1))
@@ -34,7 +35,7 @@ $define(em)(1)($italic($1))
 $//
 $bigtitle(Fragment)
 $title(The Collaborative Spectral Synthesizer)
-$center(by Julien Verneuil - contact$ifpdf( at )@fsynth.com)
+$center(by Julien Verneuil - contact@fsynth.com)
 $nl
 $ifhtml($center($big(This is the HTML documentation of the Fragment synthesizer.)))$ifpdf($center($big(This is the documentation of the Fragment synthesizer.)))
 $ifhtml($center(The PDF documentation can be found $tlink(here)(https://www.fsynth.com/pdf/fragment_documentation.pdf)))
@@ -315,7 +316,7 @@ The purpose of slices is to capture the pixels of vertical parts of the canvas w
 Slices can be moved by dragging them on the X axis, to do so, maintain the left mouse button on a slice and move the mouse cursor around on the horizontal axis.
 $gif(dragging_slices)
 Double-clicking on a slice open its settings dialog directly:
-$tlink($center($image(326)(images/slice_settings.png)))(images/slice_settings.png)
+$tlink($center($image(336)(images/slice_settings.png)))(images/slice_settings.png)
 The following actions are possible by right-clicking on a slice:
 $list(
 	$item mute/unmute
@@ -504,6 +505,9 @@ $list(
 	$item Wavetable
 	$list(
 		$item Enable/disable the synthesis engine wavetable feature (uglier audio output but may be the less CPU intensive mode))
+	$item Feedback
+	$list(
+		$item Enable/disable the availability of the previous frame in the fragment shader (aka feedback), this is useful for complex effects, may be CPU/GPU intensive)
 	$item Editor theme
 	$list(
 		$item A list of themes for the code editor)
@@ -634,6 +638,10 @@ $list(
 	$item $bold(sampler2D) $rgb(0,100,100)(iInput)$rgb(0,100,100)($bold(N))
 	$list(
 		$item typical usage: texture2D(iInput0, uv))
+	$item $bold(sampler2D) $rgb(0,100,100)(pFrame)
+	$list(
+		$item this uniform will be available when feedback is enabled and contain the previous frame
+		$item typical usage: texture2D(pFrame, uv))
 	$item $bold(vec4[N]) $rgb(0,100,100)(keyboard)
 	$list(
 		$item note-on frequency
@@ -683,6 +691,8 @@ $glslcode(
     // but just narrow enough so that only our line come "up"
     float bandwidth = 700000.;
     v *= bandwidth;
+    // attenuate color intensity loses
+    v = floor(v);
     
     // generate the color for left and right channels aka red and green output color
     // we take care of reversing the value so that the line is seen
@@ -783,7 +793,7 @@ $nl
 $subsection(Playing with a MIDI keyboard)
 You must have a WebMIDI supported browser (such as Chrome or Opera) to use MIDI messages with Fragment.
 
-Once your MIDI keyboard is plugged in, you can go in the Fragment MIDI devices and enable it.
+Once your MIDI keyboard is plugged in, you can go in the Fragment MIDI devices dialog and enable it.
 
 The MIDI data will now be available in a pre-defined $bold(vec4 array) named $bold(keyboard), the array length is the actual polyphony capability of Fragment, the array contain a series of vec4 items, a vec4 item contain:
 $list(
@@ -791,7 +801,7 @@ $list(
 	$item the note velocity
 	$item the elapsed time since the key was pressed
 	$item the MIDI channel)
-Important note: There is no notions of "note-off" in Fragment, a note-off is simply an item filled with 0, Fragment will add note-on in order and will reorder the array as necessary, this mean that you can loop over all items and break the loop if an item component is equal to 0.
+Important note: There is no notions of "note-off" in Fragment, a note-off is simply an item filled with 0, Fragment will add note-on in order and will reorder the array as necessary, this mean that you can loop over all items and break the loop if an item component is equal to 0, it is possible to detect note-off events by using the previous frame (aka feedback feature).
 
 Here is how you can use your MIDI keyboard:
 $glslcode(
@@ -810,7 +820,7 @@ $glslcode(
     // this can be increased up to the maximal polyphonic capabilities
     // of Fragment for your platform
     for (int k = 0; k < 8; k += 1) {
-    	// we get the note-on data
+      // we get the note-on data
       vec4 data = keyboard[k];
       
       float kfrq = data.x; // frequency
@@ -845,7 +855,7 @@ $glslcode(
 )
 You can now play something with your MIDI keyboard and hear your basic timbre!
 
-You might find the loop kind of weird, why we don't just loop over all note-on messages? This is because the GLSL spec. for the version that is used by the browsers is quite limited when it come to loop features... for example, it does not allow dynamicals indexes.
+You might find the loop kind of weird, why we don't just loop over all available note-on messages? This is because the GLSL spec. for the version that is used by all browsers is quite limited when it come to loop features... for example, it does not allow dynamicals indexes.
 
 $nl
 $subsection(Simple AR-like envelope)
@@ -905,7 +915,7 @@ $glslcode(
     gl_FragColor = vec4(l, r, l + r, 0.);
   }
 )
-The sound is much more pleasant! You can change the parameters of the envelope to apply other kinds of envelopes.
+You can change the parameters of the envelope to apply other kinds of envelopes.
 
 Here is a good preview of the envelope models that the $bold(impulse) function generate:
 $tlink($center($image(512)(images/impulse.png)))(images/impulse.png)
@@ -965,7 +975,7 @@ The timbre produced by this code is very pleasant, all high frequencies harmonic
 
 $nl
 $subsection(Morphing between parameters)
-We will now look into getting a better timbre by morphing parameters such at the attenuation or frequencies, due to the nature of Fragment, almost everything can be morphed easily by using mathematical functions:
+We will now look into getting a better timbre by morphing parameters such as the attenuation or frequencies, due to the nature of Fragment, almost everything can be morphed easily by using mathematical functions:
 $glslcode(
   float impulse(float k, float x) {
     float h = k * x;
@@ -1012,7 +1022,7 @@ $glslcode(
         v *= bandwidth;
         
         float env_stretch = i / harmonics;
-        float env = impulse(env_stretch, env_attack);
+        float env = kvel * impulse(env_stretch, env_attack);
 
         // we now mix our attenuations so that
         // higher harmonics oscillate between both 
@@ -1027,11 +1037,88 @@ $glslcode(
     gl_FragColor = vec4(l, r, l + r, 0.);
   }
 )
-This sound just nice! This is just an example but you can now imagine the amount of possibilities, very complex timbres can be created easily by applying custom functions and mixing between several parameters!
+This is just an example but you can now imagine the amount of possibilities, very complex timbres can be created easily by applying custom functions and mixing between several parameters!
+
+For example, we could do a tremolo or vibrato effect very easily by modulating our harmonics or frequencies quickly!
 
 Fragment offer a limitless landscape for any creative minds willing to experiment.
 
-We could have some fun by also varying the frequency per harmonics etc.
+$nl
+$subsection(ADSR envelope)
+We will now replace our AR envelope by a more complex ADSR envelopes, ADSR mean Attack, Decay, Sustain, Release, this is a classic and is the most commonly used envelope, this will enhance our possibilities.
+$glslcode(
+  float adsr(float t, vec4 v, float s) {
+    v.xyw = max(vec3(2.2e-05), v.xyw);
+    // attack term
+    float ta = t/v.x;
+    // decay / sustain amplitude term
+    float td = max(s, 1.0-(t-v.x)*(1.0-s)/v.y);
+    // length / release term
+    float tr = (1.0 - max(0.0,t-(v.x+v.y+v.z))/v.w);
+    return max(0.0, min(ta, tr*td));
+  }
+
+  void main () {
+    vec2 uv = gl_FragCoord.xy / resolution;
+    
+    float l = 0.;
+    float r = 0.;
+    float bandwidth = 700000.;
+    
+    float attenuation_constant = 1.95;
+    
+    const float harmonics = 16.;
+    
+    for (int k = 0; k < 8; k += 1) {
+      vec4 data = keyboard[k];
+      
+      float kfrq = data.x;
+      float kvel = data.y;
+      float ktim = data.z;
+      float kchn = data.w;
+      
+      if (kfrq == 0.) {
+       	break; 
+      }
+
+      float mix_f = 0.5 * (1. + sin(ktim * 2.));
+      
+      for (float i = 1.; i < harmonics; i += 1.) {
+        float a = 1. / pow(i, attenuation_constant * 1.1);
+        
+        float a2 = 1. / pow(i, attenuation_constant * 1.3);
+        
+        float v = pow(uv.y - htoy(kfrq * i), 2.);
+        
+        v *= bandwidth;
+        
+        // we now replace our old impulse function by the adsr function
+        // which take three arguments
+        // time, a vec4 with ADSR parameters and the value to decay to
+        float attack = 0.25; // 250ms attack
+        float decay = 4.; // 4 sec decay (to 0.25, see decay_amp)
+        float sustain = 0.; // no sustain
+        float release = 0.25; // 250ms release
+        float decay_amp = 0.25;
+        float env = kvel * adsr(ktim, vec4(attack, decay, sustain, release), decay_amp);
+
+        a = mix(a, a2, mix_f);
+
+        l += (clamp(1. - v, 0., 1.) * a * env);
+        r += (clamp(1. - v, 0., 1.) * a * env);
+      }
+    }
+    
+    gl_FragColor = vec4(l, r, l + r, 0.);
+  }
+)
+
+$nl
+$subsection(Delay effect)
+Now that we have all the essential components of any modern synthesizers, we can do some more complex things like effects, arpgeggio, sequences, filters etc.
+$glslcode(
+Coming soon...
+)
 
 $nl
 $subsection(Sequence)

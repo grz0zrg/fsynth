@@ -20,8 +20,8 @@ This is a sort of [Shadertoy](https://www.shadertoy.com) like synthesizer, it is
  * Multitimbral
  * Aliasing free
  * Adjustable audio output channel per slices
- * Feedback via framebuffer (for fx like reverb, delay, Release part of envelopes)
- * Shader inputs, webcam, textures and more to come
+ * Feedback via framebuffer (for fx like reverb, delay, Release part of envelopes and more)
+ * Shader inputs: webcam, textures and more to come
  * Real-time analysis (logarithmic spectrum view of the output etc.)
  * Native app. powered by [Electron](http://electron.atom.io/) with built-in [C powered additive synthesizer](https://github.com/grz0zrg/fas)
  * Per-sessions discussion system
@@ -58,6 +58,8 @@ This is a sort of [Shadertoy](https://www.shadertoy.com) like synthesizer, it is
  * main.js - Electron app. file
  * common.js - Server config. file
 
+ All the servers are clusterized for scalability and smooth updates.
+
 ## Build
 
 Fragment is built with a custom build system watching for changes in real-time and which include files when it read /\*#include file\*/, it execute several programs on the output files such as code minifier for production ready usage, the build system was made with the functional *Anubis* programming language.
@@ -74,7 +76,7 @@ If you want to build it by yourself, you will have to find a way to run a pre-pr
 
 ## How to setup your own
 
-Fragment use MongoDB and Redis database, once those are installed, it is easy to run it localy:
+Fragment use MongoDB and Redis database, once those are installed, it is easy to run it locally:
 
  * clone this repository
  * cd fss & npm install & node fss
