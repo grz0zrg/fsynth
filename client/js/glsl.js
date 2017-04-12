@@ -115,7 +115,9 @@ var _setUniforms = function (gl_ctx, type_str, program, name, values, comps) {
             } else if (comps === 3) {
                 gl_ctx.uniform3fv(uniform_location, new Float32Array(values));
             } else if (comps === 4) {
-                gl_ctx.uniform4fv(uniform_location, new Float32Array(values));
+                if (values.length > 0) {
+                    gl_ctx.uniform4fv(uniform_location, new Float32Array(values));
+                }
             }
         }
     }
@@ -145,7 +147,10 @@ var _compile = function () {
     }
     
     // add htoy
-    glsl_code += "float htoy(float frequency) {return (resolution.y - (resolution.y - (log(frequency / baseFrequency) / log(2.)) * (resolution.y / octave))) / resolution.y;}";
+    glsl_code += "float htoy(float frequency) {return resolution.y - (resolution.y - (log(frequency / baseFrequency) / log(2.)) * (resolution.y / octave));}";
+    
+    // add fline
+    glsl_code += "float fline(float frequency) {return step(abs(gl_FragCoord.y - htoy(frequency)), 0.5);}";
 
     // add inputs uniforms
     for (i = 0; i < _fragment_input_data.length; i += 1) {

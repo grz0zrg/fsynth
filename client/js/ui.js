@@ -848,6 +848,8 @@ var _getControlsChangeFn = function (value_fn, name, index, count, comps) {
                 value = ctrl_obj.values.slice(comp_index, comp_index + comps);
             }
         */
+        
+            _useProgram(_program);
 
             _setUniforms(_gl, ctrl_obj.type, _program, name, ctrl_obj.values, comps);
         /*
@@ -871,6 +873,8 @@ var _setControlsValue = function (name, index, value) {
     }
     
     WUI_RangeSlider.setValue(ctrl.ids[index * comps], value);
+    
+    _useProgram(_program);
     
     _setUniforms(_gl, ctrl.type, _program, name, ctrl.values, comps);
 };

@@ -36,128 +36,92 @@ attribute vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
         </script>
 
         <script type="x-webgl/x-fragment-shader" id="fragment-shader">
-/*
- Welcome to Fragment - The Collaborative Spectral Synthesizer
+  /*
+     Welcome to Fragment - The Collaborative Spectral Synthesizer
 
- This sample program generate in real-time what you see and what you are going to hear.
+     This is a sample program which produce a 440 Hz tone and a basic sawtooth like waveform and timbre when played by a MIDI keyboard.
 
- Fragment interface is composed of four parts :
-   - info. panel/global settings at the top
-   - a graphical score
-   - a toolbar
-   - a GLSL code editor
+     Please use a MIDI enabled browser such as Chrome and enable your MIDI keyboard in the MIDI settings dialog to hear the timbre (the MIDI plug icon)
 
- Hover over an interface element for a short description of that element.
+     The software documentation is available at : https://www.fsynth.com/documentation
 
- Now, if you want to hear what you see, you should try to right click on the graphical score,
- a menu will be shown with one item, add a slice by clicking on the [+] icon.
+     Fragment interface is composed of four parts :
+       - info. panel/global settings at the top
+       - a graphical score
+       - a toolbar
+       - a GLSL code editor
 
- You should hear something now, try to move the vertical slice by clicking on it, hold it then move the cursor around.
+     Hover over an interface element for a short description of that element.
 
- You can add as many slices as you want, you can also remove, mute or tweak slices by right-clicking on one.
+     Now, if you want to hear what you see, you should try to right click on the graphical score,
+     a menu will be shown with one item, add a slice by clicking on the [+] icon.
 
- You can experiment right away with the sound/visual by tweaking the values of this sample program, any modifications is updated in real-time as you type.
+     You should hear something now, try to move the vertical slice by clicking on it, hold it then move the cursor around.
 
- If you need some more help you can :
-   - Click on the ? icon
-   - Post on the Fragment message board at https://quiet.fsynth.com
+     You can add as many slices as you want, you can also remove, mute or tweak slices by right-clicking on one.
 
- You can find all the sessions you joined in by going on the homepage at https://www.fsynth.com
+     You can experiment right away with the sound/visual by tweaking the values of this sample program, any modifications is updated in real-time as you type.
 
- Don't forget that you can invite friends to join your session by sharing the link shown in the adress bar.
+     If you need some more help you can :
+       - Click on the ? icon
+       - Post on the Fragment message board at https://quiet.fsynth.com
 
- Note : Image/Webcam inputs are not implemented collaboratively, the images or webcam you add can be seen by you only!
+     You can find all the sessions you joined in by going on the homepage at https://www.fsynth.com
 
- Have fun!
-*/
+     Don't forget that you can invite friends to join your session by sharing the link shown in the adress bar.
 
-#define M_PI 3.1415926535897932384626433832795
+     Note : Image/Webcam inputs are not implemented collaboratively, the images or webcam you add can be seen by you only!
 
-// noise function
-float rand(vec2 co){
-  return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
-}
+     Have fun!
+  */
 
-float normalize_y(float y) {
-  	return (resolution.y - y) / resolution.y;
-}
+  void main () {
+    float l = 0.;
+    float r = 0.;
 
-// this function return the oscillator index which play for a given frequency
-float oscillator_y(float frequency) {
-	return resolution.y - (log(frequency / baseFrequency) / log(2.)) * (resolution.y / octave);
-}
+    float attenuation_constant = 1.95;
 
-// this function is called for every pixels of the score
-void main ()
-{
-    // "uv" will hold the current pixel position bound to [0.0 .. 1.0] range
-	vec2 uv = gl_FragCoord.xy / resolution.xy;
+    const float harmonics = 8.;
 
-    // globalTime is the playback time in seconds (what you see at the top), we will be using it to animate things a bit!
-    float time = globalTime / (60. / 8.);
+    // 8 notes polyphony
+    // this can be increased up to the maximal polyphonic capabilities
+    // of Fragment for your platform
+    for (int k = 0; k < 8; k += 1) {
+      // we get the note-on data
+      vec4 data = keyboard[k];
 
-    float x = uv.x - cos(time * 24.) / 128. * sin(time * 64.) / 2.;
-	float y = uv.y * 16. / time;
+      float kfrq = data.x; // frequency
+      float kvel = data.y; // velocity
+      float ktim = data.z; // elpased time
+      float kchn = data.w; // channel
 
-	// band-pass filter, high and low frequencies are attenuated by applying a well-known smoothstep function
-  	float intensity_factor = 0.;
-  	float falloff_factor = 2.8; // increasing this make the filter steeper
-    float ab;
-    float c;
-    if (uv.y < 0.5) {
-      	ab = pow(uv.y * 2., falloff_factor);
-      	c = pow(1. - (uv.y * 2.), falloff_factor);
-		intensity_factor = ab / (ab + c);
-    } else {
-		float v = 0.7 - ((uv.y - 0.5) * 2.);
-      	ab = pow(v, falloff_factor);
-      	c = pow(1. - v, falloff_factor);
-		intensity_factor = ab / (ab + c);
+      // we quit as soon as there is no more note-on data
+      // this is optional but it might help with performances
+      // so we don't compute harmonics uselessly
+      if (kfrq == 0.) {
+       	break; 
+      }
+
+      for (float i = 1.; i < harmonics; i += 1.) {
+        // this apply an exponential amplitude attenuation on the higher harmonics
+        float a = 1. / pow(i, attenuation_constant);
+
+        // we apply the amplitude attenuation and key velocity
+        l += fline(kfrq * i) * a * kvel;
+        r += fline(kfrq * i) * a * kvel;
+      }
     }
+    
+    l += fline(440.) * 0.25;
+    r += fline(440.) * 0.25;
 
-  	// band-stop filter
-	//if (uv.y < 0.2) y *= 0.0;
-	//if (uv.y > 0.8) y *= 0.0;
-
-	// prepare some noise so it doesn't sound too artificial
-	float noise = rand(vec2(uv.x, y)) * 1.2;
-
-    // l & r are the actual output
-  	// the output is clamped to 0.0 - 1.0 range
-	float f = 0.;
-  	float l = 0.;
-  	float r = 0.;
-
-    // we create a sequence
-    float n = 1. + floor(abs(sin(time * 4.)) * 4.);
-    float n2 = 1. + floor(abs(sin(time * 12.)) * 2.);
-
-    for (float j = 1.; j < 6.; j += 1.) { // this loop build up the harmonics of our sound
-        for (float i = 1.; i < 5.; i += 1.) { // this loop is used to build sequences of our sound
-          	// we play the sequences here, we also add some noise to the note frequencies and warp things a bit along the X axis
-            // you can add slices to the score at different position to enrich the sound!
-      		float notes = 261.6 * (n / (i * (2.25 * n2))) * (noise * 0.009 + clamp(x * 2., 0., 2.));
-            float v = clamp(pow(uv.y - normalize_y(oscillator_y(notes * j) ), 2.), 0., 1.0);
-          	// decrease the harmonic intensity according to the frequency, also vary each harmonics with sin function
-          	float harmonic_intensity = j - sin((time * 12.) * j);
-            // a large bandwidth constant make it close to the frequency defined above but it will sound more artificial
-            // we add some "spreading" around the frequency by giving it a "lower" bandwidth value
-            // we also increase the bandwidth according to the frequency to sound less artificial
-          	float bandwidth = 90000. - (noise * j) * 10000. - ( j * 1000.);
-            // modulate the left and right channel independently, this will sound even more interesting
-            float right_variation = cos(y * 0.004 + i * 2. + time / 8.) * 0.5 + x;
-            float left_variation = sin(y * 0.004 + i * 2. + time * 2.) * 0.2 + x;
-            l += clamp(1. - v * bandwidth, 0., 1.) / (harmonic_intensity + right_variation);
-            r += clamp(1. - v * bandwidth, 0., 1.) / (harmonic_intensity + left_variation);
-        }
-    }
-
-  	// the third argument can be used to gather details about frequencies (magnifying them), its output is not used by the synthesis engine
-    // try a value of 0.5 for the third argument for details about the filter function,
-    // you can also try "l" or "r" multiplied by a constant value like 8.
-    // if you add a webcam as an input, the third argument can be used to see the actual output of your webcam
-	gl_FragColor = vec4(l, r, 0., 1.) * intensity_factor;
-}
+    // plot the fundamental and harmonics
+    // Fragment use the RED and GREEN component
+    // for the LEFT and RIGHT audio channel in stereophonic mode
+    // if monophonic mode is enabled, the alpha component will be used for the audio and the full RGB output is available for visuals
+    // in stereophonic mode the blue component can be used for visuals or debugging etc.
+    gl_FragColor = vec4(l, r, 0., 0.);
+  }
         </script>
 
         <script type="text/javascript" src="dist/fs.js" defer></script>
