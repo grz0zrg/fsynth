@@ -795,6 +795,38 @@ $glslcode(
 Both the square wave and triangle wave have odd partials but a triangle wave has gradually much weaker high harmonics.
 
 $nl
+$subsection(Simulating pulse-width)
+Pulse-width is a feature commonly found in analog synthesizer, by changing the width of a pulse it is possible to change the harmonic content, it goes from a square wave and approach the sound of a crisper sawtooth wave.
+$glslcode(
+
+  #define pi 3.141592653589
+
+  void main () {
+    float l = 0.;
+    float r = 0.;
+    float base_frequency = 440.;
+
+    // will produce a waveform akin to a square wave
+    // try with 0.1 for a waveform akin to a sawtooth wave
+    float pulse_width = 0.5;
+    
+    const float harmonics = 16.;
+    
+    for (float i = 1.; i < harmonics; i += 1.) {
+      // plot this function with a graph ploting software
+      // for details
+      float pm = abs(cos((i * pi - pi) * pwave));
+      
+      l += fline(base_frequency * i) * pm;
+      r += fline(base_frequency * i) * pm;
+    }
+    
+    gl_FragColor = vec4(l, r, 0., 0.);
+  }
+)
+The advantage of a pulse-width in analog synthesizers is that the width can be modulated to produce string-like patches and is an easy way to change the harmonic content.
+
+$nl
 $subsection(Playing with a MIDI keyboard)
 You must have a WebMIDI supported browser (such as Chrome or Opera) to use MIDI messages with Fragment.
 
