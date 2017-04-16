@@ -17359,9 +17359,15 @@ var _compile = function () {
     // add htoy
     glsl_code += "float htoy(float frequency) {return resolution.y - (resolution.y - (log(frequency / baseFrequency) / log(2.)) * (resolution.y / octave));}";
     
+    // add htox
+    //glsl_code += "float htoy(float frequency) {return resolution.x - (resolution.x - (log(frequency / baseFrequency) / log(2.)) * (resolution.x / octave));}";
+    
     // add fline
     glsl_code += "float fline(float frequency) {return step(abs(gl_FragCoord.y - htoy(frequency)), 0.5);}";
 
+    // add vline
+    //glsl_code += "float vline(float frequency) {return step(abs(gl_FragCoord.x - htoy(frequency)), 0.5);}";
+    
     // add inputs uniforms
     for (i = 0; i < _fragment_input_data.length; i += 1) {
         fragment_input = _fragment_input_data[i];
@@ -17380,7 +17386,7 @@ var _compile = function () {
            glsl_code += "uniform " + ((ctrl_obj.comps !== undefined) ? ctrl_obj.type + ctrl_obj.comps : ctrl_obj.type) + " " + ctrl_name + ((ctrl_obj.count > 1) ? "[" + ctrl_obj.count + "]" : "") + ";";
         }
     }
-
+    
     // add user fragment code
     glsl_code += _code_editor.getValue();
 
@@ -20072,7 +20078,7 @@ var _uiInit = function () {
             title: "Fragment - Help",
 
             width: "380px",
-            height: "585px",
+            height: "605px",
 
             halign: "center",
             valign: "center",
@@ -20220,7 +20226,7 @@ var _uiInit = function () {
                         var input_code  = _code_editor.getValue(),
                             output_code = input_code;
 
-                        output_code = output_code.replace(/void\s+mainImage\s*\(\s*out\s+vec4\s+fragColor\s*,\s*in\s+vec2\s+fragCoord\s*\)/, "void main ()");
+                        output_code = output_code.replace(/void\s+mainImage\s*\(\s*out\s+vec4\s*[a-zA-Z]+,\s*(in)?\s+vec2\s+[a-zA-Z]+\s*\)/, "void main ()");
                         output_code = output_code.replace(/fragCoord/g, "gl_FragCoord");
                         output_code = output_code.replace(/fragColor/g, "gl_FragColor");
                         output_code = output_code.replace(/iResolution/g, "resolution");
@@ -21129,10 +21135,12 @@ _canvas.addEventListener('contextmenu', function(ev) {
     }, false);
 
 document.addEventListener('mousedown', function (e) {
-    var e = e || window.event;
+    var e = e || window.event,
+        
+        canvas_offset = _getElementOffset(_canvas);
 
-    _cnmx = e.pageX / window.innerWidth;
-    _cnmx = e.pageY / window.innerHeight;
+    _cnmx = 1. - (e.pageX - canvas_offset.left - 1) / _canvas_width;
+    _cnmy = 1. - (e.pageY - canvas_offset.top) / _canvas_height;
 
     _mouse_btn = e.which;
 });
@@ -21201,8 +21209,8 @@ document.addEventListener('mousemove', function (e) {
         _my = e.pageY;
 
         if (_mouse_btn === _LEFT_MOUSE_BTN) {
-            _nmx = e.pageX / window.innerWidth;
-            _nmy = e.pageY / window.innerHeight;
+            _nmx = 1. - _cx / _canvas_width;
+            _nmy = 1. - _cy / _canvas_height;
         }
    });
 

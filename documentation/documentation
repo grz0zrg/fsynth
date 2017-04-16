@@ -641,7 +641,8 @@ $list(
 		$item score octave range)
 	$item $bold(vec4) $rgb(0,100,100)(mouse)
 	$list(
-		$item mouse pixel coords updated when the left mouse button is down on the canvas)
+		$item the first two components is the normalized mouse pixel coords updated when the left mouse button and the cursor is moving over the canvas)
+		$item the second two components is the normalized mouse pixel coords only updated when the left mouse button is down on the canvas)
 	$item $bold(vec4) $rgb(0,100,100)(date)
 	$list(
 		$item year
@@ -796,7 +797,7 @@ Both the square wave and triangle wave have odd partials but a triangle wave has
 
 $nl
 $subsection(Simulating pulse-width)
-Pulse-width is a feature commonly found in analog synthesizer, by changing the width of a pulse it is possible to change the harmonic content, it goes from a square wave and approach the sound of a crisper sawtooth wave.
+Pulse-width is a feature commonly found in analog synthesizer, by changing the width of a pulse it is possible to change the harmonic content, it goes from a square wave at 50% and approach the sound of a crisper sawtooth wave near 0%.
 $glslcode(
 
   #define pi 3.141592653589
@@ -815,7 +816,7 @@ $glslcode(
     for (float i = 1.; i < harmonics; i += 1.) {
       // plot this function with a graph ploting software
       // for details
-      float pm = abs(cos((i * pi - pi) * pwave));
+      float pm = abs(cos((i * pi - pi) * pulse_width));
       
       l += fline(base_frequency * i) * pm;
       r += fline(base_frequency * i) * pm;
@@ -825,6 +826,8 @@ $glslcode(
   }
 )
 The advantage of a pulse-width in analog synthesizers is that the width can be modulated to produce string-like patches and is an easy way to change the harmonic content.
+
+Within Fragment, the pulse-width is just one of the unlimited way to change the harmonic content of a timbre.
 
 $nl
 $subsection(Playing with a MIDI keyboard)

@@ -1674,7 +1674,7 @@ var _uiInit = function () {
             title: "Fragment - Help",
 
             width: "380px",
-            height: "585px",
+            height: "605px",
 
             halign: "center",
             valign: "center",
@@ -1822,7 +1822,7 @@ var _uiInit = function () {
                         var input_code  = _code_editor.getValue(),
                             output_code = input_code;
 
-                        output_code = output_code.replace(/void\s+mainImage\s*\(\s*out\s+vec4\s+fragColor\s*,\s*in\s+vec2\s+fragCoord\s*\)/, "void main ()");
+                        output_code = output_code.replace(/void\s+mainImage\s*\(\s*out\s+vec4\s*[a-zA-Z]+,\s*(in)?\s+vec2\s+[a-zA-Z]+\s*\)/, "void main ()");
                         output_code = output_code.replace(/fragCoord/g, "gl_FragCoord");
                         output_code = output_code.replace(/fragColor/g, "gl_FragColor");
                         output_code = output_code.replace(/iResolution/g, "resolution");

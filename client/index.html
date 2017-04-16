@@ -555,7 +555,7 @@ attribute vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                                 vec4 <span class="fs-documentation-keyword">mouse</span> :
                                 <ul>
                                     <li>
-                                        mouse pixel coords.
+                                        normalized mouse pixel coords.
                                     </li>
                                 </ul>
                             </li>
@@ -575,6 +575,30 @@ attribute vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                                     </li>
                                     <li>
                                         Typical usage : texture2D(iInput0, uv);
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                sampler2D <span class="fs-documentation-keyword">pFrame</span> :
+                                <ul>
+                                    <li>
+                                        The previous frame available as a texture
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                float <span class="fs-documentation-keyword">htoy</span> :
+                                <ul>
+                                    <li>
+                                        take a frequency as argument and return its vertical position on the canvas (in pixels units)
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                float <span class="fs-documentation-keyword">fline</span> :
+                                <ul>
+                                    <li>
+                                        take a frequency as argument and return either 1 or 0 (shortcut to draw a horizontal line)
                                     </li>
                                 </ul>
                             </li>

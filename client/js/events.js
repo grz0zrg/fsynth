@@ -42,10 +42,12 @@ _canvas.addEventListener('contextmenu', function(ev) {
     }, false);
 
 document.addEventListener('mousedown', function (e) {
-    var e = e || window.event;
+    var e = e || window.event,
+        
+        canvas_offset = _getElementOffset(_canvas);
 
-    _cnmx = e.pageX / window.innerWidth;
-    _cnmx = e.pageY / window.innerHeight;
+    _cnmx = 1. - (e.pageX - canvas_offset.left - 1) / _canvas_width;
+    _cnmy = 1. - (e.pageY - canvas_offset.top) / _canvas_height;
 
     _mouse_btn = e.which;
 });
@@ -114,8 +116,8 @@ document.addEventListener('mousemove', function (e) {
         _my = e.pageY;
 
         if (_mouse_btn === _LEFT_MOUSE_BTN) {
-            _nmx = e.pageX / window.innerWidth;
-            _nmy = e.pageY / window.innerHeight;
+            _nmx = 1. - _cx / _canvas_width;
+            _nmy = 1. - _cy / _canvas_height;
         }
    });
 

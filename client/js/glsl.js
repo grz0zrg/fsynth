@@ -149,9 +149,15 @@ var _compile = function () {
     // add htoy
     glsl_code += "float htoy(float frequency) {return resolution.y - (resolution.y - (log(frequency / baseFrequency) / log(2.)) * (resolution.y / octave));}";
     
+    // add htox
+    //glsl_code += "float htoy(float frequency) {return resolution.x - (resolution.x - (log(frequency / baseFrequency) / log(2.)) * (resolution.x / octave));}";
+    
     // add fline
     glsl_code += "float fline(float frequency) {return step(abs(gl_FragCoord.y - htoy(frequency)), 0.5);}";
 
+    // add vline
+    //glsl_code += "float vline(float frequency) {return step(abs(gl_FragCoord.x - htoy(frequency)), 0.5);}";
+    
     // add inputs uniforms
     for (i = 0; i < _fragment_input_data.length; i += 1) {
         fragment_input = _fragment_input_data[i];
@@ -170,7 +176,7 @@ var _compile = function () {
            glsl_code += "uniform " + ((ctrl_obj.comps !== undefined) ? ctrl_obj.type + ctrl_obj.comps : ctrl_obj.type) + " " + ctrl_name + ((ctrl_obj.count > 1) ? "[" + ctrl_obj.count + "]" : "") + ";";
         }
     }
-
+    
     // add user fragment code
     glsl_code += _code_editor.getValue();
 

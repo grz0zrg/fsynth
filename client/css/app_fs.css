@@ -672,7 +672,7 @@ canvas {
     color: #ffffff;
     margin: 8px;
     padding: 6px;
-    font-size: 13px;
+    font-size: 12px;
     background-color: #111111;
 }
 
@@ -689,10 +689,12 @@ canvas {
 }
 
 .fs-documentation-entries > li {
+    /*
     background-color: #222222;
     padding: 4px;
     margin: 2px;
     border-top: solid 1px #444444;
+    */
 }
 
 .fs-documentation-keyword {
