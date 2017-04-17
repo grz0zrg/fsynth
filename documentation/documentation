@@ -9,7 +9,7 @@ $colorrule(funny)([p-z])($rgb(0,100,100)($sub($big($1))))
 $colorizer(funny)
 $//
 $colorrule(glsl)(void|const|float|int|vec2|vec3|vec4|if|else|continue|for|return|highp)($rgb(10,0,130)($1))
-$colorrule(glsl)(##define|gl_FragColor|gl_FragCoord|clamp|pow|exp|mod|floor|sin|cos|tan|log)($rgb(0,100,0)($1))
+$colorrule(glsl)(##define|gl_FragColor|gl_FragCoord|clamp|pow|exp|mod|floor|asin|acos|sin|cos|atan|tan|log)($rgb(0,100,0)($1))
 $colorrule(glsl)(resolution|globalTime|htoy)($rgb(0,100,100)($1))
 $//$colorrule(glsl)([a-zA-Z_]+[0-9]+)($1)
 $colorrule(glsl)([0-9]+)($rgb(130,0,130)($1))
@@ -49,6 +49,8 @@ The $bold($tlink(Fragment synthesizer)(https://www.fsynth.com)) (also called fsy
 Fragment is stereophonic, polyphonic, multitimbral and support live coding of audio and visuals at the same time.
 
 Fragment is first and foremost a powerfull additive synthesizer which let you have complete control over the sound spectrum in real-time with direct visual feedback.
+
+Many videos of Fragment live sessions were recorded and are available on YouTube as a $tlink(playlist)(https://www.youtube.com/playlist?list=PLYhyS2OKJmqe_PEimydWZN1KbvCzkjgeI).
 
 $nl
 $subsection(History)
@@ -122,9 +124,11 @@ $list(
 $section(Concepts)
 Fragment is an additive synthesizer, it let you have full control over the timbral qualities of your sounds by the mean of GPU programming.
 
+The biggest difference between Fragment and other synthesizers is that you work in the frequency domain instead of time domain, in that sense it is also a spectral synthesizer.
+
 Unlike other additive synthesizer software, there is no need for knobs, sliders or any other controllers to sculpt your sounds, all of that is done by generating visuals which will determine your sounds harmonic content and dynamic characteristics.
 
-There is many features in Fragment which allow any creative minds to produce complex soundsc in different ways and even with external tools, i suggest all the readers to look at great softwares like the $tlink(IanniX sequencer)(https://www.iannix.org) and to use it with Fragment using the MIDI capabilities.
+There is many features in Fragment which allow any creative minds to produce complex sounds in different ways and even with external tools, i suggest all the readers to look at great softwares like the $tlink(IanniX sequencer)(https://www.iannix.org) and to use it with Fragment using the MIDI capabilities.
 
 While Fragment may seem overwhelming at first, the only thing that is required to produce sounds with it is to know how to generate the visuals.
 
@@ -641,7 +645,7 @@ $list(
 		$item score octave range)
 	$item $bold(vec4) $rgb(0,100,100)(mouse)
 	$list(
-		$item the first two components is the normalized mouse pixel coords updated when the left mouse button and the cursor is moving over the canvas)
+		$item the first two components is the normalized mouse pixel coords updated when the left mouse button and the cursor is moving over the canvas
 		$item the second two components is the normalized mouse pixel coords only updated when the left mouse button is down on the canvas)
 	$item $bold(vec4) $rgb(0,100,100)(date)
 	$list(
@@ -711,6 +715,7 @@ $glslcode(
     gl_FragColor = vec4(l, r, 0., 0.);
   }
 )
+$ifhtml($center($ogg(audio/fsynth_fundamental.ogg)))
 You can verify that the produced horizontal line is a 440Hz sine wave by enabling the axis details tool in the toolbar and point your cursor on the horizontal line:
 $gif(freq_details)
 You might be surprised to see that this is actually not exactly a 440Hz sine wave, the value is rounded due to the way $ref(score)(frequencies are mapped), this can be fixed by increasing the score height to get a more precise mapping, this will require higher processing power however.
@@ -742,6 +747,7 @@ $glslcode(
     gl_FragColor = vec4(l, r, 0., 0.);
   }
 )
+$ifhtml($center($ogg(audio/fsynth_harmonics.ogg)))
 The produced timbre is actually too raw because all our harmonics have the same value...
 
 We can fix that by attenuating the higher frequencies, this is similar to the concept of filters in common synthesizers, this is really important as harmonics amplitudes is an important parameter for timbre quality, for example, by decreasing the amplitude of our harmonics gradually, we can create a sawtooth wave, an exponential attenuation provide good result generally in audio due to the way humans brain interpret sounds, we could also just attribute different intensity for each of our harmonics:
@@ -766,6 +772,7 @@ $glslcode(
     gl_FragColor = vec4(l, r, 0., 0.);
   }
 )
+$ifhtml($center($ogg(audio/fsynth_attenuation.ogg)))
 The output is now smoother, our simple timbre sound much better... we will see next how we can play this timbre with a MIDI keyboard.
 
 $nl
@@ -793,13 +800,14 @@ $glslcode(
     gl_FragColor = vec4(l, r, 0., 0.);
   }
 )
+$ifhtml($center($ogg(audio/fsynth_square.ogg)))
 Both the square wave and triangle wave have odd partials but a triangle wave has gradually much weaker high harmonics.
 
 $nl
 $subsection(Simulating pulse-width)
 Pulse-width is a feature commonly found in analog synthesizer, by changing the width of a pulse it is possible to change the harmonic content, it goes from a square wave at 50% and approach the sound of a crisper sawtooth wave near 0%.
 $glslcode(
-
+  // #define statement cannot begin on the first line in Fragment
   #define pi 3.141592653589
 
   void main () {
@@ -825,6 +833,7 @@ $glslcode(
     gl_FragColor = vec4(l, r, 0., 0.);
   }
 )
+$ifhtml($center($ogg(audio/fsynth_pulsewave.ogg)))
 The advantage of a pulse-width in analog synthesizers is that the width can be modulated to produce string-like patches and is an easy way to change the harmonic content.
 
 Within Fragment, the pulse-width is just one of the unlimited way to change the harmonic content of a timbre.
@@ -886,6 +895,7 @@ $glslcode(
     gl_FragColor = vec4(l, r, l * 64., 0.);
   }
 )
+$ifhtml($center($ogg(audio/fsynth_midi.ogg)))
 You can now play something with your MIDI keyboard and hear your simple timbre!
 
 You might find the loop kind of weird, why we don't just loop over all available note-on messages? This is because the GLSL spec. for the version that is used by all browsers is quite limited when it come to loop features... for example, it does not allow dynamicals indexes.
@@ -942,6 +952,7 @@ $glslcode(
     gl_FragColor = vec4(l, r, l + r, 0.);
   }
 )
+$ifhtml($center($ogg(audio/fsynth_ar.ogg)))
 You can change the parameters of the envelope to apply other kinds of envelopes.
 
 Here is a good preview of the envelope models that the $bold(impulse) function generate:
@@ -992,6 +1003,7 @@ $glslcode(
     gl_FragColor = vec4(l, r, l + r, 0.);
   }
 )
+$ifhtml($center($ogg(audio/fsynth_ar2.ogg)))
 The timbre produced by this code is very pleasant, all high frequencies harmonics decay very fast while the fundamental decay slowly, you can hear multiple versions of this by varying parameters such as the attack time or the attenuation constant etc., a very fast attack time sound very pleasant now.
 
 $nl
@@ -1051,6 +1063,7 @@ $glslcode(
     gl_FragColor = vec4(l, r, l + r, 0.);
   }
 )
+$ifhtml($center($ogg(audio/fsynth_morph.ogg)))
 The timbre is much more pleasant, especially if you play some chords.
 
 This is just an example but you can now imagine the amount of possibilities, very complex timbres can be created easily by applying custom functions and mixing between several parameters!
@@ -1105,7 +1118,7 @@ $glslcode(
         // which take three arguments
         // time, a vec4 with ADSR parameters and the value to decay to
         float attack = 0.25; // 250ms attack
-        float decay = 4.; // 4 sec decay (to 0.25, see decay_amp)
+        float decay = 1.; // 1 sec decay (to 0.25, see decay_amp)
         float sustain = 0.; // no sustain
         float release = 0.25; // 250ms release
         float decay_amp = 0.25;
@@ -1121,7 +1134,207 @@ $glslcode(
     gl_FragColor = vec4(l, r, l + r, 0.);
   }
 )
+$ifhtml($center($ogg(audio/fsynth_adsr.ogg)))
+$nl
+$subsection(Filters)
+Filters play an important role in sound design, we will see in this section how to apply more powerful and flexible filters with parameters that we can modulate, we will especially recreate generic filters such as low-pass, high-pass etc.
+$nl
+$subsubsection(Low-pass filter (LPF))
+A low-pass filter is a filter that passes signals with a frequency lower than a certain cutoff frequency and attenuates signals with frequencies higher than the cutoff frequency.
 
+We will use the low-pass filter as a prototype filter, which mean that we will build all the other filters with this one.
+
+$tlink($center($image(541)(images/lpf.png)))(images/lpf.png)
+$center(The graph of the lpf(x, 0., 1.5) function)
+
+The attenuation function that we have used so far is a kind of a simple low-pass filter.
+$glslcode(
+  float adsr(float t, vec4 v, float s) {
+    v.xyw = max(vec3(2.2e-05), v.xyw);
+    float ta = t/v.x;
+    float td = max(s, 1.0-(t-v.x)*(1.0-s)/v.y);
+    float tr = (1.0 - max(0.0,t-(v.x+v.y+v.z))/v.w);
+    return max(0.0, min(ta, tr*td));
+  }
+  
+  // low-pass filter
+  // x is the current normalized position
+  // c is the cutoff position
+  // s is the slope
+  float lpf(float x, float c, float s) {
+    return .5 + .5 *(atan(s*cos(3.141592653 * min(max((x-c) * s,0.),1.)))/atan(s));
+  }
+
+  void main () {
+    // we will need the current normalized coordinates
+    vec2 uv = gl_FragCoord.xy / resolution.xy;
+  
+    float l = 0.;
+    float r = 0.;
+
+    const float harmonics = 16.;
+    
+    for (int k = 0; k < 8; k += 1) {
+      vec4 data = keyboard[k];
+      
+      float kfrq = data.x;
+      float kvel = data.y;
+      float ktim = data.z;
+      float kchn = data.w;
+      
+      if (kfrq == 0.) {
+       	break; 
+      }
+
+      // the htoy function take a frequency as argument
+      // and return its position on the canvas
+      // we then normalize the position
+      // the base frequency of our note will be directly used as the cutoff frequency
+      float cutoff = htoy(kfrq) / resolution.y;
+      for (float i = 1.; i < harmonics; i += 1.) {
+        // our slope factor, high frequencies will be attenuated better
+        float slope = 3.;
+        float f = lpf(uv.y, cutoff, slope);
+      
+        float attack = 0.05;
+        float decay = 0.6;
+        float sustain = 0.;
+        float release = 0.25;
+        float dec_amp = 0.;
+        float env = kvel * adsr(ktim, vec4(attack, decay, sustain, release), dec_amp);
+
+        l += fline(kfrq * i) * f * env;
+        r += fline(kfrq * i) * f * env;
+      }
+    }
+    
+    gl_FragColor = vec4(l, r, 0., 0.);
+  }
+)
+$ifhtml($center($ogg(audio/fsynth_lpf.ogg)))
+We can now modulate the filter parameters to change the timbre, we will vary the slope factor of our filter:
+$glslcode(
+  float adsr(float t, vec4 v, float s) {
+    v.xyw = max(vec3(2.2e-05), v.xyw);
+    float ta = t/v.x;
+    float td = max(s, 1.0-(t-v.x)*(1.0-s)/v.y);
+    float tr = (1.0 - max(0.0,t-(v.x+v.y+v.z))/v.w);
+    return max(0.0, min(ta, tr*td));
+  }
+  
+  float lpf(float x, float c, float s) {
+    return .5 + .5 *(atan(s*cos(3.141592653 * min(max((x-c) * s,0.),1.)))/atan(s));
+  }
+
+  void main () {
+    vec2 uv = gl_FragCoord.xy / resolution.xy;
+  
+    float l = 0.;
+    float r = 0.;
+
+    const float harmonics = 16.;
+    
+    for (int k = 0; k < 8; k += 1) {
+      vec4 data = keyboard[k];
+      
+      float kfrq = data.x;
+      float kvel = data.y;
+      float ktim = data.z;
+      float kchn = data.w;
+      
+      if (kfrq == 0.) {
+       	break; 
+      }
+      
+      float cutoff = htoy(kfrq) / resolution.y;
+      
+      // we vary the slope a bit
+      float slope = 3. + sin(ktim * 4.);
+      
+      for (float i = 1.; i < harmonics; i += 1.) {
+        float f = lpf(uv.y, cutoff, slope);
+      
+        float attack = 0.05;
+        float decay = 0.6;
+        float sustain = 0.;
+        float release = 0.25;
+        float dec_amp = 0.;
+        float env = kvel * adsr(ktim, vec4(attack, decay, sustain, release), dec_amp);
+
+        l += fline(kfrq * i) * f * env;
+        r += fline(kfrq * i) * f * env;
+      }
+    }
+    
+    gl_FragColor = vec4(l, r, 0., 0.);
+  }
+)
+$ifhtml($center($ogg(audio/fsynth_lpf_mod.ogg)))
+The timbre is a bit softer, if you increase the modulation frequency, some nice sounds can be made.
+
+$nl
+$subsection(Timbral possibilities)
+A neat thing that can be done with Fragment is modulating the parameters you want with the current horizontal or vertical position, the canvas will then show you many timbral possibilities that you can chose to listen to by adding and positioning slices on the canvas, you can also modulate the horizontal position to move between timbral possibilities.
+
+By adding many slices at different positions, you can build very complex sounds and explore without having to write code.
+
+$glslcode(
+  float adsr(float t, vec4 v, float s) {
+    v.xyw = max(vec3(2.2e-05), v.xyw);
+    float ta = t/v.x;
+    float td = max(s, 1.0-(t-v.x)*(1.0-s)/v.y);
+    float tr = (1.0 - max(0.0,t-(v.x+v.y+v.z))/v.w);
+    return max(0.0, min(ta, tr*td));
+  }
+
+  float lpf(float x, float c, float s) {
+    return .5 + .5 *(atan(s*cos(3.141592653 * min(max((x-c) * s,0.),1.)))/atan(s));
+  }
+
+  void main () {
+    vec2 uv = gl_FragCoord.xy / resolution.xy;
+
+    float l = 0.;
+    float r = 0.;
+
+    const float harmonics = 16.;
+
+    for (int k = 0; k < 8; k += 1) {
+      vec4 data = keyboard[k];
+
+      float kfrq = data.x;
+      float kvel = data.y;
+      float ktim = data.z;
+      float kchn = data.w;
+
+      if (kfrq == 0.) {
+       	break; 
+      }
+
+      float cutoff = htoy(kfrq) / resolution.y;
+      float slope = 3. + sin(ktim * 16.) / 4.;
+      
+      for (float i = 1.; i < harmonics; i += 1.) {
+        // notice how we multiply the cutoff by the horizontal position
+        float f = lpf(uv.y, cutoff * uv.x, slope);
+
+        float attack = 0.05;
+        float decay = 0.6;
+        float sustain = 0.;
+        float release = 0.25;
+        float dec_amp = 0.;
+        float env = kvel * adsr(ktim, vec4(attack, decay, sustain, release), dec_amp);
+
+        l += fline(kfrq * i) * f * env;
+        r += fline(kfrq * i) * f * env;
+      }
+    }
+
+    gl_FragColor = vec4(l, r, 0., 0.);
+  }
+)
+$tlink($center($image(522)(images/possibilities.png)))(images/possibilities.png)
+$center(Timbral possibilities along the X axis related to the LPF cutoff parameter)
 $nl
 $subsection(Delay effect)
 Now that we have all the essential components of any modern synthesizers, we can do some more complex things like effects, arpgeggio, sequences, filters etc.
@@ -1224,6 +1437,7 @@ void main () {
     gl_FragColor = vec4(l, r, 0., 0.);
   }
 )
+$ifhtml($center($ogg(audio/fsynth_sequence.ogg)))
 You should hear a sequence of notes which you can play along with a MIDI keyboard.
 
 An autonomous sequence is relatively easy and can also be done by using the $bold(mod) function or by simpler means.
@@ -1256,11 +1470,18 @@ $list(
 $section(Credits)
 $list(
 	$item Testing: $list($item Franz Khrum)
+	$item Papers: $list(
+		$item $tlink(The Scientist and Engineer's Guide to Digital Signal Processing)(http://www.dspguide.com)
+		$item $tlink(Welsh's Synthesizer Cookbook)(http://www.synthesizer-cookbook.com)
+		$item $tlink(Fabrice Neyret Desmos page)(http://www-evasion.imag.fr/Membres/Fabrice.Neyret/demos/DesmosGraph/indexImages.html)
+	)
 	$item Ideas: $list(
 		$item $tlink(Virtual ANS)(http://www.warmplace.ru/soft/ans/)
 		$item $tlink(ShaderToy)(https://www.shadertoy.com/))
 	$item Tools: $list(
 		$item $tlink(The Anubis programming language)(http://redmine.anubis-language.com/)
+		$item $tlink(desmos)(https://www.desmos.com)
+		$item $tlink(jEdit)(http://www.jedit.org/)
 		$item $tlink(Inkscape)(https://www.inkscape.org)
 		$item $tlink(Geogebra)(https://www.geogebra.org)
 		$item $tlink(The GIMP)(https://www.gimp.org)
