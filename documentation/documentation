@@ -1366,7 +1366,8 @@ $glslcode(
   }
 )
 $ifhtml($center($ogg(audio/fsynth_filters.ogg)))
-The given functions are not set in stone, you can change them, actually those functions have some drawbacks, notably the fact that they don't have a resonance parameter and that the filters cutoff/slope need to be adjusted for HPF/BPF/BRF because the attenuation is not per octaves, we will see next some other functions which will adress these issues.
+The given functions are not set in stone, you can change them, those functions have some drawbacks actually, notably the fact that they don't have a resonance parameter and that the filters cutoff/slope need to be adjusted for HPF/BPF/BRF because the attenuation is not per octaves, we will see next some other functions which will adress these issues.
+
 $nl
 $subsection(Timbral possibilities)
 A neat thing that can be done with Fragment is modulating the parameters you want with the current horizontal or vertical position, the canvas will then show you many timbral possibilities that you can chose to listen to by adding and positioning slices on the canvas, you can also modulate the horizontal position to move between timbral possibilities.
