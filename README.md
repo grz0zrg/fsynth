@@ -6,9 +6,13 @@ Source code repository for the Fragment app. which can be found at : https://www
 
 This is a web. spectral synthesizer powered by live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language).
 
+While most additive synth. work in the time domain, Fragment work in the frequency domain.
+
 Fragment can also be used for live coding visuals, they can be synchronized to any audio using the MIDI capabilities AND also synchronized to the synthesized sound
 
-This is a sort of [Shadertoy](https://www.shadertoy.com) like synthesizer, it is compatible with most shaders written for it.
+This is a sort of [Shadertoy](https://www.shadertoy.com) for synthesis, it is compatible with most shaders written for it.
+
+For any questions, a message board is available [here](https://quiet.fsynth.com/)
 
 ## Feature list:
 
@@ -23,7 +27,6 @@ This is a sort of [Shadertoy](https://www.shadertoy.com) like synthesizer, it is
  * Feedback via framebuffer (for fx like reverb, delay, Release part of envelopes and more)
  * Shader inputs: webcam, textures and more to come
  * Real-time analysis (logarithmic spectrum view of the output etc.)
- * Native app. powered by [Electron](http://electron.atom.io/) with built-in [C powered additive synthesizer](https://github.com/grz0zrg/fas)
  * Per-sessions discussion system
  * Global and per sessions settings automatic saving/loading; make use of *localStorage*
  * No authentifications (make use of *localStorage* and is *sessions* based)
@@ -68,21 +71,25 @@ _app_fs.\*_ and _app_cm.\*_ are the entry point files used by the build system t
 
 If you want to build it by yourself, you will have to find a way to run a pre-processor over _app_fs.\*_ and _app_cm.\*_ or implement other systems like requireJS!
 
-## Prod. system
-
- * *prod_files* contain a list of files and directories that will be copied to the production system
- * *prod* is a shell script which produce an archive from *prod_files*, perform additional cleaning and unarchive over SSH
- * *setup* is a script which is executed on the server after everything has been uploaded and which configure Fragment for the production system
-
 ## How to setup your own
 
-Fragment use MongoDB and Redis database, once those are installed, it is easy to run it locally:
+Fragment make use of NodeJS, NPM, MongoDB and Redis database, once those are installed, it is easy to run it locally:
 
  * clone this repository
  * cd fss & npm install & node fss
  * cd fsdb & npm install & node fsdb
  * cd fsws & npm install & node fsws
  * point your browser to http://127.0.0.1:3000
+ 
+## Prod. system
+
+ * *prod_files* contain a list of files and directories that will be copied to the production system
+ * *prod* is a shell script which produce an archive from *prod_files*, perform additional cleaning and unarchive over SSH
+ * *setup* is a script which is executed on the server after everything has been uploaded and which configure Fragment for the production system
+ 
+## Native app.
+
+A native app. was developed with [Electron](http://electron.atom.io/) featuring a special login page but it is deprecated as some features does not work with Electron (like dialogs), the advantage of the native app was the built-in [C powered additive synthesis engine](https://github.com/grz0zrg/fas) which made Fragment a bit more accessible (download & play), you can run the native app with Electron by executing `electron .` in the root directory
 
 ## Tips and tricks
 
@@ -98,6 +105,11 @@ Client :
  * [ShareDB](https://github.com/share/sharedb/) for the collaborative features
  * [Normalize](https://necolas.github.io/normalize.css/)
  * [Skeleton](http://getskeleton.com/) for the landing page
+
+Papers :
+ * [The Scientist and Engineer's Guide to Digital Signal Processing](http://www.dspguide.com)
+ * [Welsh's Synthesizer Cookbook](http://www.synthesizer-cookbook.com)
+ * [Fabrice Neyret Desmos page](http://www-evasion.imag.fr/Membres/Fabrice.Neyret/demos/DesmosGraph/indexImages.html)
 
 Servers :
  * [NodeJS](https://nodejs.org/en/)
@@ -115,6 +127,7 @@ Utilities :
  * [fa2png](http://fa2png.io/)
  * [Brackets](http://brackets.io/)
  * [Atom](https://atom.io/)
+ * [desmos](https://www.desmos.com)
  * [libwebsockets](https://libwebsockets.org/) for [fas](https://github.com/grz0zrg/fas)
  * [portaudio](http://www.portaudio.com/) for [fas](https://github.com/grz0zrg/fas)
  * [libflds](http://liblfds.org/) for [fas](https://github.com/grz0zrg/fas)
@@ -147,5 +160,3 @@ Simplified BSD license
 The biggest inspiration for all of this was [Alexander Zolotov Virtual ANS software](http://www.warmplace.ru/soft/ans/), thank to him.
 
 Heavily inspired by [Shadertoy](https://www.shadertoy.com) as well.
-
-For any questions, a message board is available [here](https://quiet.fsynth.com/)

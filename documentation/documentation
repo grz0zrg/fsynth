@@ -1142,12 +1142,12 @@ $nl
 $subsubsection(Low-pass filter (LPF))
 A low-pass filter is a filter that passes signals with a frequency lower than a certain cutoff frequency and attenuates signals with frequencies higher than the cutoff frequency.
 
-We will use the low-pass filter as a prototype filter, which mean that we will build all the other filters with this one.
+We will use the low-pass filter as a prototype filter, which mean that we will build all the other filters from this one.
 
 $tlink($center($image(541)(images/lpf.png)))(images/lpf.png)
 $center(The graph of the lpf(x, 0., 1.5) function)
 
-The attenuation function that we have used so far is a kind of a simple low-pass filter.
+The attenuation function that we have used so far is a kind of simple low-pass filter.
 $glslcode(
   float adsr(float t, vec4 v, float s) {
     v.xyw = max(vec3(2.2e-05), v.xyw);
@@ -1271,7 +1271,102 @@ $glslcode(
 )
 $ifhtml($center($ogg(audio/fsynth_lpf_mod.ogg)))
 The timbre is a bit softer, if you increase the modulation frequency, some nice sounds can be made.
+$nl
+$subsubsection(High-pass filter (HPF), Band-pass filter and Band-reject filter)
+Now that we have made a low-pass filter, we can build all the other filters easily:
+$glslcode(
+  float adsr(float t, vec4 v, float s) {
+    v.xyw = max(vec3(2.2e-05), v.xyw);
+    float ta = t/v.x;
+    float td = max(s, 1.0-(t-v.x)*(1.0-s)/v.y);
+    float tr = (1.0 - max(0.0,t-(v.x+v.y+v.z))/v.w);
+    return max(0.0, min(ta, tr*td));
+  }
+  
+  float lpf(float x, float c, float s) {
+    return .5 + .5 *(atan(s*cos(3.141592653 * min(max((x-c) * s,0.),1.)))/atan(s));
+  }
+  
+  // the high pass filter is just an inversed LPF
+  float hpf(float x, float c, float s) {
+   	return lpf(1. - x, 1. - c, s); 
+  }
 
+  // a bpf is obtained by combining a lpf and hpf
+  float bpf(float x, float c, float s) {
+    return lpf(x, c, s) * hpf(x, c, s);
+  }
+
+  // band-reject
+  float brf(float x, float c, float s) {
+    return (1. - lpf(x, c, s)) + (1. - hpf(x, c, s));
+  }
+
+  void main () {
+    vec2 uv = gl_FragCoord.xy / resolution.xy;
+  
+    float l = 0.;
+    float r = 0.;
+
+    const float harmonics = 16.;
+    
+    for (int k = 0; k < 8; k += 1) {
+      vec4 data = keyboard[k];
+      
+      float kfrq = data.x;
+      float kvel = data.y;
+      float ktim = data.z;
+      float kchn = data.w;
+      
+      if (kfrq == 0.) {
+       	break; 
+      }
+      
+      float cutoff = htoy(kfrq) / resolution.y;
+      
+      float slope = 3. + sin(ktim * 4.);
+      
+      // we compute our filters
+      // note that we modulate the cutoff parameter
+      // to show how the filters behave
+      float fhp = hpf(uv.y, cutoff + sin(ktim * 1.25) / 2., slope);
+      float fbp = bpf(uv.y, cutoff + sin((ktim - 1.) * 1.25) / 2., slope * 1.25);
+      float fbr = brf(uv.y, cutoff + sin((ktim - 2.) * 1.25) / 2., slope * 1.5);
+      
+      float attack = 0.5;
+      float decay = 0.5;
+      float sustain = 0.;
+      float release = 0.25;
+      float dec_amp = 0.;
+        
+      // note how we offset the keyboard time
+      // of the total amount of time the envelope will take
+      // so that our sounds start when the previous end
+      float env1 = kvel * adsr(ktim, vec4(attack, decay, sustain, release), dec_amp);
+      float env2 = kvel * adsr(ktim - 1., vec4(attack, decay, sustain, release), dec_amp);
+      float env3 = kvel * adsr(ktim - 2., vec4(attack, decay, sustain, release), dec_amp);
+      
+      for (float i = 1.; i < harmonics; i += 1.) {
+        float f = kfrq * i;
+      
+        // we build three sounds offseted by the envelope
+        // with each filters assigned
+        l += fline(f) * fhp * env1;
+        r += fline(f) * fhp * env1;
+  
+        l += fline(f) * fbp * env2;
+        r += fline(f) * fbp * env2;
+       
+        l += fline(f) * fbr * env3;
+        r += fline(f) * fbr * env3;
+      }
+    }
+    
+    gl_FragColor = vec4(l, r, 0., 0.);
+  }
+)
+$ifhtml($center($ogg(audio/fsynth_filters.ogg)))
+The given functions are not set in stone, you can change them, actually those functions have some drawbacks, notably the fact that they don't have a resonance parameter and that the filters cutoff/slope need to be adjusted for HPF/BPF/BRF because the attenuation is not per octaves, we will see next some other functions which will adress these issues.
 $nl
 $subsection(Timbral possibilities)
 A neat thing that can be done with Fragment is modulating the parameters you want with the current horizontal or vertical position, the canvas will then show you many timbral possibilities that you can chose to listen to by adding and positioning slices on the canvas, you can also modulate the horizontal position to move between timbral possibilities.
@@ -1334,7 +1429,7 @@ $glslcode(
   }
 )
 $tlink($center($image(522)(images/possibilities.png)))(images/possibilities.png)
-$center(Timbral possibilities along the X axis related to the LPF cutoff parameter)
+$center(Timbral possibilities along the X axis related to a LPF cutoff parameter)
 $nl
 $subsection(Delay effect)
 Now that we have all the essential components of any modern synthesizers, we can do some more complex things like effects, arpgeggio, sequences, filters etc.
