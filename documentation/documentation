@@ -552,9 +552,11 @@ $list(
 	$item messages list
 	$item users list
 	$item input)
-The green user in the user list indicate yourself.
+The user list indicate yourself with a green color.
 
 You can send a message to all users in the session by clicking on the input then typing your message and pressing ENTER.
+
+Each messages received has a timestamp assigned that you can read by hovering your mouse cursor on the message.
 
 $nl
 $label(uniformsdialog)

@@ -65,11 +65,13 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
 
 ## Build
 
-Fragment is built with a custom build system watching for changes in real-time and which include files when it read /\*#include file\*/, it execute several programs on the output files such as code minifier for production ready usage, the build system was made with the functional *Anubis* programming language.
+Fragment is built with a custom build system called Nut scanning for changes in real-time and which include files when it read /\*#include file\*/, it execute several programs on the output files such as code minifier for production ready usage, the build system was made with the functional *Anubis* programming language.
 
 _app_fs.\*_ and _app_cm.\*_ are the entry point files used by the build system to produce a single file and a production ready file in the *dist* directory.
 
 If you want to build it by yourself, you will have to find a way to run a pre-processor over _app_fs.\*_ and _app_cm.\*_ or implement other systems like requireJS!
+
+The build system can be found [here](https://github.com/grz0zrg/nut) and the build system is called by the shell script named `nutbuild` (root folder)
 
 ## How to setup your own
 
@@ -102,6 +104,7 @@ Client :
  * [Vanilla JS](http://vanilla-js.com/) yup!
  * [WUI](https://github.com/grz0zrg/wui) vanilla collection of UI widgets for the web
  * [CodeMirror](http://codemirror.net/) for the awesome editor and its addons/modes
+ * [glsl-simulator](https://github.com/burg/glsl-simulator) the GLSL parser is based on glsl-simulator
  * [ShareDB](https://github.com/share/sharedb/) for the collaborative features
  * [Normalize](https://necolas.github.io/normalize.css/)
  * [Skeleton](http://getskeleton.com/) for the landing page
@@ -124,6 +127,7 @@ Servers :
 
 Utilities :
  * [FontAwesome](http://fontawesome.io/)
+ * [pegjs](https://www.pegjs.org)
  * [fa2png](http://fa2png.io/)
  * [Brackets](http://brackets.io/)
  * [Atom](https://atom.io/)
@@ -138,6 +142,7 @@ Utilities :
  * [GIMP](https://www.gimp.org/) some graphics
  * [The Anubis programming language](http://redmine.anubis-language.com/)
  * [Minimalist Anubis Markup Language](http://redmine.anubis-language.com/)
+ * [Nut][https://github.com/grz0zrg/nut]
 
 The repository for the early proof of concept can be found [here](https://github.com/grz0zrg/fs).
 
