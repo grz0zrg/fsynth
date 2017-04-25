@@ -376,7 +376,7 @@ var FragmentSynth = function (params) {
             _vaxis_infos.style.height = _canvas_height + "px";
 
             _temp_data = new Uint8Array(_canvas_height_mul4);
-            _allocate_frames_data();
+            _allocateFramesData();
 
             _gl.viewport(0, 0, _canvas.width, _canvas.height);
 
@@ -533,7 +533,7 @@ var FragmentSynth = function (params) {
     //_addPlayPositionMarker(_canvas_width / 4);
     //_addPlayPositionMarker(_canvas_width - _canvas_width / 4);
 
-    _allocate_frames_data();
+    _allocateFramesData();
     
     _uiInit();
     

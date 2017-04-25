@@ -299,7 +299,7 @@ var _drawSpectrum = function () {
     }  
 };
 
-var _allocate_frames_data = function () {
+var _allocateFramesData = function () {
     var i = 0;
     
     _data = [];

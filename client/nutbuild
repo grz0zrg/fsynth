@@ -1,0 +1,2 @@
+#!/bin/sh
+anbexec nut js/fs.js css/fs.css js/cm.js css/cm.css

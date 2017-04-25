@@ -491,7 +491,7 @@ var _computeOutputChannels = function () {
     }
     
     _output_channels = max;
-    _allocate_frames_data();
+    _allocateFramesData();
 };
 
 /*

@@ -1,3 +1,0 @@
-#!/bin/sh
-cd js
-anbexec mergejs fs.js
