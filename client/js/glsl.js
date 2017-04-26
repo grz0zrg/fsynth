@@ -6,12 +6,18 @@
 ************************************************************/
 
 var _uniform_location_cache = {},
-    _current_program;
+    _current_program,
+    
+    _glsl_parser_worker = new Worker("dist/parse_glsl.min.js");
 
 
 /***********************************************************
     Functions.
 ************************************************************/
+
+var _parse_glsl = function (glsl_code) {
+    _glsl_parser_worker.postMessage(glsl_code);
+};
 
 var _createAndLinkProgram = function (vertex_shader, fragment_shader) {
     if (!vertex_shader || !fragment_shader) {
@@ -186,6 +192,8 @@ var _compile = function () {
             _createShader(_gl.VERTEX_SHADER, document.getElementById("vertex-shader").text),
             frag
         );
+    
+    _parse_glsl(glsl_code);
 
     if (temp_program) {
         _gl.deleteProgram(_program);
@@ -229,4 +237,8 @@ var _compile = function () {
 
         //_stop();
     }
+};
+
+_glsl_parser_worker.onmessage = function(m) {
+    console.log(m.data);
 };

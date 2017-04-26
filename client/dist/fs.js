@@ -15615,14 +15615,14 @@ var FragmentSynth = function (params) {
 /* jslint browser: true */
 
 var _fs_palette = {
-        0:   [0, 0, 0],
-        10:  [75, 0, 159],
+        0:   [0,   0,   0],
+        10:  [75,  0, 159],
         20:  [104, 0, 251],
         30:  [131, 0, 255],
         40:  [155, 18,157],
-        50:  [175, 37, 0],
-        60:  [191, 59, 0],
-        70:  [206, 88, 0],
+        50:  [175, 37,  0],
+        60:  [191, 59,  0],
+        70:  [206, 88,  0],
         80:  [223, 132, 0],
         90:  [240, 188, 0],
         100: [255, 252, 0]
@@ -16128,7 +16128,6 @@ _utter_fail_element.innerHTML = "";
 var _ws_protocol = "ws",
     _domain = "127.0.0.1";/* jslint browser: true */
 
-
 /***********************************************************
     Fields.
 ************************************************************/
@@ -16619,7 +16618,7 @@ var _computeOutputChannels = function () {
     }
     
     _output_channels = max;
-    _allocate_frames_data();
+    _allocateFramesData();
 };
 
 /*
@@ -16979,7 +16978,7 @@ var _drawSpectrum = function () {
     }  
 };
 
-var _allocate_frames_data = function () {
+var _allocateFramesData = function () {
     var i = 0;
     
     _data = [];
@@ -17216,12 +17215,18 @@ var _frame = function (raf_time) {
 ************************************************************/
 
 var _uniform_location_cache = {},
-    _current_program;
+    _current_program,
+    
+    _glsl_parser_worker = new Worker("dist/parse_glsl.min.js");
 
 
 /***********************************************************
     Functions.
 ************************************************************/
+
+var _parse_glsl = function (glsl_code) {
+    _glsl_parser_worker.postMessage(glsl_code);
+};
 
 var _createAndLinkProgram = function (vertex_shader, fragment_shader) {
     if (!vertex_shader || !fragment_shader) {
@@ -17396,6 +17401,8 @@ var _compile = function () {
             _createShader(_gl.VERTEX_SHADER, document.getElementById("vertex-shader").text),
             frag
         );
+    
+    _parse_glsl(glsl_code);
 
     if (temp_program) {
         _gl.deleteProgram(_program);
@@ -17439,6 +17446,10 @@ var _compile = function () {
 
         //_stop();
     }
+};
+
+_glsl_parser_worker.onmessage = function(m) {
+    console.log(m.data);
 };/* jslint browser: true */
 
 
@@ -20922,7 +20933,7 @@ var _fasInit = function () {
             _vaxis_infos.style.height = _canvas_height + "px";
 
             _temp_data = new Uint8Array(_canvas_height_mul4);
-            _allocate_frames_data();
+            _allocateFramesData();
 
             _gl.viewport(0, 0, _canvas.width, _canvas.height);
 
@@ -21079,7 +21090,7 @@ var _fasInit = function () {
     //_addPlayPositionMarker(_canvas_width / 4);
     //_addPlayPositionMarker(_canvas_width - _canvas_width / 4);
 
-    _allocate_frames_data();
+    _allocateFramesData();
     
     _uiInit();
     
