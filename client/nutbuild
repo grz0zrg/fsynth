@@ -1,2 +1,2 @@
 #!/bin/sh
-anbexec nut js/fs.js css/fs.css js/cm.js css/cm.css
+anbexec nut -appfile:"js/fs.js" -appfile:"css/fs.css" -appfile:"js/cm.js" -appfile:"css/cm.css" -appdir:"js/worker"
