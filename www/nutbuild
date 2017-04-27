@@ -1,0 +1,2 @@
+#!/bin/sh
+anbexec nut -appfile:"js/fp.js" -appfile:"css/fp.css"

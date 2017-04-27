@@ -1792,6 +1792,11 @@ hr {
         margin-left: 22px;
         font-size: 10px;
     }
+    
+    iframe {
+        width: 366px;
+        height: 206px;
+    }
 }
 
 @media (min-width: 1216px) {
@@ -1836,5 +1841,10 @@ hr {
     
     .offset-by-one.column {
         margin-left: 8.66666666667%;
+    }
+    
+    iframe {
+        width: 460px;
+        height: 259px;
     }
 }
