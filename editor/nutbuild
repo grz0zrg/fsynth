@@ -1,0 +1,2 @@
+#!/bin/sh
+anbexec nut -appfile:"js/ed.js" -appfile:"css/ed.css"
