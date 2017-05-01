@@ -147,7 +147,7 @@ Utilities :
  * [GIMP](https://www.gimp.org/) some graphics
  * [The Anubis programming language](http://redmine.anubis-language.com/)
  * [Minimalist Anubis Markup Language](http://redmine.anubis-language.com/)
- * [Nut][https://github.com/grz0zrg/nut]
+ * [Nut](https://github.com/grz0zrg/nut)
 
 The repository for the early proof of concept can be found [here](https://github.com/grz0zrg/fs).
 
