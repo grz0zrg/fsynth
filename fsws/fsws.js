@@ -66,6 +66,11 @@ app.use('/app/data', serveStatic(__dirname + '/../client/data/'));
 app.use('/app/client/data', serveStatic(__dirname + '/../client/data/'));
 app.use('/app/fonts', serveStatic(__dirname + '/../client/fonts/'));
 app.use('/app/css', serveStatic(__dirname + '/../client/css/'));
+app.use('/ed/dist', serveStatic(__dirname + '/../editor/dist/'));
+app.use('/ed/data', serveStatic(__dirname + '/../editor/data/'));
+app.use('/ed/client/data', serveStatic(__dirname + '/../client/data/'));
+app.use('/ed/css', serveStatic(__dirname + '/../editor/css/'));
+app.use('/ed/favicon.png', serveStatic(__dirname + '/../editor/favicon.png'));
 
 app.get('/', serveStatic(index));
 
@@ -75,6 +80,14 @@ app.get('/app', function (req, res) {
 
 app.get('/app/:session', function (req, res) {
     res.sendFile(path.resolve(__dirname + '/../client/index.html'));
+});
+
+app.get('/ed', function (req, res) {
+    res.sendFile(path.resolve(index));
+});
+
+app.get('/ed/:session', function (req, res) {
+    res.sendFile(path.resolve(__dirname + '/../editor/index.html'));
 });
 
 http.listen(3000, "127.0.0.1", function () {

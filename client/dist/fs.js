@@ -15996,6 +15996,8 @@ _utter_fail_element.innerHTML = "";
             }
         },
         
+        _code_editor_extern = false,
+        
         // this is the amount of free uniform vectors for Fragment regular uniforms and session custom uniforms
         // this is also used to assign uniform vectors automatically for polyphonic uses
         // if the GPU cannot have that much uniforms (with polyphonic uses), this will be divided by two and the polyphonic computation will be done again
@@ -17402,7 +17404,7 @@ var _compile = function () {
             frag
         );
     
-    _parse_glsl(glsl_code);
+    //_parse_glsl(glsl_code);
 
     if (temp_program) {
         _gl.deleteProgram(_program);
@@ -17547,11 +17549,11 @@ var _shareDBConnect = function () {
                     for (j = 0; j < operation.o.length; j += 1) {
                         o = operation.o[j];
                         
-                        if (o["d"]) {
+                        if (o["d"] !== undefined) {
                             from = _code_editor.posFromIndex(o.p);
                             to = _code_editor.posFromIndex(o.p + o.d.length);
                             _code_editor.replaceRange("", from, to, "remote");
-                        } else if (o["i"]) {
+                        } else if (o["i"] !== undefined) {
                             from = _code_editor.posFromIndex(o.p);
                             _code_editor.replaceRange(o.i, from, from, "remote");
                         } else {
@@ -19758,6 +19760,7 @@ var _uiInit = function () {
         settings_ck_wavetable_elem = document.getElementById("fs_settings_ck_wavetable"),
         settings_ck_monophonic_elem = document.getElementById("fs_settings_ck_monophonic"),
         settings_ck_feedback_elem = document.getElementById("fs_settings_ck_feedback"),
+        settings_ck_exted_elem = document.getElementById("fs_settings_ck_exted"),
         settings_ck_slicebar_elem = document.getElementById("fs_settings_ck_slicebar"),
         settings_ck_slices_elem = document.getElementById("fs_settings_ck_slices"),
         
@@ -19772,7 +19775,8 @@ var _uiInit = function () {
         fs_settings_xscrollbar = localStorage.getItem('fs-editor-advanced-scrollbar'),
         fs_settings_wavetable = localStorage.getItem('fs-use-wavetable'),
         fs_settings_monophonic = localStorage.getItem('fs-monophonic'),
-        fs_settings_feedback = localStorage.getItem('fs-feedback');
+        fs_settings_feedback = localStorage.getItem('fs-feedback'),
+        fs_settings_exted = localStorage.getItem('fs-exted');
     
     _settings_dialog = WUI_Dialog.create(_settings_dialog_id, {
             title: "Session & global settings",
@@ -19796,6 +19800,12 @@ var _uiInit = function () {
     } else {
         _audio_infos.monophonic = false;
         settings_ck_monophonic_elem.checked = false;
+    }
+    
+    if (fs_settings_exted === "true") {
+        settings_ck_exted_elem.checked = true;
+    } else {
+        settings_ck_exted_elem.checked = false;
     }
     
     if (fs_settings_feedback === "true") {
@@ -19920,6 +19930,11 @@ var _uiInit = function () {
             _buildFeedback();
         });
     
+    settings_ck_exted_elem.addEventListener("change", function () {
+            localStorage.setItem('fs-exted', this.checked);
+        
+            //_notification("Reload the page for the external editor change to take effect", 10000);
+        });
     
     settings_ck_wavetable_elem.addEventListener("change", function () {
             if (this.checked) {
@@ -20048,6 +20063,7 @@ var _uiInit = function () {
     settings_ck_xscrollbar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_monophonic_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_feedback_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_exted_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_slicebar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_slices_elem.dispatchEvent(new UIEvent('change'));
     
@@ -20985,6 +21001,8 @@ var _fasInit = function () {
         Init.
     ************************************************************/
     
+    _code_editor_extern = localStorage.getItem('fs-exted');
+    
     _audioInit();
 
     if (!_username) {
@@ -21008,23 +21026,67 @@ var _fasInit = function () {
     _vaxis_infos.style.height = _canvas_height + "px";
 
     // CodeMirror
-    if (!_code_editor_theme) {
-        _code_editor_theme = "seti";
+    if (_code_editor_extern === null || _code_editor_extern === "false") {
+        if (!_code_editor_theme) {
+            _code_editor_theme = "seti";
+        }
+
+        _changeEditorTheme(_code_editor_theme);
+
+        _code_editor = new CodeMirror(_code_editor_element, _code_editor_settings);
+        _code_editor.setValue(document.getElementById("fragment-shader").text);
+
+        CodeMirror.on(_code_editor, 'change', function (instance, change_obj) {
+            clearTimeout(_compile_timer);
+            _compile_timer = setTimeout(_compile, 500);
+        });
+
+        CodeMirror.on(_code_editor, 'changes', function (instance, changes) {
+            _shareCodeEditorChanges(changes);
+        });
+    } else {
+        _code_editor = {
+                s: document.getElementById("fragment-shader").text,
+            
+                getValue: function () {
+                    return this.s;
+                },
+            
+                setValue: function (str) {
+                    this.s = str;
+                    
+                    clearTimeout(_compile_timer);
+                    _compile_timer = setTimeout(_compile, 500);
+                },
+            
+                setOption: function () {
+                    
+                },
+            
+                refresh: function () {
+
+                },
+            
+                posFromIndex: function (i) {
+                    return i;
+                },
+            
+                replaceRange: function (substitute, start, end) {
+                    this.s = this.s.substring(0, start) + substitute + this.s.substring(end);
+                    
+                    clearTimeout(_compile_timer);
+                    _compile_timer = setTimeout(_compile, 500);
+                },
+            
+                addLineWidget: function () {
+                    
+                },
+            
+                removeLineWidget: function () {
+                    
+                }
+            };
     }
-
-    _changeEditorTheme(_code_editor_theme);
-    
-    _code_editor = new CodeMirror(_code_editor_element, _code_editor_settings);
-    _code_editor.setValue(document.getElementById("fragment-shader").text);
-
-    CodeMirror.on(_code_editor, 'change', function (instance, change_obj) {
-        clearTimeout(_compile_timer);
-        _compile_timer = setTimeout(_compile, 500);
-    });
-
-    CodeMirror.on(_code_editor, 'changes', function (instance, changes) {
-        _shareCodeEditorChanges(changes);
-    });
     
     // WebGL 2 check
     _gl = _canvas.getContext("webgl2", _webgl_opts) || _canvas.getContext("experimental-webgl2", _webgl_opts);

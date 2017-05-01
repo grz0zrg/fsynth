@@ -57,6 +57,7 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
  * fss - main server (discuss. system, slices)
  * fsdb - sharedb server (collaborative features)
  * fsws - web. server (only used for development or local installation)
+ * editor - external GLSL code editor
  * documentation - MAML (Minimalist Anubis Markup Language) with the latest HTML and PDF doc.
  * main.js - Electron app. file
  * common.js - Server config. file
@@ -97,6 +98,10 @@ A native app. was developed with [Electron](http://electron.atom.io/) featuring 
 
  * If you enable the *monophonic* setting, you have the RGB output for live coding visuals which can be fully synchronized with the synthesized sounds which will be synthesized by using the alpha channel
  * Pressing F11 in the GLSL code editor trigger fullscreen editor
+ 
+## Future
+
+A native modular app. with wxWidget will probably see the light of the day soon using the same technology, this will eliminate all the shortcoming related to performances.
 
 ## Stuff used to make this
 

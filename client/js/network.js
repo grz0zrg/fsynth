@@ -95,11 +95,11 @@ var _shareDBConnect = function () {
                     for (j = 0; j < operation.o.length; j += 1) {
                         o = operation.o[j];
                         
-                        if (o["d"]) {
+                        if (o["d"] !== undefined) {
                             from = _code_editor.posFromIndex(o.p);
                             to = _code_editor.posFromIndex(o.p + o.d.length);
                             _code_editor.replaceRange("", from, to, "remote");
-                        } else if (o["i"]) {
+                        } else if (o["i"] !== undefined) {
                             from = _code_editor.posFromIndex(o.p);
                             _code_editor.replaceRange(o.i, from, from, "remote");
                         } else {

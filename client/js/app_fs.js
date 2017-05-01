@@ -180,6 +180,8 @@ var FragmentSynth = function (params) {
             }
         },
         
+        _code_editor_extern = false,
+        
         // this is the amount of free uniform vectors for Fragment regular uniforms and session custom uniforms
         // this is also used to assign uniform vectors automatically for polyphonic uses
         // if the GPU cannot have that much uniforms (with polyphonic uses), this will be divided by two and the polyphonic computation will be done again
@@ -428,6 +430,8 @@ var FragmentSynth = function (params) {
         Init.
     ************************************************************/
     
+    _code_editor_extern = localStorage.getItem('fs-exted');
+    
     _audioInit();
 
     if (!_username) {
@@ -451,23 +455,67 @@ var FragmentSynth = function (params) {
     _vaxis_infos.style.height = _canvas_height + "px";
 
     // CodeMirror
-    if (!_code_editor_theme) {
-        _code_editor_theme = "seti";
+    if (_code_editor_extern === null || _code_editor_extern === "false") {
+        if (!_code_editor_theme) {
+            _code_editor_theme = "seti";
+        }
+
+        _changeEditorTheme(_code_editor_theme);
+
+        _code_editor = new CodeMirror(_code_editor_element, _code_editor_settings);
+        _code_editor.setValue(document.getElementById("fragment-shader").text);
+
+        CodeMirror.on(_code_editor, 'change', function (instance, change_obj) {
+            clearTimeout(_compile_timer);
+            _compile_timer = setTimeout(_compile, 500);
+        });
+
+        CodeMirror.on(_code_editor, 'changes', function (instance, changes) {
+            _shareCodeEditorChanges(changes);
+        });
+    } else {
+        _code_editor = {
+                s: document.getElementById("fragment-shader").text,
+            
+                getValue: function () {
+                    return this.s;
+                },
+            
+                setValue: function (str) {
+                    this.s = str;
+                    
+                    clearTimeout(_compile_timer);
+                    _compile_timer = setTimeout(_compile, 500);
+                },
+            
+                setOption: function () {
+                    
+                },
+            
+                refresh: function () {
+
+                },
+            
+                posFromIndex: function (i) {
+                    return i;
+                },
+            
+                replaceRange: function (substitute, start, end) {
+                    this.s = this.s.substring(0, start) + substitute + this.s.substring(end);
+                    
+                    clearTimeout(_compile_timer);
+                    _compile_timer = setTimeout(_compile, 500);
+                },
+            
+                addLineWidget: function () {
+                    
+                },
+            
+                removeLineWidget: function () {
+                    
+                }
+            };
     }
-
-    _changeEditorTheme(_code_editor_theme);
-    
-    _code_editor = new CodeMirror(_code_editor_element, _code_editor_settings);
-    _code_editor.setValue(document.getElementById("fragment-shader").text);
-
-    CodeMirror.on(_code_editor, 'change', function (instance, change_obj) {
-        clearTimeout(_compile_timer);
-        _compile_timer = setTimeout(_compile, 500);
-    });
-
-    CodeMirror.on(_code_editor, 'changes', function (instance, changes) {
-        _shareCodeEditorChanges(changes);
-    });
     
     // WebGL 2 check
     _gl = _canvas.getContext("webgl2", _webgl_opts) || _canvas.getContext("experimental-webgl2", _webgl_opts);

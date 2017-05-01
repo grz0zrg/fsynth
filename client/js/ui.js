@@ -1343,6 +1343,7 @@ var _uiInit = function () {
         settings_ck_wavetable_elem = document.getElementById("fs_settings_ck_wavetable"),
         settings_ck_monophonic_elem = document.getElementById("fs_settings_ck_monophonic"),
         settings_ck_feedback_elem = document.getElementById("fs_settings_ck_feedback"),
+        settings_ck_exted_elem = document.getElementById("fs_settings_ck_exted"),
         settings_ck_slicebar_elem = document.getElementById("fs_settings_ck_slicebar"),
         settings_ck_slices_elem = document.getElementById("fs_settings_ck_slices"),
         
@@ -1357,7 +1358,8 @@ var _uiInit = function () {
         fs_settings_xscrollbar = localStorage.getItem('fs-editor-advanced-scrollbar'),
         fs_settings_wavetable = localStorage.getItem('fs-use-wavetable'),
         fs_settings_monophonic = localStorage.getItem('fs-monophonic'),
-        fs_settings_feedback = localStorage.getItem('fs-feedback');
+        fs_settings_feedback = localStorage.getItem('fs-feedback'),
+        fs_settings_exted = localStorage.getItem('fs-exted');
     
     _settings_dialog = WUI_Dialog.create(_settings_dialog_id, {
             title: "Session & global settings",
@@ -1381,6 +1383,12 @@ var _uiInit = function () {
     } else {
         _audio_infos.monophonic = false;
         settings_ck_monophonic_elem.checked = false;
+    }
+    
+    if (fs_settings_exted === "true") {
+        settings_ck_exted_elem.checked = true;
+    } else {
+        settings_ck_exted_elem.checked = false;
     }
     
     if (fs_settings_feedback === "true") {
@@ -1505,6 +1513,11 @@ var _uiInit = function () {
             _buildFeedback();
         });
     
+    settings_ck_exted_elem.addEventListener("change", function () {
+            localStorage.setItem('fs-exted', this.checked);
+        
+            //_notification("Reload the page for the external editor change to take effect", 10000);
+        });
     
     settings_ck_wavetable_elem.addEventListener("change", function () {
             if (this.checked) {
@@ -1633,6 +1646,7 @@ var _uiInit = function () {
     settings_ck_xscrollbar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_monophonic_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_feedback_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_exted_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_slicebar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_slices_elem.dispatchEvent(new UIEvent('change'));
     

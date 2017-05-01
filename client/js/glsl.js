@@ -193,7 +193,7 @@ var _compile = function () {
             frag
         );
     
-    _parse_glsl(glsl_code);
+    //_parse_glsl(glsl_code);
 
     if (temp_program) {
         _gl.deleteProgram(_program);
