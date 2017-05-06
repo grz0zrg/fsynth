@@ -225,6 +225,30 @@ canvas {
     opacity: 0;
 }
 
+.fs-outline {
+    background-color: #111111;
+    height: 100%;
+}
+
+.fs-outline > div {
+    padding: 3px;
+    color: #ffffff;
+    font-weight: normal;
+    font-family: "Inconsolata", monospace;
+    font-size: 13px;
+}
+
+.fs-outline-item-type {
+    color: burlywood;
+    font-weight: bold;
+}
+
+.fs-record-toolbar {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}
+
 .fs-top-panel {
     height: 32px;
     background-color: #111111;
@@ -264,7 +288,7 @@ canvas {
 }
 
 .fs-input-panel {
-    width: calc(100% - 572px - 16px);
+    width: calc(100% - 648px - 16px);
     height: 32px;
 /*    
     background-color: #111111;
@@ -544,7 +568,7 @@ canvas {
 }
 
 .fs-middle-toolbar {
-    width: 572px;
+    width: 648px;
     
     margin: 0;
     

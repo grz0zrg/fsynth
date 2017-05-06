@@ -92,11 +92,13 @@ var _addFragmentInput = function (type, input) {
         data,
         image,
         texture,
+        
+        video_element,
 
         input_id = _fragment_input_data.length;
 
     if (type === "image") {
-        data = _create2DTexture(input, false, true);
+        data = _create2DTexture(input, false, false);
 
         _fragment_input_data.push({
                 type: 0,
@@ -112,7 +114,7 @@ var _addFragmentInput = function (type, input) {
 
         _compile();
     } else if (type === "camera") {
-        var video_element = document.createElement('video');
+        video_element = document.createElement('video');
         video_element.width = 320;
         video_element.height = 240;
         video_element.autoplay = true;

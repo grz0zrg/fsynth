@@ -23,6 +23,7 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
  * Polyphonic
  * Multitimbral
  * Aliasing free
+ * Recording
  * Adjustable audio output channel per slices
  * Feedback via framebuffer (for fx like reverb, delay, Release part of envelopes and more)
  * Shader inputs: webcam, textures and more to come

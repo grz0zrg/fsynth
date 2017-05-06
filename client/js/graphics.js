@@ -339,6 +339,8 @@ var _frame = function (raf_time) {
         
         f, v, key,
         
+        data, data2,
+        
         buffer = [];
 
     // update notes time
@@ -477,7 +479,7 @@ var _frame = function (raf_time) {
             channel_data = _data[channel];
 
             // merge slices data
-            for (j = 0; j < _canvas_height_mul4; j += 1) {
+            for (j = 0; j <= _canvas_height_mul4; j += 1) {
                 channel_data[j] = channel_data[j] + _temp_data[j];
             }
         }
@@ -491,7 +493,7 @@ var _frame = function (raf_time) {
             for (j = 0; j < _output_channels; j += 1) {
                 var c = 0;
 
-                for (i = 0; i < _canvas_height_mul4; i += 4) {
+                for (i = 0; i <= _canvas_height_mul4; i += 4) {
                     if (_data[j][i] > 0) {
                         c += 1;
                     } else if (_data[j][i + 1] > 0) {
@@ -503,6 +505,47 @@ var _frame = function (raf_time) {
             }
 
             _osc_infos.innerHTML = arr_infos.join(" ");
+        }
+        
+        if (_record) {
+            _record_position += 1;
+            if (_record_position > _canvas_width) {
+                _record_position = 0;
+            }
+            
+            if (_record_opts.additive) {
+                data = _record_canvas_ctx.getImageData(_record_position, 0, 1, _record_canvas.height);
+            } else {
+                data = new Uint8ClampedArray(_canvas_height_mul4);
+            }
+            
+            if (_audio_infos.monophonic) {
+                for (j = 0; j < _output_channels; j += 1) {
+                    for (i = 0; i <= _canvas_height_mul4; i += 4) {
+                        o = _canvas_height_mul4 - i;
+                        
+                        data[o] += _data[j][i + 3];
+                        data[o + 1] += _data[j][i + 3];
+                        data[o + 2] += _data[j][i + 3];
+                        data[o + 3] = 255;
+                    }
+                }
+            } else {
+                for (j = 0; j < _output_channels; j += 1) {
+                    for (i = 0; i <= _canvas_height_mul4; i += 4) {
+                        o = _canvas_height_mul4 - i;
+                        
+                        data[o] += _data[j][i];
+                        data[o + 1] += _data[j][i + 1];
+                        data[o + 2] += _data[j][i + 2];
+                        data[o + 3] = 255;
+                    }
+                }
+            }
+            
+            _record_slice_image.data.set(data);
+            
+            _record_canvas_ctx.putImageData(_record_slice_image, _record_position, 0);
         }
         
         if (fas_enabled) {

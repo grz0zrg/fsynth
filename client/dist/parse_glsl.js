@@ -8828,9 +8828,40 @@ self.onmessage = function (m) {
 
     var glsl_code = m.data,
         
-        glsl_o;
+        glsl_o,
+        
+        outline = [],
+        
+        statement,
+        
+        exceptions = {
+            htoy: true,
+            fline: true
+        },
+        
+        i;
     
     glsl_o = _PEGLSL.parse(glsl_code);
+
+    if (glsl_o) {
+        for (i = 0; i < glsl_o.statements.length; i += 1) {
+            statement = glsl_o.statements[i];
+            
+            if (statement.type === "function_declaration") {
+                if (exceptions[statement.name]) {
+                    continue;
+                }
+                
+                outline.push({
+                    type: "function",
+                    name: statement.name,
+                    position: statement.position,
+                    parameters: statement.parameters,
+                    returnType: statement.returnType
+                });
+            }
+        }
+    }
     
-    postMessage(glsl_o);
+    postMessage(outline);
 };

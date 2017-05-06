@@ -8,6 +8,8 @@
 var _uniform_location_cache = {},
     _current_program,
     
+    _outline_element = document.getElementById("fs_outline"),
+    
     _glsl_parser_worker = new Worker("dist/parse_glsl.min.js");
 
 
@@ -193,7 +195,7 @@ var _compile = function () {
             frag
         );
     
-    //_parse_glsl(glsl_code);
+    _parse_glsl(glsl_code);
 
     if (temp_program) {
         _gl.deleteProgram(_program);
@@ -239,6 +241,46 @@ var _compile = function () {
     }
 };
 
+var setCursorCb = function (position) {
+    return function () {
+        _code_editor.setCursor({ line: position.start.line - 1, ch: position.start.column });
+    };
+};
+
+
 _glsl_parser_worker.onmessage = function(m) {
-    console.log(m.data);
+    var i = 0, j = 0,
+        
+        data = m.data,
+        statement,
+        
+        tmp,
+        param,
+        
+        elem;
+    
+    _outline_element.innerHTML = "";
+
+    for (i = 0; i < data.length; i += 1) {
+        statement = data[i];
+        
+        if (statement.type === "function") {
+            elem = document.createElement("div");
+            
+            elem.class = "fs-outline-item";
+            
+            tmp = [];
+            for (j = 0; j < statement.parameters.length; j += 1) {
+                param = statement.parameters[j];
+                
+                tmp.push('<span class="fs-outline-item-type">' + param.type_name + "</span> " + param.name);
+            }
+            
+            elem.innerHTML = '<span class="fs-outline-item-type">' + statement.returnType.name + "</span> " + statement.name + " (" + tmp.join(", ") + ")";
+            
+            elem.addEventListener("click", setCursorCb(statement.position));
+
+            _outline_element.appendChild(elem);
+        }
+    }
 };

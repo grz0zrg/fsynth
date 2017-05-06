@@ -30,6 +30,14 @@ var _icon_class = {
     _analysis_dialog_id = "fs_analysis_dialog",
     _analysis_dialog,
     
+    _record_dialog_id = "fs_record_dialog",
+    _record_dialog,
+    
+    _outline_dialog_id = "fs_outline_dialog",
+    _outline_dialog,
+    
+    _wui_main_toolbar,
+    
     _send_slices_settings_timeout,
     _add_slice_timeout,
     _remove_slice_timeout,
@@ -1328,6 +1336,38 @@ var _showSpectrumDialog = function () {
     WUI_Dialog.open(_analysis_dialog);
 };
 
+var _showRecordDialog = function () {
+    if (_record) {
+        _record = false;
+        
+        WUI_Dialog.close(_record_dialog);
+    } else {
+        _record = true;
+        
+        WUI_Dialog.open(_record_dialog);
+    }
+};
+
+var _onRecordDialogClose = function () {
+    WUI_ToolBar.toggle(_wui_main_toolbar, 7);
+};
+
+var _showOutlineDialog = function () {
+    WUI_Dialog.open(_outline_dialog);
+};
+
+var _toggleAdditiveRecord = function () {
+    if (_record_opts.additive) {
+        _record_opts.additive = false;
+    } else {
+        _record_opts.additive = true;
+    }
+};
+
+var _saveRecord = function () {
+    window.open(_record_canvas.toDataURL('image/png'));
+};
+
 /***********************************************************
     Init.
 ************************************************************/
@@ -1665,6 +1705,40 @@ var _uiInit = function () {
             detachable: false,
             draggable: true
         });
+    
+    _record_dialog = WUI_Dialog.create(_record_dialog_id, {
+            title: "Recording...",
+
+            width: "auto",
+            height: "auto",
+
+            halign: "center",
+            valign: "center",
+
+            open: false,
+
+            status_bar: false,
+            detachable: false,
+            draggable: true,
+        
+            on_close: _onRecordDialogClose
+        });
+    
+    _outline_dialog = WUI_Dialog.create(_outline_dialog_id, {
+            title: "GLSL Outline",
+
+            width: "380px",
+            height: "380px",
+
+            halign: "center",
+            valign: "center",
+
+            open: false,
+
+            status_bar: false,
+            detachable: false,
+            draggable: true
+        });
 
     _analysis_dialog = WUI_Dialog.create(_analysis_dialog_id, {
             title: "Audio analysis",
@@ -1764,7 +1838,30 @@ var _uiInit = function () {
             detachable: true,
         });
 
-    WUI_ToolBar.create("fs_middle_toolbar", {
+    WUI_ToolBar.create("fs_record_toolbar", {
+                allow_groups_minimize: false
+            },
+            {
+                opts: [
+                    {
+                        icon: "fs-plus-symbol-icon",
+                        type: "toggle",
+                        toggle_state: false,
+                        on_click: _toggleAdditiveRecord,
+                        tooltip: "Additive",
+                        toggle_group: 0
+                    }
+                ],
+                acts: [
+                    {
+                        icon: "fs-save-icon",
+                        on_click: _saveRecord,
+                        tooltip: "Save as PNG"
+                    }
+                ]
+            });
+
+    _wui_main_toolbar = WUI_ToolBar.create("fs_middle_toolbar", {
             allow_groups_minimize: false
         },
         {
@@ -1817,6 +1914,13 @@ var _uiInit = function () {
                     tooltip: "Play/Pause"
                 },
                 {
+                    icon: "fs-record-icon",
+                    type: "toggle",
+                    toggle_state: false,
+                    on_click: _showRecordDialog,
+                    tooltip: "Record"
+                },
+                {
                     icon: "fs-fas-icon",
                     type: "toggle",
                     toggle_state: _fasEnabled(),
@@ -1859,6 +1963,11 @@ var _uiInit = function () {
                     icon: "fs-spectrum-icon",
                     on_click: _showSpectrumDialog,
                     tooltip: "Audio analysis dialog"
+                },
+                {
+                    icon: "fs-function-icon",
+                    on_click: _showOutlineDialog,
+                    tooltip: "Outline"
                 },
                 {
                     icon: "fs-code-icon",

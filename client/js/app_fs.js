@@ -133,6 +133,15 @@ var FragmentSynth = function (params) {
 
         _canvas_container = document.getElementById("canvas_container"),
         _canvas = document.createElement("canvas"),
+        
+        _record_canvas = document.getElementById("fs_record_canvas"),
+        _record_canvas_ctx = _record_canvas.getContext('2d'),
+        _record_slice_image,
+        _record_position = 0,
+        _record = false,
+        _record_opts = {
+            additive: false
+        },
 
         _canvas_width  = 1024,
         _canvas_height = 439,//Math.round(window.innerHeight / 2) - 68,
@@ -374,6 +383,9 @@ var FragmentSynth = function (params) {
             _canvas.height = _canvas_height;
             _canvas.style.height = _canvas_height + 'px';
             _canvas_height_mul4 = _canvas_height * 4;
+            
+            _record_canvas.height = _canvas_height;
+            _record_slice_image = _record_canvas_ctx.createImageData(1, _canvas_height);
 
             _vaxis_infos.style.height = _canvas_height + "px";
 
@@ -391,12 +403,14 @@ var FragmentSynth = function (params) {
             _canvas_width = update_obj.width;
             _canvas.width = _canvas_width;
             _canvas.style.width = _canvas_width + 'px';
+            
+            _record_canvas.width = _canvas_width;
 
             _gl.viewport(0, 0, _canvas.width, _canvas.height);
             
             _initializePBO();
         }
-
+        
         _generateOscillatorSet(_canvas_height, base_freq, octave);
 
         _compile();
@@ -451,11 +465,18 @@ var FragmentSynth = function (params) {
     _canvas.style.height = _canvas_height + 'px';
 
     _canvas_container.appendChild(_canvas);
+    
+    _record_canvas.width = _canvas_width;
+    _record_canvas.height = _canvas_height;
+    
+    _record_slice_image = _record_canvas_ctx.createImageData(1, _canvas_height);
 
     _vaxis_infos.style.height = _canvas_height + "px";
 
     // CodeMirror
-    if (_code_editor_extern === null || _code_editor_extern === "false") {
+    if (_code_editor_extern === null ||
+        _code_editor_extern === "false" ||
+        _code_editor_extern === false) {
         if (!_code_editor_theme) {
             _code_editor_theme = "seti";
         }
@@ -474,6 +495,7 @@ var FragmentSynth = function (params) {
             _shareCodeEditorChanges(changes);
         });
     } else {
+        // the "dummy" CodeMirror object when the external editor is used
         _code_editor = {
                 s: document.getElementById("fragment-shader").text,
             
@@ -513,6 +535,10 @@ var FragmentSynth = function (params) {
             
                 removeLineWidget: function () {
                     
+                },
+            
+                setCursor: function () {
+
                 }
             };
     }

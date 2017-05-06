@@ -22,6 +22,10 @@
     background-image: url("../data/ui-icons/record.png");
 }
 
+.fs-function-icon {
+    background-image: url("../data/ui-icons/function.png");
+}
+
 .fs-spectrum-icon {
     background-image: url("../data/ui-icons/spectrum.png");
 }
@@ -89,6 +93,18 @@
 
 .fs-midi-icon {
     background-image: url("../data/ui-icons/midi.png");
+}
+
+.fs-plus-symbol-icon {
+    background-image: url("../data/ui-icons/plus_symbolic.png");
+}
+
+.fs-multiply-symbol-icon {
+    background-image: url("../data/ui-icons/mul_symbolic.png");
+}
+
+.fs-save-icon {
+    background-image: url("../data/ui-icons/save.png");
 }
 
 .fs-error-icon {

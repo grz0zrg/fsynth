@@ -365,12 +365,14 @@ $list(
   $list(
   	$item reset playback time to 0
   	$item play/pause
+  	$item $ref(record)(recording dialog)
   	$item $ref(fas)(FAS enable/disable))
   $item helpers
   $list(
   	$item $tlink(ShaderToy)(https://www.shadertoy.com) converter
   	$item canvas axis details which appear when the canvas is hovered by the cursor
   	$item $ref(analysis)(analysis dialog) (not working when FAS is enabled)
+  	$item $ref(outline)(outline dialog)
   	$item clone the code editor in a separate window)
 	$item fragment inputs
 	$list(
@@ -449,7 +451,6 @@ $list(
 Some of the code editor features can be enabled/disabled in the $ref(globalsettingsdialog)(global settings dialog).
 
 If you experience audio stuttering as you type, it is recommended to detach the code editor off the main window, due to the complexity of the web and the complexity of the Fragment application, many things are not as optimal as they should be, you may hear audio crackles due to browser reflow.
-
 $nl
 $subsection(MIDI learn functionality)
 MIDI learn is a neat feature of Fragment which enable any MIDI learn enabled widget to be controlled by a MIDI controller.
@@ -541,6 +542,22 @@ Once enabled, Fragment will receive any MIDI messages from that device.
 Fragment support hot plugging of MIDI devices, any MIDI devices which are plugged or unplugged while Fragment is running will be added or removed in the MIDI settings dialog.
 
 Fragment keep track of your MIDI settings choice for particual devices per sessions, this mean that if a MIDI device is enabled, when you quit Fragment or that the MIDI device is unplugged and you launch again Fragment and that the MIDI device is plugged in, Fragment will enable it automatically.
+
+$nl
+$label(record)
+$subsection(Recording dialog)
+The recording dialog allow to continuously record the slices output from all channels into one score that you can export to PNG by clicking on the save icon.
+
+This tool can become handy if you want to export your work and import it into an external tool or within Fragment again via the image input feature.
+
+By clicking on the + icon, the recording will be additive which mean that slices content will be drawn on the previous content without erasing it.
+
+The recording canvas width is linked to the score width, if it is increased in the settings dialog, the recording canvas will be resized.
+
+$nl
+$label(outline)
+$subsection(Outline dialog)
+The outline dialog display a list of the GLSL functions defined in your shader code, you can click on one to jump at it in the code editor.
 
 $nl
 $subsection(Session chat dialog)

@@ -15949,6 +15949,15 @@ _utter_fail_element.innerHTML = "";
 
         _canvas_container = document.getElementById("canvas_container"),
         _canvas = document.createElement("canvas"),
+        
+        _record_canvas = document.getElementById("fs_record_canvas"),
+        _record_canvas_ctx = _record_canvas.getContext('2d'),
+        _record_slice_image,
+        _record_position = 0,
+        _record = false,
+        _record_opts = {
+            additive: false
+        },
 
         _canvas_width  = 1024,
         _canvas_height = 439,//Math.round(window.innerHeight / 2) - 68,
@@ -17020,6 +17029,8 @@ var _frame = function (raf_time) {
         
         f, v, key,
         
+        data, data2,
+        
         buffer = [];
 
     // update notes time
@@ -17158,7 +17169,7 @@ var _frame = function (raf_time) {
             channel_data = _data[channel];
 
             // merge slices data
-            for (j = 0; j < _canvas_height_mul4; j += 1) {
+            for (j = 0; j <= _canvas_height_mul4; j += 1) {
                 channel_data[j] = channel_data[j] + _temp_data[j];
             }
         }
@@ -17172,7 +17183,7 @@ var _frame = function (raf_time) {
             for (j = 0; j < _output_channels; j += 1) {
                 var c = 0;
 
-                for (i = 0; i < _canvas_height_mul4; i += 4) {
+                for (i = 0; i <= _canvas_height_mul4; i += 4) {
                     if (_data[j][i] > 0) {
                         c += 1;
                     } else if (_data[j][i + 1] > 0) {
@@ -17184,6 +17195,47 @@ var _frame = function (raf_time) {
             }
 
             _osc_infos.innerHTML = arr_infos.join(" ");
+        }
+        
+        if (_record) {
+            _record_position += 1;
+            if (_record_position > _canvas_width) {
+                _record_position = 0;
+            }
+            
+            if (_record_opts.additive) {
+                data = _record_canvas_ctx.getImageData(_record_position, 0, 1, _record_canvas.height);
+            } else {
+                data = new Uint8ClampedArray(_canvas_height_mul4);
+            }
+            
+            if (_audio_infos.monophonic) {
+                for (j = 0; j < _output_channels; j += 1) {
+                    for (i = 0; i <= _canvas_height_mul4; i += 4) {
+                        o = _canvas_height_mul4 - i;
+                        
+                        data[o] += _data[j][i + 3];
+                        data[o + 1] += _data[j][i + 3];
+                        data[o + 2] += _data[j][i + 3];
+                        data[o + 3] = 255;
+                    }
+                }
+            } else {
+                for (j = 0; j < _output_channels; j += 1) {
+                    for (i = 0; i <= _canvas_height_mul4; i += 4) {
+                        o = _canvas_height_mul4 - i;
+                        
+                        data[o] += _data[j][i];
+                        data[o + 1] += _data[j][i + 1];
+                        data[o + 2] += _data[j][i + 2];
+                        data[o + 3] = 255;
+                    }
+                }
+            }
+            
+            _record_slice_image.data.set(data);
+            
+            _record_canvas_ctx.putImageData(_record_slice_image, _record_position, 0);
         }
         
         if (fas_enabled) {
@@ -17218,6 +17270,8 @@ var _frame = function (raf_time) {
 
 var _uniform_location_cache = {},
     _current_program,
+    
+    _outline_element = document.getElementById("fs_outline"),
     
     _glsl_parser_worker = new Worker("dist/parse_glsl.min.js");
 
@@ -17404,7 +17458,7 @@ var _compile = function () {
             frag
         );
     
-    //_parse_glsl(glsl_code);
+    _parse_glsl(glsl_code);
 
     if (temp_program) {
         _gl.deleteProgram(_program);
@@ -17450,8 +17504,48 @@ var _compile = function () {
     }
 };
 
+var setCursorCb = function (position) {
+    return function () {
+        _code_editor.setCursor({ line: position.start.line - 1, ch: position.start.column });
+    };
+};
+
+
 _glsl_parser_worker.onmessage = function(m) {
-    console.log(m.data);
+    var i = 0, j = 0,
+        
+        data = m.data,
+        statement,
+        
+        tmp,
+        param,
+        
+        elem;
+    
+    _outline_element.innerHTML = "";
+
+    for (i = 0; i < data.length; i += 1) {
+        statement = data[i];
+        
+        if (statement.type === "function") {
+            elem = document.createElement("div");
+            
+            elem.class = "fs-outline-item";
+            
+            tmp = [];
+            for (j = 0; j < statement.parameters.length; j += 1) {
+                param = statement.parameters[j];
+                
+                tmp.push('<span class="fs-outline-item-type">' + param.type_name + "</span> " + param.name);
+            }
+            
+            elem.innerHTML = '<span class="fs-outline-item-type">' + statement.returnType.name + "</span> " + statement.name + " (" + tmp.join(", ") + ")";
+            
+            elem.addEventListener("click", setCursorCb(statement.position));
+
+            _outline_element.appendChild(elem);
+        }
+    }
 };/* jslint browser: true */
 
 
@@ -18155,11 +18249,13 @@ var _addFragmentInput = function (type, input) {
         data,
         image,
         texture,
+        
+        video_element,
 
         input_id = _fragment_input_data.length;
 
     if (type === "image") {
-        data = _create2DTexture(input, false, true);
+        data = _create2DTexture(input, false, false);
 
         _fragment_input_data.push({
                 type: 0,
@@ -18175,7 +18271,7 @@ var _addFragmentInput = function (type, input) {
 
         _compile();
     } else if (type === "camera") {
-        var video_element = document.createElement('video');
+        video_element = document.createElement('video');
         video_element.width = 320;
         video_element.height = 240;
         video_element.autoplay = true;
@@ -18446,6 +18542,14 @@ var _icon_class = {
     
     _analysis_dialog_id = "fs_analysis_dialog",
     _analysis_dialog,
+    
+    _record_dialog_id = "fs_record_dialog",
+    _record_dialog,
+    
+    _outline_dialog_id = "fs_outline_dialog",
+    _outline_dialog,
+    
+    _wui_main_toolbar,
     
     _send_slices_settings_timeout,
     _add_slice_timeout,
@@ -19745,6 +19849,38 @@ var _showSpectrumDialog = function () {
     WUI_Dialog.open(_analysis_dialog);
 };
 
+var _showRecordDialog = function () {
+    if (_record) {
+        _record = false;
+        
+        WUI_Dialog.close(_record_dialog);
+    } else {
+        _record = true;
+        
+        WUI_Dialog.open(_record_dialog);
+    }
+};
+
+var _onRecordDialogClose = function () {
+    WUI_ToolBar.toggle(_wui_main_toolbar, 7);
+};
+
+var _showOutlineDialog = function () {
+    WUI_Dialog.open(_outline_dialog);
+};
+
+var _toggleAdditiveRecord = function () {
+    if (_record_opts.additive) {
+        _record_opts.additive = false;
+    } else {
+        _record_opts.additive = true;
+    }
+};
+
+var _saveRecord = function () {
+    window.open(_record_canvas.toDataURL('image/png'));
+};
+
 /***********************************************************
     Init.
 ************************************************************/
@@ -20082,6 +20218,40 @@ var _uiInit = function () {
             detachable: false,
             draggable: true
         });
+    
+    _record_dialog = WUI_Dialog.create(_record_dialog_id, {
+            title: "Recording...",
+
+            width: "auto",
+            height: "auto",
+
+            halign: "center",
+            valign: "center",
+
+            open: false,
+
+            status_bar: false,
+            detachable: false,
+            draggable: true,
+        
+            on_close: _onRecordDialogClose
+        });
+    
+    _outline_dialog = WUI_Dialog.create(_outline_dialog_id, {
+            title: "GLSL Outline",
+
+            width: "380px",
+            height: "380px",
+
+            halign: "center",
+            valign: "center",
+
+            open: false,
+
+            status_bar: false,
+            detachable: false,
+            draggable: true
+        });
 
     _analysis_dialog = WUI_Dialog.create(_analysis_dialog_id, {
             title: "Audio analysis",
@@ -20181,7 +20351,30 @@ var _uiInit = function () {
             detachable: true,
         });
 
-    WUI_ToolBar.create("fs_middle_toolbar", {
+    WUI_ToolBar.create("fs_record_toolbar", {
+                allow_groups_minimize: false
+            },
+            {
+                opts: [
+                    {
+                        icon: "fs-plus-symbol-icon",
+                        type: "toggle",
+                        toggle_state: false,
+                        on_click: _toggleAdditiveRecord,
+                        tooltip: "Additive",
+                        toggle_group: 0
+                    }
+                ],
+                acts: [
+                    {
+                        icon: "fs-save-icon",
+                        on_click: _saveRecord,
+                        tooltip: "Save as PNG"
+                    }
+                ]
+            });
+
+    _wui_main_toolbar = WUI_ToolBar.create("fs_middle_toolbar", {
             allow_groups_minimize: false
         },
         {
@@ -20234,6 +20427,13 @@ var _uiInit = function () {
                     tooltip: "Play/Pause"
                 },
                 {
+                    icon: "fs-record-icon",
+                    type: "toggle",
+                    toggle_state: false,
+                    on_click: _showRecordDialog,
+                    tooltip: "Record"
+                },
+                {
                     icon: "fs-fas-icon",
                     type: "toggle",
                     toggle_state: _fasEnabled(),
@@ -20276,6 +20476,11 @@ var _uiInit = function () {
                     icon: "fs-spectrum-icon",
                     on_click: _showSpectrumDialog,
                     tooltip: "Audio analysis dialog"
+                },
+                {
+                    icon: "fs-function-icon",
+                    on_click: _showOutlineDialog,
+                    tooltip: "Outline"
                 },
                 {
                     icon: "fs-code-icon",
@@ -20945,6 +21150,9 @@ var _fasInit = function () {
             _canvas.height = _canvas_height;
             _canvas.style.height = _canvas_height + 'px';
             _canvas_height_mul4 = _canvas_height * 4;
+            
+            _record_canvas.height = _canvas_height;
+            _record_slice_image = _record_canvas_ctx.createImageData(1, _canvas_height);
 
             _vaxis_infos.style.height = _canvas_height + "px";
 
@@ -20962,12 +21170,14 @@ var _fasInit = function () {
             _canvas_width = update_obj.width;
             _canvas.width = _canvas_width;
             _canvas.style.width = _canvas_width + 'px';
+            
+            _record_canvas.width = _canvas_width;
 
             _gl.viewport(0, 0, _canvas.width, _canvas.height);
             
             _initializePBO();
         }
-
+        
         _generateOscillatorSet(_canvas_height, base_freq, octave);
 
         _compile();
@@ -21022,11 +21232,18 @@ var _fasInit = function () {
     _canvas.style.height = _canvas_height + 'px';
 
     _canvas_container.appendChild(_canvas);
+    
+    _record_canvas.width = _canvas_width;
+    _record_canvas.height = _canvas_height;
+    
+    _record_slice_image = _record_canvas_ctx.createImageData(1, _canvas_height);
 
     _vaxis_infos.style.height = _canvas_height + "px";
 
     // CodeMirror
-    if (_code_editor_extern === null || _code_editor_extern === "false") {
+    if (_code_editor_extern === null ||
+        _code_editor_extern === "false" ||
+        _code_editor_extern === false) {
         if (!_code_editor_theme) {
             _code_editor_theme = "seti";
         }
@@ -21045,6 +21262,7 @@ var _fasInit = function () {
             _shareCodeEditorChanges(changes);
         });
     } else {
+        // the "dummy" CodeMirror object when the external editor is used
         _code_editor = {
                 s: document.getElementById("fragment-shader").text,
             
@@ -21084,6 +21302,10 @@ var _fasInit = function () {
             
                 removeLineWidget: function () {
                     
+                },
+            
+                setCursor: function () {
+
                 }
             };
     }
