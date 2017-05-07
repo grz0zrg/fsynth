@@ -16007,6 +16007,8 @@ _utter_fail_element.innerHTML = "";
         
         _code_editor_extern = false,
         
+        _detached_code_editor_window,
+        
         // this is the amount of free uniform vectors for Fragment regular uniforms and session custom uniforms
         // this is also used to assign uniform vectors automatically for polyphonic uses
         // if the GPU cannot have that much uniforms (with polyphonic uses), this will be divided by two and the polyphonic computation will be done again
@@ -17204,7 +17206,7 @@ var _frame = function (raf_time) {
             }
             
             if (_record_opts.additive) {
-                data = _record_canvas_ctx.getImageData(_record_position, 0, 1, _record_canvas.height);
+                data = _record_canvas_ctx.getImageData(_record_position, 0, 1, _record_canvas.height).data;
             } else {
                 data = new Uint8ClampedArray(_canvas_height_mul4);
             }
@@ -17507,9 +17509,12 @@ var _compile = function () {
 var setCursorCb = function (position) {
     return function () {
         _code_editor.setCursor({ line: position.start.line - 1, ch: position.start.column });
+        
+        if (_detached_code_editor_window) {
+            _detached_code_editor_window.cm.setCursor({ line: position.start.line - 1, ch: position.start.column });
+        }
     };
 };
-
 
 _glsl_parser_worker.onmessage = function(m) {
     var i = 0, j = 0,
@@ -17530,7 +17535,7 @@ _glsl_parser_worker.onmessage = function(m) {
         if (statement.type === "function") {
             elem = document.createElement("div");
             
-            elem.class = "fs-outline-item";
+            elem.className = "fs-outline-item fs-outline-function";
             
             tmp = [];
             for (j = 0; j < statement.parameters.length; j += 1) {
@@ -17540,7 +17545,30 @@ _glsl_parser_worker.onmessage = function(m) {
             }
             
             elem.innerHTML = '<span class="fs-outline-item-type">' + statement.returnType.name + "</span> " + statement.name + " (" + tmp.join(", ") + ")";
+            elem.title = "line: " + statement.position.start.line;
+                
+            elem.addEventListener("click", setCursorCb(statement.position));
+
+            _outline_element.appendChild(elem);
+        } else if (statement.type === "declarator") {
+            elem = document.createElement("div");
             
+            elem.className = "fs-outline-item fs-outline-declarator";
+            
+            elem.innerHTML = '<span class="fs-outline-item-type">' + statement.returnType + "</span> " + statement.name;
+            elem.title = "line: " + statement.position.start.line;
+                
+            elem.addEventListener("click", setCursorCb(statement.position));
+
+            _outline_element.appendChild(elem);
+        } else if (statement.type === "preprocessor") {
+            elem = document.createElement("div");
+            
+            elem.className = "fs-outline-item fs-outline-preprocessor";
+            
+            elem.innerHTML = statement.name + " = " + statement.value;
+            elem.title = "line: " + statement.position.start.line;
+                
             elem.addEventListener("click", setCursorCb(statement.position));
 
             _outline_element.appendChild(elem);
@@ -18384,7 +18412,11 @@ var _changeEditorTheme = function (theme) {
 };
 
 var _detachCodeEditor = function () {
-    var new_window = window.open("", "Fragment", [
+    var new_editor,
+        new_editor_element,
+        synced_cm_document;
+    
+    _detached_code_editor_window = window.open("", "Fragment", [
             "toolbar=yes",
             "location=no",
             "directories=no",
@@ -18395,12 +18427,9 @@ var _detachCodeEditor = function () {
             "width=" + screen.width,
             "height=" + screen.height,
             "top=0",
-            "left=0"].join(',')),
-        new_editor,
-        new_editor_element,
-        synced_cm_document;
+            "left=0"].join(','));
     
-    new_window.document.write([
+    _detached_code_editor_window.document.write([
         '<!DOCTYPE html>',
         '<html>',
             '<head>',
@@ -18415,7 +18444,7 @@ var _detachCodeEditor = function () {
                 '<div class="fs-editor" style="width: 100%; height: 100%"></div>',
             '</body>',
         '</html>'].join(''));
-    new_window.document.close();
+    _detached_code_editor_window.document.close();
 /*    
     // moved to proper js files due to events issues
     new_editor_element = new_window.document.body.getElementsByClassName("fs-editor");
@@ -20241,7 +20270,7 @@ var _uiInit = function () {
             title: "GLSL Outline",
 
             width: "380px",
-            height: "380px",
+            height: "700px",
 
             halign: "center",
             valign: "center",
@@ -20249,7 +20278,7 @@ var _uiInit = function () {
             open: false,
 
             status_bar: false,
-            detachable: false,
+            detachable: true,
             draggable: true
         });
 
@@ -20318,7 +20347,7 @@ var _uiInit = function () {
                     nodes, i;
 
                 if (ctrl_panel_element.firstElementChild) {
-                    nodes = ctrl_panel_element.firstElementChild.lastElementChild.childNodes;//.firstElementChild.id;
+                    nodes = ctrl_panel_element.firstElementChild.lastElementChild.childNodes;
 
                     for (i = 0; i < nodes.length; i += 1) {
                         WUI_RangeSlider.destroy(nodes[i].id);

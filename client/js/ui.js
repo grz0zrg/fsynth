@@ -1728,7 +1728,7 @@ var _uiInit = function () {
             title: "GLSL Outline",
 
             width: "380px",
-            height: "380px",
+            height: "700px",
 
             halign: "center",
             valign: "center",
@@ -1736,7 +1736,7 @@ var _uiInit = function () {
             open: false,
 
             status_bar: false,
-            detachable: false,
+            detachable: true,
             draggable: true
         });
 
@@ -1805,7 +1805,7 @@ var _uiInit = function () {
                     nodes, i;
 
                 if (ctrl_panel_element.firstElementChild) {
-                    nodes = ctrl_panel_element.firstElementChild.lastElementChild.childNodes;//.firstElementChild.id;
+                    nodes = ctrl_panel_element.firstElementChild.lastElementChild.childNodes;
 
                     for (i = 0; i < nodes.length; i += 1) {
                         WUI_RangeSlider.destroy(nodes[i].id);

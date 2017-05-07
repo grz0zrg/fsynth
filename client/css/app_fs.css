@@ -228,19 +228,49 @@ canvas {
 .fs-outline {
     background-color: #111111;
     height: 100%;
+    overflow: auto;
+    padding: 4px;
 }
 
 .fs-outline > div {
-    padding: 3px;
+    padding: 2px;
     color: #ffffff;
     font-weight: normal;
     font-family: "Inconsolata", monospace;
     font-size: 13px;
 }
 
+.fs-outline > div:hover {
+    cursor: pointer;
+}
+
 .fs-outline-item-type {
     color: burlywood;
     font-weight: bold;
+}
+
+.fs-outline-function:before {
+    font-family: FontAwesome;
+    content: "\f02c";
+    padding-right: 5px;
+    color: yellow;
+    font-size: 8px;
+}
+
+.fs-outline-declarator:before {
+    font-family: FontAwesome;
+    content: "\f02b";
+    padding-right: 5px;
+    color: orange;
+    font-size: 8px;
+}
+
+.fs-outline-preprocessor:before {
+    font-family: FontAwesome;
+    content: "\f005";
+    padding-right: 5px;
+    color: red;
+    font-size: 8px;
 }
 
 .fs-record-toolbar {

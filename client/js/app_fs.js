@@ -191,6 +191,8 @@ var FragmentSynth = function (params) {
         
         _code_editor_extern = false,
         
+        _detached_code_editor_window,
+        
         // this is the amount of free uniform vectors for Fragment regular uniforms and session custom uniforms
         // this is also used to assign uniform vectors automatically for polyphonic uses
         // if the GPU cannot have that much uniforms (with polyphonic uses), this will be divided by two and the polyphonic computation will be done again

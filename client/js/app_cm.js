@@ -36,4 +36,6 @@ window.onload = function() {
     window.addEventListener("resize", function () {
             new_editor.refresh();
         }, false);
+    
+    window.cm = new_editor;
 };

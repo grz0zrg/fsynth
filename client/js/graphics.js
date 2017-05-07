@@ -514,7 +514,7 @@ var _frame = function (raf_time) {
             }
             
             if (_record_opts.additive) {
-                data = _record_canvas_ctx.getImageData(_record_position, 0, 1, _record_canvas.height);
+                data = _record_canvas_ctx.getImageData(_record_position, 0, 1, _record_canvas.height).data;
             } else {
                 data = new Uint8ClampedArray(_canvas_height_mul4);
             }

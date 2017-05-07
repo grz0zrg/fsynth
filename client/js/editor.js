@@ -72,7 +72,11 @@ var _changeEditorTheme = function (theme) {
 };
 
 var _detachCodeEditor = function () {
-    var new_window = window.open("", "Fragment", [
+    var new_editor,
+        new_editor_element,
+        synced_cm_document;
+    
+    _detached_code_editor_window = window.open("", "Fragment", [
             "toolbar=yes",
             "location=no",
             "directories=no",
@@ -83,12 +87,9 @@ var _detachCodeEditor = function () {
             "width=" + screen.width,
             "height=" + screen.height,
             "top=0",
-            "left=0"].join(',')),
-        new_editor,
-        new_editor_element,
-        synced_cm_document;
+            "left=0"].join(','));
     
-    new_window.document.write([
+    _detached_code_editor_window.document.write([
         '<!DOCTYPE html>',
         '<html>',
             '<head>',
@@ -103,7 +104,7 @@ var _detachCodeEditor = function () {
                 '<div class="fs-editor" style="width: 100%; height: 100%"></div>',
             '</body>',
         '</html>'].join(''));
-    new_window.document.close();
+    _detached_code_editor_window.document.close();
 /*    
     // moved to proper js files due to events issues
     new_editor_element = new_window.document.body.getElementsByClassName("fs-editor");

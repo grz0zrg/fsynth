@@ -244,9 +244,12 @@ var _compile = function () {
 var setCursorCb = function (position) {
     return function () {
         _code_editor.setCursor({ line: position.start.line - 1, ch: position.start.column });
+        
+        if (_detached_code_editor_window) {
+            _detached_code_editor_window.cm.setCursor({ line: position.start.line - 1, ch: position.start.column });
+        }
     };
 };
-
 
 _glsl_parser_worker.onmessage = function(m) {
     var i = 0, j = 0,
@@ -267,7 +270,7 @@ _glsl_parser_worker.onmessage = function(m) {
         if (statement.type === "function") {
             elem = document.createElement("div");
             
-            elem.class = "fs-outline-item";
+            elem.className = "fs-outline-item fs-outline-function";
             
             tmp = [];
             for (j = 0; j < statement.parameters.length; j += 1) {
@@ -277,7 +280,30 @@ _glsl_parser_worker.onmessage = function(m) {
             }
             
             elem.innerHTML = '<span class="fs-outline-item-type">' + statement.returnType.name + "</span> " + statement.name + " (" + tmp.join(", ") + ")";
+            elem.title = "line: " + statement.position.start.line;
+                
+            elem.addEventListener("click", setCursorCb(statement.position));
+
+            _outline_element.appendChild(elem);
+        } else if (statement.type === "declarator") {
+            elem = document.createElement("div");
             
+            elem.className = "fs-outline-item fs-outline-declarator";
+            
+            elem.innerHTML = '<span class="fs-outline-item-type">' + statement.returnType + "</span> " + statement.name;
+            elem.title = "line: " + statement.position.start.line;
+                
+            elem.addEventListener("click", setCursorCb(statement.position));
+
+            _outline_element.appendChild(elem);
+        } else if (statement.type === "preprocessor") {
+            elem = document.createElement("div");
+            
+            elem.className = "fs-outline-item fs-outline-preprocessor";
+            
+            elem.innerHTML = statement.name + " = " + statement.value;
+            elem.title = "line: " + statement.position.start.line;
+                
             elem.addEventListener("click", setCursorCb(statement.position));
 
             _outline_element.appendChild(elem);
