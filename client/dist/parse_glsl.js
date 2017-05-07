@@ -8905,7 +8905,11 @@ self.onmessage = function (m) {
         
         outline = [];
     
-    glsl_o = _PEGLSL.parse(glsl_code);
+    try {
+        glsl_o = _PEGLSL.parse(glsl_code);
+    } catch (e) {
+        
+    }
 
     if (glsl_o) {
         outline = parse_statements(glsl_o.statements, true);
