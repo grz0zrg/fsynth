@@ -22,11 +22,10 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
  * Stereophonic or monaural
  * Polyphonic
  * Multitimbral
- * Aliasing free
- * Recording
+ * Continuous frames by frames recording with export
  * Adjustable audio output channel per slices
  * Feedback via framebuffer (for fx like reverb, delay, Release part of envelopes and more)
- * Shader inputs: webcam, textures and more to come
+ * Shader inputs: webcam, images, audio files (translated to images)
  * Real-time analysis (logarithmic spectrum view of the output etc.)
  * Per-sessions discussion system
  * Global and per sessions settings automatic saving/loading; make use of *localStorage*
@@ -84,13 +83,13 @@ Fragment make use of NodeJS, NPM, MongoDB and Redis database, once those are ins
  * cd fsdb & npm install & node fsdb
  * cd fsws & npm install & node fsws
  * point your browser to http://127.0.0.1:3000
- 
+
 ## Prod. system
 
  * *prod_files* contain a list of files and directories that will be copied to the production system
  * *prod* is a shell script which produce an archive from *prod_files*, perform additional cleaning and unarchive over SSH
  * *setup* is a script which is executed on the server after everything has been uploaded and which configure Fragment for the production system
- 
+
 ## Native app.
 
 A native app. was developed with [Electron](http://electron.atom.io/) featuring a special login page but it is deprecated as some features does not work with Electron (like dialogs), the advantage of the native app was the built-in [C powered additive synthesis engine](https://github.com/grz0zrg/fas) which made Fragment a bit more accessible (download & play), you can run the native app with Electron by executing `electron .` in the root directory
@@ -99,7 +98,7 @@ A native app. was developed with [Electron](http://electron.atom.io/) featuring 
 
  * If you enable the *monophonic* setting, you have the RGB output for live coding visuals which can be fully synchronized with the synthesized sounds which will be synthesized by using the alpha channel
  * Pressing F11 in the GLSL code editor trigger fullscreen editor
- 
+
 ## Future
 
 A native modular app. with wxWidget will probably see the light of the day soon using the same technology, this will eliminate all the shortcoming related to performances.
@@ -114,6 +113,7 @@ Client :
  * [ShareDB](https://github.com/share/sharedb/) for the collaborative features
  * [Normalize](https://necolas.github.io/normalize.css/)
  * [Skeleton](http://getskeleton.com/) for the landing page
+ * [Mikola Lysenko stft (enhanced version)](https://github.com/mikolalysenko/stft)
 
 Papers :
  * [The Scientist and Engineer's Guide to Digital Signal Processing](http://www.dspguide.com)

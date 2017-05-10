@@ -108,6 +108,11 @@ var _frequencyFromNoteNumber = function (note) {
     return 440 * Math.pow(2, (note - 69) / 12);
 };
 
+// ms
+var _getNoteTime = function (tempo, ppb) {
+    return (1.0 / ppb) * (60.0 / tempo);
+};
+
 var _lZeroPad = function (str, c, length) {
     str = "" + str;
 

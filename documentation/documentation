@@ -552,12 +552,12 @@ This tool can become handy if you want to export your work and import it into an
 
 By clicking on the + icon, the recording will be additive which mean that slices content will be drawn on the previous content without erasing it.
 
-The recording canvas width is linked to the score width, if it is increased in the settings dialog, the recording canvas will be resized.
+The recording canvas width is linked to the score width.
 
 $nl
 $label(outline)
 $subsection(Outline dialog)
-The outline dialog display a list of the GLSL functions defined in your shader code, you can click on one to jump at it in the code editor.
+The outline dialog display a list of GLSL functions, declarations and "defines" defined in your shader code, you can click an element to jump at it in the code editor, this is very useful with long shader code.
 
 $nl
 $subsection(Session chat dialog)

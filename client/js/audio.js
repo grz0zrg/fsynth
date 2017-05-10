@@ -493,6 +493,15 @@ var _computeOutputChannels = function () {
     _allocateFramesData();
 };
 
+var _decodeAudioData = function (audio_data, done_cb) {
+    _audio_context.decodeAudioData(audio_data, function (buffer) {
+            done_cb(buffer);
+        },
+        function (e) {
+            _notification("An error occured while decoding the audio data " + e.err);
+        });
+};
+
 /*
 var _getByteFrequencyData = function (pixels_data) {
     var i = 0,

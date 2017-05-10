@@ -52,85 +52,6 @@ var _icon_class = {
     Functions.
 ************************************************************/
 
-var _fileChoice = function (cb) {
-    var input = document.createElement("input");
-    input.type = "file";
-    input.addEventListener("change", cb, false);
-    input.click();
-};
-
-var _imageProcessingDone = function (mdata) {
-    var tmp_canvas = document.createElement('canvas'),
-        tmp_canvas_context = tmp_canvas.getContext('2d'),
-        
-        image_data = tmp_canvas_context.createImageData(mdata.img_width, mdata.img_height),
-        
-        image_element;
-    
-    image_data.data.set(new Uint8ClampedArray(mdata.data));
-
-    tmp_canvas.width  = image_data.width;
-    tmp_canvas.height = image_data.height;
-
-    tmp_canvas_context.putImageData(image_data, 0, 0);
-
-    image_element = document.createElement("img");
-    image_element.src = tmp_canvas.toDataURL();
-
-    _addFragmentInput("image", image_element);
-};
-
-var _loadImageFromFile = function (file) {
-    var img = new Image(),
-        
-        tmp_canvas = document.createElement('canvas'),
-        tmp_canvas_context = tmp_canvas.getContext('2d'),
-        
-        tmp_image_data;
-    
-    img.onload = function () {
-        tmp_canvas.width  = img.naturalWidth;
-        tmp_canvas.height = img.naturalHeight;
-
-        tmp_canvas_context.translate(0, tmp_canvas.height);
-        tmp_canvas_context.scale(1, -1);
-        tmp_canvas_context.drawImage(img, 0, 0, tmp_canvas.width, tmp_canvas.height);
-
-        tmp_image_data = tmp_canvas_context.getImageData(0, 0, tmp_canvas.width, tmp_canvas.height);
-
-        _imageProcessor(tmp_image_data, _imageProcessingDone);
-        
-        img.onload = null;
-        img = null;
-    };
-    img.src = window.URL.createObjectURL(file);
-};
-
-var _loadImage = function (e) {
-    if (e === undefined) {
-        _fileChoice(_loadImage);
-        
-        return;
-    }
-    
-    var target = e.target,
-            
-        files = target.files, 
-        file = files[0];
-        
-    if (files.length === 0) {
-        return;
-    }
-
-    if (file.type.match('image.*')) {
-        _loadImageFromFile(file);
-    } else {
-        _notification("Could not load the file '" + file.name + "' as an image.");
-    }
-
-    target.removeEventListener("change", _loadImage, false);
-};
-
 var _togglePlay = function (toggle_ev) {
     if (toggle_ev.state) {
         _pause();
@@ -2008,7 +1929,12 @@ var _uiInit = function () {
                         {
                             title: "Image",
 
-                            on_click: _loadImage
+                            on_click: _loadFile("image")
+                        },
+                        {
+                            title: "Audio",
+
+                            on_click: _loadFile("audio")
                         }
                     ]
 

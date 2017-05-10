@@ -22,6 +22,15 @@
 /*#include sharedb/sharedb.js*/
 /*#include sharedb/ot-text.js*/
 
+// browserified modules for stft / ndarray implementation
+/*#include stft/stft_libs.js*/
+
+var ndarray     = require("ndarray"),
+    ndarray_fft = require("ndarray-fft");
+
+// enhanced stft - https://github.com/mikolalysenko/stft
+/*#include stft/stft.js*/
+
 /*#include resize_throttler/resize_throttler.js*/
 
 window.onload = function() {
@@ -318,6 +327,9 @@ var FragmentSynth = function (params) {
 
     /*#include config.js*/
     /*#include audio.js*/
+    /*#include image_import.js*/
+    /*#include audio_import.js*/
+    /*#include file_import.js*/
     /*#include graphics.js*/
     /*#include glsl.js*/
     /*#include network.js*/
