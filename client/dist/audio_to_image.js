@@ -4025,6 +4025,23 @@ var _logScale = function (index, total, opt_base) {
     return Math.round(Math.pow(base, exp) - 1);
 };
 
+var _melScale = function () {
+    
+};
+
+var _barkScale = function (length, sample_rate, buffer_size) {
+    var scale = new Float32Array(length),
+        
+        i = 0;
+    
+    for (i = 0; i < scale.length; i += 1) {
+        scale[i] = i * sample_rate / buffer_size;
+        scale[i] = 13 * Math.atan(scale[i] / 1315.8) + 3.5 * Math.atan(Math.pow((scale[i] / 7518), 2));
+    }
+    
+    return scale;
+};
+
 var _getColorFromPalette = function (value) {
     var decimalised = 100 * value / 255,
         percent = decimalised / 100,
@@ -4136,6 +4153,9 @@ _toolsInit();
     Fields.
 ************************************************************/
 
+var _progress = 0,
+    _stereo = false;
+
 /***********************************************************
     Functions.
 ************************************************************/
@@ -4176,13 +4196,22 @@ var _convert = function (params, data) {
         end = stft_result_length + lid + hid,
         
         n, adiff, amax = 0,
+        
+        progress_step = note_samples / data_buffer.length * 100,
+        progress_submit_freq = _parseInt10(image_width / 8),
     
         i,
         
         frame = 0;
     
+    if (_stereo) {
+        progress_step /= 2;
+    }
+    
     STFT.initializeForwardWindow(window_size, window_type);
     
+    //var bark = _barkScale(end - start, params.sample_rate, window_size);
+
     stft = STFT.forward(window_size, function (real, imag) {
         overlap_frame_buffer.push({ r: real, i: imag });
 
@@ -4241,7 +4270,13 @@ var _convert = function (params, data) {
 
     // stft processing
     for (i = 0; i < data_buffer.length; i += note_samples) {
+        _progress += progress_step;
+
         stft(data_buffer.subarray(i, i + note_samples));
+        
+        if ((i % progress_submit_freq) === 0) {
+            postMessage(_parseInt10(_progress, 10));
+        }
     }
     
     // mag. normalization (not needed)
@@ -4291,7 +4326,9 @@ self.onmessage = function (m) {
             width: null,
             height: null
         };
-
+    
+    _stereo = (data.right !== null);
+    
     ll = _convert(data, l);
 
     if (data.right) {

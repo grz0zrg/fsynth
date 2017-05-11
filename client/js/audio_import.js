@@ -83,6 +83,11 @@ var _loadAudioFromFile = function (file) {
 };
 
 _audio_to_image_worker.addEventListener('message', function (m) {
+        if (m.data !== Object(m.data)) {
+            _notification("Audio file conversion progress : " + m.data + "%");
+            return;
+        }
+    
         var image_data = {
                 width: m.data.width,
                 height: m.data.height,
@@ -91,8 +96,6 @@ _audio_to_image_worker.addEventListener('message', function (m) {
                 }
             };
 
-        _notification("Audio file successfully converted.");
-    
         // now image processing step...
         _imageProcessor(image_data, _imageProcessingDone);
     }, false);

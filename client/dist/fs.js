@@ -15675,6 +15675,23 @@ var _logScale = function (index, total, opt_base) {
     return Math.round(Math.pow(base, exp) - 1);
 };
 
+var _melScale = function () {
+    
+};
+
+var _barkScale = function (length, sample_rate, buffer_size) {
+    var scale = new Float32Array(length),
+        
+        i = 0;
+    
+    for (i = 0; i < scale.length; i += 1) {
+        scale[i] = i * sample_rate / buffer_size;
+        scale[i] = 13 * Math.atan(scale[i] / 1315.8) + 3.5 * Math.atan(Math.pow((scale[i] / 7518), 2));
+    }
+    
+    return scale;
+};
+
 var _getColorFromPalette = function (value) {
     var decimalised = 100 * value / 255,
         percent = decimalised / 100,
@@ -16852,6 +16869,11 @@ var _loadAudioFromFile = function (file) {
 };
 
 _audio_to_image_worker.addEventListener('message', function (m) {
+        if (m.data !== Object(m.data)) {
+            _notification("Audio file conversion progress : " + m.data + "%");
+            return;
+        }
+    
         var image_data = {
                 width: m.data.width,
                 height: m.data.height,
@@ -16860,8 +16882,6 @@ _audio_to_image_worker.addEventListener('message', function (m) {
                 }
             };
 
-        _notification("Audio file successfully converted.");
-    
         // now image processing step...
         _imageProcessor(image_data, _imageProcessingDone);
     }, false);/* jslint browser: true */
