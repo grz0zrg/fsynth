@@ -321,6 +321,10 @@ var _createMarkerSettings = function (marker_obj) {
             value_min_width: 88,
 
             on_change: function (value) {
+                if (value <= 0) {
+                    value = 1;
+                }
+                
                 var slice = _getSlice(marker_obj.element.dataset.slice);
                 
                 slice.output_channel = _parseInt10(value);

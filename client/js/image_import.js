@@ -27,8 +27,14 @@ var _imageProcessingDone = function (mdata) {
 
     image_element = document.createElement("img");
     image_element.src = tmp_canvas.toDataURL();
+    image_element.width = image_data.width;
+    image_element.height = image_data.height;
 
-    _addFragmentInput("image", image_element);
+    image_element.onload = function () {
+        image_element.onload = null;
+        
+        _addFragmentInput("image", image_element);
+    };
 };
 
 var _loadImageFromFile = function (file) {

@@ -36,13 +36,13 @@ var _create2DTexture = function (image, default_wrap_filter, bind_now) {
             _notification("Non-power-of-2 image added, wrap mode is 'clamp' only.", 4000);
         }
     }
-    
-    if (bind_now) {
-        _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, image);
-    }
-    
+
     if (image.empty) {
         _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, image.width, image.height, 0, _gl.RGBA, _gl.UNSIGNED_BYTE, null);
+    } else {
+        if (bind_now) {
+            _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, image);
+        }
     }
 
     _gl.bindTexture(_gl.TEXTURE_2D, null);

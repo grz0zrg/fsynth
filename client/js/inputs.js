@@ -98,7 +98,7 @@ var _addFragmentInput = function (type, input) {
         input_id = _fragment_input_data.length;
 
     if (type === "image") {
-        data = _create2DTexture(input, false, false);
+        data = _create2DTexture(input, false, true);
 
         _fragment_input_data.push({
                 type: 0,

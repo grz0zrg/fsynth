@@ -22,15 +22,6 @@
 /*#include sharedb/sharedb.js*/
 /*#include sharedb/ot-text.js*/
 
-// browserified modules for stft / ndarray implementation
-/*#include stft/stft_libs.js*/
-
-var ndarray     = require("ndarray"),
-    ndarray_fft = require("ndarray-fft");
-
-// enhanced stft - https://github.com/mikolalysenko/stft
-/*#include stft/stft.js*/
-
 /*#include resize_throttler/resize_throttler.js*/
 
 window.onload = function() {
