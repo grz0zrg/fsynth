@@ -62,6 +62,12 @@ document.getElementById("fs_select_editor_themes").addEventListener('change', fu
     _changeEditorTheme(theme);
 });
 
+document.getElementById("fs_import_audio_window_settings").addEventListener('change', function (e) {
+    var window_type = e.target.value;
+    
+    _audio_import_settings.window_type = window_type;
+});
+
 document.addEventListener('mouseup', function (e) {
     _mouse_btn = 0;
 });

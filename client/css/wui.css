@@ -39,3 +39,7 @@
     border-left: none !important;
     border-right: none !important;
 }
+
+.fs-input-label {
+    font-size: 9pt;
+}

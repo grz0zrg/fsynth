@@ -319,6 +319,7 @@ var FragmentSynth = function (params) {
     /*#include config.js*/
     /*#include audio.js*/
     /*#include image_import.js*/
+    /*#include image_export.js*/
     /*#include audio_import.js*/
     /*#include file_import.js*/
     /*#include graphics.js*/

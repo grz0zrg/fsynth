@@ -742,6 +742,42 @@ attribute vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
             </div>
         </div>
         
+        <div id="fs_import_dialog">
+            <div>
+                <div class="fs-audio-import-settings">
+                    <div style="font-size: 11px; margin-top: 5px; margin-left: 5px;">Audio import settings:</div>
+                    <div>
+                        <label class="fs-input-label" for="fs_import_audio_window_settings">Window type</label>
+                        <select id="fs_import_audio_window_settings" class="fs-btn">
+                            <option selected>hann</option>
+                            <option>triangular</option>
+                            <option>hamming</option>
+                            <option>bartlett</option>
+                            <option>bartlettHann</option>
+                            <option>blackman</option>
+                            <option>cosine</option>
+                            <option>gauss</option>
+                            <option>lanczos</option>
+                            <option>rectangular</option>
+                        </select>
+                    </div>
+                    <div id="fs_import_audio_winlength_settings"></div>
+                    <div id="fs_import_audio_overlap_settings"></div>
+                    <div id="fs_import_audio_bpm_settings"></div>
+                    <div id="fs_import_audio_ppb_settings"></div>
+                    <div id="fs_import_audio_height_settings"></div>
+                    <div id="fs_import_audio_minfreq_settings"></div>
+                    <div id="fs_import_audio_maxfreq_settings"></div>
+                </div>
+                <div id="fs_import_toolbar">
+
+                </div>
+                <div id="fs_import_dropzone" class="fs-dropzone">
+                    Drop any files here to import it
+                </div>
+            </div>
+        </div>
+        
         <div id="fs_record_dialog">
             <div>
                 <div id="fs_record_toolbar" class="fs-record-toolbar"></div>

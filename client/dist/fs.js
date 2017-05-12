@@ -16790,7 +16790,49 @@ var _loadImageFromFile = function (file) {
     Fields.
 ************************************************************/
 
-var _audio_to_image_worker = new Worker("dist/audio_to_image.min.js");
+var _image_to_audio_worker = new Worker("dist/image_to_audio.min.js");
+
+/***********************************************************
+    Functions.
+************************************************************/
+
+var _exportImage = function (image_data) {
+    var data = new Uint8ClampedArray(image_data.data),
+        
+        params = {
+            image_width: image_data.width,
+            image_height: image_data.height,
+            max_freq: _oscillators[0].freq,
+            note_time: _getNoteTime(120, 16),
+            sample_rate: _sample_rate,
+            data: data
+        };
+    
+    _notification("Export in progress...", 2000);
+
+    _image_to_audio_worker.postMessage(params, [params.data.buffer]);
+};
+
+_image_to_audio_worker.addEventListener('message', function (m) {
+        console.log(m);
+    }, false);/* jslint browser: true */
+
+/***********************************************************
+    Fields.
+************************************************************/
+
+var _audio_to_image_worker = new Worker("dist/audio_to_image.min.js"),
+    
+    _audio_import_settings = {
+        window_length: 8192,
+        window_type: "hann",
+        overlap: 4,
+        bpm: 60,
+        ppb: 12,
+        height: 0,
+        minfreq: 0,
+        maxfreq: 0
+    };
 
 /***********************************************************
     Functions.
@@ -16801,15 +16843,26 @@ var _convertAudioToImage = function (data) {
         r = ((data.numberOfChannels > 1) ? data.getChannelData(1).buffer : null),
         
         params = {
-            image_height: _canvas_height,
-            max_freq: _oscillators[0].freq,
+            settings: JSON.parse(JSON.stringify(_audio_import_settings)),
             left: l,
             right: r,
-            note_time: _getNoteTime(120, 16),
+            note_time: _getNoteTime(_audio_import_settings.bpm, _audio_import_settings.ppb),
             sample_rate: _sample_rate
         },
         
         barr = [l];
+    
+    if (_audio_import_settings.height <= 0) {
+        params.settings.height = _canvas_height;
+    }
+    
+    if (_audio_import_settings.minfreq <= 0) {
+        params.settings.minfreq = _oscillators[_oscillators.length - 1].freq;
+    }
+    
+    if (_audio_import_settings.maxfreq <= 0) {
+        params.settings.maxfreq = _oscillators[0].freq;
+    }
     
     if (r) {
         barr.push(r);
@@ -16870,7 +16923,7 @@ var _loadAudioFromFile = function (file) {
 
 _audio_to_image_worker.addEventListener('message', function (m) {
         if (m.data !== Object(m.data)) {
-            _notification("Audio file conversion progress : " + m.data + "%");
+            _notification("Audio file conversion in progress : " + m.data + "%");
             return;
         }
     
@@ -16884,13 +16937,15 @@ _audio_to_image_worker.addEventListener('message', function (m) {
 
         // now image processing step...
         _imageProcessor(image_data, _imageProcessingDone);
+    
+        _notification("Audio file converted to " + image_data.width + "x" + image_data.height + "px image.")
     }, false);/* jslint browser: true */
 
 /***********************************************************
     Fields.
 ************************************************************/
 
-
+var _import_dropzone_elem = document.getElementById("fs_import_dropzone");
 
 /***********************************************************
     Functions.
@@ -16934,7 +16989,53 @@ var _loadFile = function (type) {
 
         target.removeEventListener("change", _loadFile, false);
     }
-};/* jslint browser: true */
+};
+
+/***********************************************************
+    Init.
+************************************************************/
+
+_import_dropzone_elem.addEventListener("drop", function (e) {
+    e.preventDefault();
+    
+    var data = e.dataTransfer,
+        
+        file,
+        
+        i = 0;
+    
+    for (i = 0; i < data.files.length; i += 1) {
+        file = data.files[i];
+        
+        if (file.type.match('image.*')) {
+            _loadImageFromFile(file);
+        } else if (file.type.match('audio.*')) {
+            _loadAudioFromFile(file);
+        } else {
+            _notification("Could not load the file '" + file.name + "', the filetype is unknown.");
+        }
+    }
+    
+    e.target.style = "";
+});
+
+_import_dropzone_elem.addEventListener("dragleave", function (e) {
+    e.preventDefault();
+    
+    e.target.style = "";
+});
+
+_import_dropzone_elem.addEventListener("dragover", function (e) {
+    e.preventDefault();
+    
+    e.dataTransfer.dropEffect = "copy";
+});
+
+_import_dropzone_elem.addEventListener("dragenter", function (e) {
+    e.preventDefault();
+    
+    e.target.style = "outline: dashed 1px #00ff00; background-color: #444444";
+});/* jslint browser: true */
 
 var _buildScreenAlignedQuad = function() {
     var position;
@@ -18499,14 +18600,17 @@ var _createInputThumb = function (input_id, image, thumb_title) {
                 { icon: "fs-gear-icon", tooltip: "Settings",  on_click: function () {
                         _createChannelSettingsDialog(dom_image.input_id);
                     } },
-                /*{ icon: "fs-replace-icon", tooltip: "Replace",  on_click: function () {
+                { icon: "fs-replace-icon", tooltip: "Replace",  on_click: function () {
 
-                    } },*/
+                    } },
                 { icon: "fs-cross-45-icon", tooltip: "Delete",  on_click: function () {
                         _input_panel_element.removeChild(dom_image);
 
                         _removeInputChannel(dom_image.input_id);
-                    } }
+                    } },
+                { icon: "fs-xyf-icon", tooltip: "View image",  on_click: function () {
+                        window.open(dom_image.src);
+                    } },
             ]);
         });
 
@@ -18821,6 +18925,9 @@ var _icon_class = {
     
     _outline_dialog_id = "fs_outline_dialog",
     _outline_dialog,
+    
+    _import_dialog_id = "fs_import_dialog",
+    _import_dialog,
     
     _wui_main_toolbar,
     
@@ -20059,12 +20166,22 @@ var _showRecordDialog = function () {
     }
 };
 
+var _onImportDialogClose = function () {
+    WUI_ToolBar.toggle(_wui_main_toolbar, 15);
+    
+    WUI_Dialog.close(_import_dialog);
+};
+
 var _onRecordDialogClose = function () {
     WUI_ToolBar.toggle(_wui_main_toolbar, 7);
 };
 
 var _showOutlineDialog = function () {
     WUI_Dialog.open(_outline_dialog);
+};
+
+var _showImportDialog = function () {
+    WUI_Dialog.open(_import_dialog);
 };
 
 var _toggleAdditiveRecord = function () {
@@ -20077,6 +20194,12 @@ var _toggleAdditiveRecord = function () {
 
 var _saveRecord = function () {
     window.open(_record_canvas.toDataURL('image/png'));
+};
+
+var _renderRecord = function () {
+    if (_fs_state) {
+        _exportImage(_record_canvas_ctx.getImageData(0, 0, _record_canvas.width, _record_canvas.height));
+    }
 };
 
 /***********************************************************
@@ -20435,6 +20558,50 @@ var _uiInit = function () {
             on_close: _onRecordDialogClose
         });
     
+    _import_dialog = WUI_Dialog.create(_import_dialog_id, {
+            title: "Import input (image, audio, webcam)",
+
+            width: "380px",
+            height: "490px",
+
+            halign: "center",
+            valign: "center",
+
+            open: false,
+
+            status_bar: false,
+            detachable: true,
+            draggable: true,
+        
+            on_close: _onImportDialogClose
+        });
+    
+    WUI_ToolBar.create("fs_import_toolbar", {
+                allow_groups_minimize: false
+            },
+            {
+                acts: [
+                    {
+                        icon: "fs-image-file-icon",
+                        on_click: (function () { _loadFile("image")(); }),
+                        tooltip: "Image",
+                        text: "Image"
+                    },
+                    {
+                        icon: "fs-audio-file-icon",
+                        on_click: (function () { _loadFile("audio")(); }),
+                        tooltip: "Audio",
+                        text: "Audio"
+                    },
+                    {
+                        icon: "fs-camera-icon",
+                        on_click: (function () { _addFragmentInput("camera"); }),
+                        tooltip: "Webcam",
+                        text: "Webcam"
+                    }
+                ]
+            });
+    
     _outline_dialog = WUI_Dialog.create(_outline_dialog_id, {
             title: "GLSL Outline",
 
@@ -20568,7 +20735,12 @@ var _uiInit = function () {
                         icon: "fs-save-icon",
                         on_click: _saveRecord,
                         tooltip: "Save as PNG"
-                    }
+                    }/*,
+                    {
+                        icon: "fs-record-icon",
+                        on_click: _renderRecord,
+                        tooltip: "Render audio"
+                    }*/
                 ]
             });
 
@@ -20703,6 +20875,11 @@ var _uiInit = function () {
                 },
                 {
                     icon: _icon_class.plus,
+                    type: "toggle",
+                    on_click: _showImportDialog,
+                    tooltip: "Import input"
+/*
+                    icon: _icon_class.plus,
     //                on_click: (function () { _loadImage(); }),
                     tooltip: "Add image",
 
@@ -20727,7 +20904,7 @@ var _uiInit = function () {
                             on_click: _loadFile("audio")
                         }
                     ]
-
+*/
                 }
             ]
         });
@@ -20919,6 +21096,188 @@ var _uiInit = function () {
                 _setGain(value);
 
                 _fasNotify(_FAS_GAIN_INFOS, _audio_infos);
+            }
+        });
+
+    WUI_RangeSlider.create("fs_import_audio_winlength_settings", {
+            width: 100,
+            height: 8,
+
+            min: 0,
+
+            bar: false,
+
+            step: "any",
+            scroll_step: 1024,
+
+            midi: false,
+
+            default_value: _audio_import_settings.window_length,
+            value: _audio_import_settings.window_length,
+
+            title: "Window length",
+
+            title_min_width: 81,
+            value_min_width: 64,
+
+            on_change: function (value) {
+                _audio_import_settings.window_length = parseInt(value, 10);
+            }
+        });
+    
+    WUI_RangeSlider.create("fs_import_audio_overlap_settings", {
+            width: 100,
+            height: 8,
+
+            min: 0,
+
+            bar: false,
+
+            step: "any",
+            scroll_step: 1024,
+
+            midi: false,
+
+            default_value: _audio_import_settings.overlap,
+            value: _audio_import_settings.overlap,
+
+            title: "Overlap",
+
+            title_min_width: 81,
+            value_min_width: 64,
+
+            on_change: function (value) {
+                _audio_import_settings.overlap = parseInt(value, 10);
+            }
+        });
+    
+    WUI_RangeSlider.create("fs_import_audio_bpm_settings", {
+            width: 100,
+            height: 8,
+
+            min: 0,
+
+            bar: false,
+
+            step: "any",
+            scroll_step: 1,
+
+            midi: false,
+
+            default_value: _audio_import_settings.bpm,
+            value: _audio_import_settings.bpm,
+
+            title: "BPM",
+
+            title_min_width: 81,
+            value_min_width: 64,
+
+            on_change: function (value) {
+                _audio_import_settings.bpm = parseInt(value, 10);
+            }
+        });
+    
+    WUI_RangeSlider.create("fs_import_audio_ppb_settings", {
+            width: 100,
+            height: 8,
+
+            min: 0,
+
+            bar: false,
+
+            step: "any",
+            scroll_step: 1,
+
+            midi: false,
+
+            default_value: _audio_import_settings.ppb,
+            value: _audio_import_settings.ppb,
+
+            title: "PPB",
+
+            title_min_width: 81,
+            value_min_width: 64,
+
+            on_change: function (value) {
+                _audio_import_settings.ppb = parseInt(value, 10);
+            }
+        });
+    
+    WUI_RangeSlider.create("fs_import_audio_height_settings", {
+            width: 100,
+            height: 8,
+
+            min: 0,
+
+            bar: false,
+
+            step: "any",
+            scroll_step: 1,
+
+            midi: false,
+
+            default_value: _audio_import_settings.height,
+            value: _audio_import_settings.height,
+
+            title: "Height",
+
+            title_min_width: 81,
+            value_min_width: 64,
+
+            on_change: function (value) {
+                _audio_import_settings.height = parseInt(value, 10);
+            }
+        });
+    
+    WUI_RangeSlider.create("fs_import_audio_minfreq_settings", {
+            width: 100,
+            height: 8,
+
+            min: 0,
+
+            bar: false,
+
+            step: "any",
+            scroll_step: 0.1,
+
+            midi: false,
+
+            default_value: _audio_import_settings.minfreq,
+            value: _audio_import_settings.minfreq,
+
+            title: "Min. freq.",
+
+            title_min_width: 81,
+            value_min_width: 64,
+
+            on_change: function (value) {
+                _audio_import_settings.minfreq = value;
+            }
+        });
+    
+    WUI_RangeSlider.create("fs_import_audio_maxfreq_settings", {
+            width: 100,
+            height: 8,
+
+            min: 0,
+
+            bar: false,
+
+            step: "any",
+            scroll_step: 0.1,
+
+            midi: false,
+
+            default_value: _audio_import_settings.maxfreq,
+            value: _audio_import_settings.maxfreq,
+
+            title: "Max. freq.",
+
+            title_min_width: 81,
+            value_min_width: 64,
+
+            on_change: function (value) {
+                _audio_import_settings.maxfreq = value;
             }
         });
     
@@ -21651,6 +22010,12 @@ document.getElementById("fs_select_editor_themes").addEventListener('change', fu
     }
     
     _changeEditorTheme(theme);
+});
+
+document.getElementById("fs_import_audio_window_settings").addEventListener('change', function (e) {
+    var window_type = e.target.value;
+    
+    _audio_import_settings.window_type = window_type;
 });
 
 document.addEventListener('mouseup', function (e) {

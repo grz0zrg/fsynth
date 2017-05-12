@@ -4,7 +4,7 @@
     Fields.
 ************************************************************/
 
-
+var _import_dropzone_elem = document.getElementById("fs_import_dropzone");
 
 /***********************************************************
     Functions.
@@ -49,3 +49,49 @@ var _loadFile = function (type) {
         target.removeEventListener("change", _loadFile, false);
     }
 };
+
+/***********************************************************
+    Init.
+************************************************************/
+
+_import_dropzone_elem.addEventListener("drop", function (e) {
+    e.preventDefault();
+    
+    var data = e.dataTransfer,
+        
+        file,
+        
+        i = 0;
+    
+    for (i = 0; i < data.files.length; i += 1) {
+        file = data.files[i];
+        
+        if (file.type.match('image.*')) {
+            _loadImageFromFile(file);
+        } else if (file.type.match('audio.*')) {
+            _loadAudioFromFile(file);
+        } else {
+            _notification("Could not load the file '" + file.name + "', the filetype is unknown.");
+        }
+    }
+    
+    e.target.style = "";
+});
+
+_import_dropzone_elem.addEventListener("dragleave", function (e) {
+    e.preventDefault();
+    
+    e.target.style = "";
+});
+
+_import_dropzone_elem.addEventListener("dragover", function (e) {
+    e.preventDefault();
+    
+    e.dataTransfer.dropEffect = "copy";
+});
+
+_import_dropzone_elem.addEventListener("dragenter", function (e) {
+    e.preventDefault();
+    
+    e.target.style = "outline: dashed 1px #00ff00; background-color: #444444";
+});

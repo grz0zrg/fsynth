@@ -4,7 +4,18 @@
     Fields.
 ************************************************************/
 
-var _audio_to_image_worker = new Worker("dist/audio_to_image.min.js");
+var _audio_to_image_worker = new Worker("dist/audio_to_image.min.js"),
+    
+    _audio_import_settings = {
+        window_length: 8192,
+        window_type: "hann",
+        overlap: 4,
+        bpm: 60,
+        ppb: 12,
+        height: 0,
+        minfreq: 0,
+        maxfreq: 0
+    };
 
 /***********************************************************
     Functions.
@@ -15,15 +26,26 @@ var _convertAudioToImage = function (data) {
         r = ((data.numberOfChannels > 1) ? data.getChannelData(1).buffer : null),
         
         params = {
-            image_height: _canvas_height,
-            max_freq: _oscillators[0].freq,
+            settings: JSON.parse(JSON.stringify(_audio_import_settings)),
             left: l,
             right: r,
-            note_time: _getNoteTime(120, 16),
+            note_time: _getNoteTime(_audio_import_settings.bpm, _audio_import_settings.ppb),
             sample_rate: _sample_rate
         },
         
         barr = [l];
+    
+    if (_audio_import_settings.height <= 0) {
+        params.settings.height = _canvas_height;
+    }
+    
+    if (_audio_import_settings.minfreq <= 0) {
+        params.settings.minfreq = _oscillators[_oscillators.length - 1].freq;
+    }
+    
+    if (_audio_import_settings.maxfreq <= 0) {
+        params.settings.maxfreq = _oscillators[0].freq;
+    }
     
     if (r) {
         barr.push(r);
@@ -84,7 +106,7 @@ var _loadAudioFromFile = function (file) {
 
 _audio_to_image_worker.addEventListener('message', function (m) {
         if (m.data !== Object(m.data)) {
-            _notification("Audio file conversion progress : " + m.data + "%");
+            _notification("Audio file conversion in progress : " + m.data + "%");
             return;
         }
     
@@ -98,4 +120,6 @@ _audio_to_image_worker.addEventListener('message', function (m) {
 
         // now image processing step...
         _imageProcessor(image_data, _imageProcessingDone);
+    
+        _notification("Audio file converted to " + image_data.width + "x" + image_data.height + "px image.")
     }, false);

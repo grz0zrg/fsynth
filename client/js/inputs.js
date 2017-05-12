@@ -70,14 +70,17 @@ var _createInputThumb = function (input_id, image, thumb_title) {
                 { icon: "fs-gear-icon", tooltip: "Settings",  on_click: function () {
                         _createChannelSettingsDialog(dom_image.input_id);
                     } },
-                /*{ icon: "fs-replace-icon", tooltip: "Replace",  on_click: function () {
+                { icon: "fs-replace-icon", tooltip: "Replace",  on_click: function () {
 
-                    } },*/
+                    } },
                 { icon: "fs-cross-45-icon", tooltip: "Delete",  on_click: function () {
                         _input_panel_element.removeChild(dom_image);
 
                         _removeInputChannel(dom_image.input_id);
-                    } }
+                    } },
+                { icon: "fs-xyf-icon", tooltip: "View image",  on_click: function () {
+                        window.open(dom_image.src);
+                    } },
             ]);
         });
 

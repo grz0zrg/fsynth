@@ -324,6 +324,8 @@ canvas {
     background-color: #111111;
 */
     display: inline-block;
+    
+    overflow-y: auto;
 }
 
 .fs-input-thumb {
@@ -780,4 +782,33 @@ canvas {
 
 .fs-hide {
     display: none;
+}
+
+.fs-dropzone {
+    width: 378px;
+    height: 116px;
+    
+    border-radius: 4px;
+    background-color: #1f1f1f;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    margin-left: 1px;
+    flex-direction: column;
+    text-align: center;
+    
+    position: absolute;
+    bottom: 0;
+}
+
+.fs-audio-import-settings {
+    width: 320px;
+    margin: auto;
+    border: solid 1px #333333;
+    border-radius: 4px;
+    background-color: #111111;
+    margin-top: 16px;
+    margin-bottom: 6px;
+    color: #ffffff;
 }

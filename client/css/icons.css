@@ -91,6 +91,18 @@
     background-image: url("../data/ui-icons/help.png");
 }
 
+.fs-camera-icon {
+    background-image: url("../data/ui-icons/camera.png");
+}
+
+.fs-image-file-icon {
+    background-image: url("../data/ui-icons/image_file.png");
+}
+
+.fs-audio-file-icon {
+    background-image: url("../data/ui-icons/audio_file.png");
+}
+
 .fs-midi-icon {
     background-image: url("../data/ui-icons/midi.png");
 }

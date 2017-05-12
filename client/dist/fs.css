@@ -1038,6 +1038,10 @@ span.CodeMirror-selectedtext { background: none; }
     border-top: none !important;
     border-left: none !important;
     border-right: none !important;
+}
+
+.fs-input-label {
+    font-size: 9pt;
 }.fs-code-icon {
     background-image: url("../data/ui-icons/code.png");
 }
@@ -1129,6 +1133,18 @@ span.CodeMirror-selectedtext { background: none; }
 
 .fs-help-icon {
     background-image: url("../data/ui-icons/help.png");
+}
+
+.fs-camera-icon {
+    background-image: url("../data/ui-icons/camera.png");
+}
+
+.fs-image-file-icon {
+    background-image: url("../data/ui-icons/image_file.png");
+}
+
+.fs-audio-file-icon {
+    background-image: url("../data/ui-icons/audio_file.png");
 }
 
 .fs-midi-icon {
@@ -1479,6 +1495,8 @@ canvas {
     background-color: #111111;
 */
     display: inline-block;
+    
+    overflow-y: auto;
 }
 
 .fs-input-thumb {
@@ -1935,4 +1953,33 @@ canvas {
 
 .fs-hide {
     display: none;
+}
+
+.fs-dropzone {
+    width: 378px;
+    height: 116px;
+    
+    border-radius: 4px;
+    background-color: #1f1f1f;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    margin-left: 1px;
+    flex-direction: column;
+    text-align: center;
+    
+    position: absolute;
+    bottom: 0;
+}
+
+.fs-audio-import-settings {
+    width: 320px;
+    margin: auto;
+    border: solid 1px #333333;
+    border-radius: 4px;
+    background-color: #111111;
+    margin-top: 16px;
+    margin-bottom: 6px;
+    color: #ffffff;
 }

@@ -10,6 +10,9 @@
     Include.
 ************************************************************/
 
+// dependency
+/*#include ../dsp.js/dsp.js*/
+
 // browserified modules for stft / ndarray implementation
 /*#include ../stft/stft_libs.js*/
 
@@ -36,22 +39,22 @@ var _convert = function (params, data) {
     var note_time = params.note_time,
         note_samples = Math.round(note_time * params.sample_rate),
 
-        window_size = 8192,
-        window_type = "hann",
+        window_size = params.settings.window_length,
+        window_type = params.settings.window_type,
         
-        hop_divisor = 8, // overlap factor
-        hop_length = window_size / hop_divisor,
+        hop_divisor = params.settings.overlap, // overlap factor
+        hop_length = Math.round(window_size / hop_divisor),
         
         stft_result_length = Math.round(window_size / 2),
 
         data_buffer = data,
 
         image_width  = Math.ceil(data_buffer.length / note_samples),
-        image_height = params.image_height,//note_samples,
-        image_height_m1 = params.image_height - 1,
+        image_height = params.settings.height,//note_samples,
+        image_height_m1 = params.settings.height - 1,
                 
-        min_freq = 16.34,
-        max_freq = params.max_freq,
+        min_freq = params.settings.minfreq,
+        max_freq = params.settings.maxfreq,
         
         overlap_frame_buffer = [],
         stft,
@@ -76,6 +79,21 @@ var _convert = function (params, data) {
         
         frame = 0;
     
+    console.log(note_time,
+note_samples,
+window_size,
+window_type,
+hop_divisor,
+hop_length,
+stft_result_length,
+image_width,
+image_height,
+image_height_m1,
+min_freq,
+max_freq,
+lid,
+hid);
+
     if (_stereo) {
         progress_step /= 2;
     }
@@ -198,6 +216,8 @@ self.onmessage = function (m) {
             width: null,
             height: null
         };
+    
+    _progress = 0;
     
     _stereo = (data.right !== null);
     
