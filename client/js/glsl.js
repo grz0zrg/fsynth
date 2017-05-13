@@ -10,7 +10,7 @@ var _uniform_location_cache = {},
     
     _outline_element = document.getElementById("fs_outline"),
     
-    _glsl_parser_worker = new Worker("dist/parse_glsl.min.js");
+    _glsl_parser_worker = new Worker("dist/worker/parse_glsl.min.js");
 
 
 /***********************************************************

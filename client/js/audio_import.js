@@ -4,7 +4,7 @@
     Fields.
 ************************************************************/
 
-var _audio_to_image_worker = new Worker("dist/audio_to_image.min.js"),
+var _audio_to_image_worker = new Worker("dist/worker/audio_to_image.min.js"),
     
     _audio_import_settings = {
         window_length: 8192,

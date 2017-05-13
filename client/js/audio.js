@@ -51,7 +51,7 @@ var _FS_WAVETABLE = 0,
     
     _lerp_t_step = 1 / _note_time_samples,
 
-    _notes_worker = new Worker("js/worker/notes_buffer.js"),
+    _notes_worker = new Worker("dist/worker/notes_buffer.min.js"),
     _notes_worker_available = true,
     
     _curr_notes_data = [],

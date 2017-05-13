@@ -16214,7 +16214,7 @@ var _FS_WAVETABLE = 0,
     
     _lerp_t_step = 1 / _note_time_samples,
 
-    _notes_worker = new Worker("js/worker/notes_buffer.js"),
+    _notes_worker = new Worker("dist/worker/notes_buffer.min.js"),
     _notes_worker_available = true,
     
     _curr_notes_data = [],
@@ -16790,7 +16790,7 @@ var _loadImageFromFile = function (file) {
     Fields.
 ************************************************************/
 
-var _image_to_audio_worker = new Worker("dist/image_to_audio.min.js");
+var _image_to_audio_worker = new Worker("dist/worker/image_to_audio.min.js");
 
 /***********************************************************
     Functions.
@@ -16821,7 +16821,7 @@ _image_to_audio_worker.addEventListener('message', function (m) {
     Fields.
 ************************************************************/
 
-var _audio_to_image_worker = new Worker("dist/audio_to_image.min.js"),
+var _audio_to_image_worker = new Worker("dist/worker/audio_to_image.min.js"),
     
     _audio_import_settings = {
         window_length: 8192,
@@ -17620,7 +17620,7 @@ var _uniform_location_cache = {},
     
     _outline_element = document.getElementById("fs_outline"),
     
-    _glsl_parser_worker = new Worker("dist/parse_glsl.min.js");
+    _glsl_parser_worker = new Worker("dist/worker/parse_glsl.min.js");
 
 
 /***********************************************************
@@ -18532,7 +18532,7 @@ _discuss_input.addEventListener("keypress", function (e) {
 
 
 var _imageProcessor = function (image_data, image_processing_done_cb) {
-    var worker = new Worker("js/worker/image_processor.js");
+    var worker = new Worker("dist/worker/image_processor.min.js");
 
     worker.onmessage = function (e) {
         _imageProcessingDone(e.data);
@@ -21557,7 +21557,7 @@ var _fas = {
         address: "127.0.0.1:3003",
         enabled: false,
         status: null,
-        worker: new Worker("js/worker/fas.js")
+        worker: new Worker("dist/worker/fas.min.js")
     },
     
     _fas_address_input = document.getElementById("fs_fas_address"),

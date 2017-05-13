@@ -2,7 +2,7 @@
 
 
 var _imageProcessor = function (image_data, image_processing_done_cb) {
-    var worker = new Worker("js/worker/image_processor.js");
+    var worker = new Worker("dist/worker/image_processor.min.js");
 
     worker.onmessage = function (e) {
         _imageProcessingDone(e.data);

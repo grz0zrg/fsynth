@@ -8,7 +8,7 @@ var _fas = {
         address: "127.0.0.1:3003",
         enabled: false,
         status: null,
-        worker: new Worker("js/worker/fas.js")
+        worker: new Worker("dist/worker/fas.min.js")
     },
     
     _fas_address_input = document.getElementById("fs_fas_address"),
