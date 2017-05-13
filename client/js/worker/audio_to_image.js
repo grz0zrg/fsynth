@@ -78,21 +78,10 @@ var _convert = function (params, data) {
         i,
         
         frame = 0;
-    
-    console.log(note_time,
-note_samples,
-window_size,
-window_type,
-hop_divisor,
-hop_length,
-stft_result_length,
-image_width,
-image_height,
-image_height_m1,
-min_freq,
-max_freq,
-lid,
-hid);
+
+    if (note_samples > (window_size * 2)) {
+        postMessage("Conversion failed, there is " + note_samples + " samples to process for a window length (* 2) of " + (window_size * 2) + ", please use different settings.");
+    }
 
     if (_stereo) {
         progress_step /= 2;
@@ -169,8 +158,7 @@ hid);
         }
     }
     
-    // mag. normalization (not needed)
-/*
+    // mag. normalization
     for (i = 0; i < image_data.length; i += 4) {
         n = image_data[i];
         amax = n > amax ? n : amax;
@@ -183,8 +171,7 @@ hid);
         image_data[i + 1] *= adiff;
         image_data[i + 2] *= adiff;
     }
-*/
-    
+
     return { width: image_width, height: image_height, data: image_data };
 };
 

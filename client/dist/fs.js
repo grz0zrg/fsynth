@@ -16821,7 +16821,7 @@ _image_to_audio_worker.addEventListener('message', function (m) {
     Fields.
 ************************************************************/
 
-var _audio_to_image_worker = new Worker("dist/worker/audio_to_image.min.js"),
+var _audio_to_image_worker = new Worker("dist/worker/audio_to_image.js"),
     
     _audio_import_settings = {
         window_length: 8192,
@@ -16923,7 +16923,11 @@ var _loadAudioFromFile = function (file) {
 
 _audio_to_image_worker.addEventListener('message', function (m) {
         if (m.data !== Object(m.data)) {
-            _notification("Audio file conversion in progress : " + m.data + "%");
+            if ((typeof m.data) === "string") {
+                _notification(m.data, 10000);
+            } else {
+                _notification("Audio file conversion in progress : " + m.data + "%");
+            }
             return;
         }
     
