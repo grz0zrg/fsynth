@@ -6,8 +6,6 @@ Source code repository for the Fragment app. which can be found at : https://www
 
 This is a web. spectral synthesizer powered by live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language).
 
-While most additive synth. work in the time domain, Fragment work in the frequency domain.
-
 Fragment can also be used for live coding visuals, they can be synchronized to any audio using the MIDI capabilities AND also synchronized to the synthesized sound
 
 This is a sort of [Shadertoy](https://www.shadertoy.com) for synthesis, it is compatible with most shaders written for it.
@@ -101,7 +99,7 @@ A native app. was developed with [Electron](http://electron.atom.io/) featuring 
 
 ## Future
 
-A native modular app. with wxWidget will probably see the light of the day soon using the same technology, this will eliminate all the shortcoming related to performances.
+A native viewer app. will probably be done soon, some more work involving parallelism on the native FAS program need to be done, a LV2 plugin for accessibility and of course many new features are coming soon. ;)
 
 ## Stuff used to make this
 
