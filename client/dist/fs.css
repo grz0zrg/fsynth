@@ -1970,7 +1970,7 @@ canvas {
     text-align: center;
     
     position: absolute;
-    bottom: 0;
+    bottom: 1px;
 }
 
 .fs-audio-import-settings {

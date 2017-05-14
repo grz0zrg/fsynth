@@ -198,6 +198,28 @@ var _renderRecord = function () {
     }
 };
 
+var _addRecordInput = function () {
+    var tmp_image_data = _record_canvas_ctx.getImageData(0, 0, _record_canvas.width, _record_canvas.height),
+        
+        img = new Image(),
+        
+        tmp_canvas = document.createElement('canvas'),
+        tmp_canvas_context = tmp_canvas.getContext('2d'),
+        
+        tmp_image_data;
+    
+    tmp_canvas.width  = _record_canvas.width;
+    tmp_canvas.height = _record_canvas.height;
+
+    tmp_canvas_context.translate(0, _record_canvas.height);
+    tmp_canvas_context.scale(1, -1);
+    tmp_canvas_context.drawImage(tmp_image_data, 0, 0, tmp_canvas.width, tmp_canvas.height);
+    
+    tmp_image_data = tmp_canvas_context.getImageData(0, 0, tmp_canvas.width, tmp_canvas.height);
+    
+    _imageDataToInput(tmp_image_data);
+};
+
 /***********************************************************
     Init.
 ************************************************************/
@@ -727,6 +749,11 @@ var _uiInit = function () {
                     }
                 ],
                 acts: [
+                    {
+                        icon: "fs-plus-icon",
+                        on_click: _addRecordInput,
+                        tooltip: "Add as input"
+                    },
                     {
                         icon: "fs-save-icon",
                         on_click: _saveRecord,

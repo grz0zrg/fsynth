@@ -51,7 +51,7 @@ var _convertAudioToImage = function (data) {
         barr.push(r);
     }
     
-    _notification("STFT in progress...", 2000);
+    _notification("conversion in progress...", 2000);
 
     _audio_to_image_worker.postMessage(params, barr);
 };

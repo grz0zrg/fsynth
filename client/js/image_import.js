@@ -37,6 +37,12 @@ var _imageProcessingDone = function (mdata) {
     };
 };
 
+var _imageDataToInput = function (data) {
+    _notification("image processing in progress...");
+        
+    _imageProcessor(data, _imageProcessingDone);
+};
+
 var _loadImageFromFile = function (file) {
     var img = new Image(),
         
@@ -51,15 +57,13 @@ var _loadImageFromFile = function (file) {
         tmp_canvas.width  = img.naturalWidth;
         tmp_canvas.height = img.naturalHeight;
 
-        //tmp_canvas_context.translate(0, tmp_canvas.height);
-        //tmp_canvas_context.scale(1, -1);
+        tmp_canvas_context.translate(0, tmp_canvas.height);
+        tmp_canvas_context.scale(1, -1);
         tmp_canvas_context.drawImage(img, 0, 0, tmp_canvas.width, tmp_canvas.height);
 
         tmp_image_data = tmp_canvas_context.getImageData(0, 0, tmp_canvas.width, tmp_canvas.height);
 
-        _notification("image processing in progress...");
-        
-        _imageProcessor(tmp_image_data, _imageProcessingDone);
+        _imageDataToInput(tmp_image_data);
         
         img.onload = null;
         img = null;

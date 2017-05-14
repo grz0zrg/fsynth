@@ -1,6 +1,12 @@
 /* jslint browser: true */
 
 /***********************************************************
+    Fields.
+************************************************************/
+
+var _dragged_input = null;
+
+/***********************************************************
     Functions.
 ************************************************************/
 
@@ -88,9 +94,9 @@ var _createChannelSettingsDialog = function (input_channel_id) {
         channel_vflip.checked = false;
     }
     
-    if (fragment_input_channel.type === 1) {
-        _flipYTexture(fragment_input_channel.texture, fragment_input_channel.flip);
-    }
+    //if (fragment_input_channel.type === 1) {
+        //_flipYTexture(fragment_input_channel.texture, fragment_input_channel.flip);
+    //}
     
     channel_filter_select.addEventListener("change", function () {
             _setTextureFilter(fragment_input_channel.texture, this.value);
@@ -105,17 +111,12 @@ var _createChannelSettingsDialog = function (input_channel_id) {
         });
     
     channel_vflip.addEventListener("change", function () {
-            if (fragment_input_channel.type === 1) {
-                if (channel_vflip.checked) {
-                    _flipYTexture(fragment_input_channel.texture, true);
-                } else {
-                    _flipYTexture(fragment_input_channel.texture, false);
-                }
-            } else {
-                var new_texture = _flipTexture(fragment_input_channel.texture, fragment_input_channel.image);
+            var new_texture;
         
-                fragment_input_channel.texture = new_texture;
-            }
+            new_texture = _flipTexture(fragment_input_channel.texture, fragment_input_channel.image);
+        
+            fragment_input_channel.texture = new_texture;
+
             fragment_input_channel.flip = !fragment_input_channel.flip;
         });
     
@@ -161,10 +162,56 @@ var _imageProcessor = function (image_data, image_processing_done_cb) {
     worker.postMessage({ img_width: image_data.width, img_height: image_data.height, buffer: image_data.data.buffer }, [image_data.data.buffer]);
 };
 
+var _inputThumbMenu = function (e) {
+    var input_id = _parseInt10(e.target.dataset.inputId),
+        dom_image = _fragment_input_data[input_id].elem;
+
+    WUI_CircularMenu.create(
+        {
+            element: dom_image,
+
+            rx: 32,
+            ry: 32,
+
+            item_width:  32,
+            item_height: 32
+        },
+        [
+            { icon: "fs-gear-icon", tooltip: "Settings",  on_click: function () {
+                    _createChannelSettingsDialog(input_id);
+                } },
+/*
+            { icon: "fs-replace-icon", tooltip: "Replace",  on_click: function () {
+
+                } },
+*/
+            { icon: "fs-cross-45-icon", tooltip: "Delete",  on_click: function () {
+                    _input_panel_element.removeChild(dom_image);
+
+                    _removeInputChannel(input_id);
+                } },
+            { icon: "fs-xyf-icon", tooltip: "View image",  on_click: function () {
+                    window.open(dom_image.src);
+                } },
+        ]);
+};
+
+var _sortInputs = function () {
+    var i = 0,
+        fragment_input_data;
+    
+    for (i = 0; i < _fragment_input_data.length; i += 1) {
+        fragment_input_data = _fragment_input_data[i];
+
+        fragment_input_data.elem.title = _input_channel_prefix + i;
+        fragment_input_data.elem.dataset.inputId = i;
+    }
+
+};
+
 var _removeInputChannel = function (input_id) {
     var fragment_input_data = _fragment_input_data[input_id],
-        tracks,
-        i;
+        tracks;
 
     _gl.deleteTexture(_fragment_input_data.texture);
 
@@ -178,16 +225,10 @@ var _removeInputChannel = function (input_id) {
         }
         _fragment_input_data.video_elem = null;
     }
-
+    
     _fragment_input_data.splice(input_id, 1);
 
-    for (i = 0; i < _fragment_input_data.length; i += 1) {
-        fragment_input_data = _fragment_input_data[i];
-
-        fragment_input_data.elem.title = _input_channel_prefix + i;
-
-        fragment_input_data.elem.input_id = i;
-    }
+    _sortInputs();
 
     _compile();
 };
@@ -201,38 +242,81 @@ var _createInputThumb = function (input_id, image, thumb_title) {
 
     dom_image.title = thumb_title;
 
-    dom_image.input_id = input_id;
-
+    dom_image.dataset.inputId = input_id;
+    dom_image.dataset.inputIdr = input_id;
+    
     dom_image.classList.add("fs-input-thumb");
+    
+    dom_image.draggable = true;
 
-    dom_image.addEventListener("click", function (ev) {
-        WUI_CircularMenu.create(
-            {
-                element: dom_image,
+    dom_image.addEventListener("click", _inputThumbMenu);
+    
+    // drag & drop
+    dom_image.addEventListener("drop", function (e) {
+        e.preventDefault();
 
-                rx: 32,
-                ry: 32,
+        if (e.target.dataset.inputId === undefined) {
+            e.target.style = "";
+            
+            _dragged_input = null;
+            
+            return;
+        }
 
-                item_width:  32,
-                item_height: 32
-            },
-            [
-                { icon: "fs-gear-icon", tooltip: "Settings",  on_click: function () {
-                        _createChannelSettingsDialog(dom_image.input_id);
-                    } },
-                { icon: "fs-replace-icon", tooltip: "Replace",  on_click: function () {
+        var src_input_id = _parseInt10(_dragged_input.dataset.inputId),
+            dst_input_id = _parseInt10(e.target.dataset.inputId),
+            
+            src_input_idr = _parseInt10(_dragged_input.dataset.inputIdr),
+            dst_input_idr = _parseInt10(e.target.dataset.inputIdr),
+            
+            elem_src = _fragment_input_data[src_input_id].elem,
+            
+            dst_data = e.target.src,
+            src_title = _dragged_input.title;
 
-                    } },
-                { icon: "fs-cross-45-icon", tooltip: "Delete",  on_click: function () {
-                        _input_panel_element.removeChild(dom_image);
+        _fragment_input_data = _swapArrayItem(_fragment_input_data, src_input_id, dst_input_id);
 
-                        _removeInputChannel(dom_image.input_id);
-                    } },
-                { icon: "fs-xyf-icon", tooltip: "View image",  on_click: function () {
-                        window.open(dom_image.src);
-                    } },
-            ]);
-        });
+        e.target.src = _dragged_input.src;
+        _dragged_input.src = dst_data;
+        
+        e.target.dataset.idr = src_input_idr;
+        _dragged_input.dataset.idr = dst_input_idr;
+        
+        _fragment_input_data[dst_input_idr].elem = _fragment_input_data[src_input_idr].elem;
+        _fragment_input_data[src_input_idr].elem = elem_src;
+
+        e.target.style = "";
+        
+        _dragged_input = null;
+    });
+    
+    dom_image.addEventListener("dragstart", function (e) {
+        _dragged_input = e.target;
+    });
+    
+    dom_image.addEventListener("dragleave", function (e) {
+        e.preventDefault();
+
+        e.target.style = "";
+    });
+
+    dom_image.addEventListener("dragover", function (e) {
+        e.preventDefault();
+
+        if (e.target === _dragged_input) {
+            e.dataTransfer.dropEffect = "none";
+        } else {
+            e.dataTransfer.dropEffect = "move";
+        }
+    });
+
+    dom_image.addEventListener("dragenter", function (e) {
+        e.preventDefault();
+
+        if (e.target !== _dragged_input) {
+            e.target.style = "border: dashed 1px #00ff00; background-color: #444444";
+        }
+    });
 
     _input_panel_element.appendChild(dom_image);
 
@@ -252,7 +336,7 @@ var _addFragmentInput = function (type, input) {
 
     if (type === "image") {
         data = _create2DTexture(input, false, true);
-        data.texture = _flipTexture(data.texture, data.image);
+        //data.texture = _flipTexture(data.texture, data.image);
 
         _fragment_input_data.push({
                 type: 0,

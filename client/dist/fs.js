@@ -4111,7 +4111,7 @@ var WUI_CircularMenu = new (function() {
 
             rx: 64,
             ry: 48,
-            
+
             angle: 0,
 
             item_width:  32,
@@ -4133,28 +4133,17 @@ var WUI_CircularMenu = new (function() {
 
             i;
 
-        try { // this is in case it is in a detached WUI dialog, it will try to remove something that does not exist if the dialog was closed while the circular menu is still shown
+        //try { // this is in case it is in a detached WUI dialog, it will try to remove something that does not exist if the dialog was closed while the circular menu is still shown
             for (i = 0; i < _elems.length; i += 1) {
                 elem = _elems[i];
 
-
-                doc.body.removeChild(elem);
+                if (doc.body.contains(elem)) {
+                    doc.body.removeChild(elem);
+                }
             }
-        } catch (e) {
+        /*} catch (e) {
             _elems = [];
-        }
-    };
-
-    var _onClickHandler = function (win, doc, cb) {
-        var handler = function (ev) {
-            ev.preventDefault();
-
-            cb();
-
-            _destroy(doc);
-        };
-
-        return handler;
+        }*/
     };
 
     var _onClickOutHandler = function (win, doc) {
@@ -4172,13 +4161,27 @@ var WUI_CircularMenu = new (function() {
 
             _destroy(doc);
 
-            win.removeEventListener("click", handler);
+            //win.removeEventListener("click", handler);
             win.removeEventListener("mousedown", handler);
         };
 
         return handler;
     };
-    
+
+    var _onClickHandler = function (win, doc, cb) {
+        var handler = function (ev) {
+            ev.preventDefault();
+
+            cb();
+
+            _destroy(doc);
+
+            win.removeEventListener("mousedown", _onClickOutHandler(win, doc));
+        };
+
+        return handler;
+    };
+
     var _getElementOffset = function (elem) {
         var box = elem.getBoundingClientRect(),
             body = document.body,
@@ -4195,7 +4198,7 @@ var WUI_CircularMenu = new (function() {
 
         return { top: Math.round(top), left: Math.round(left), width: box.width, height: box.height };
     };
-    
+
     var _toRadians = function (angle) {
         return angle * (Math.PI / 180.0);
     };
@@ -4247,7 +4250,7 @@ var WUI_CircularMenu = new (function() {
 
         handler = _onClickOutHandler(win, doc);
 
-        win.addEventListener("click", handler);
+        //win.addEventListener("click", handler);
 
         _last_time = new Date().getTime();
 
@@ -15642,6 +15645,28 @@ var _webMIDISupport = function () {
     }
 };
 
+var _objSwap = function (src, dst) {
+    var k = null,
+        
+        dst_data = null;
+    
+    for (k in src) {
+        dst_data = dst[k];
+        
+        dst[k] = src[k];
+        src[k] = dst_data;
+    }
+};
+
+var _swapArrayItem = function (arr, a, b) {
+    var temp = arr[a];
+    
+    arr[a] = arr[b];
+    arr[b] = temp;
+    
+    return arr;
+};
+
 var _isPowerOf2 = function (value) {
     return (value & (value - 1)) === 0;
 };
@@ -16760,6 +16785,12 @@ var _imageProcessingDone = function (mdata) {
     };
 };
 
+var _imageDataToInput = function (data) {
+    _notification("image processing in progress...");
+        
+    _imageProcessor(data, _imageProcessingDone);
+};
+
 var _loadImageFromFile = function (file) {
     var img = new Image(),
         
@@ -16774,15 +16805,13 @@ var _loadImageFromFile = function (file) {
         tmp_canvas.width  = img.naturalWidth;
         tmp_canvas.height = img.naturalHeight;
 
-        //tmp_canvas_context.translate(0, tmp_canvas.height);
-        //tmp_canvas_context.scale(1, -1);
+        tmp_canvas_context.translate(0, tmp_canvas.height);
+        tmp_canvas_context.scale(1, -1);
         tmp_canvas_context.drawImage(img, 0, 0, tmp_canvas.width, tmp_canvas.height);
 
         tmp_image_data = tmp_canvas_context.getImageData(0, 0, tmp_canvas.width, tmp_canvas.height);
 
-        _notification("image processing in progress...");
-        
-        _imageProcessor(tmp_image_data, _imageProcessingDone);
+        _imageDataToInput(tmp_image_data);
         
         img.onload = null;
         img = null;
@@ -16872,7 +16901,7 @@ var _convertAudioToImage = function (data) {
         barr.push(r);
     }
     
-    _notification("STFT in progress...", 2000);
+    _notification("conversion in progress...", 2000);
 
     _audio_to_image_worker.postMessage(params, barr);
 };
@@ -16962,6 +16991,7 @@ var _import_dropzone_elem = document.getElementById("fs_import_dropzone");
 var _fileChoice = function (cb) {
     var input = document.createElement("input");
     input.type = "file";
+    input.multiple = true;
     input.addEventListener("change", cb, false);
     input.click();
 };
@@ -16977,22 +17007,28 @@ var _loadFile = function (type) {
         var target = e.target,
 
             files = target.files, 
-            file = files[0];
+            file,
+            
+            i = 0;
 
         if (files.length === 0) {
             return;
         }
-
-        if (file.type.match(type + '.*')) {
-            if (type === "image") {
-                _loadImageFromFile(file);
-            } else if (type === "audio") {
-                _loadAudioFromFile(file);
+        
+        for (i = 0; i < files.length; i += 1) {
+            file = files[i];
+            
+            if (file.type.match(type + '.*')) {
+                if (type === "image") {
+                    _loadImageFromFile(file);
+                } else if (type === "audio") {
+                    _loadAudioFromFile(file);
+                } else {
+                    _notification("Could not load the file '" + file.name + "', the filetype is unknown.");
+                }
             } else {
-                _notification("Could not load the file '" + file.name + "', the filetype is unknown.");
+                _notification("Could not load the file '" + file.name + "' as " + type + ".");
             }
-        } else {
-            _notification("Could not load the file '" + file.name + "' as " + type + ".");
         }
 
         target.removeEventListener("change", _loadFile, false);
@@ -18539,6 +18575,12 @@ _discuss_input.addEventListener("keypress", function (e) {
     });/* jslint browser: true */
 
 /***********************************************************
+    Fields.
+************************************************************/
+
+var _dragged_input = null;
+
+/***********************************************************
     Functions.
 ************************************************************/
 
@@ -18626,9 +18668,9 @@ var _createChannelSettingsDialog = function (input_channel_id) {
         channel_vflip.checked = false;
     }
     
-    if (fragment_input_channel.type === 1) {
-        _flipYTexture(fragment_input_channel.texture, fragment_input_channel.flip);
-    }
+    //if (fragment_input_channel.type === 1) {
+        //_flipYTexture(fragment_input_channel.texture, fragment_input_channel.flip);
+    //}
     
     channel_filter_select.addEventListener("change", function () {
             _setTextureFilter(fragment_input_channel.texture, this.value);
@@ -18643,17 +18685,12 @@ var _createChannelSettingsDialog = function (input_channel_id) {
         });
     
     channel_vflip.addEventListener("change", function () {
-            if (fragment_input_channel.type === 1) {
-                if (channel_vflip.checked) {
-                    _flipYTexture(fragment_input_channel.texture, true);
-                } else {
-                    _flipYTexture(fragment_input_channel.texture, false);
-                }
-            } else {
-                var new_texture = _flipTexture(fragment_input_channel.texture, fragment_input_channel.image);
+            var new_texture;
         
-                fragment_input_channel.texture = new_texture;
-            }
+            new_texture = _flipTexture(fragment_input_channel.texture, fragment_input_channel.image);
+        
+            fragment_input_channel.texture = new_texture;
+
             fragment_input_channel.flip = !fragment_input_channel.flip;
         });
     
@@ -18699,10 +18736,56 @@ var _imageProcessor = function (image_data, image_processing_done_cb) {
     worker.postMessage({ img_width: image_data.width, img_height: image_data.height, buffer: image_data.data.buffer }, [image_data.data.buffer]);
 };
 
+var _inputThumbMenu = function (e) {
+    var input_id = _parseInt10(e.target.dataset.inputId),
+        dom_image = _fragment_input_data[input_id].elem;
+
+    WUI_CircularMenu.create(
+        {
+            element: dom_image,
+
+            rx: 32,
+            ry: 32,
+
+            item_width:  32,
+            item_height: 32
+        },
+        [
+            { icon: "fs-gear-icon", tooltip: "Settings",  on_click: function () {
+                    _createChannelSettingsDialog(input_id);
+                } },
+/*
+            { icon: "fs-replace-icon", tooltip: "Replace",  on_click: function () {
+
+                } },
+*/
+            { icon: "fs-cross-45-icon", tooltip: "Delete",  on_click: function () {
+                    _input_panel_element.removeChild(dom_image);
+
+                    _removeInputChannel(input_id);
+                } },
+            { icon: "fs-xyf-icon", tooltip: "View image",  on_click: function () {
+                    window.open(dom_image.src);
+                } },
+        ]);
+};
+
+var _sortInputs = function () {
+    var i = 0,
+        fragment_input_data;
+    
+    for (i = 0; i < _fragment_input_data.length; i += 1) {
+        fragment_input_data = _fragment_input_data[i];
+
+        fragment_input_data.elem.title = _input_channel_prefix + i;
+        fragment_input_data.elem.dataset.inputId = i;
+    }
+
+};
+
 var _removeInputChannel = function (input_id) {
     var fragment_input_data = _fragment_input_data[input_id],
-        tracks,
-        i;
+        tracks;
 
     _gl.deleteTexture(_fragment_input_data.texture);
 
@@ -18716,16 +18799,10 @@ var _removeInputChannel = function (input_id) {
         }
         _fragment_input_data.video_elem = null;
     }
-
+    
     _fragment_input_data.splice(input_id, 1);
 
-    for (i = 0; i < _fragment_input_data.length; i += 1) {
-        fragment_input_data = _fragment_input_data[i];
-
-        fragment_input_data.elem.title = _input_channel_prefix + i;
-
-        fragment_input_data.elem.input_id = i;
-    }
+    _sortInputs();
 
     _compile();
 };
@@ -18739,38 +18816,81 @@ var _createInputThumb = function (input_id, image, thumb_title) {
 
     dom_image.title = thumb_title;
 
-    dom_image.input_id = input_id;
-
+    dom_image.dataset.inputId = input_id;
+    dom_image.dataset.inputIdr = input_id;
+    
     dom_image.classList.add("fs-input-thumb");
+    
+    dom_image.draggable = true;
 
-    dom_image.addEventListener("click", function (ev) {
-        WUI_CircularMenu.create(
-            {
-                element: dom_image,
+    dom_image.addEventListener("click", _inputThumbMenu);
+    
+    // drag & drop
+    dom_image.addEventListener("drop", function (e) {
+        e.preventDefault();
 
-                rx: 32,
-                ry: 32,
+        if (e.target.dataset.inputId === undefined) {
+            e.target.style = "";
+            
+            _dragged_input = null;
+            
+            return;
+        }
 
-                item_width:  32,
-                item_height: 32
-            },
-            [
-                { icon: "fs-gear-icon", tooltip: "Settings",  on_click: function () {
-                        _createChannelSettingsDialog(dom_image.input_id);
-                    } },
-                { icon: "fs-replace-icon", tooltip: "Replace",  on_click: function () {
+        var src_input_id = _parseInt10(_dragged_input.dataset.inputId),
+            dst_input_id = _parseInt10(e.target.dataset.inputId),
+            
+            src_input_idr = _parseInt10(_dragged_input.dataset.inputIdr),
+            dst_input_idr = _parseInt10(e.target.dataset.inputIdr),
+            
+            elem_src = _fragment_input_data[src_input_id].elem,
+            
+            dst_data = e.target.src,
+            src_title = _dragged_input.title;
 
-                    } },
-                { icon: "fs-cross-45-icon", tooltip: "Delete",  on_click: function () {
-                        _input_panel_element.removeChild(dom_image);
+        _fragment_input_data = _swapArrayItem(_fragment_input_data, src_input_id, dst_input_id);
 
-                        _removeInputChannel(dom_image.input_id);
-                    } },
-                { icon: "fs-xyf-icon", tooltip: "View image",  on_click: function () {
-                        window.open(dom_image.src);
-                    } },
-            ]);
-        });
+        e.target.src = _dragged_input.src;
+        _dragged_input.src = dst_data;
+        
+        e.target.dataset.idr = src_input_idr;
+        _dragged_input.dataset.idr = dst_input_idr;
+        
+        _fragment_input_data[dst_input_idr].elem = _fragment_input_data[src_input_idr].elem;
+        _fragment_input_data[src_input_idr].elem = elem_src;
+
+        e.target.style = "";
+        
+        _dragged_input = null;
+    });
+    
+    dom_image.addEventListener("dragstart", function (e) {
+        _dragged_input = e.target;
+    });
+    
+    dom_image.addEventListener("dragleave", function (e) {
+        e.preventDefault();
+
+        e.target.style = "";
+    });
+
+    dom_image.addEventListener("dragover", function (e) {
+        e.preventDefault();
+
+        if (e.target === _dragged_input) {
+            e.dataTransfer.dropEffect = "none";
+        } else {
+            e.dataTransfer.dropEffect = "move";
+        }
+    });
+
+    dom_image.addEventListener("dragenter", function (e) {
+        e.preventDefault();
+
+        if (e.target !== _dragged_input) {
+            e.target.style = "border: dashed 1px #00ff00; background-color: #444444";
+        }
+    });
 
     _input_panel_element.appendChild(dom_image);
 
@@ -18790,7 +18910,7 @@ var _addFragmentInput = function (type, input) {
 
     if (type === "image") {
         data = _create2DTexture(input, false, true);
-        data.texture = _flipTexture(data.texture, data.image);
+        //data.texture = _flipTexture(data.texture, data.image);
 
         _fragment_input_data.push({
                 type: 0,
@@ -19245,6 +19365,28 @@ var _renderRecord = function () {
     if (_fs_state) {
         _exportImage(_record_canvas_ctx.getImageData(0, 0, _record_canvas.width, _record_canvas.height));
     }
+};
+
+var _addRecordInput = function () {
+    var tmp_image_data = _record_canvas_ctx.getImageData(0, 0, _record_canvas.width, _record_canvas.height),
+        
+        img = new Image(),
+        
+        tmp_canvas = document.createElement('canvas'),
+        tmp_canvas_context = tmp_canvas.getContext('2d'),
+        
+        tmp_image_data;
+    
+    tmp_canvas.width  = _record_canvas.width;
+    tmp_canvas.height = _record_canvas.height;
+
+    tmp_canvas_context.translate(0, _record_canvas.height);
+    tmp_canvas_context.scale(1, -1);
+    tmp_canvas_context.drawImage(tmp_image_data, 0, 0, tmp_canvas.width, tmp_canvas.height);
+    
+    tmp_image_data = tmp_canvas_context.getImageData(0, 0, tmp_canvas.width, tmp_canvas.height)
+    
+    _imageDataToInput(tmp_image_data);
 };
 
 /***********************************************************
@@ -19776,6 +19918,11 @@ var _uiInit = function () {
                     }
                 ],
                 acts: [
+                    {
+                        icon: "fs-plus-icon",
+                        on_click: _addRecordInput,
+                        tooltip: "Add as input"
+                    },
                     {
                         icon: "fs-save-icon",
                         on_click: _saveRecord,
@@ -21170,8 +21317,13 @@ var _submitRemoveSlice = function (id) {
 };
 
 var _muteSlice = function (slice_obj, submit) {
+    var play_position_top_hook_element = slice_obj.element.firstElementChild,
+        play_position_bottom_hook_element = slice_obj.element.lastElementChild;
+    
     slice_obj.mute = true;
     slice_obj.element.style.backgroundColor = "#555555";
+    //play_position_top_hook_element.style.borderTopColor = "#555555";
+    //play_position_bottom_hook_element.style.borderBottomColor = "#555555";
     
     if (submit) {
         _submitSliceUpdate(2, slice_obj.element.dataset.slice, { mute : true }); 
@@ -21179,8 +21331,13 @@ var _muteSlice = function (slice_obj, submit) {
 };
 
 var _unmuteSlice = function (slice_obj, submit) {
+    var play_position_top_hook_element = slice_obj.element.firstElementChild,
+        play_position_bottom_hook_element = slice_obj.element.lastElementChild;    
+
     slice_obj.mute = false;
     slice_obj.element.style.backgroundColor = "";
+    //play_position_top_hook_element.style.borderTopColor = "";
+    //play_position_bottom_hook_element.style.borderBottomColor = "";
     
     if (submit) {
         _submitSliceUpdate(2, slice_obj.element.dataset.slice, { mute : false });
@@ -21208,6 +21365,8 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, submit) {
         is_mute = false;
     } else {
         play_position_marker_element.style.backgroundColor = "#555555";
+        //play_position_top_hook_element.style.borderTopColor = "#555555";
+        //play_position_bottom_hook_element.style.borderBottomColor = "#555555";
     }
 
     play_position_marker_element.dataset.slice = play_position_marker_id;

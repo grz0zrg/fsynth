@@ -4106,7 +4106,7 @@ var WUI_CircularMenu = new (function() {
 
             rx: 64,
             ry: 48,
-            
+
             angle: 0,
 
             item_width:  32,
@@ -4128,28 +4128,17 @@ var WUI_CircularMenu = new (function() {
 
             i;
 
-        try { // this is in case it is in a detached WUI dialog, it will try to remove something that does not exist if the dialog was closed while the circular menu is still shown
+        //try { // this is in case it is in a detached WUI dialog, it will try to remove something that does not exist if the dialog was closed while the circular menu is still shown
             for (i = 0; i < _elems.length; i += 1) {
                 elem = _elems[i];
 
-
-                doc.body.removeChild(elem);
+                if (doc.body.contains(elem)) {
+                    doc.body.removeChild(elem);
+                }
             }
-        } catch (e) {
+        /*} catch (e) {
             _elems = [];
-        }
-    };
-
-    var _onClickHandler = function (win, doc, cb) {
-        var handler = function (ev) {
-            ev.preventDefault();
-
-            cb();
-
-            _destroy(doc);
-        };
-
-        return handler;
+        }*/
     };
 
     var _onClickOutHandler = function (win, doc) {
@@ -4167,13 +4156,27 @@ var WUI_CircularMenu = new (function() {
 
             _destroy(doc);
 
-            win.removeEventListener("click", handler);
+            //win.removeEventListener("click", handler);
             win.removeEventListener("mousedown", handler);
         };
 
         return handler;
     };
-    
+
+    var _onClickHandler = function (win, doc, cb) {
+        var handler = function (ev) {
+            ev.preventDefault();
+
+            cb();
+
+            _destroy(doc);
+
+            win.removeEventListener("mousedown", _onClickOutHandler(win, doc));
+        };
+
+        return handler;
+    };
+
     var _getElementOffset = function (elem) {
         var box = elem.getBoundingClientRect(),
             body = document.body,
@@ -4190,7 +4193,7 @@ var WUI_CircularMenu = new (function() {
 
         return { top: Math.round(top), left: Math.round(left), width: box.width, height: box.height };
     };
-    
+
     var _toRadians = function (angle) {
         return angle * (Math.PI / 180.0);
     };
@@ -4242,7 +4245,7 @@ var WUI_CircularMenu = new (function() {
 
         handler = _onClickOutHandler(win, doc);
 
-        win.addEventListener("click", handler);
+        //win.addEventListener("click", handler);
 
         _last_time = new Date().getTime();
 

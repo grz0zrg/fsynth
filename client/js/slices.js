@@ -400,8 +400,13 @@ var _submitRemoveSlice = function (id) {
 };
 
 var _muteSlice = function (slice_obj, submit) {
+    var play_position_top_hook_element = slice_obj.element.firstElementChild,
+        play_position_bottom_hook_element = slice_obj.element.lastElementChild;
+    
     slice_obj.mute = true;
     slice_obj.element.style.backgroundColor = "#555555";
+    //play_position_top_hook_element.style.borderTopColor = "#555555";
+    //play_position_bottom_hook_element.style.borderBottomColor = "#555555";
     
     if (submit) {
         _submitSliceUpdate(2, slice_obj.element.dataset.slice, { mute : true }); 
@@ -409,8 +414,13 @@ var _muteSlice = function (slice_obj, submit) {
 };
 
 var _unmuteSlice = function (slice_obj, submit) {
+    var play_position_top_hook_element = slice_obj.element.firstElementChild,
+        play_position_bottom_hook_element = slice_obj.element.lastElementChild;    
+
     slice_obj.mute = false;
     slice_obj.element.style.backgroundColor = "";
+    //play_position_top_hook_element.style.borderTopColor = "";
+    //play_position_bottom_hook_element.style.borderBottomColor = "";
     
     if (submit) {
         _submitSliceUpdate(2, slice_obj.element.dataset.slice, { mute : false });
@@ -438,6 +448,8 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, submit) {
         is_mute = false;
     } else {
         play_position_marker_element.style.backgroundColor = "#555555";
+        //play_position_top_hook_element.style.borderTopColor = "#555555";
+        //play_position_bottom_hook_element.style.borderBottomColor = "#555555";
     }
 
     play_position_marker_element.dataset.slice = play_position_marker_id;
