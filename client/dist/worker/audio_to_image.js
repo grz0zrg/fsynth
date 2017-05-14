@@ -6509,7 +6509,7 @@ var _convert = function (params, data) {
         frame = 0;
 
     if (note_samples > (window_size * 2)) {
-        postMessage("Conversion failed, there is " + note_samples + " samples to process for a window length (* 2) of " + (window_size * 2) + " please use different settings.");
+        postMessage("Conversion failed, there is " + note_samples + " samples to process for a window length (* 2) of " + (window_size * 2) + ", please use different settings.");
     }
 
     if (_stereo) {
@@ -6562,7 +6562,7 @@ var _convert = function (params, data) {
                         
                     mag = Math.round((Math.sqrt(r * r + im * im) / hop_divisor) * 255);
                     
-                    index = Math.round((image_height_m1 - ((k - start) / hid * image_height))) * image_width * 4 + frame;
+                    index = Math.round((((k - start) / hid * image_height))) * image_width * 4 + frame;
 
                     image_data[index    ] = mag;
                     image_data[index + 1] = mag;
@@ -6588,6 +6588,7 @@ var _convert = function (params, data) {
     }
     
     // mag. normalization
+/*
     for (i = 0; i < image_data.length; i += 4) {
         n = image_data[i];
         amax = n > amax ? n : amax;
@@ -6600,6 +6601,7 @@ var _convert = function (params, data) {
         image_data[i + 1] *= adiff;
         image_data[i + 2] *= adiff;
     }
+*/
 
     return { width: image_width, height: image_height, data: image_data };
 };

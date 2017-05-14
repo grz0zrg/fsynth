@@ -319,11 +319,11 @@ canvas {
 
 .fs-input-panel {
     width: calc(100% - 648px - 16px);
-    height: 32px;
-/*    
+/*
+    height: 32px;   
     background-color: #111111;
 */
-    display: inline-block;
+    display: inline;
     
     overflow-y: auto;
 }
@@ -808,7 +808,7 @@ canvas {
     border: solid 1px #333333;
     border-radius: 4px;
     background-color: #111111;
-    margin-top: 16px;
+    margin-top: 0px;
     margin-bottom: 6px;
     color: #ffffff;
 }

@@ -44,17 +44,21 @@ var _loadImageFromFile = function (file) {
         tmp_canvas_context = tmp_canvas.getContext('2d'),
         
         tmp_image_data;
+
+    _notification("loading image '" + file.name + "' (" + file.size + ")");
     
     img.onload = function () {
         tmp_canvas.width  = img.naturalWidth;
         tmp_canvas.height = img.naturalHeight;
 
-        tmp_canvas_context.translate(0, tmp_canvas.height);
-        tmp_canvas_context.scale(1, -1);
+        //tmp_canvas_context.translate(0, tmp_canvas.height);
+        //tmp_canvas_context.scale(1, -1);
         tmp_canvas_context.drawImage(img, 0, 0, tmp_canvas.width, tmp_canvas.height);
 
         tmp_image_data = tmp_canvas_context.getImageData(0, 0, tmp_canvas.width, tmp_canvas.height);
 
+        _notification("image processing in progress...");
+        
         _imageProcessor(tmp_image_data, _imageProcessingDone);
         
         img.onload = null;

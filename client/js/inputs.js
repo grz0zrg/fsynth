@@ -1,5 +1,155 @@
 /* jslint browser: true */
 
+/***********************************************************
+    Functions.
+************************************************************/
+
+var _createChannelSettingsDialog = function (input_channel_id) {
+    var dialog_element = document.createElement("div"),
+        content_element = document.createElement("div"),
+        
+        fragment_input_channel = _fragment_input_data[input_channel_id],
+        
+        channel_filter_select,
+        channel_wrap_s_select,
+        channel_wrap_t_select,
+        channel_vflip,
+    
+        channel_settings_dialog,
+        
+        tex_parameter,
+        
+        power_of_two_wrap_options = '<option value="repeat">repeat</option>' +
+                                    '<option value="mirror">mirrored repeat</option>';
+    
+    dialog_element.id = "fs_channel_settings_dialog";
+    
+    if (!_gl2) { // WebGL 2 does not have those limitations
+        if (!_isPowerOf2(fragment_input_channel.image.width) || !_isPowerOf2(fragment_input_channel.image.height) || fragment_input_channel.type === 1) {
+            power_of_two_wrap_options = "";
+        }
+    }
+    
+    dialog_element.style.fontSize = "13px";
+    
+    // create setting widgets
+    content_element.innerHTML = '&nbsp;&nbsp;<div><div class="fs-input-settings-label">Filter:</div>&nbsp;<select id="fs_channel_filter" class="fs-btn">' +
+                                '<option value="nearest">nearest</option>' +
+                                '<option value="linear">linear</option>' +
+                                '</select></div>' +
+                                '<div><div class="fs-input-settings-label">Wrap S:</div>&nbsp;<select id="fs_channel_wrap_s" class="fs-btn">' +
+                                '<option value="clamp">clamp</option>' +
+                                    power_of_two_wrap_options +
+                                '</select></div>' +
+                                '<div><div class="fs-input-settings-label">Wrap T:</div>&nbsp;<select id="fs_channel_wrap_t" class="fs-btn">' +
+                                '<option value="clamp">clamp</option>' +
+                                    power_of_two_wrap_options +
+                                '</select></div>' +
+                                '&nbsp;&nbsp;<div><label><div class="fs-input-settings-label">VFlip:</div>&nbsp;<input id="fs_channel_vflip" value="No" type="checkbox"></label></div>';
+    
+    dialog_element.appendChild(content_element);
+    
+    document.body.appendChild(dialog_element);
+    
+    channel_filter_select = document.getElementById("fs_channel_filter");
+    channel_wrap_s_select = document.getElementById("fs_channel_wrap_s");
+    channel_wrap_t_select = document.getElementById("fs_channel_wrap_t");
+    channel_vflip = document.getElementById("fs_channel_vflip");
+    
+    _gl.bindTexture(_gl.TEXTURE_2D, fragment_input_channel.texture);
+    
+    if (_gl.getTexParameter(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER) === _gl.NEAREST) {
+        channel_filter_select.value = "nearest";
+    }
+    
+    tex_parameter = _gl.getTexParameter(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_S);
+    
+    if (tex_parameter === _gl.CLAMP_TO_EDGE) {
+        channel_wrap_s_select.value = "clamp";
+    } else if (tex_parameter === _gl.REPEAT) {
+        channel_wrap_s_select.value = "repeat";
+    } else if (tex_parameter === _gl.MIRRORED_REPEAT) {
+        channel_wrap_s_select.value = "mirror";
+    }
+    
+    tex_parameter = _gl.getTexParameter(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_T);
+    
+    if (tex_parameter === _gl.CLAMP_TO_EDGE) {
+        channel_wrap_t_select.value = "clamp";
+    } else if (tex_parameter === _gl.REPEAT) {
+        channel_wrap_t_select.value = "repeat";
+    } else if (tex_parameter === _gl.MIRRORED_REPEAT) {
+        channel_wrap_t_select.value = "mirror";
+    }
+    
+    if (fragment_input_channel.flip) {
+        channel_vflip.checked = true;
+    } else {
+        channel_vflip.checked = false;
+    }
+    
+    if (fragment_input_channel.type === 1) {
+        _flipYTexture(fragment_input_channel.texture, fragment_input_channel.flip);
+    }
+    
+    channel_filter_select.addEventListener("change", function () {
+            _setTextureFilter(fragment_input_channel.texture, this.value);
+        });
+    
+    channel_wrap_s_select.addEventListener("change", function () {
+            _setTextureWrapS(fragment_input_channel.texture, this.value);
+        });
+    
+    channel_wrap_t_select.addEventListener("change", function () {
+            _setTextureWrapT(fragment_input_channel.texture, this.value);
+        });
+    
+    channel_vflip.addEventListener("change", function () {
+            if (fragment_input_channel.type === 1) {
+                if (channel_vflip.checked) {
+                    _flipYTexture(fragment_input_channel.texture, true);
+                } else {
+                    _flipYTexture(fragment_input_channel.texture, false);
+                }
+            } else {
+                var new_texture = _flipTexture(fragment_input_channel.texture, fragment_input_channel.image);
+        
+                fragment_input_channel.texture = new_texture;
+            }
+            fragment_input_channel.flip = !fragment_input_channel.flip;
+        });
+    
+    channel_settings_dialog = WUI_Dialog.create(dialog_element.id, {
+        title: _input_channel_prefix + input_channel_id + " settings",
+
+        width: "200px",
+        height: "230px",
+
+        halign: "center",
+        valign: "center",
+
+        open: true,
+        minimized: false,
+
+        on_close: function () {
+            WUI_Dialog.destroy(channel_settings_dialog);
+        },
+
+        modal: true,
+        status_bar: false,
+
+        closable: true,
+        draggable: true,
+        minimizable: false,
+
+        resizable: false,
+
+        detachable: false,
+
+        min_width: 200,
+        min_height: 250
+    });
+};
 
 var _imageProcessor = function (image_data, image_processing_done_cb) {
     var worker = new Worker("dist/worker/image_processor.min.js");
@@ -102,12 +252,13 @@ var _addFragmentInput = function (type, input) {
 
     if (type === "image") {
         data = _create2DTexture(input, false, true);
+        data.texture = _flipTexture(data.texture, data.image);
 
         _fragment_input_data.push({
                 type: 0,
                 image: data.image,
                 texture: data.texture,
-                flip: true,
+                flip: false,
                 elem: null
             });
 

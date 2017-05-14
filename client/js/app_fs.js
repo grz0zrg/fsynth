@@ -330,6 +330,8 @@ var FragmentSynth = function (params) {
     /*#include editor.js*/
     /*#include transports.js*/
     /*#include ui.js*/
+    /*#include controls.js*/
+    /*#include slices.js*/
     /*#include midi.js*/
     /*#include fas.js*/
 
