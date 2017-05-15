@@ -159,7 +159,7 @@ var _showRecordDialog = function () {
 };
 
 var _onImportDialogClose = function () {
-    WUI_ToolBar.toggle(_wui_main_toolbar, 15);
+    WUI_ToolBar.toggle(_wui_main_toolbar, 14);
     
     WUI_Dialog.close(_import_dialog);
 };
@@ -181,10 +181,26 @@ var _showImportDialog = function (toggle_ev) {
 };
 
 var _toggleAdditiveRecord = function () {
-    if (_record_opts.additive) {
-        _record_opts.additive = false;
+    if (_record_opts.f === _record_opts.additive) {
+        _record_opts.f = _record_opts.default;
     } else {
-        _record_opts.additive = true;
+        _record_opts.f = _record_opts.additive;
+    }
+};
+
+var _toggleSubstractiveRecord = function () {
+    if (_record_opts.f === _record_opts.substractive) {
+        _record_opts.f = _record_opts.default;
+    } else {
+        _record_opts.f = _record_opts.substractive;
+    }
+};
+
+var _toggleMultiplyRecord = function () {
+    if (_record_opts.f === _record_opts.multiply) {
+        _record_opts.f = _record_opts.default;
+    } else {
+        _record_opts.f = _record_opts.multiply;
     }
 };
 
@@ -198,10 +214,14 @@ var _renderRecord = function () {
     }
 };
 
+var _rewindRecording = function () {
+    _record_position = 0;
+    
+    _record_canvas_ctx.clearRect(0, 0, _record_canvas.width, _record_canvas.height);
+};
+
 var _addRecordInput = function () {
-    var tmp_image_data = _record_canvas_ctx.getImageData(0, 0, _record_canvas.width, _record_canvas.height),
-        
-        img = new Image(),
+    var img = new Image(),
         
         tmp_canvas = document.createElement('canvas'),
         tmp_canvas_context = tmp_canvas.getContext('2d'),
@@ -213,7 +233,7 @@ var _addRecordInput = function () {
 
     tmp_canvas_context.translate(0, _record_canvas.height);
     tmp_canvas_context.scale(1, -1);
-    tmp_canvas_context.drawImage(tmp_image_data, 0, 0, tmp_canvas.width, tmp_canvas.height);
+    tmp_canvas_context.drawImage(_record_canvas, 0, 0, tmp_canvas.width, tmp_canvas.height);
     
     tmp_image_data = tmp_canvas_context.getImageData(0, 0, tmp_canvas.width, tmp_canvas.height);
     
@@ -616,7 +636,13 @@ var _uiInit = function () {
                         on_click: (function () { _addFragmentInput("camera"); }),
                         tooltip: "Webcam",
                         text: "Webcam"
-                    }
+                    }/*,
+                    {
+                        icon: "fs-record-icon",
+                        on_click: (function () { _addFragmentInput("record"); }),
+                        tooltip: "Record",
+                        text: "Record"
+                    }*/
                 ]
             });
     
@@ -738,6 +764,13 @@ var _uiInit = function () {
                 allow_groups_minimize: false
             },
             {
+                ctrl: [
+                    {
+                        icon: "fs-reset-icon",
+                        on_click: _rewindRecording,
+                        tooltip: "Reset recording"
+                    },
+                ],
                 opts: [
                     {
                         icon: "fs-plus-symbol-icon",
@@ -745,6 +778,22 @@ var _uiInit = function () {
                         toggle_state: false,
                         on_click: _toggleAdditiveRecord,
                         tooltip: "Additive",
+                        toggle_group: 0
+                    },
+                    {
+                        icon: "fs-minus-symbol-icon",
+                        type: "toggle",
+                        toggle_state: false,
+                        on_click: _toggleSubstractiveRecord,
+                        tooltip: "Substractive",
+                        toggle_group: 0
+                    },
+                    {
+                        icon: "fs-multiply-symbol-icon",
+                        type: "toggle",
+                        toggle_state: false,
+                        on_click: _toggleMultiplyRecord,
+                        tooltip: "Multiply",
                         toggle_group: 0
                     }
                 ],
@@ -864,12 +913,12 @@ var _uiInit = function () {
                     toggle_state: _xyf_grid,
                     on_click: _toggleGridInfos,
                     tooltip: "Hide/Show mouse hover axis grid"
-                },
+                }/*, // DISABLED (but work)
                 {
                     icon: "fs-spectrum-icon",
                     on_click: _showSpectrumDialog,
                     tooltip: "Audio analysis dialog"
-                },
+                }*/,
                 {
                     icon: "fs-function-icon",
                     on_click: _showOutlineDialog,

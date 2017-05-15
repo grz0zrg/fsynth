@@ -16002,8 +16002,21 @@ _utter_fail_element.innerHTML = "";
         _record_slice_image,
         _record_position = 0,
         _record = false,
+        _record_input_count = 0,
         _record_opts = {
-            additive: false
+            default: function (p, p2) {
+                return p2;
+            },
+            additive: function (p, p2) {
+                return p + p2;
+            },
+            substractive: function (p, p2) {
+                return p - p2;
+            },
+            multiply: function (p, p2) {
+                return p * p2;
+            },
+            f: null
         },
 
         _canvas_width  = 1024,
@@ -16173,7 +16186,6 @@ _utter_fail_element.innerHTML = "";
         _hover_freq = null,
 
         _input_channel_prefix = "iInput";
-
 
     /***********************************************************
         App. Includes.
@@ -17466,7 +17478,8 @@ var _frame = function (raf_time) {
     for (i = 0; i < _fragment_input_data.length; i += 1) {
         fragment_input = _fragment_input_data[i];
 
-        if (fragment_input.type === 0) { // 2D texture from image
+        if (fragment_input.type === 0 ||
+           fragment_input.type === 2) { // 2D texture from image
                 _gl.activeTexture(_gl.TEXTURE0 + i);
                 _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
                 _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
@@ -17566,7 +17579,7 @@ var _frame = function (raf_time) {
         }
     
         for (i = 0; i < _output_channels; i += 1) {
-            buffer.push(new Uint8Array(/*_data[i]*/_canvas_height_mul4));
+            buffer.push(new Uint8Array(_canvas_height_mul4));
         }
         
         if (_show_oscinfos) {
@@ -17594,39 +17607,54 @@ var _frame = function (raf_time) {
                 _record_position = 0;
             }
             
-            if (_record_opts.additive) {
+            // merge all
+            _temp_data = new Uint8Array(_canvas_height_mul4);
+            
+            for (i = 0; i < _output_channels; i += 1) {
+                for (j = 0; j <= _canvas_height_mul4; j += 1) {
+                    _temp_data[j] += _data[i][j];
+                }
+            }
+            
+            if (_record_opts.f !== _record_opts.default)  {
                 data = _record_canvas_ctx.getImageData(_record_position, 0, 1, _record_canvas.height).data;
             } else {
-                data = new Uint8ClampedArray(_canvas_height_mul4);
+                data = new Uint8Array(_canvas_height_mul4);
             }
             
             if (_audio_infos.monophonic) {
-                for (j = 0; j < _output_channels; j += 1) {
-                    for (i = 0; i <= _canvas_height_mul4; i += 4) {
-                        o = _canvas_height_mul4 - i;
-                        
-                        data[o] += _data[j][i + 3];
-                        data[o + 1] += _data[j][i + 3];
-                        data[o + 2] += _data[j][i + 3];
-                        data[o + 3] = 255;
-                    }
+                for (i = 0; i <= _canvas_height_mul4; i += 4) {
+                    o = _canvas_height_mul4 - i;
+
+                    data[o] = _record_opts.f(data[o], _temp_data[i + 3]);
+                    data[o + 1] = _record_opts.f(data[o + 1], _temp_data[i + 3]);
+                    data[o + 2] = _record_opts.f(data[o + 2], _temp_data[i + 3]);
+                    data[o + 3] = 255;
                 }
             } else {
-                for (j = 0; j < _output_channels; j += 1) {
-                    for (i = 0; i <= _canvas_height_mul4; i += 4) {
-                        o = _canvas_height_mul4 - i;
-                        
-                        data[o] += _data[j][i];
-                        data[o + 1] += _data[j][i + 1];
-                        data[o + 2] += _data[j][i + 2];
-                        data[o + 3] = 255;
-                    }
+                for (i = 0; i <= _canvas_height_mul4; i += 4) {
+                    o = _canvas_height_mul4 - i;
+
+                    data[o] = _record_opts.f(data[o], _temp_data[i]);
+                    data[o + 1] = _record_opts.f(data[o + 1], _temp_data[i + 1]);
+                    data[o + 2] = _record_opts.f(data[o + 2], _temp_data[i + 2]);
+                    data[o + 3] = 255;
                 }
             }
             
             _record_slice_image.data.set(data);
             
             _record_canvas_ctx.putImageData(_record_slice_image, _record_position, 0);
+/*
+            for (i = 0; i < _fragment_input_data.length; i += 1) {
+                fragment_input = _fragment_input_data[i];
+
+                if (fragment_input.type === 2) {
+                    _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
+                    _gl.texSubImage2D(_gl.TEXTURE_2D, 0, 0, 0, _gl.RGBA, _gl.UNSIGNED_BYTE, _record_canvas);
+                }
+            }
+*/
         }
         
         if (fas_enabled) {
@@ -17825,7 +17853,8 @@ var _compile = function () {
         fragment_input = _fragment_input_data[i];
 
         if (fragment_input.type === 0 ||
-           fragment_input.type === 1) { // 2D texture from either image or webcam type
+           fragment_input.type === 1 ||
+           fragment_input.type === 2) { // 2D texture from either image or webcam type
             glsl_code += "uniform sampler2D iInput" + i + ";";
         }
     }
@@ -18925,6 +18954,27 @@ var _addFragmentInput = function (type, input) {
         _fragment_input_data[input_id].elem = _createInputThumb(input_id, input_thumb, _input_channel_prefix + input_id);
 
         _compile();
+/*
+    } else if (type === "record") {
+        image = _record_canvas_ctx;
+        data = _create2DTexture(_record_canvas_ctx.getImageData(0, 0, _record_canvas.width, _record_canvas.height), false, true);
+
+        _fragment_input_data.push({
+                type: 2,
+                image: data.image,
+                texture: data.texture,
+                flip: false,
+                elem: null
+            });
+
+        input_thumb = input;
+
+        _fragment_input_data[input_id].elem = _createInputThumb(input_id, { src: "data/ui-icons/record.png"}, _input_channel_prefix + input_id);
+
+        _compile();
+        
+        _record_input_count += 1;
+*/
     } else if (type === "camera") {
         video_element = document.createElement('video');
         video_element.width = 320;
@@ -19328,7 +19378,7 @@ var _showRecordDialog = function () {
 };
 
 var _onImportDialogClose = function () {
-    WUI_ToolBar.toggle(_wui_main_toolbar, 15);
+    WUI_ToolBar.toggle(_wui_main_toolbar, 14);
     
     WUI_Dialog.close(_import_dialog);
 };
@@ -19350,10 +19400,26 @@ var _showImportDialog = function (toggle_ev) {
 };
 
 var _toggleAdditiveRecord = function () {
-    if (_record_opts.additive) {
-        _record_opts.additive = false;
+    if (_record_opts.f === _record_opts.additive) {
+        _record_opts.f = _record_opts.default;
     } else {
-        _record_opts.additive = true;
+        _record_opts.f = _record_opts.additive;
+    }
+};
+
+var _toggleSubstractiveRecord = function () {
+    if (_record_opts.f === _record_opts.substractive) {
+        _record_opts.f = _record_opts.default;
+    } else {
+        _record_opts.f = _record_opts.substractive;
+    }
+};
+
+var _toggleMultiplyRecord = function () {
+    if (_record_opts.f === _record_opts.multiply) {
+        _record_opts.f = _record_opts.default;
+    } else {
+        _record_opts.f = _record_opts.multiply;
     }
 };
 
@@ -19367,10 +19433,14 @@ var _renderRecord = function () {
     }
 };
 
+var _rewindRecording = function () {
+    _record_position = 0;
+    
+    _record_canvas_ctx.clearRect(0, 0, _record_canvas.width, _record_canvas.height);
+};
+
 var _addRecordInput = function () {
-    var tmp_image_data = _record_canvas_ctx.getImageData(0, 0, _record_canvas.width, _record_canvas.height),
-        
-        img = new Image(),
+    var img = new Image(),
         
         tmp_canvas = document.createElement('canvas'),
         tmp_canvas_context = tmp_canvas.getContext('2d'),
@@ -19382,9 +19452,9 @@ var _addRecordInput = function () {
 
     tmp_canvas_context.translate(0, _record_canvas.height);
     tmp_canvas_context.scale(1, -1);
-    tmp_canvas_context.drawImage(tmp_image_data, 0, 0, tmp_canvas.width, tmp_canvas.height);
+    tmp_canvas_context.drawImage(_record_canvas, 0, 0, tmp_canvas.width, tmp_canvas.height);
     
-    tmp_image_data = tmp_canvas_context.getImageData(0, 0, tmp_canvas.width, tmp_canvas.height)
+    tmp_image_data = tmp_canvas_context.getImageData(0, 0, tmp_canvas.width, tmp_canvas.height);
     
     _imageDataToInput(tmp_image_data);
 };
@@ -19785,7 +19855,13 @@ var _uiInit = function () {
                         on_click: (function () { _addFragmentInput("camera"); }),
                         tooltip: "Webcam",
                         text: "Webcam"
-                    }
+                    }/*,
+                    {
+                        icon: "fs-record-icon",
+                        on_click: (function () { _addFragmentInput("record"); }),
+                        tooltip: "Record",
+                        text: "Record"
+                    }*/
                 ]
             });
     
@@ -19907,6 +19983,13 @@ var _uiInit = function () {
                 allow_groups_minimize: false
             },
             {
+                ctrl: [
+                    {
+                        icon: "fs-reset-icon",
+                        on_click: _rewindRecording,
+                        tooltip: "Reset & clear"
+                    },
+                ],
                 opts: [
                     {
                         icon: "fs-plus-symbol-icon",
@@ -19914,6 +19997,22 @@ var _uiInit = function () {
                         toggle_state: false,
                         on_click: _toggleAdditiveRecord,
                         tooltip: "Additive",
+                        toggle_group: 0
+                    },
+                    {
+                        icon: "fs-minus-symbol-icon",
+                        type: "toggle",
+                        toggle_state: false,
+                        on_click: _toggleSubstractiveRecord,
+                        tooltip: "Substractive",
+                        toggle_group: 0
+                    },
+                    {
+                        icon: "fs-multiply-symbol-icon",
+                        type: "toggle",
+                        toggle_state: false,
+                        on_click: _toggleMultiplyRecord,
+                        tooltip: "Multiply",
                         toggle_group: 0
                     }
                 ],
@@ -20033,12 +20132,12 @@ var _uiInit = function () {
                     toggle_state: _xyf_grid,
                     on_click: _toggleGridInfos,
                     tooltip: "Hide/Show mouse hover axis grid"
-                },
+                }/*, // DISABLED (but work)
                 {
                     icon: "fs-spectrum-icon",
                     on_click: _showSpectrumDialog,
                     tooltip: "Audio analysis dialog"
-                },
+                }*/,
                 {
                     icon: "fs-function-icon",
                     on_click: _showOutlineDialog,
@@ -21960,6 +22059,8 @@ var _fasInit = function () {
     /***********************************************************
         Init.
     ************************************************************/
+    
+    _record_opts.f = _record_opts.default;
     
     _code_editor_extern = localStorage.getItem('fs-exted');
     

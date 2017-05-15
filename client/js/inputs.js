@@ -351,6 +351,27 @@ var _addFragmentInput = function (type, input) {
         _fragment_input_data[input_id].elem = _createInputThumb(input_id, input_thumb, _input_channel_prefix + input_id);
 
         _compile();
+/*
+    } else if (type === "record") {
+        image = _record_canvas_ctx;
+        data = _create2DTexture(_record_canvas_ctx.getImageData(0, 0, _record_canvas.width, _record_canvas.height), false, true);
+
+        _fragment_input_data.push({
+                type: 2,
+                image: data.image,
+                texture: data.texture,
+                flip: false,
+                elem: null
+            });
+
+        input_thumb = input;
+
+        _fragment_input_data[input_id].elem = _createInputThumb(input_id, { src: "data/ui-icons/record.png"}, _input_channel_prefix + input_id);
+
+        _compile();
+        
+        _record_input_count += 1;
+*/
     } else if (type === "camera") {
         video_element = document.createElement('video');
         video_element.width = 320;

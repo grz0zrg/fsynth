@@ -107,6 +107,10 @@
     background-image: url("../data/ui-icons/midi.png");
 }
 
+.fs-minus-symbol-icon {
+    background-image: url("../data/ui-icons/minus_symbolic.png");
+}
+
 .fs-plus-symbol-icon {
     background-image: url("../data/ui-icons/plus_symbolic.png");
 }

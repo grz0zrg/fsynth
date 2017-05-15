@@ -318,7 +318,7 @@ canvas {
 }
 
 .fs-input-panel {
-    width: calc(100% - 648px - 16px);
+    width: calc(100% - 610px - 16px);
 /*
     height: 32px;   
     background-color: #111111;
@@ -600,7 +600,7 @@ canvas {
 }
 
 .fs-middle-toolbar {
-    width: 648px;
+    width: 610px;
     
     margin: 0;
     

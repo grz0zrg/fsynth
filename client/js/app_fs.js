@@ -139,8 +139,21 @@ var FragmentSynth = function (params) {
         _record_slice_image,
         _record_position = 0,
         _record = false,
+        _record_input_count = 0,
         _record_opts = {
-            additive: false
+            default: function (p, p2) {
+                return p2;
+            },
+            additive: function (p, p2) {
+                return p + p2;
+            },
+            substractive: function (p, p2) {
+                return p - p2;
+            },
+            multiply: function (p, p2) {
+                return p * p2;
+            },
+            f: null
         },
 
         _canvas_width  = 1024,
@@ -311,7 +324,6 @@ var FragmentSynth = function (params) {
 
         _input_channel_prefix = "iInput";
 
-
     /***********************************************************
         App. Includes.
     ************************************************************/
@@ -451,6 +463,8 @@ var FragmentSynth = function (params) {
     /***********************************************************
         Init.
     ************************************************************/
+    
+    _record_opts.f = _record_opts.default;
     
     _code_editor_extern = localStorage.getItem('fs-exted');
     

@@ -385,7 +385,8 @@ var _frame = function (raf_time) {
     for (i = 0; i < _fragment_input_data.length; i += 1) {
         fragment_input = _fragment_input_data[i];
 
-        if (fragment_input.type === 0) { // 2D texture from image
+        if (fragment_input.type === 0 ||
+           fragment_input.type === 2) { // 2D texture from image
                 _gl.activeTexture(_gl.TEXTURE0 + i);
                 _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
                 _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
@@ -485,7 +486,7 @@ var _frame = function (raf_time) {
         }
     
         for (i = 0; i < _output_channels; i += 1) {
-            buffer.push(new Uint8Array(/*_data[i]*/_canvas_height_mul4));
+            buffer.push(new Uint8Array(_canvas_height_mul4));
         }
         
         if (_show_oscinfos) {
@@ -513,39 +514,54 @@ var _frame = function (raf_time) {
                 _record_position = 0;
             }
             
-            if (_record_opts.additive) {
+            // merge all
+            _temp_data = new Uint8Array(_canvas_height_mul4);
+            
+            for (i = 0; i < _output_channels; i += 1) {
+                for (j = 0; j <= _canvas_height_mul4; j += 1) {
+                    _temp_data[j] += _data[i][j];
+                }
+            }
+            
+            if (_record_opts.f !== _record_opts.default)  {
                 data = _record_canvas_ctx.getImageData(_record_position, 0, 1, _record_canvas.height).data;
             } else {
-                data = new Uint8ClampedArray(_canvas_height_mul4);
+                data = new Uint8Array(_canvas_height_mul4);
             }
             
             if (_audio_infos.monophonic) {
-                for (j = 0; j < _output_channels; j += 1) {
-                    for (i = 0; i <= _canvas_height_mul4; i += 4) {
-                        o = _canvas_height_mul4 - i;
-                        
-                        data[o] += _data[j][i + 3];
-                        data[o + 1] += _data[j][i + 3];
-                        data[o + 2] += _data[j][i + 3];
-                        data[o + 3] = 255;
-                    }
+                for (i = 0; i <= _canvas_height_mul4; i += 4) {
+                    o = _canvas_height_mul4 - i;
+
+                    data[o] = _record_opts.f(data[o], _temp_data[i + 3]);
+                    data[o + 1] = _record_opts.f(data[o + 1], _temp_data[i + 3]);
+                    data[o + 2] = _record_opts.f(data[o + 2], _temp_data[i + 3]);
+                    data[o + 3] = 255;
                 }
             } else {
-                for (j = 0; j < _output_channels; j += 1) {
-                    for (i = 0; i <= _canvas_height_mul4; i += 4) {
-                        o = _canvas_height_mul4 - i;
-                        
-                        data[o] += _data[j][i];
-                        data[o + 1] += _data[j][i + 1];
-                        data[o + 2] += _data[j][i + 2];
-                        data[o + 3] = 255;
-                    }
+                for (i = 0; i <= _canvas_height_mul4; i += 4) {
+                    o = _canvas_height_mul4 - i;
+
+                    data[o] = _record_opts.f(data[o], _temp_data[i]);
+                    data[o + 1] = _record_opts.f(data[o + 1], _temp_data[i + 1]);
+                    data[o + 2] = _record_opts.f(data[o + 2], _temp_data[i + 2]);
+                    data[o + 3] = 255;
                 }
             }
             
             _record_slice_image.data.set(data);
             
             _record_canvas_ctx.putImageData(_record_slice_image, _record_position, 0);
+/*
+            for (i = 0; i < _fragment_input_data.length; i += 1) {
+                fragment_input = _fragment_input_data[i];
+
+                if (fragment_input.type === 2) {
+                    _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
+                    _gl.texSubImage2D(_gl.TEXTURE_2D, 0, 0, 0, _gl.RGBA, _gl.UNSIGNED_BYTE, _record_canvas);
+                }
+            }
+*/
         }
         
         if (fas_enabled) {

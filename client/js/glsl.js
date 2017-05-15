@@ -171,7 +171,8 @@ var _compile = function () {
         fragment_input = _fragment_input_data[i];
 
         if (fragment_input.type === 0 ||
-           fragment_input.type === 1) { // 2D texture from either image or webcam type
+           fragment_input.type === 1 ||
+           fragment_input.type === 2) { // 2D texture from either image or webcam type
             glsl_code += "uniform sampler2D iInput" + i + ";";
         }
     }
