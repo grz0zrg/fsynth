@@ -123,6 +123,17 @@ var _fp_main = function (join_cb) {
         localStorage.removeItem(_session_list_ls_key);
     };
     
+    var _sessionFormNotification = function (msg) {
+        var validation_element = document.getElementById("fp_session_form_validation");  
+        validation_element.style.display = "";
+        validation_element.innerHTML = msg;
+    };
+    
+    var _hideSessionFormNotification = function () {
+        var validation_element = document.getElementById("fp_session_form_validation");  
+        validation_element.style.display = "none";
+    };
+    
     var _getSessionName = function () {
         if (_session_name_element.value === "") {
             return _session_name_element.placeholder;
@@ -141,18 +152,28 @@ var _fp_main = function (join_cb) {
 
     var _setSession = function (name) {
             if (join_cb) {
-                return;
+                return false;
             }
         
-            if (name.length > 128) { // TODO : Handle notification about session validation
-                return;
+            if (name.length > 100) {
+                _sessionFormNotification("Session name is above the maximum limit of 100 characters.")
+                _session_btn_element.href = "#";
+                return false;
+            }
+        
+            if (name.length === 0) {
+                name = _session_name_element.placeholder;
             }
         
             _session_btn_element.href = "app/" + name;
+        
+            _hideSessionFormNotification();
+        
+            return true;
         };
     
     var _isCompatibleBrowser = function () {
-        // check browser compatibility
+        // TODO: check browser compatibility
     };
     
     var _joinSessionFn = function (name) {
@@ -160,7 +181,9 @@ var _fp_main = function (join_cb) {
             if (join_cb) {
                 join_cb(name);
             } else {
-                _setSession(name);
+                if (!_setSession(name)) {
+                    return;
+                }
 
                 location.href = "app/" + name;
             }

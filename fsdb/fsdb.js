@@ -39,7 +39,7 @@ if (cluster.isMaster) {
 
         clusterControl.restart();
     });
-    
+
     process.on('SIGUSR2', function() {
         logger.info("Workers status:", clusterControl.status().workers);
     });
@@ -51,10 +51,10 @@ var clientVerification = function (info) {
     if (fsynthcommon.allow_fsdb_origin.indexOf(info.origin) !== -1) {
         logger.info("%s %s %s %s %s", process.pid, info.req.socket.remoteAddress, 'Client', 'user-agent:', info.req.headers['user-agent']);
         logger.info("%s %s %s %s %s", process.pid, info.req.socket.remoteAddress, 'Client', 'accept-language:', info.req.headers['accept-language']);
-        
+
         return true;
     }
-    
+
     logger.warn("%s %s %s %s", process.pid, info.req.socket.remoteAddress, 'Client refused:\n', info.req.rawHeaders);
 
     return false;
@@ -63,6 +63,38 @@ var clientVerification = function (info) {
 const db = require('sharedb-mongo')('mongodb://localhost:27017/fs');
 
 var share = new ShareDB({ db: db, pubsub: shareDbRedisPubSub('redis://localhost:6379/0') });
+
+share.use('receive', function (request, next) {
+        var collection_length = 0,
+            collection_name_regexp = /[$\0]+/g,
+            collection_name = "";
+
+        // Reject collection names which do not begin with an underscore and have not allowed character to avoid issues with reserved mongodb names
+        // this is an ugly solution as it force the collection to be a "_trashbin" collection if it doesn't meet the requirement... but who care with proper client-side verifications? anyway... until a better solution is found
+        if (request['collection'] !== undefined) {
+            if (request.collection.indexOf("_") !== 0 || collection_name_regexp.test(request.collection)) {
+                collection_name = request.collection
+                request.collection = "_trashbin";
+                next("Collection name " + collection_name + " invalid.");
+            }
+        }
+
+        if (request.data['c'] !== undefined) {
+            if (request.data.c.indexOf("_") !== 0 || collection_name_regexp.test(request.data.c)) {
+                collection_name = request.data.c;
+                request.data.c = "_trashbin";
+                next("Collection name " + collection_name + " invalid.");
+            }
+
+            collection_length = request.data.c.length - 1;
+        }
+
+        if (collection_length <= 100) {
+            next();
+        } else {
+            next("Collection name has invalid length.");
+        }
+    });
 
 var sharedb_logger = new ShareDB_logger(share);
 
@@ -87,7 +119,7 @@ wss.on('connection', function(ws, req) {
 
     logger.info("%s %s %s", process.pid, real_ip, "connected");
     logger.info('%s Total clients: %s', process.pid, wss.clients.length);
-    
+
     var stream = new WebSocketJSONStream(ws);
     share.listen(stream);
 });

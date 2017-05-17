@@ -5,9 +5,6 @@ rm -rf *
 cd ..
 tar -cf - -T prod_files | (cd prod_dir && tar xf -)
 
-uglifyjs prod_dir/client/js/worker/image_processor.js --screw-ie8 --compress --reserve-domprops --mangle -o prod_dir/client/js/worker/image_processor.js
-uglifyjs prod_dir/client/js/worker/notes_buffer.js --screw-ie8 --compress --reserve-domprops --mangle -o prod_dir/client/js/worker/notes_buffer.js
-uglifyjs prod_dir/client/js/worker/fas.js --screw-ie8 --compress --reserve-domprops --mangle -o prod_dir/client/js/worker/fas.js
 remove-html-comments prod_dir/client/index.html prod_dir/client/index.html
 remove-html-comments prod_dir/www/index.html prod_dir/www/index.html
 remove-html-comments prod_dir/placeholder/index.html prod_dir/placeholder/index.html

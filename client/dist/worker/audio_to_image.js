@@ -6296,6 +6296,28 @@ var _webMIDISupport = function () {
     }
 };
 
+var _objSwap = function (src, dst) {
+    var k = null,
+        
+        dst_data = null;
+    
+    for (k in src) {
+        dst_data = dst[k];
+        
+        dst[k] = src[k];
+        src[k] = dst_data;
+    }
+};
+
+var _swapArrayItem = function (arr, a, b) {
+    var temp = arr[a];
+    
+    arr[a] = arr[b];
+    arr[b] = temp;
+    
+    return arr;
+};
+
 var _isPowerOf2 = function (value) {
     return (value & (value - 1)) === 0;
 };

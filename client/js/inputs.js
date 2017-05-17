@@ -148,7 +148,17 @@ var _createChannelSettingsDialog = function (input_channel_id) {
         detachable: false,
 
         min_width: 200,
-        min_height: 250
+        min_height: 250,
+        
+        header_btn: [
+            {
+                title: "Help",
+                on_click: function () {
+                    window.open(_documentation_link + "#subsec5_5"); 
+                },
+                class_name: "fs-help-icon"
+            }
+        ]
     });
 };
 

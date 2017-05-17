@@ -211,8 +211,6 @@ redisClient.on('connect', function() {
         logger.info('%s Total clients: %s', process.pid, wss.clients.length);
 
         ws.on('message', function incoming (message) {
-            //logger.info(process.pid, '-', message);
-
             var msg, session;
 
             try {

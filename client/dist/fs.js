@@ -10,22 +10,22 @@ var WUI_Dialog = new (function() {
 
     /***********************************************************
         Private section.
-        
+
         Fields.
     ************************************************************/
-    
+
     var _self = this,
-    
+
         _widget_list = {},
-        
+
         _dragged_dialog = null,
         _resized_dialog = null,
-        
+
         _touch_identifier = null,
-        
+
         _drag_x = 0,
         _drag_y = 0,
-        
+
         _resize_start_x = 0,
         _resize_start_y = 0,
 
@@ -51,13 +51,13 @@ var WUI_Dialog = new (function() {
             modal:          "wui-dialog-modal",
             status_bar:     "wui-dialog-status-bar"
         },
-        
+
         _known_options = {
             title: "",
-            
+
             width: "80%",
             height: "40%",
-            
+
             open: true,
 
             closable: true,
@@ -65,9 +65,11 @@ var WUI_Dialog = new (function() {
             draggable: false,
             resizable: false,
             detachable: false,
-            
+
             min_width: "title",
             min_height: 32,
+
+            header_btn: null,
 
             status_bar: false,
             status_bar_content: "",
@@ -76,12 +78,12 @@ var WUI_Dialog = new (function() {
 
             halign: "left", // 'left', 'center', 'right'
             valign: "top", // 'top', 'center', 'bottom'
-            
+
             top: 0,
             left: 0,
 
             modal: false,
-            
+
             minimized: false,
 
             on_close: null,
@@ -89,10 +91,10 @@ var WUI_Dialog = new (function() {
             on_pre_detach: null,
             on_resize: null
         };
-    
+
     /***********************************************************
         Private section.
-        
+
         Initialization.
     ************************************************************/
 
@@ -133,10 +135,10 @@ var WUI_Dialog = new (function() {
 
         Functions.
     ************************************************************/
-    
+
     var _removeDetachedWindow = function (widget) {
         var i = 0;
-        
+
         for (i = 0; i < _detached_windows.length; i += 1) {
             if (_detached_windows[i] === widget.detachable_ref) {
                 _detached_windows.splice(i, 1);
@@ -200,7 +202,7 @@ var WUI_Dialog = new (function() {
         var cz_index = 0,
 
             tmp_dialog = null,
-            
+
             elem = null,
 
             widget = _widget_list[dialog.id];
@@ -222,15 +224,15 @@ var WUI_Dialog = new (function() {
                 }
             }
         }
-        
+
         // traverse backward to see if it is contained by another dialog and focus all the parents, note: could be done once for performances
         elem = widget.dialog.parentElement;
-        
+
         while (elem !== null) {
             if (elem.classList.contains(_class_name.dialog)) {
                 elem.style.zIndex = 101;
             }
-            
+
             elem = elem.parentElement;
         }
 
@@ -283,9 +285,9 @@ var WUI_Dialog = new (function() {
 
     var _minimize = function (minimize_btn, dialog) {
         var widget = _widget_list[dialog.id],
-            
+
             resize_handler = widget.resize_handler;
-        
+
         if (widget.dialog !== dialog) {
             _minimize(widget.header_minimaxi_btn, widget.dialog);
         }
@@ -294,7 +296,7 @@ var WUI_Dialog = new (function() {
         minimize_btn.classList.toggle(_class_name.maximize);
 
         dialog.classList.toggle(_class_name.minimized);
-        
+
         if (dialog.classList.contains(_class_name.minimized)) {
             dialog.style.borderStyle = "solid";
             dialog.style.borderColor = "#808080";
@@ -432,7 +434,7 @@ var WUI_Dialog = new (function() {
             child_window = widget.detachable_ref,
 
             css, css_html, i, dbc = dialog.getBoundingClientRect();
-        
+
         if (widget.opts.on_pre_detach) {
             widget.opts.on_pre_detach();
         }
@@ -465,7 +467,7 @@ var WUI_Dialog = new (function() {
             "height=" + h,
             "top=" + (dbc.top + screen_top + 32),//((window_h-h)/2 + screen_top),
             "left=" + (dbc.left  + screen_left)].join(','));//((window_w-w) / 2 + screen_left)].join(','));
-        
+
         widget.detachable_ref = child_window;
 
         css_html = "";
@@ -509,7 +511,7 @@ var WUI_Dialog = new (function() {
 
             child_window.document.body.appendChild(new_status_bar);
         }
-        
+
         child_window.addEventListener("keyup", function (ev) { if (ev.keyCode !== 27) { return; } _close(dialog, true, true, true); }, false);
 
         child_window.addEventListener("resize", function () { _onWindowResize(child_window); }, false);
@@ -549,117 +551,117 @@ var WUI_Dialog = new (function() {
             _detach(dialog);
         }
     };
-    
+
     var _onKeyUp = function (ev) {
         if (ev.keyCode !== 27) {
             return;
         }
-        
+
         var key, widget;
-        
-        for(key in _widget_list) { 
+
+        for(key in _widget_list) {
             if (_widget_list.hasOwnProperty(key)) {
                 widget = _widget_list[key];
-                
+
                 if (widget.opts.closable &&
-                    widget.dialog.style.zIndex === "101" && 
+                    widget.dialog.style.zIndex === "101" &&
                     widget.dialog.classList.contains(_class_name.open)) {
                     _self.close(key, true);
-                    
+
                     return;
                 }
             }
         }
     };
-    
+
     var _windowMouseMove = function (ev) {
         if (!_dragged_dialog) {
             return;
         }
 
         ev.preventDefault();
-        
+
         var widget = _widget_list[_dragged_dialog.id],
-        
+
             x = ev.clientX,
             y = ev.clientY,
-            
+
             touches = ev.changedTouches,
-            
+
             touch = null,
-            
+
             i,
-            
+
             new_x, new_y;
-        
+
         if (touches) {
             for (i = 0; i < touches.length; i += 1) {
                 touch = touches[i];
-                
+
                 if (touch.identifier === _touch_identifier) {
                     x = touches[i].clientX;
                     y = touches[i].clientY;
-                    
+
                     break;
                 }
             }
         }
-        
+
         new_x = x - _drag_x;
         new_y = y - _drag_y;
 
         _dragged_dialog.style.left = new_x + 'px';
         _dragged_dialog.style.top  = new_y + 'px';
-        
+
         if (widget.dialog !== _dragged_dialog) {
             widget.dialog.style.left = new_x + 'px';
             widget.dialog.style.top  = new_y + 'px';
         }
     };
-    
+
     var _windowMouseUp = function (ev) {
         if (!_dragged_dialog) {
             return;
         }
 
         var touches = ev.changedTouches,
-            
+
             touch = null,
-            
+
             i,
 
             owner_doc = _dragged_dialog.ownerDocument,
             owner_win = owner_doc.defaultView || owner_doc.parentWindow;
-        
+
         if (touches) {
             for (i = 0; i < touches.length; i += 1) {
                 touch = touches[i];
-                
+
                 if (touch.identifier === _touch_identifier) {
                     _dragged_dialog = null;
-                    
+
                     owner_doc.body.style.cursor = "default";
-                    
+
                     owner_win.removeEventListener('touchmove', _windowMouseMove, false);
                     owner_win.removeEventListener('touchend', _windowMouseUp, false);
-                    
+
                     break;
                 }
             }
         } else {
             _dragged_dialog = null;
-            
+
             owner_doc.body.style.cursor = "default";
-            
+
             owner_win.removeEventListener('mousemove', _windowMouseMove, false);
             owner_win.removeEventListener('mouseup', _windowMouseUp, false);
         }
     };
-    
+
     var _onMouseDown = function (ev) {
         var x = ev.clientX,
             y = ev.clientY,
-            
+
             left = 0,
             top = 0,
 
@@ -669,36 +671,36 @@ var WUI_Dialog = new (function() {
             owner_win,
 
             dragged_dialog;
-        
+
         ev.preventDefault();
 
         if (_dragged_dialog === null) {
             if (touches) {
                 _touch_identifier = touches[0].identifier;
-                
+
                 x = touches[0].clientX;
                 y = touches[0].clientY;
             } else if (ev.button !== 0) {
                 return;
             }
         }
-        
+
         dragged_dialog = ev.target.parentElement;
 
         if (dragged_dialog.classList.contains(_class_name.maximize) ||
            !dragged_dialog.classList.contains(_class_name.draggable)) {
             return;
         }
-        
+
         _dragged_dialog = dragged_dialog;
 
         owner_doc = _dragged_dialog.ownerDocument;
         owner_win = owner_doc.defaultView || owner_doc.parentWindow;
 
         _focus(_dragged_dialog);
-        
+
         owner_doc.body.style.cursor = "move";
-        
+
         left = parseInt(_dragged_dialog.style.left, 10);
         top = parseInt(_dragged_dialog.style.top,  10);
 
@@ -711,7 +713,7 @@ var WUI_Dialog = new (function() {
         owner_win.addEventListener('mouseup',  _windowMouseUp, false);
         owner_win.addEventListener('touchend', _windowMouseUp, false);
     };
-    
+
     var _onStartResize = function (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -860,22 +862,22 @@ var WUI_Dialog = new (function() {
             }
         }
     };
-    
+
     var _createFailed = function () {
         console.log("WUI_RangeSlider 'create' failed, first argument not an id nor a DOM element.");
     };
 
     /***********************************************************
         Public section.
-        
+
         Functions.
     ************************************************************/
 
-    this.create = function (id, options) { 
+    this.create = function (id, options) {
         var dialog,
-            
+
             header = document.createElement("div"),
-            
+
             resize_handler = null,
 
             header_detach_btn    = null,
@@ -884,42 +886,47 @@ var WUI_Dialog = new (function() {
             header_title         = null,
             header_title_wrapper = null,
 
+            element = null,
+            opt = null,
+
             status_bar = null,
-            
+
             opts = {},
-            
+
+            i = 0,
+
             key;
-        
+
         if ((typeof id) === "string") {
             dialog = document.getElementById(id);
         } else if ((typeof id) === "object") {
             if ((typeof id.innerHTML) !== "string") {
                 _createFailed();
-                
+
                 return;
             }
-            
+
             dialog = id;
 
             id = dialog.id;
         } else {
             _createFailed();
-            
+
             return;
         }
-        
+
         if (_widget_list[id] !== undefined) {
             console.log("WUI_Dialog id '" + id + "' already created, aborting.");
-            
+
             return;
         }
-        
+
         for (key in _known_options) {
             if (_known_options.hasOwnProperty(key)) {
                 opts[key] = _known_options[key];
             }
         }
-        
+
         if (options !== undefined) {
             for (key in options) {
                 if (options.hasOwnProperty(key)) {
@@ -929,41 +936,41 @@ var WUI_Dialog = new (function() {
                 }
             }
         }
-        
+
         var content = dialog.firstElementChild;
-        
+
         if (content === null) {
             content = document.createElement("div");
-            
+
             dialog.appendChild(content);
         }
-        
+
         // set dialog style
         dialog.style.width  = opts.width;
         dialog.style.height = opts.height;
 
         dialog.classList.add(_class_name.dialog);
-        
+
         content.classList.add(_class_name.content);
-        
+
         // build the dialog header (btns and the title)
         header.className = _class_name.header;
-        
+
         if (opts.status_bar) {
             content.style.height = dialog.offsetHeight - 64 + "px";
         } else {
             content.style.height = dialog.offsetHeight - 32 + "px";
         }
-        
+
         //if (opts.title !== "") {
             header_title_wrapper = document.createElement("div");
             header_title = document.createElement("div");
 
             header_title_wrapper.style.display = "inline-block";
-            
+
             header_title.className = "wui-dialog-title";
             header_title_wrapper.innerHTML = opts.title;
-            
+
             header_title.appendChild(header_title_wrapper);
             header.appendChild(header_title);
         //}
@@ -976,14 +983,14 @@ var WUI_Dialog = new (function() {
         }
 
         if (opts.closable) {
-            header_close_btn = document.createElement("div"); 
+            header_close_btn = document.createElement("div");
             header_close_btn.className = _class_name.btn + " " + _class_name.btn_close;
 
             header_close_btn.title = "Close";
 
             header.appendChild(header_close_btn);
         }
-        
+
         if (opts.minimizable) {
             header_minimaxi_btn = document.createElement("div");
             header_minimaxi_btn.className = _class_name.btn + " " + _class_name.minimize;
@@ -1004,6 +1011,32 @@ var WUI_Dialog = new (function() {
             header.appendChild(header_detach_btn);
         }
 
+        if (opts.header_btn) {
+            for (i = 0; i < opts.header_btn.length; i += 1) {
+                opt = opts.header_btn[i];
+                element = document.createElement("div");
+
+                if (opt['title'] !== undefined) {
+                    element.title = opt.title;
+                }
+
+                if (opt['on_click'] !== undefined) {
+                    element.addEventListener("touchstart", opt.on_click, false);
+                    element.addEventListener("mousedown", opt.on_click, false);
+                } else {
+                    continue;
+                }
+
+                if (opt['class_name'] !== undefined) {
+                    element.className = _class_name.btn + " " + opt.class_name;
+                } else {
+                    continue;
+                }
+
+                header.appendChild(element);
+            }
+        }
+
         if (opts.status_bar) {
             status_bar = document.createElement("div");
 
@@ -1015,7 +1048,7 @@ var WUI_Dialog = new (function() {
 
             dialog.appendChild(status_bar);
         }
-        
+
         header.addEventListener("click", _onClick, false);
         header.addEventListener("touchstart", _onClick, false);
 
@@ -1027,7 +1060,7 @@ var WUI_Dialog = new (function() {
 
         // go!
         dialog.insertBefore(header, content);
-        
+
         if (opts.resizable) {
             resize_handler = document.createElement("div");
 
@@ -1042,28 +1075,28 @@ var WUI_Dialog = new (function() {
 
             dialog.appendChild(resize_handler);
         }
-        
+
         _widget_list[id] =  {
                                 dialog: dialog,
                                 minimized_id: -1,
 
                                 resize_handler: resize_handler,
-            
+
                                 header_minimaxi_btn: header_minimaxi_btn,
 
                                 opts: opts,
-            
+
                                 detachable_ref: null,
 
                                 modal_element: null,
 
                                 status_bar: status_bar
                             };
-        
+
         _computeThenSetPosition(dialog);
-        
+
         _focus(dialog);
-        
+
         if (opts.open) {
             this.open(id, false);
         } else {
@@ -1072,10 +1105,10 @@ var WUI_Dialog = new (function() {
 
         return id;
     };
-    
+
     this.setStatusBarContent = function (id, content) {
         var widget = _widget_list[id],
-            
+
             status_bar,
 
             detach_ref;
@@ -1113,10 +1146,10 @@ var WUI_Dialog = new (function() {
             if (typeof console !== "undefined") {
                 console.log("Cannot open WUI dialog \"" + id + "\".");
             }
-            
-            return;   
+
+            return;
         }
-        
+
         if (widget.detachable_ref) {
             if (!widget.detachable_ref.closed) {
                 widget.detachable_ref.focus();
@@ -1154,7 +1187,7 @@ var WUI_Dialog = new (function() {
 
         _focus(dialog);
     };
-    
+
     this.focus = function (id) {
         var widget = _widget_list[id];
 
@@ -1165,7 +1198,7 @@ var WUI_Dialog = new (function() {
 
             return;
         }
-        
+
         _focus(widget.dialog);
     };
 
@@ -1202,16 +1235,16 @@ var WUI_Dialog = new (function() {
 
         delete _widget_list[id];
     };
-    
+
     // called from a dialog detached window, this basically ensure that the window is initialized before adding back listeners on elements
     this.childWindowLoaded = function (id) {
         var widget = _widget_list[id],
             child_window = widget.detachable_ref;
-        
+
         if (!child_window) {
             return;
         }
-        
+
         if (child_window.document.body.firstElementChild) {
             _addListenerWalk(widget.dialog.children[1], child_window.document.body.firstElementChild);
 
@@ -1224,13 +1257,13 @@ var WUI_Dialog = new (function() {
             }, 500);
         }
     };
-    
+
     // get the corresponding detached dialog for dialog dialog_id
     this.getDetachedDialog = function (dialog_id) {
         var widget = _widget_list[dialog_id],
-            
+
             i = 0;
-        
+
         if (widget === undefined) {
             if (dialog_id !== undefined) {
                 console.log("WUI_Dialog.getDetachedDialog: Element id '" + dialog_id + "' is not a WUI_Dialog.");
@@ -1238,16 +1271,16 @@ var WUI_Dialog = new (function() {
 
             return null;
         }
-            
+
         for (i = 0; i < _detached_windows.length; i += 1) {
             if (_detached_windows[i] === widget.detachable_ref) {
                 return widget.detachable_ref;
             }
         }
-        
+
         return null;
     };
-    
+
     document.addEventListener("keyup", _onKeyUp, false);
 })();
 
@@ -15238,6 +15271,17 @@ var _fp_main = function (join_cb) {
         localStorage.removeItem(_session_list_ls_key);
     };
     
+    var _sessionFormNotification = function (msg) {
+        var validation_element = document.getElementById("fp_session_form_validation");  
+        validation_element.style.display = "";
+        validation_element.innerHTML = msg;
+    };
+    
+    var _hideSessionFormNotification = function () {
+        var validation_element = document.getElementById("fp_session_form_validation");  
+        validation_element.style.display = "none";
+    };
+    
     var _getSessionName = function () {
         if (_session_name_element.value === "") {
             return _session_name_element.placeholder;
@@ -15256,18 +15300,28 @@ var _fp_main = function (join_cb) {
 
     var _setSession = function (name) {
             if (join_cb) {
-                return;
+                return false;
             }
         
-            if (name.length > 128) { // TODO : Handle notification about session validation
-                return;
+            if (name.length > 100) {
+                _sessionFormNotification("Session name is above the maximum limit of 100 characters.")
+                _session_btn_element.href = "#";
+                return false;
+            }
+        
+            if (name.length === 0) {
+                name = _session_name_element.placeholder;
             }
         
             _session_btn_element.href = "app/" + name;
+        
+            _hideSessionFormNotification();
+        
+            return true;
         };
     
     var _isCompatibleBrowser = function () {
-        // check browser compatibility
+        // TODO: check browser compatibility
     };
     
     var _joinSessionFn = function (name) {
@@ -15275,7 +15329,9 @@ var _fp_main = function (join_cb) {
             if (join_cb) {
                 join_cb(name);
             } else {
-                _setSession(name);
+                if (!_setSession(name)) {
+                    return;
+                }
 
                 location.href = "app/" + name;
             }
@@ -15979,6 +16035,8 @@ _utter_fail_element.innerHTML = "";
     ************************************************************/
 
     var _fs_state = 1,
+        
+        _documentation_link = "https://www.fsynth.com/documentation.html",
 
         _username = localStorage.getItem('fs-user-name'),
         _local_session_settings = localStorage.getItem(_getSessionName()),
@@ -18060,7 +18118,7 @@ var _shareDBConnect = function () {
     
     _sharedb_connection = new ShareDB.Connection(ws);
     
-    _sharedb_doc = _sharedb_connection.get(_session, "fs");
+    _sharedb_doc = _sharedb_connection.get("_" + _session, "fs");
 
     _sharedb_doc.on('error', _sharedbDocError);
     
@@ -18107,7 +18165,7 @@ var _shareDBConnect = function () {
         _sharedb_doc_ready = true;
     });
     
-    _sharedb_ctrl_doc = _sharedb_connection.get(_session, "ctrls");
+    _sharedb_ctrl_doc = _sharedb_connection.get("_" + _session, "ctrls");
     _sharedb_ctrl_doc.on('error', _sharedbDocError);
     
     _sharedb_ctrl_doc.subscribe(function(err) {
@@ -18582,7 +18640,17 @@ _right_dialog = WUI_Dialog.create(_discuss_dialog_id, {
     detachable: false,
     
     min_width: 300,
-    min_height: 200
+    min_height: 200,
+        
+    header_btn: [
+        {
+            title: "Help",
+            on_click: function () {
+                window.open(_documentation_link + "#subsec5_12"); 
+            },
+            class_name: "fs-help-icon"
+        }
+    ]
 });
 
 _setUsersList([]);
@@ -18751,7 +18819,17 @@ var _createChannelSettingsDialog = function (input_channel_id) {
         detachable: false,
 
         min_width: 200,
-        min_height: 250
+        min_height: 250,
+        
+        header_btn: [
+            {
+                title: "Help",
+                on_click: function () {
+                    window.open(_documentation_link + "#subsec5_5"); 
+                },
+                class_name: "fs-help-icon"
+            }
+        ]
     });
 };
 
@@ -19505,7 +19583,17 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: false,
-            draggable: true
+            draggable: true,
+        
+            header_btn: [
+                {
+                    title: "Help",
+                    on_click: function () {
+                        window.open(_documentation_link + "#subsec5_8"); 
+                    },
+                    class_name: "fs-help-icon"
+                }
+            ]
         });
     
     if (fs_settings_monophonic === "true") {
@@ -19794,7 +19882,17 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: false,
-            draggable: true
+            draggable: true,
+        
+            header_btn: [
+                {
+                    title: "Help",
+                    on_click: function () {
+                        window.open(_documentation_link + "#subsec5_9"); 
+                    },
+                    class_name: "fs-help-icon"
+                }
+            ]
         });
     
     _record_dialog = WUI_Dialog.create(_record_dialog_id, {
@@ -19812,7 +19910,17 @@ var _uiInit = function () {
             detachable: false,
             draggable: true,
         
-            on_close: _onRecordDialogClose
+            on_close: _onRecordDialogClose,
+        
+            header_btn: [
+                {
+                    title: "Help",
+                    on_click: function () {
+                        window.open(_documentation_link + "#subsec5_10"); 
+                    },
+                    class_name: "fs-help-icon"
+                }
+            ]
         });
     
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
@@ -19830,7 +19938,17 @@ var _uiInit = function () {
             detachable: true,
             draggable: true,
         
-            on_close: _onImportDialogClose
+            on_close: _onImportDialogClose,
+        
+            header_btn: [
+                {
+                    title: "Help",
+                    on_click: function () {
+                        window.open(_documentation_link + "#subsec5_5"); 
+                    },
+                    class_name: "fs-help-icon"
+                }
+            ]
         });
     
     WUI_ToolBar.create("fs_import_toolbar", {
@@ -19878,9 +19996,19 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: true,
-            draggable: true
+            draggable: true,
+        
+            header_btn: [
+                {
+                    title: "Help",
+                    on_click: function () {
+                        window.open(_documentation_link + "#subsec5_11"); 
+                    },
+                    class_name: "fs-help-icon"
+                }
+            ]
         });
-
+/*
     _analysis_dialog = WUI_Dialog.create(_analysis_dialog_id, {
             title: "Audio analysis",
 
@@ -19898,7 +20026,7 @@ var _uiInit = function () {
         
             on_close: _disconnectAnalyserNode
         });
-    
+*/  
     _help_dialog = WUI_Dialog.create(_help_dialog_id, {
             title: "Fragment - Help",
 
@@ -19929,7 +20057,17 @@ var _uiInit = function () {
             detachable: false,
 
             status_bar: true,
-            draggable: true
+            draggable: true,
+        
+            header_btn: [
+                {
+                    title: "Help",
+                    on_click: function () {
+                        window.open(_documentation_link + "#subsec5_3_1"); 
+                    },
+                    class_name: "fs-help-icon"
+                }
+            ]
         });
 
     _controls_dialog = WUI_Dialog.create(_controls_dialog_id, {
@@ -19977,6 +20115,16 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: true,
+        
+            header_btn: [
+                {
+                    title: "Help",
+                    on_click: function () {
+                        window.open(_documentation_link + "#subsec5_13"); 
+                    },
+                    class_name: "fs-help-icon"
+                }
+            ]
         });
 
     WUI_ToolBar.create("fs_record_toolbar", {
@@ -19987,7 +20135,7 @@ var _uiInit = function () {
                     {
                         icon: "fs-reset-icon",
                         on_click: _rewindRecording,
-                        tooltip: "Reset & clear"
+                        tooltip: "Reset recording"
                     },
                 ],
                 opts: [

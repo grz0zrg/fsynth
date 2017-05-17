@@ -144,7 +144,17 @@ _right_dialog = WUI_Dialog.create(_discuss_dialog_id, {
     detachable: false,
     
     min_width: 300,
-    min_height: 200
+    min_height: 200,
+        
+    header_btn: [
+        {
+            title: "Help",
+            on_click: function () {
+                window.open(_documentation_link + "#subsec5_12"); 
+            },
+            class_name: "fs-help-icon"
+        }
+    ]
 });
 
 _setUsersList([]);

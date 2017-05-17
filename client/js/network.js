@@ -66,7 +66,7 @@ var _shareDBConnect = function () {
     
     _sharedb_connection = new ShareDB.Connection(ws);
     
-    _sharedb_doc = _sharedb_connection.get(_session, "fs");
+    _sharedb_doc = _sharedb_connection.get("_" + _session, "fs");
 
     _sharedb_doc.on('error', _sharedbDocError);
     
@@ -113,7 +113,7 @@ var _shareDBConnect = function () {
         _sharedb_doc_ready = true;
     });
     
-    _sharedb_ctrl_doc = _sharedb_connection.get(_session, "ctrls");
+    _sharedb_ctrl_doc = _sharedb_connection.get("_" + _session, "ctrls");
     _sharedb_ctrl_doc.on('error', _sharedbDocError);
     
     _sharedb_ctrl_doc.subscribe(function(err) {

@@ -76,12 +76,10 @@ $list(
 	$item Polyphonic
 		$list($item Automatically detected from the GPU capabilities $item 16 notes minimum $item 704 notes with a GeForce GTX 970 GPU)
 	$item Multitimbral
-	$item Aliasing free
+	$item Spectral recording with mixing and export as PNG
 	$item Adjustable audio output channel per slices
 		$list($item Multiple audio channels are only supported with $ref(fas)(FAS))
-	$item Shader inputs, webcam, textures and more to come
-	$item Real-time audio output analysis
-		$list($item WebAudio only)
+	$item Shader inputs, webcam, textures, audio files
 	$item MIDI Enabled
 		$list($item Only with WebMIDI API enabled browsers (Google Chrome) $item Hot plugging of MIDI devices is supported)
 	$item Collaborative app.
@@ -111,7 +109,7 @@ Fragment may be quite hungry in term of computing resources, a dual core with hi
 
 Several methods are provided to synthesize sounds, each with performances pros and cons:
 $list(
-	$item $ref(fas)(FAS) ($bold(recommended)): $list($item Very fast $item Multiple output support with soundcard choice $item Many settings $item Can run on a dedicated computer such as a Raspberry PI $item Dedicated program which receive Fragment data over the network)
+	$item $ref(fas)(FAS) ($bold(recommended)): $list($item Very fast $item Multiple output support with soundcard choice $item Many settings $item Can run on a dedicated computer such as a Raspberry PI $item Dedicated program which receive Fragment data over the network $item Enhanced noise modeling by adding band-limited noise)
 	$item WebAudio oscillators: $list($item Fastest under Chrome $item May not work with Firefox $item Require a fast CPU $item Integrated global "release" envelope)
 	$item Wavetable (not recommended): $list($item Most compatible browser method $item Will produce crackles))
 $subsubsection(GPU)
@@ -123,8 +121,6 @@ $list(
 	$item you want greater polyphonic/harmonics/partials capabilities)
 $section(Concepts)
 Fragment is an additive synthesizer, it let you have full control over the timbral qualities of your sounds by the mean of GPU programming.
-
-The biggest difference between Fragment and other synthesizers is that you work in the frequency domain instead of time domain, in that sense it is also a spectral synthesizer.
 
 Unlike other additive synthesizer software, there is no need for knobs, sliders or any other controllers to sculpt your sounds, all of that is done by generating visuals which will determine your sounds harmonic content and dynamic characteristics.
 
@@ -150,7 +146,9 @@ The only limit to the amount of sine waves that can be added by Fragment is the 
 
 For example, on a Raspberry PI 3 (1.2GHz 64-bit quad-core ARMv8 CPU) ~700 oscillators can be played simultaneously using two cores, matching the capability of the ANS synthesizer.
 
-Fragment can also do other types of synthesis like substractive synthesis (additive synthesis in reverse).
+Actually, there is a also a hard limit which is that the frequency capture of slices cannot go beyond the refresh rate of your monitor (and it also depend on the browser implementation), this could however be bypassed easily by switching to a different monitor.
+
+Fragment can also do other types of synthesis like substractive synthesis.
 
 $nl
 $label(score)
@@ -179,7 +177,7 @@ $list(
 $section(Sessions)
 Fragment sessions are isolated spaces which are open to all peoples who has access to the session name, they can be joined by going to the Fragment $tlink(homepage)(https://www.fsynth.com) or by typing the session name directly into the address bar as demonstrated below.
 
-You can join any sessions directly from your browser address bar by replacing "yoursessionname" for the URL shown below by the session name you want to join or create:
+You can join any sessions directly from your browser address bar by replacing "yoursessionname" for the URL shown below by the session name you want to join or create, session names are limited to a maximum of 100 characters and cannot have the "$" character:
 
 $center(https://www.fsynth.com/app/$bold(yoursessionname))
 Fragment store sessions content and settings on a server which mean that any of the synchronizable actions in the session such as the code editor content, canvas settings, slices and $ref(uniformsdialog)(uniform inputs) are automatically saved $bold(if) Fragment is connected.
@@ -297,7 +295,8 @@ $tlink($center($image(74)(images/dialog_actions.png)))(images/dialog_actions.png
 $list(
 	$item close the dialog
 	$item minimize/maximize
-	$item detach the dialog in a new window)
+	$item detach the dialog in a new window
+	$item help (direct link to the documentation section))
 $nl
 $subsection(infobar)(The information bar)
 The information bar at the top convey minor and major informations such as (in order from left to right):
@@ -318,7 +317,7 @@ $list(
 	$item a gain controller (master volume))
 
 $subsection(The graphical score)
-You can slice the graphical score by right-clicking on it and clicking on the + icon, this will add a vertical bar which will capture that part of the canvas.
+You can slice the graphical score by right-clicking on it and by clicking on the + icon, this will add a vertical bar which will capture that part of the canvas.
 $gif(add_slices)
 You are free to add any number of slices, adding many slices may have an impact on performances.
 $nl
@@ -371,35 +370,48 @@ $list(
   $list(
   	$item $tlink(ShaderToy)(https://www.shadertoy.com) converter
   	$item canvas axis details which appear when the canvas is hovered by the cursor
-  	$item $ref(analysis)(analysis dialog) (not working when FAS is enabled)
-  	$item $ref(outline)(outline dialog)
+  	$item $ref(outline)(GLSL outline dialog)
   	$item clone the code editor in a separate window)
 	$item fragment inputs
 	$list(
 		$item $ref(uniformsdialog)(uniforms)
-		$item $ref(finputs)(add complex inputs)))
+		$item $ref(finputs)(GLSL inputs import)))
 
 $subsection(The fragment inputs)
 Fragment inputs are complex inputs which can be used in the fragment program as a 2D texture.
 
-The fragment inputs panel is a list of the added complex inputs, each of them appear as a thumbnail near the $bold(add complex inputs button), nothing will be shown if no complex inputs were added.
+The fragment inputs panel is a complete list of all the added inputs, each of them appear as a thumbnail near the $bold(add complex inputs button), nothing will be shown if no complex inputs were added.
 
 All complex inputs can be used as 2D textures (texture2d) in the fragment program, they are defined as $bold(iInputN) where N is the id of the input starting from 0.
 
+Complex inputs can be reordered in real-time by drag & drop.
+
 You can find the input id by hovering over the thumbnail or in the title of the complex input settings dialog.
 
-You can add one by clicking on the "add complex inputs" button, here is a list of the available complex inputs:
+To open the complex input import dialog, click on the "add complex inputs" button, a new dialog will appear with three sections:
 $list(
-	$item image file
-	$item webcam
+	$item Audio import settings: This determine how audio files will be analyzed when imported
 	$list(
-		$item allow the real-time webcam video to be used in the fragment program)
-	$item audio file)
+		$item Window type: The windowing function
+		$item Window length: Analysis window length (tradeoff between time and frequency resolution)
+		$item Overlap
+		$item BPM
+		$item PPB: Pixel Per Beat
+		$item Height: A value of 0 will automatically create an input with the height equal to the score height
+		$item Min. freq.: A value of 0 will automatically assign the score min. frequency
+		$item Max. freq.: A value of 0 will automatically assign a max. frequency related to the score settings)
+	$item Import toolbar
+	$list(
+		$item Image: This will open a file selection window to import images
+		$item Audio: This will open a file selection window to import audio files
+		$item Webcam)
+	$item Dropzone: You can use this to import many files at the same time)
 	
-By right clicking on a the complex input thumbnail, the following actions appear:
+Once added, by right clicking on a complex input thumbnail and the following actions appear:
 $list(
+	$item complex input settings dialog
 	$item delete
-	$item complex input settings dialog)
+	$item export as PNG (open a new window))
 $gif(fragment_input)
 $nl
 The complex input settings dialog have several options:
@@ -422,12 +434,6 @@ $list(
 $bold(Note): The "repeat" and "mirrored" Wrap S/T option will be unavailable if your browser does not support the WebGL 2 API, it is only available by adding images with power-of-2 dimensions (128x64, 256x256 etc.) or by using a browser with WebGL 2 support.
 
 $nl
-$subsection(Analysis dialog)
-The analysis dialog is a real-time spectogram view of the audio output.
-
-$bold(Note): When FAS is enabled, no spectrogram will be shown.
-$gif(analysis_dialog)
-
 $subsection(The code editor)
 The fragment editor is one of the most important tool of Fragment since it allow the user to generate the visuals which are fed to the additive synthesis engine.
 
@@ -548,16 +554,27 @@ $label(record)
 $subsection(Recording dialog)
 The recording dialog allow to continuously record the slices output from all channels into one score that you can export to PNG by clicking on the save icon.
 
-This tool can become handy if you want to export your work and import it into an external tool or within Fragment again via the image input feature.
+This tool can become handy if you want to export your work and import it into an external tool or within Fragment again by clicking on the [+] icon.
 
-By clicking on the + icon, the recording will be additive which mean that slices content will be drawn on the previous content without erasing it.
+Can also serve for spectral analysis.
+
+The recording dialog support mixing functions, for example by clicking on the + icon, the recording will be additive which mean that slices content will be drawn on the previous content without erasing it, a list of all the toolbar actions can be found below.
 
 The recording canvas width is linked to the score width.
+
+Recording toolbar buttons (in order from left to right):
+$list(
+	$item Reset & clear
+	$item Additive mode
+	$item Substractive mode
+	$item Multiply mode
+	$item Add the recorded image as a new GLSL input
+	$item Export as PNG (open a new dialog))
 
 $nl
 $label(outline)
 $subsection(Outline dialog)
-The outline dialog display a list of GLSL functions, declarations and "defines" defined in your shader code, you can click an element to jump at it in the code editor, this is very useful with long shader code.
+The outline dialog display a list of GLSL functions, declarations and "defines" defined in your shader code, you can click on any elements to jump at it in the code editor, this is very useful with long shader code.
 
 $nl
 $subsection(Session chat dialog)

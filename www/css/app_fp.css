@@ -81,6 +81,13 @@ hr {
     font-size: 10pt;
 }
 
+.fp-session-validation {
+    color: red;
+    text-align: center;
+    margin-bottom: 4px;
+    font-weight: bold;
+}
+
 .fp-title {
     padding-bottom: 34px;
     margin-bottom: 34px;

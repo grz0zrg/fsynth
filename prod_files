@@ -12,7 +12,7 @@ client/css/codemirror/theme/
 client/data/
 client/dl/
 client/fonts/
-client/js/worker/
+client/dist/worker/
 client/dist/fs.min.css
 client/dist/fs.min.js
 client/dist/cm.min.css

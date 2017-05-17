@@ -286,7 +286,17 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: false,
-            draggable: true
+            draggable: true,
+        
+            header_btn: [
+                {
+                    title: "Help",
+                    on_click: function () {
+                        window.open(_documentation_link + "#subsec5_8"); 
+                    },
+                    class_name: "fs-help-icon"
+                }
+            ]
         });
     
     if (fs_settings_monophonic === "true") {
@@ -575,7 +585,17 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: false,
-            draggable: true
+            draggable: true,
+        
+            header_btn: [
+                {
+                    title: "Help",
+                    on_click: function () {
+                        window.open(_documentation_link + "#subsec5_9"); 
+                    },
+                    class_name: "fs-help-icon"
+                }
+            ]
         });
     
     _record_dialog = WUI_Dialog.create(_record_dialog_id, {
@@ -593,7 +613,17 @@ var _uiInit = function () {
             detachable: false,
             draggable: true,
         
-            on_close: _onRecordDialogClose
+            on_close: _onRecordDialogClose,
+        
+            header_btn: [
+                {
+                    title: "Help",
+                    on_click: function () {
+                        window.open(_documentation_link + "#subsec5_10"); 
+                    },
+                    class_name: "fs-help-icon"
+                }
+            ]
         });
     
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
@@ -611,7 +641,17 @@ var _uiInit = function () {
             detachable: true,
             draggable: true,
         
-            on_close: _onImportDialogClose
+            on_close: _onImportDialogClose,
+        
+            header_btn: [
+                {
+                    title: "Help",
+                    on_click: function () {
+                        window.open(_documentation_link + "#subsec5_5"); 
+                    },
+                    class_name: "fs-help-icon"
+                }
+            ]
         });
     
     WUI_ToolBar.create("fs_import_toolbar", {
@@ -659,9 +699,19 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: true,
-            draggable: true
+            draggable: true,
+        
+            header_btn: [
+                {
+                    title: "Help",
+                    on_click: function () {
+                        window.open(_documentation_link + "#subsec5_11"); 
+                    },
+                    class_name: "fs-help-icon"
+                }
+            ]
         });
-
+/*
     _analysis_dialog = WUI_Dialog.create(_analysis_dialog_id, {
             title: "Audio analysis",
 
@@ -679,7 +729,7 @@ var _uiInit = function () {
         
             on_close: _disconnectAnalyserNode
         });
-    
+*/  
     _help_dialog = WUI_Dialog.create(_help_dialog_id, {
             title: "Fragment - Help",
 
@@ -710,7 +760,17 @@ var _uiInit = function () {
             detachable: false,
 
             status_bar: true,
-            draggable: true
+            draggable: true,
+        
+            header_btn: [
+                {
+                    title: "Help",
+                    on_click: function () {
+                        window.open(_documentation_link + "#subsec5_3_1"); 
+                    },
+                    class_name: "fs-help-icon"
+                }
+            ]
         });
 
     _controls_dialog = WUI_Dialog.create(_controls_dialog_id, {
@@ -758,6 +818,16 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: true,
+        
+            header_btn: [
+                {
+                    title: "Help",
+                    on_click: function () {
+                        window.open(_documentation_link + "#subsec5_13"); 
+                    },
+                    class_name: "fs-help-icon"
+                }
+            ]
         });
 
     WUI_ToolBar.create("fs_record_toolbar", {

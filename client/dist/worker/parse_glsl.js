@@ -8849,7 +8849,7 @@ var parse_statements = function (statements, root) {
     
     for (i = 0; i < statements.length; i += 1) {
         statement = statements[i];
-        
+
         if (statement.name === "main" && 
             statement.type === "function_declaration") {
             
@@ -8871,7 +8871,8 @@ var parse_statements = function (statements, root) {
                 declarator = statement.declarators[j];
                 
                 if (root) {
-                    if ((declarator.name.name in root_declarator_exceptions)) {
+                    if ((declarator.name.name in root_declarator_exceptions) ||
+                       (declarator.name.name.match(/iInput\d+/g) && statement.typeAttribute.name === "sampler2D")) {
                         continue;
                     }
                 }
