@@ -18915,10 +18915,23 @@ var _removeInputChannel = function (input_id) {
 };
 
 var _createInputThumb = function (input_id, image, thumb_title) {
-    var dom_image = document.createElement("img");
+    var dom_image = document.createElement("img"),
+        
+        tmp_canvas,
+        tmp_canvas_context;
 
     if (image !== undefined) {
-        dom_image.src = image.src;
+        // because the data is inverted for WebGL, so we revert it...
+        tmp_canvas = document.createElement('canvas'),
+        tmp_canvas_context = tmp_canvas.getContext('2d'),
+        tmp_canvas.width  = image.naturalWidth;
+        tmp_canvas.height = image.naturalHeight;
+
+        tmp_canvas_context.translate(0, tmp_canvas.height);
+        tmp_canvas_context.scale(1, -1);
+        tmp_canvas_context.drawImage(image, 0, 0, tmp_canvas.width, tmp_canvas.height);
+        
+        dom_image.src = tmp_canvas.toDataURL();
     }
 
     dom_image.title = thumb_title;
