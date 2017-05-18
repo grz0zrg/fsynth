@@ -48,7 +48,7 @@ var _shareDBConnect = function () {
     
     _sharedb_connection = new ShareDB.Connection(ws);
     
-    _sharedb_doc = _sharedb_connection.get(_session, "fs");
+    _sharedb_doc = _sharedb_connection.get("_" + _session, "fs");
 
     _sharedb_doc.on('error', _sharedbDocError);
     
