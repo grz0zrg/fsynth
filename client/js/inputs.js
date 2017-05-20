@@ -66,6 +66,8 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     
     if (_gl.getTexParameter(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER) === _gl.NEAREST) {
         channel_filter_select.value = "nearest";
+    } else {
+        channel_filter_select.value = "linear";
     }
     
     tex_parameter = _gl.getTexParameter(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_S);
@@ -88,42 +90,54 @@ var _createChannelSettingsDialog = function (input_channel_id) {
         channel_wrap_t_select.value = "mirror";
     }
     
-    if (fragment_input_channel.flip) {
+    if (fragment_input_channel.db_obj.settings.flip) {
         channel_vflip.checked = true;
     } else {
         channel_vflip.checked = false;
     }
     
-    //if (fragment_input_channel.type === 1) {
-        //_flipYTexture(fragment_input_channel.texture, fragment_input_channel.flip);
-    //}
-    
     channel_filter_select.addEventListener("change", function () {
             _setTextureFilter(fragment_input_channel.texture, this.value);
+        
+            fragment_input_channel.db_obj.settings.f = this.value;
+            _dbUpdateInput(input_channel_id, fragment_input_channel.db_obj);
         });
     
     channel_wrap_s_select.addEventListener("change", function () {
             _setTextureWrapS(fragment_input_channel.texture, this.value);
+        
+            fragment_input_channel.db_obj.settings.wrap.s = this.value;
+            _dbUpdateInput(input_channel_id, fragment_input_channel.db_obj);
         });
     
     channel_wrap_t_select.addEventListener("change", function () {
             _setTextureWrapT(fragment_input_channel.texture, this.value);
+        
+            fragment_input_channel.db_obj.settings.wrap.t = this.value;
+            _dbUpdateInput(input_channel_id, fragment_input_channel.db_obj);
         });
     
     channel_vflip.addEventListener("change", function () {
             var new_texture;
         
-            new_texture = _flipTexture(fragment_input_channel.texture, fragment_input_channel.image);
-        
-            fragment_input_channel.texture = new_texture;
+            fragment_input_channel.db_obj.settings.flip = this.checked;
 
-            fragment_input_channel.flip = !fragment_input_channel.flip;
+            if (fragment_input_channel.db_obj.settings.flip) {
+                _flipTexture(fragment_input_channel.texture, fragment_input_channel.image, function (texture) {
+                        fragment_input_channel.texture = texture;
+                    });
+            } else {
+                new_texture = _replace2DTexture(fragment_input_channel.image, fragment_input_channel.texture);
+                fragment_input_channel.texture = new_texture;
+            }
+
+            _dbUpdateInput(input_channel_id, fragment_input_channel.db_obj);
         });
     
     channel_settings_dialog = WUI_Dialog.create(dialog_element.id, {
         title: _input_channel_prefix + input_channel_id + " settings",
 
-        width: "200px",
+        width: "250px",
         height: "230px",
 
         halign: "center",
@@ -241,6 +255,8 @@ var _removeInputChannel = function (input_id) {
     _sortInputs();
 
     _compile();
+    
+    _dbRemoveInput(input_id);
 };
 
 var _createInputThumb = function (input_id, image, thumb_title) {
@@ -307,6 +323,11 @@ var _createInputThumb = function (input_id, image, thumb_title) {
         
         _fragment_input_data[dst_input_idr].elem = _fragment_input_data[src_input_idr].elem;
         _fragment_input_data[src_input_idr].elem = elem_src;
+        
+        // db update
+        _dbUpdateInput(dst_input_id, _fragment_input_data[dst_input_idr].db_obj);
+        _dbUpdateInput(src_input_id, _fragment_input_data[src_input_id].db_obj);
+        //
 
         e.target.style = "";
         
@@ -346,7 +367,7 @@ var _createInputThumb = function (input_id, image, thumb_title) {
     return dom_image;
 };
 
-var _addFragmentInput = function (type, input) {
+var _addFragmentInput = function (type, input, settings) {
     var input_thumb,
 
         data,
@@ -354,47 +375,52 @@ var _addFragmentInput = function (type, input) {
         texture,
         
         video_element,
+        
+        db_obj = { type: type, width: null, height: null, data: null, settings: { f: "nearest", wrap: { s: null, t: null }, flip: false } },
 
         input_id = _fragment_input_data.length;
 
     if (type === "image") {
         data = _create2DTexture(input, false, true);
-        //data.texture = _flipTexture(data.texture, data.image);
-
+        
+        db_obj.data = input.src;
+        db_obj.width = input.width;
+        db_obj.height = input.height;
+        db_obj.settings.wrap.s = data.wrap.ws;
+        db_obj.settings.wrap.t = data.wrap.wt;
+        db_obj.settings.flip = false;
+        
+        _dbStoreInput(input_id, db_obj);
+        
         _fragment_input_data.push({
                 type: 0,
                 image: data.image,
                 texture: data.texture,
-                flip: false,
-                elem: null
+                elem: null,
+                db_obj: db_obj
             });
+        
+        if (settings !== undefined) {
+            _flipYTexture(data.texture, settings.flip);
+            _setTextureFilter(data.texture, settings.f);
+            _setTextureWrapS(data.texture, settings.wrap.s);
+            _setTextureWrapT(data.texture, settings.wrap.t);
+            
+            db_obj.settings.f = settings.f;
+            db_obj.settings.wrap.s = settings.wrap.s;
+            db_obj.settings.wrap.t = settings.wrap.t;
+            db_obj.settings.flip = settings.flip;
+            
+            if (settings.flip) {
+                _fragment_input_data[input_id].texture = _replace2DTexture(data.image, data.texture);
+            }
+        }
 
         input_thumb = input;
 
         _fragment_input_data[input_id].elem = _createInputThumb(input_id, input_thumb, _input_channel_prefix + input_id);
 
         _compile();
-/*
-    } else if (type === "record") {
-        image = _record_canvas_ctx;
-        data = _create2DTexture(_record_canvas_ctx.getImageData(0, 0, _record_canvas.width, _record_canvas.height), false, true);
-
-        _fragment_input_data.push({
-                type: 2,
-                image: data.image,
-                texture: data.texture,
-                flip: false,
-                elem: null
-            });
-
-        input_thumb = input;
-
-        _fragment_input_data[input_id].elem = _createInputThumb(input_id, { src: "data/ui-icons/record.png"}, _input_channel_prefix + input_id);
-
-        _compile();
-        
-        _record_input_count += 1;
-*/
     } else if (type === "camera") {
         video_element = document.createElement('video');
         video_element.width = 320;
@@ -414,15 +440,33 @@ var _addFragmentInput = function (type, input) {
 
                     _setTextureWrapS(data.texture, "clamp");
                     _setTextureWrapT(data.texture, "clamp");
+                
+                    db_obj.settings.wrap.s = data.wrap.ws;
+                    db_obj.settings.wrap.t = data.wrap.wt;
+                    db_obj.settings.flip = false;
+                
+                    _dbStoreInput(input_id, db_obj);
+                
+                    if (settings !== undefined) {
+                        _flipYTexture(data.texture, settings.flip);
+                        _setTextureFilter(data.texture, settings.f);
+                        _setTextureWrapS(data.texture, settings.wrap.s);
+                        _setTextureWrapT(data.texture, settings.wrap.t);
+                        
+                        db_obj.settings.f = settings.f;
+                        db_obj.settings.wrap.s = settings.wrap.s;
+                        db_obj.settings.wrap.t = settings.wrap.t;
+                        db_obj.settings.flip = settings.flip;
+                    }
 
                     _fragment_input_data.push({
                             type: 1,
                             image: data.image,
                             texture: data.texture,
                             video_elem: video_element,
-                            flip: true,
                             elem: null,
-                            media_stream: media_stream
+                            media_stream: media_stream,
+                            db_obj: db_obj
                         });
 
                     _fragment_input_data[input_id].elem = _createInputThumb(input_id, { src: "data/ui-icons/camera.png"}, _input_channel_prefix + input_id);
@@ -434,5 +478,11 @@ var _addFragmentInput = function (type, input) {
         } else {
             _notification("Cannot capture audio/video, getUserMedia function is not supported by your browser.");
         }
+    } else {
+        return;
     }
 };
+
+/***********************************************************
+    Init.
+************************************************************/

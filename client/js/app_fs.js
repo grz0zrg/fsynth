@@ -80,7 +80,19 @@ var FragmentSynth = function (params) {
 
         return;
     }
-
+    
+    if (!window.indexedDB) {
+        window.indexedDB = window.webkitIndexedDB || window.mozIndexedDB || window.OIndexedDB || window.msIndexedDB;
+        
+        if (!window.indexedDB) {
+            _notification("The IndexedDB API is not available, inputs will not be saved.", 10000);
+        } else {
+            window.indexedDB = {
+                open: function () { return null; }   
+            };
+        }
+    }
+    
     if (!window.localStorage) {
         _fail("The localStorage API is not available, please use a web browser with localStorage support.", true);
 
@@ -157,7 +169,7 @@ var FragmentSynth = function (params) {
             },
             f: null
         },
-
+    
         _canvas_width  = 1024,
         _canvas_height = 439,//Math.round(window.innerHeight / 2) - 68,
 
@@ -331,6 +343,7 @@ var FragmentSynth = function (params) {
     ************************************************************/
 
     /*#include config.js*/
+    /*#include db.js*/
     /*#include audio.js*/
     /*#include image_import.js*/
     /*#include image_export.js*/
@@ -640,7 +653,7 @@ var FragmentSynth = function (params) {
     _fasInit();
 
     _initNetwork();
-
+    
     //_play();
     
     /*#include events.js*/
@@ -656,6 +669,8 @@ var FragmentSynth = function (params) {
     }
     
     _buildFeedback();
+    
+    _initDb();
 };
     
     if (_electronInit()) {

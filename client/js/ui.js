@@ -614,7 +614,7 @@ var _uiInit = function () {
             draggable: true,
         
             on_close: _onRecordDialogClose,
-        
+
             header_btn: [
                 {
                     title: "Help",
@@ -629,7 +629,7 @@ var _uiInit = function () {
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
             title: "Import input (image, audio, webcam)",
 
-            width: "380px",
+            width: "400px",
             height: "480px",
 
             halign: "center",

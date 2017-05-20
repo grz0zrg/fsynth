@@ -14,7 +14,7 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
 
 ## Feature list:
 
- * Full-blown additive synthesizer powered by WebAudio oscillators, a wavetable OR a native program written in C (fastest)
+ * Full-blown additive synthesizer powered by WebAudio oscillators, a wavetable (slow) OR a native program written in C (fastest)
  * Live coding/JIT compilation of shader code
  * Real-time, collaborative app.
  * Stereophonic or monaural
@@ -81,6 +81,8 @@ Fragment make use of NodeJS, NPM, MongoDB and Redis database, once those are ins
  * cd fsdb & npm install & node fsdb
  * cd fsws & npm install & node fsws
  * point your browser to http://127.0.0.1:3000
+ 
+ If you just want to try it out without the collaborative feature and saving, you just need "fsws" then point your browser to http://127.0.0.1:3000
 
 ## Prod. system
 

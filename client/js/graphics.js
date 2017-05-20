@@ -21,7 +21,10 @@ var _createFramebuffer = function (texture) {
 };
 
 var _create2DTexture = function (image, default_wrap_filter, bind_now) {
-    var new_texture = _gl.createTexture();
+    var new_texture = _gl.createTexture(),
+        
+        ws = "clamp",
+        wt = "clamp";
 
     _gl.bindTexture(_gl.TEXTURE_2D, new_texture);
 
@@ -47,7 +50,7 @@ var _create2DTexture = function (image, default_wrap_filter, bind_now) {
 
     _gl.bindTexture(_gl.TEXTURE_2D, null);
 
-    return { image: image, texture: new_texture };
+    return { image: image, texture: new_texture, wrap: { ws: ws, wt: wt} };
 };
 
 var _replace2DTexture = function (image, texture) {
@@ -121,9 +124,11 @@ var _setTextureWrapT = function (texture, mode) {
     _gl.bindTexture(_gl.TEXTURE_2D, null);
 };
 
-var _flipTexture = function (texture, image) {
+var _flipTexture = function (texture, image, done_cb) {
     var tmp_canvas = document.createElement('canvas'),
-        tmp_canvas_context = tmp_canvas.getContext('2d');
+        tmp_canvas_context = tmp_canvas.getContext('2d'),
+        
+        image_element = document.createElement("img");
     
     tmp_canvas.width  = image.naturalWidth;
     tmp_canvas.height = image.naturalHeight;
@@ -133,9 +138,15 @@ var _flipTexture = function (texture, image) {
 
     tmp_canvas_context.drawImage(image, 0, 0);
 
-    image.src = tmp_canvas.toDataURL();
-    
-    return _replace2DTexture(image, texture);
+    image_element.src = tmp_canvas.toDataURL();
+    image_element.width = image.naturalWidth;
+    image_element.height = image.naturalHeight;
+
+    image_element.onload = function () {
+        image_element.onload = null;
+        
+        done_cb(_replace2DTexture(image_element, texture));
+    };
 };
 
 var _flipYTexture = function (texture, flip) {
