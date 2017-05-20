@@ -951,10 +951,12 @@ var WUI_Dialog = new (function() {
         // build the dialog header (btns and the title)
         header.className = _class_name.header;
 
-        if (opts.status_bar) {
-            content.style.height = dialog.offsetHeight - 64 + "px";
-        } else {
-            content.style.height = dialog.offsetHeight - 32 + "px";
+        if (opts.height !== "auto" && opts.height !== "100%") {
+          if (opts.status_bar) {
+              content.style.height = dialog.offsetHeight - 64 + "px";
+          } else {
+              content.style.height = dialog.offsetHeight - 32 + "px";
+          }
         }
 
         //if (opts.title !== "") {

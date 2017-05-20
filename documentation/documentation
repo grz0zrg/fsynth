@@ -146,7 +146,7 @@ The only limit to the amount of sine waves that can be added by Fragment is the 
 
 For example, on a Raspberry PI 3 (1.2GHz 64-bit quad-core ARMv8 CPU) ~700 oscillators can be played simultaneously using two cores, matching the capability of the ANS synthesizer.
 
-Actually, there is a also a hard limit which is that the frequency capture of slices cannot go beyond the refresh rate of your monitor (and it also depend on the browser implementation), this could however be bypassed easily by switching to a different monitor.
+Actually, there is a also a hard limit which is that the frequency capture of slices cannot go beyond the refresh rate of your monitor (and this also depend on the browser implementation), this could however be bypassed easily by switching to a different monitor.
 
 Fragment can also do other types of synthesis like substractive synthesis.
 
@@ -186,7 +186,7 @@ Fragment synchronize the code editor content, slices, canvas settings and $ref(u
 
 Note that MIDI note messages are not synchronized between users due to technical constraints but you can still add $ref(uniformsdialog)(uniform inputs) and assign MIDI devices to control them, their values are synchronized between users.
 
-Some settings are saved locally on your browser, some of them are global (like the username and settings related to the editor) and some of them are saved per sessions such as the MIDI settings and gain.
+Some settings are saved locally on your browser, some of them are global (like the username and settings related to the editor) and some of them are saved per sessions such as the MIDI settings, gain and inputs.
 
 Fragment is respectful of the user and does not store any informations related to the user outside the boundary defined by the application focus.
 
