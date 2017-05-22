@@ -76,55 +76,57 @@ document.addEventListener('mousemove', function (e) {
         var e = e || window.event,
             
             canvas_offset;
-
-        canvas_offset = _getElementOffset(_canvas);
-
-        _cx = e.pageX;
-        _cy = e.pageY - canvas_offset.top;
     
-        _cx = (_cx - canvas_offset.left - 1);
+        if (e.target === _canvas) {
+            canvas_offset = _getElementOffset(_canvas);
 
-        _hover_freq = _getFrequency(_cy);
+            _cx = e.pageX;
+            _cy = e.pageY - canvas_offset.top;
 
-        if (_hover_freq !== null && (_cx >= 0 && _cx < _canvas_width)) {
-            if (_xyf_grid) {
-                if (_haxis_infos.style.display !== "block" ||
-                    _vaxis_infos.style.display !== "block") {
-                    _haxis_infos.style.display = "block";
-                    _vaxis_infos.style.display = "block";
+            _cx = (_cx - canvas_offset.left - 1);
+
+            _hover_freq = _getFrequency(_cy);
+
+            if (_hover_freq !== null && (_cx >= 0 && _cx < _canvas_width)) {
+                if (_xyf_grid) {
+                    if (_haxis_infos.style.display !== "block" ||
+                        _vaxis_infos.style.display !== "block") {
+                        _haxis_infos.style.display = "block";
+                        _vaxis_infos.style.display = "block";
+                    }
+
+                    _haxis_infos.firstElementChild.innerHTML = _cy;
+                    _haxis_infos.lastElementChild.style.left = e.pageX + "px";
+                    _haxis_infos.lastElementChild.innerHTML = _truncateDecimals(_hover_freq + "", 2) + "Hz";
+                    _vaxis_infos.firstElementChild.innerHTML = _cx;
+
+                    _haxis_infos.style.top = _cy + "px";
+                    _vaxis_infos.style.left = e.pageX + "px";
+                } else {
+                    _xy_infos.innerHTML = "x " + _cx + " y " + _cy;
+                    _hz_infos.innerHTML = " " + _truncateDecimals(_hover_freq + "", 2) + "Hz";
                 }
-
-                _haxis_infos.firstElementChild.innerHTML = _cy;
-                _haxis_infos.lastElementChild.style.left = e.pageX + "px";
-                _haxis_infos.lastElementChild.innerHTML = _truncateDecimals(_hover_freq + "", 2) + "Hz";
-                _vaxis_infos.firstElementChild.innerHTML = _cx;
-
-                _haxis_infos.style.top = _cy + "px";
-                _vaxis_infos.style.left = e.pageX + "px";
             } else {
-                _xy_infos.innerHTML = "x " + _cx + " y " + _cy;
-                _hz_infos.innerHTML = " " + _truncateDecimals(_hover_freq + "", 2) + "Hz";
+                if (_xyf_grid) {
+                    if (_haxis_infos.style.display !== "none" ||
+                        _vaxis_infos.style.display !== "none") {
+                        _haxis_infos.style.display = "none";
+                        _vaxis_infos.style.display = "none";
+                    }
+                } else {
+                    _xy_infos.innerHTML = "";
+                    _hz_infos.innerHTML = "";
+                }
             }
-        } else {
-            if (_xyf_grid) {
-                if (_haxis_infos.style.display !== "none" ||
-                    _vaxis_infos.style.display !== "none") {
-                    _haxis_infos.style.display = "none";
-                    _vaxis_infos.style.display = "none";
-                }
-            } else {
-                _xy_infos.innerHTML = "";
-                _hz_infos.innerHTML = "";
+
+            if (_mouse_btn === _LEFT_MOUSE_BTN) {
+                _nmx = 1. - _cx / _canvas_width;
+                _nmy = 1. - _cy / _canvas_height;
             }
         }
 
         _mx = e.pageX;
         _my = e.pageY;
-
-        if (_mouse_btn === _LEFT_MOUSE_BTN) {
-            _nmx = 1. - _cx / _canvas_width;
-            _nmy = 1. - _cy / _canvas_height;
-        }
    });
 
 document.getElementById("fs_ui_doc_btn").addEventListener("click", function () {
