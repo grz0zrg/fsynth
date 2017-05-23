@@ -1,6 +1,43 @@
 /* jslint browser: true */
 
 /***********************************************************
+    Fields.
+************************************************************/
+
+var _controllers_canvas = document.getElementById("fs_controllers"),
+    _controllers_canvas_ctx = _controllers_canvas.getContext("2d"),
+    
+    _controllers_settings = {
+        margin: 20,
+        width: 200,
+        height: 150,
+        text_size: 12,
+        palette: [
+            "#0040a0",
+            "#0060c0",
+            "#0080e0",
+            "#00a0ff",
+            "#00ffff"
+        ]
+    },
+    
+    _controllers = {
+        multislider: {
+            draw: null,
+            opts: {
+                n: 16,
+                values: new Array(16)
+            }
+        }
+    },
+    
+    _controls_per_page = 0,
+        
+    _controls = [],
+    
+    _draw_list = [];
+
+/***********************************************************
     Functions.
 ************************************************************/
 
@@ -439,3 +476,165 @@ var _buildControls = function (ctrl_obj) {
         _addControls(ctrl.type, ctrl_window, ctrl, params);
     }
 };
+
+var _drawMultislider = function (ctx, c, x, y) {
+    var i = 0,
+        
+        palette = _controllers_settings.palette,
+        
+        controller_width = _controllers_settings.width,
+        controller_height = _controllers_settings.height,
+        
+        w = Math.floor(controller_width / c.n),
+        wr = controller_width % c.n,
+        
+        ly = 0,
+        
+        lh = 6,
+        
+        v = 0,
+        iv = 0;
+    
+    x = x + wr / 2;
+    
+    for (i = 0; i < c.n; i += 1) {
+        v = Math.random();//c.values[i];
+        iv = 1 - v;
+        
+        ly = y + iv * (controller_height - lh);
+        
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(x + w * i, ly, w, lh);
+        
+        ctx.fillStyle = palette[i % palette.length];
+        ctx.fillRect(x + w * i, ly + lh, w, Math.max((controller_height - lh) - (iv * (controller_height - lh)), 0));
+    }
+};
+
+var _drawControls = function () {
+    var i = 0,
+        
+        x = 0,
+        y = 0,
+        
+        ctx = _controllers_canvas_ctx,
+        
+        canvas_width = _controllers_canvas.width,
+        canvas_height = _controllers_canvas.height,
+        
+        margin = _controllers_settings.margin,
+        
+        controller_width = _controllers_settings.width,
+        controller_height = _controllers_settings.height,
+        
+        controller_width_m = controller_width + margin,
+        controller_height_m = controller_height + margin,
+        
+        text_size = _controllers_settings.text_size,
+        
+        lc = Math.floor(canvas_width / controller_width_m),
+        lcw = (canvas_width % controller_width_m) / 2 - margin,
+        
+        hc = Math.floor(canvas_height / controller_height_m),
+        hcw = (canvas_height % controller_height_m) / 2 - margin,
+        
+        c;
+    
+    ctx.font = text_size + "px monospace";
+    ctx.textBaseline = "bottom";
+    ctx.textAlign = "center";
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#555555';
+    
+    for (i = 0; i < _draw_list.length; i += 1) {
+        c = _draw_list[i];
+        
+        if (c.id >= _controls_per_page) {
+            continue;
+        }
+        
+        x = margin + lcw + (c.id % lc) * controller_width_m;
+        y = margin + hcw + Math.floor(c.id / lc) * controller_height_m;
+
+        ctx.fillStyle = '#111111';
+        ctx.fillRect(x, y, controller_width, controller_height);
+        
+        ctx.fillStyle = 'white';
+        ctx.fillText(c.name, x + controller_width / 2, y - 2);
+        
+        _controllers[c.type].draw(ctx, c, x, y);
+        
+        ctx.strokeRect(x - 1, y - 1, controller_width + 2, controller_height + 2);
+    }
+    
+    _draw_list = [];
+};
+
+var _computeControlsPage = function () {
+    var canvas_width = _controllers_canvas.width,
+        canvas_height = _controllers_canvas.height,
+        
+        margin = _controllers_settings.margin,
+        
+        controller_width = _controllers_settings.width,
+        controller_height = _controllers_settings.height,
+        
+        controller_width_m = controller_width + margin,
+        controller_height_m = controller_height + margin,
+        
+        lc = Math.floor(canvas_width / controller_width_m),
+        hc = Math.floor(canvas_height / controller_height_m);
+    
+    _controls_per_page = lc * hc;
+};
+
+var _addControlWidget = function (type) {
+    return function () {
+        var controller = {
+                id: _controls.length,
+                type: type,
+                name: "control" + _controls.length
+            },
+            
+            key;
+        
+        for (key in _controllers[type].opts) {
+            if (_controllers[type].opts.hasOwnProperty(key)) {
+                controller[key] = _controllers[type].opts[key];
+            }
+        }
+        
+        _computeControlsPage();
+        
+        _controls.push(controller);
+        _draw_list.push(controller);
+        
+        _drawControls();
+    }
+};
+
+/***********************************************************
+    Functions.
+************************************************************/
+
+_controllers_canvas.width = window.innerWidth / 1.5;
+_controllers_canvas.height = window.innerHeight / 1.5;
+
+WUI_ToolBar.create("fs_controls_toolbar", {
+            allow_groups_minimize: false
+        },
+        {
+            controls: [
+                {
+                    text: "Multislider",
+                    on_click: _addControlWidget("multislider"),
+                    tooltip: "Add a multislider"
+                }
+            ]
+        });
+
+_controllers.multislider.draw = _drawMultislider;
+
+_controllers_canvas.addEventListener("mousedown", function () {
+    
+});

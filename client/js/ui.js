@@ -64,7 +64,7 @@ var _togglePlay = function (toggle_ev) {
 };
 
 var _showControlsDialog = function () {
-    WUI_Dialog.open(_controls_dialog, true);
+    WUI_Dialog.open(_controls_dialog);
 };
 
 var _showHelpDialog = function () {
@@ -166,6 +166,13 @@ var _onImportDialogClose = function () {
 
 var _onRecordDialogClose = function () {
     WUI_ToolBar.toggle(_wui_main_toolbar, 7);
+    
+    // reattach the correct canvas
+    var previous_canvas = _record_canvas;
+    
+    _record_canvas = document.getElementById("fs_record_canvas");
+    _record_canvas_ctx = _record_canvas.getContext('2d');
+    _record_canvas_ctx.drawImage(previous_canvas, 0, 0);
 };
 
 var _showOutlineDialog = function () {
@@ -584,7 +591,7 @@ var _uiInit = function () {
             open: false,
 
             status_bar: false,
-            detachable: false,
+            detachable: true,
             draggable: true,
         
             header_btn: [
@@ -610,7 +617,7 @@ var _uiInit = function () {
             open: false,
 
             status_bar: false,
-            detachable: false,
+            detachable: true,
             draggable: true,
         
             on_close: _onRecordDialogClose,
@@ -623,7 +630,16 @@ var _uiInit = function () {
                     },
                     class_name: "fs-help-icon"
                 }
-            ]
+            ],
+        
+            on_detach: function (new_window) {
+                var previous_canvas = _record_canvas;
+                
+                _record_canvas = new_window.document.getElementById("fs_record_canvas");
+                _record_canvas_ctx = _record_canvas.getContext('2d');
+
+                _record_canvas_ctx.drawImage(previous_canvas, 0, 0);
+            }
         });
     
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
@@ -774,14 +790,14 @@ var _uiInit = function () {
         });
 
     _controls_dialog = WUI_Dialog.create(_controls_dialog_id, {
-            title: "Controls input",
+            title: "Controllers",
 
-            width: "50%",
-            height: "50%",
+            width: "auto",
+            height: "auto",
 
             halign: "center",
             valign: "center",
-
+/*
             on_pre_detach: function () {
                 var ctrl_panel_element = document.getElementById("fs_controls_panel"),
                     nodes, i;
@@ -813,11 +829,12 @@ var _uiInit = function () {
 
                 _buildControls(_controls);
             },
-
+*/
             open: false,
 
             status_bar: false,
             detachable: true,
+            draggable: true,
         
             header_btn: [
                 {

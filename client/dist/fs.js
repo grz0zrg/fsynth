@@ -16096,6 +16096,11 @@ _utter_fail_element.innerHTML = "";
 
         _canvas_width_m1 = _canvas_width - 1,
         _canvas_height_mul4 = _canvas_height * 4,
+        
+        _detached_canvas = null,
+        _detached_canvas_ctx = null,
+        _detached_canvas_buffer = new Uint8Array(_canvas_width * _canvas_height * 4),
+        _detached_canvas_image_data = null,
 
         _render_width = _canvas_width,
         _render_height = _canvas_height,
@@ -16394,7 +16399,7 @@ var _FS_WAVETABLE = 0,
     
     _audio_context = new window.AudioContext(),
     
-    _analyser_node = _audio_context.createAnalyser(),
+    _analyser_node,// = _audio_context.createAnalyser(),
     _analyser_fftsize = 16384,
     _analyser_freq_bin,
     
@@ -16927,11 +16932,11 @@ var _audioInit = function () {
         
         _is_script_node_connected = true;
     }
-
+/*
     _analyser_node.smoothingTimeConstant = 0;
     _analyser_node.fftSize = _analyser_fftsize;
     _analyser_freq_bin = new Uint8Array(_analyser_node.frequencyBinCount);
-
+*/
     // workaround, webkit bug ?
     //window._fs_sn = _script_node;
 
@@ -17860,6 +17865,26 @@ var _frame = function (raf_time) {
         }
         
         _data = buffer;
+        
+        // detached canvas (by a double click) TODO : Optimizations
+        if (_detached_canvas_ctx) {
+            if (_gl2) {
+                _gl.bindBuffer(_gl.PIXEL_PACK_BUFFER, _pbo);
+                _gl.bufferData(_gl.PIXEL_PACK_BUFFER, _canvas_width * _canvas_height * 4, _gl.STATIC_READ);
+                _gl.readPixels(0, 0, _canvas_width, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, 0);
+                _gl.getBufferSubData(_gl.PIXEL_PACK_BUFFER, 0, _detached_canvas_buffer);
+            } else {
+                _gl.readPixels(0, 0, _canvas_width, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, _detached_canvas_buffer);
+            }
+            
+            for (i = 0; i < _detached_canvas_buffer.length; i += 4) {
+                _detached_canvas_buffer[i + 3] = 255;
+            }
+
+            _detached_canvas_image_data.data.set(_detached_canvas_buffer);
+
+            _detached_canvas_ctx.putImageData(_detached_canvas_image_data, 0, 0);
+        }
     }
     
     if (_show_globaltime) {
@@ -17873,8 +17898,8 @@ var _frame = function (raf_time) {
         _poly_infos_element.innerHTML = _keyboard.polyphony;
     }
     
-    _drawSpectrum();
-
+    //_drawSpectrum();
+    
     _raf = window.requestAnimationFrame(_frame);
 };/* jslint browser: true */
 
@@ -18775,7 +18800,7 @@ _right_dialog = WUI_Dialog.create(_discuss_dialog_id, {
     draggable: true,
     minimizable: true,
     resizable: true,
-    detachable: false,
+    detachable: true,
     
     min_width: 300,
     min_height: 200,
@@ -19563,7 +19588,7 @@ var _togglePlay = function (toggle_ev) {
 };
 
 var _showControlsDialog = function () {
-    WUI_Dialog.open(_controls_dialog, true);
+    WUI_Dialog.open(_controls_dialog);
 };
 
 var _showHelpDialog = function () {
@@ -19665,6 +19690,13 @@ var _onImportDialogClose = function () {
 
 var _onRecordDialogClose = function () {
     WUI_ToolBar.toggle(_wui_main_toolbar, 7);
+    
+    // reattach the correct canvas
+    var previous_canvas = _record_canvas;
+    
+    _record_canvas = document.getElementById("fs_record_canvas");
+    _record_canvas_ctx = _record_canvas.getContext('2d');
+    _record_canvas_ctx.drawImage(previous_canvas, 0, 0);
 };
 
 var _showOutlineDialog = function () {
@@ -20083,7 +20115,7 @@ var _uiInit = function () {
             open: false,
 
             status_bar: false,
-            detachable: false,
+            detachable: true,
             draggable: true,
         
             header_btn: [
@@ -20109,7 +20141,7 @@ var _uiInit = function () {
             open: false,
 
             status_bar: false,
-            detachable: false,
+            detachable: true,
             draggable: true,
         
             on_close: _onRecordDialogClose,
@@ -20122,7 +20154,16 @@ var _uiInit = function () {
                     },
                     class_name: "fs-help-icon"
                 }
-            ]
+            ],
+        
+            on_detach: function (new_window) {
+                var previous_canvas = _record_canvas;
+                
+                _record_canvas = new_window.document.getElementById("fs_record_canvas");
+                _record_canvas_ctx = _record_canvas.getContext('2d');
+
+                _record_canvas_ctx.drawImage(previous_canvas, 0, 0);
+            }
         });
     
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
@@ -20273,14 +20314,14 @@ var _uiInit = function () {
         });
 
     _controls_dialog = WUI_Dialog.create(_controls_dialog_id, {
-            title: "Controls input",
+            title: "Controllers",
 
-            width: "50%",
-            height: "50%",
+            width: "auto",
+            height: "auto",
 
             halign: "center",
             valign: "center",
-
+/*
             on_pre_detach: function () {
                 var ctrl_panel_element = document.getElementById("fs_controls_panel"),
                     nodes, i;
@@ -20312,11 +20353,12 @@ var _uiInit = function () {
 
                 _buildControls(_controls);
             },
-
+*/
             open: false,
 
             status_bar: false,
             detachable: true,
+            draggable: true,
         
             header_btn: [
                 {
@@ -20927,6 +20969,43 @@ var _uiInit = function () {
 };/* jslint browser: true */
 
 /***********************************************************
+    Fields.
+************************************************************/
+
+var _controllers_canvas = document.getElementById("fs_controllers"),
+    _controllers_canvas_ctx = _controllers_canvas.getContext("2d"),
+    
+    _controllers_settings = {
+        margin: 20,
+        width: 200,
+        height: 150,
+        text_size: 12,
+        palette: [
+            "#0040a0",
+            "#0060c0",
+            "#0080e0",
+            "#00a0ff",
+            "#00ffff"
+        ]
+    },
+    
+    _controllers = {
+        multislider: {
+            draw: null,
+            opts: {
+                n: 16,
+                values: new Array(16)
+            }
+        }
+    },
+    
+    _controls_per_page = 0,
+        
+    _controls = [],
+    
+    _draw_list = [];
+
+/***********************************************************
     Functions.
 ************************************************************/
 
@@ -21364,7 +21443,169 @@ var _buildControls = function (ctrl_obj) {
         
         _addControls(ctrl.type, ctrl_window, ctrl, params);
     }
-};/* jslint browser: true */
+};
+
+var _drawMultislider = function (ctx, c, x, y) {
+    var i = 0,
+        
+        palette = _controllers_settings.palette,
+        
+        controller_width = _controllers_settings.width,
+        controller_height = _controllers_settings.height,
+        
+        w = Math.floor(controller_width / c.n),
+        wr = controller_width % c.n,
+        
+        ly = 0,
+        
+        lh = 6,
+        
+        v = 0,
+        iv = 0;
+    
+    x = x + wr / 2;
+    
+    for (i = 0; i < c.n; i += 1) {
+        v = Math.random();//c.values[i];
+        iv = 1 - v;
+        
+        ly = y + iv * (controller_height - lh);
+        
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(x + w * i, ly, w, lh);
+        
+        ctx.fillStyle = palette[i % palette.length];
+        ctx.fillRect(x + w * i, ly + lh, w, Math.max((controller_height - lh) - (iv * (controller_height - lh)), 0));
+    }
+};
+
+var _drawControls = function () {
+    var i = 0,
+        
+        x = 0,
+        y = 0,
+        
+        ctx = _controllers_canvas_ctx,
+        
+        canvas_width = _controllers_canvas.width,
+        canvas_height = _controllers_canvas.height,
+        
+        margin = _controllers_settings.margin,
+        
+        controller_width = _controllers_settings.width,
+        controller_height = _controllers_settings.height,
+        
+        controller_width_m = controller_width + margin,
+        controller_height_m = controller_height + margin,
+        
+        text_size = _controllers_settings.text_size,
+        
+        lc = Math.floor(canvas_width / controller_width_m),
+        lcw = (canvas_width % controller_width_m) / 2 - margin,
+        
+        hc = Math.floor(canvas_height / controller_height_m),
+        hcw = (canvas_height % controller_height_m) / 2 - margin,
+        
+        c;
+    
+    ctx.font = text_size + "px monospace";
+    ctx.textBaseline = "bottom";
+    ctx.textAlign = "center";
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#555555';
+    
+    for (i = 0; i < _draw_list.length; i += 1) {
+        c = _draw_list[i];
+        
+        if (c.id >= _controls_per_page) {
+            continue;
+        }
+        
+        x = margin + lcw + (c.id % lc) * controller_width_m;
+        y = margin + hcw + Math.floor(c.id / lc) * controller_height_m;
+
+        ctx.fillStyle = '#111111';
+        ctx.fillRect(x, y, controller_width, controller_height);
+        
+        ctx.fillStyle = 'white';
+        ctx.fillText(c.name, x + controller_width / 2, y - 2);
+        
+        _controllers[c.type].draw(ctx, c, x, y);
+        
+        ctx.strokeRect(x - 1, y - 1, controller_width + 2, controller_height + 2);
+    }
+    
+    _draw_list = [];
+};
+
+var _computeControlsPage = function () {
+    var canvas_width = _controllers_canvas.width,
+        canvas_height = _controllers_canvas.height,
+        
+        margin = _controllers_settings.margin,
+        
+        controller_width = _controllers_settings.width,
+        controller_height = _controllers_settings.height,
+        
+        controller_width_m = controller_width + margin,
+        controller_height_m = controller_height + margin,
+        
+        lc = Math.floor(canvas_width / controller_width_m),
+        hc = Math.floor(canvas_height / controller_height_m);
+    
+    _controls_per_page = lc * hc;
+};
+
+var _addControlWidget = function (type) {
+    return function () {
+        var controller = {
+                id: _controls.length,
+                type: type,
+                name: "control" + _controls.length
+            },
+            
+            key;
+        
+        for (key in _controllers[type].opts) {
+            if (_controllers[type].opts.hasOwnProperty(key)) {
+                controller[key] = _controllers[type].opts[key];
+            }
+        }
+        
+        _computeControlsPage();
+        
+        _controls.push(controller);
+        _draw_list.push(controller);
+        
+        _drawControls();
+    }
+};
+
+/***********************************************************
+    Functions.
+************************************************************/
+
+_controllers_canvas.width = window.innerWidth / 1.5;
+_controllers_canvas.height = window.innerHeight / 1.5;
+
+WUI_ToolBar.create("fs_controls_toolbar", {
+            allow_groups_minimize: false
+        },
+        {
+            controls: [
+                {
+                    text: "Multislider",
+                    on_click: _addControlWidget("multislider"),
+                    tooltip: "Add a multislider"
+                }
+            ]
+        });
+
+_controllers.multislider.draw = _drawMultislider;
+
+_controllers_canvas.addEventListener("mousedown", function () {
+    
+});/* jslint browser: true */
 
 /***********************************************************
     Functions.
@@ -21978,12 +22219,33 @@ var _saveMIDISettings = function () {
     _saveLocalSessionSettings();
 };
 
+var _MIDIDeviceCheckboxChange = function () {
+    var midi_device = _midi_devices.input[this.dataset.did],
+        
+        midi_input_enabled_ck_id = "fs_midi_settings_ck_" + midi_device.iid;
+
+    midi_device.enabled = this.checked;
+    
+    _saveMIDISettings();
+    
+    if (this.checked) {
+        document.getElementById(midi_input_enabled_ck_id).setAttribute("checked", "checked");
+    } else {
+        document.getElementById(midi_input_enabled_ck_id).removeAttribute("checked");
+    }
+};
+
 var _addMIDIDevice = function (midi_input) {
     var midi_input_element = document.createElement("div"),
         midi_input_enabled_ck_id = "fs_midi_settings_ck_" + _midi_device_uid,
         midi_settings_element = document.getElementById(_midi_settings_dialog_id).lastElementChild,
         midi_device_enabled = false,
-        midi_device_enabled_ck = "";
+        midi_device_enabled_ck = "",
+        
+        tmp_element = null,
+        
+        detached_dialog = WUI_Dialog.getDetachedDialog(_midi_settings_dialog),
+        detached_dialog_midi_settings_element = null;
     
     // settings were loaded previously
     if (midi_input.id in _midi_devices.input) {
@@ -22019,16 +22281,20 @@ var _addMIDIDevice = function (midi_input) {
             iid: _midi_device_uid,
             enabled: midi_device_enabled,
             element: midi_input_element,
+            detached_element: null,
             connected: true
         };
 
-    document.getElementById(midi_input_enabled_ck_id).addEventListener("change", function () {
-            var midi_device = _midi_devices.input[this.dataset.did];
-
-            midi_device.enabled = this.checked;
-
-            _saveMIDISettings();
-        });
+    document.getElementById(midi_input_enabled_ck_id).addEventListener("change", _MIDIDeviceCheckboxChange);
+    
+    if (detached_dialog) {
+        tmp_element = midi_input_element.cloneNode(true);
+        
+        detached_dialog_midi_settings_element = detached_dialog.document.getElementById(_midi_settings_dialog_id).lastElementChild,
+        detached_dialog_midi_settings_element.appendChild(tmp_element);
+        
+        _midi_devices.input[midi_input.id].detached_element = tmp_element;
+    }
     
     midi_input.onmidimessage = _onMIDIMessage;
     
@@ -22036,7 +22302,11 @@ var _addMIDIDevice = function (midi_input) {
 };
 
 var _deleteMIDIDevice = function (id) {
-    var midi_device = _midi_devices.input[id];
+    var midi_device = _midi_devices.input[id],
+        
+        detached_dialog = WUI_Dialog.getDetachedDialog(_midi_settings_dialog),
+        
+        nodes;
     
     if (!midi_device) {
         console.log("_deleteMIDIDevice: MIDI Device ", id, " does not exist.");
@@ -22044,6 +22314,14 @@ var _deleteMIDIDevice = function (id) {
     }
     
     midi_device.element.parentElement.removeChild(midi_device.element);
+    
+    if (detached_dialog) {
+        nodes = detached_dialog.document.querySelectorAll("[data-did='" + id + "']");
+        
+        if (nodes.length > 0) {
+            nodes[0].parentElement.parentElement.parentElement.parentElement.removeChild(nodes[0].parentElement.parentElement.parentElement);
+        }
+    }
     
     delete _midi_devices.input[id]
 };
@@ -22377,6 +22655,15 @@ var _fasInit = function () {
             _initializePBO();
         }
         
+        // detached canvas
+        _detached_canvas_buffer = new Uint8Array(_canvas_width * _canvas_height * 4);
+        if (_detached_canvas_ctx) {
+            _detached_canvas.width = _canvas_width;
+            _detached_canvas.height = _canvas_height;
+            _detached_canvas_image_data = _detached_canvas_ctx.createImageData(_canvas_width, _canvas_height);
+        }
+        //
+        
         _generateOscillatorSet(_canvas_height, base_freq, octave);
 
         _compile();
@@ -22630,6 +22917,54 @@ _canvas.addEventListener('contextmenu', function(ev) {
         return false;
     }, false);
 
+_canvas.addEventListener('dblclick', function() {
+    var child_window = null,
+        screen_left = typeof window.screenLeft !== "undefined" ? window.screenLeft : screen.left,
+        screen_top = typeof window.screenTop !== "undefined" ? window.screenTop : screen.top,
+        dbc = _canvas.getBoundingClientRect(),
+        title = "",
+        child_gl;
+        
+    child_window = window.open("", title, [
+        "toolbar=no",
+        "location=no",
+        "directories=no",
+        "status=no",
+        "menubar=no",
+        "scrollbars=yes",
+        "resizable=yes",
+        "width=" + dbc.width,
+        "height=" + dbc.height,
+        "top=" + (dbc.top + screen_top),
+        "left=" + (dbc.left  + screen_left)].join(','));
+    
+    child_window.document.open();
+    child_window.document.write(['<html>',
+                                     '<head>',
+                                     '<title>' + title + '</title>',
+                                     '</head>',
+                                     '<body style="margin: 0; background-color: black">',
+                                     '<canvas></canvas>',
+                                     '</body>',
+                                     '</html>'].join(''));
+    child_window.document.close();
+    
+    _detached_canvas = child_window.document.body.firstElementChild;
+
+    _detached_canvas.width = _canvas.width;
+    _detached_canvas.height = _canvas.height;
+    
+    _detached_canvas_ctx = _detached_canvas.getContext('2d');
+    
+    _detached_canvas_image_data = _detached_canvas_ctx.createImageData(_canvas_width, _canvas_height);
+    
+    child_window.addEventListener("beforeunload", function () {
+            _detached_canvas = null;
+            _detached_canvas_ctx = null;
+            _detached_canvas_image_data = null;
+        });
+});
+
 document.addEventListener('mousedown', function (e) {
     var e = e || window.event,
         
@@ -22665,55 +23000,57 @@ document.addEventListener('mousemove', function (e) {
         var e = e || window.event,
             
             canvas_offset;
-
-        canvas_offset = _getElementOffset(_canvas);
-
-        _cx = e.pageX;
-        _cy = e.pageY - canvas_offset.top;
     
-        _cx = (_cx - canvas_offset.left - 1);
+        if (e.target === _canvas) {
+            canvas_offset = _getElementOffset(_canvas);
 
-        _hover_freq = _getFrequency(_cy);
+            _cx = e.pageX;
+            _cy = e.pageY - canvas_offset.top;
 
-        if (_hover_freq !== null && (_cx >= 0 && _cx < _canvas_width)) {
-            if (_xyf_grid) {
-                if (_haxis_infos.style.display !== "block" ||
-                    _vaxis_infos.style.display !== "block") {
-                    _haxis_infos.style.display = "block";
-                    _vaxis_infos.style.display = "block";
+            _cx = (_cx - canvas_offset.left - 1);
+
+            _hover_freq = _getFrequency(_cy);
+
+            if (_hover_freq !== null && (_cx >= 0 && _cx < _canvas_width)) {
+                if (_xyf_grid) {
+                    if (_haxis_infos.style.display !== "block" ||
+                        _vaxis_infos.style.display !== "block") {
+                        _haxis_infos.style.display = "block";
+                        _vaxis_infos.style.display = "block";
+                    }
+
+                    _haxis_infos.firstElementChild.innerHTML = _cy;
+                    _haxis_infos.lastElementChild.style.left = e.pageX + "px";
+                    _haxis_infos.lastElementChild.innerHTML = _truncateDecimals(_hover_freq + "", 2) + "Hz";
+                    _vaxis_infos.firstElementChild.innerHTML = _cx;
+
+                    _haxis_infos.style.top = _cy + "px";
+                    _vaxis_infos.style.left = e.pageX + "px";
+                } else {
+                    _xy_infos.innerHTML = "x " + _cx + " y " + _cy;
+                    _hz_infos.innerHTML = " " + _truncateDecimals(_hover_freq + "", 2) + "Hz";
                 }
-
-                _haxis_infos.firstElementChild.innerHTML = _cy;
-                _haxis_infos.lastElementChild.style.left = e.pageX + "px";
-                _haxis_infos.lastElementChild.innerHTML = _truncateDecimals(_hover_freq + "", 2) + "Hz";
-                _vaxis_infos.firstElementChild.innerHTML = _cx;
-
-                _haxis_infos.style.top = _cy + "px";
-                _vaxis_infos.style.left = e.pageX + "px";
             } else {
-                _xy_infos.innerHTML = "x " + _cx + " y " + _cy;
-                _hz_infos.innerHTML = " " + _truncateDecimals(_hover_freq + "", 2) + "Hz";
+                if (_xyf_grid) {
+                    if (_haxis_infos.style.display !== "none" ||
+                        _vaxis_infos.style.display !== "none") {
+                        _haxis_infos.style.display = "none";
+                        _vaxis_infos.style.display = "none";
+                    }
+                } else {
+                    _xy_infos.innerHTML = "";
+                    _hz_infos.innerHTML = "";
+                }
             }
-        } else {
-            if (_xyf_grid) {
-                if (_haxis_infos.style.display !== "none" ||
-                    _vaxis_infos.style.display !== "none") {
-                    _haxis_infos.style.display = "none";
-                    _vaxis_infos.style.display = "none";
-                }
-            } else {
-                _xy_infos.innerHTML = "";
-                _hz_infos.innerHTML = "";
+
+            if (_mouse_btn === _LEFT_MOUSE_BTN) {
+                _nmx = 1. - _cx / _canvas_width;
+                _nmy = 1. - _cy / _canvas_height;
             }
         }
 
         _mx = e.pageX;
         _my = e.pageY;
-
-        if (_mouse_btn === _LEFT_MOUSE_BTN) {
-            _nmx = 1. - _cx / _canvas_width;
-            _nmy = 1. - _cy / _canvas_height;
-        }
    });
 
 document.getElementById("fs_ui_doc_btn").addEventListener("click", function () {

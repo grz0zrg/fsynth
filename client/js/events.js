@@ -41,6 +41,54 @@ _canvas.addEventListener('contextmenu', function(ev) {
         return false;
     }, false);
 
+_canvas.addEventListener('dblclick', function() {
+    var child_window = null,
+        screen_left = typeof window.screenLeft !== "undefined" ? window.screenLeft : screen.left,
+        screen_top = typeof window.screenTop !== "undefined" ? window.screenTop : screen.top,
+        dbc = _canvas.getBoundingClientRect(),
+        title = "",
+        child_gl;
+        
+    child_window = window.open("", title, [
+        "toolbar=no",
+        "location=no",
+        "directories=no",
+        "status=no",
+        "menubar=no",
+        "scrollbars=yes",
+        "resizable=yes",
+        "width=" + dbc.width,
+        "height=" + dbc.height,
+        "top=" + (dbc.top + screen_top),
+        "left=" + (dbc.left  + screen_left)].join(','));
+    
+    child_window.document.open();
+    child_window.document.write(['<html>',
+                                     '<head>',
+                                     '<title>' + title + '</title>',
+                                     '</head>',
+                                     '<body style="margin: 0; background-color: black">',
+                                     '<canvas></canvas>',
+                                     '</body>',
+                                     '</html>'].join(''));
+    child_window.document.close();
+    
+    _detached_canvas = child_window.document.body.firstElementChild;
+
+    _detached_canvas.width = _canvas.width;
+    _detached_canvas.height = _canvas.height;
+    
+    _detached_canvas_ctx = _detached_canvas.getContext('2d');
+    
+    _detached_canvas_image_data = _detached_canvas_ctx.createImageData(_canvas_width, _canvas_height);
+    
+    child_window.addEventListener("beforeunload", function () {
+            _detached_canvas = null;
+            _detached_canvas_ctx = null;
+            _detached_canvas_image_data = null;
+        });
+});
+
 document.addEventListener('mousedown', function (e) {
     var e = e || window.event,
         

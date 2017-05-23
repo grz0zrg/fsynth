@@ -175,6 +175,11 @@ var FragmentSynth = function (params) {
 
         _canvas_width_m1 = _canvas_width - 1,
         _canvas_height_mul4 = _canvas_height * 4,
+        
+        _detached_canvas = null,
+        _detached_canvas_ctx = null,
+        _detached_canvas_buffer = new Uint8Array(_canvas_width * _canvas_height * 4),
+        _detached_canvas_image_data = null,
 
         _render_width = _canvas_width,
         _render_height = _canvas_height,
@@ -445,6 +450,15 @@ var FragmentSynth = function (params) {
             
             _initializePBO();
         }
+        
+        // detached canvas
+        _detached_canvas_buffer = new Uint8Array(_canvas_width * _canvas_height * 4);
+        if (_detached_canvas_ctx) {
+            _detached_canvas.width = _canvas_width;
+            _detached_canvas.height = _canvas_height;
+            _detached_canvas_image_data = _detached_canvas_ctx.createImageData(_canvas_width, _canvas_height);
+        }
+        //
         
         _generateOscillatorSet(_canvas_height, base_freq, octave);
 

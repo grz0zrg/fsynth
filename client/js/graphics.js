@@ -582,6 +582,26 @@ var _frame = function (raf_time) {
         }
         
         _data = buffer;
+        
+        // detached canvas (by a double click) TODO : Optimizations
+        if (_detached_canvas_ctx) {
+            if (_gl2) {
+                _gl.bindBuffer(_gl.PIXEL_PACK_BUFFER, _pbo);
+                _gl.bufferData(_gl.PIXEL_PACK_BUFFER, _canvas_width * _canvas_height * 4, _gl.STATIC_READ);
+                _gl.readPixels(0, 0, _canvas_width, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, 0);
+                _gl.getBufferSubData(_gl.PIXEL_PACK_BUFFER, 0, _detached_canvas_buffer);
+            } else {
+                _gl.readPixels(0, 0, _canvas_width, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, _detached_canvas_buffer);
+            }
+            
+            for (i = 0; i < _detached_canvas_buffer.length; i += 4) {
+                _detached_canvas_buffer[i + 3] = 255;
+            }
+
+            _detached_canvas_image_data.data.set(_detached_canvas_buffer);
+
+            _detached_canvas_ctx.putImageData(_detached_canvas_image_data, 0, 0);
+        }
     }
     
     if (_show_globaltime) {
@@ -595,7 +615,7 @@ var _frame = function (raf_time) {
         _poly_infos_element.innerHTML = _keyboard.polyphony;
     }
     
-    _drawSpectrum();
-
+    //_drawSpectrum();
+    
     _raf = window.requestAnimationFrame(_frame);
 };

@@ -56,12 +56,33 @@ var _saveMIDISettings = function () {
     _saveLocalSessionSettings();
 };
 
+var _MIDIDeviceCheckboxChange = function () {
+    var midi_device = _midi_devices.input[this.dataset.did],
+        
+        midi_input_enabled_ck_id = "fs_midi_settings_ck_" + midi_device.iid;
+
+    midi_device.enabled = this.checked;
+    
+    _saveMIDISettings();
+    
+    if (this.checked) {
+        document.getElementById(midi_input_enabled_ck_id).setAttribute("checked", "checked");
+    } else {
+        document.getElementById(midi_input_enabled_ck_id).removeAttribute("checked");
+    }
+};
+
 var _addMIDIDevice = function (midi_input) {
     var midi_input_element = document.createElement("div"),
         midi_input_enabled_ck_id = "fs_midi_settings_ck_" + _midi_device_uid,
         midi_settings_element = document.getElementById(_midi_settings_dialog_id).lastElementChild,
         midi_device_enabled = false,
-        midi_device_enabled_ck = "";
+        midi_device_enabled_ck = "",
+        
+        tmp_element = null,
+        
+        detached_dialog = WUI_Dialog.getDetachedDialog(_midi_settings_dialog),
+        detached_dialog_midi_settings_element = null;
     
     // settings were loaded previously
     if (midi_input.id in _midi_devices.input) {
@@ -97,16 +118,20 @@ var _addMIDIDevice = function (midi_input) {
             iid: _midi_device_uid,
             enabled: midi_device_enabled,
             element: midi_input_element,
+            detached_element: null,
             connected: true
         };
 
-    document.getElementById(midi_input_enabled_ck_id).addEventListener("change", function () {
-            var midi_device = _midi_devices.input[this.dataset.did];
-
-            midi_device.enabled = this.checked;
-
-            _saveMIDISettings();
-        });
+    document.getElementById(midi_input_enabled_ck_id).addEventListener("change", _MIDIDeviceCheckboxChange);
+    
+    if (detached_dialog) {
+        tmp_element = midi_input_element.cloneNode(true);
+        
+        detached_dialog_midi_settings_element = detached_dialog.document.getElementById(_midi_settings_dialog_id).lastElementChild,
+        detached_dialog_midi_settings_element.appendChild(tmp_element);
+        
+        _midi_devices.input[midi_input.id].detached_element = tmp_element;
+    }
     
     midi_input.onmidimessage = _onMIDIMessage;
     
@@ -114,7 +139,11 @@ var _addMIDIDevice = function (midi_input) {
 };
 
 var _deleteMIDIDevice = function (id) {
-    var midi_device = _midi_devices.input[id];
+    var midi_device = _midi_devices.input[id],
+        
+        detached_dialog = WUI_Dialog.getDetachedDialog(_midi_settings_dialog),
+        
+        nodes;
     
     if (!midi_device) {
         console.log("_deleteMIDIDevice: MIDI Device ", id, " does not exist.");
@@ -122,6 +151,14 @@ var _deleteMIDIDevice = function (id) {
     }
     
     midi_device.element.parentElement.removeChild(midi_device.element);
+    
+    if (detached_dialog) {
+        nodes = detached_dialog.document.querySelectorAll("[data-did='" + id + "']");
+        
+        if (nodes.length > 0) {
+            nodes[0].parentElement.parentElement.parentElement.parentElement.removeChild(nodes[0].parentElement.parentElement.parentElement);
+        }
+    }
     
     delete _midi_devices.input[id]
 };

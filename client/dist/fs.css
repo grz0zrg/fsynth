@@ -1454,6 +1454,12 @@ canvas {
     bottom: 0;
 }
 
+.fs-controls-toolbar {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}
+
 .fs-top-panel {
     height: 32px;
     background-color: #111111;

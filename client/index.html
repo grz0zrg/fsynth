@@ -627,15 +627,12 @@ attribute vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
             </div>
         </div>
 
-<!--
-        <div id="fs_midi_out_dialog">
-            <div>
-                <div id="fs_midi_out_editor" class="fs-midi-out-editor"></div>
-            </div>
-        </div>
--->
-
         <div id="fs_controls_dialog">
+            <div>
+                <div id="fs_controls_toolbar" class="fs-controls-toolbar"></div>
+                <canvas id="fs_controllers"></canvas>
+            </div>
+<!--
             <div>
                 <div class="fs-settings">
                     <div class="fs-settings-panel">
@@ -648,7 +645,6 @@ attribute vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                         <select id="fs_scalars_ctrl_type" class="fs-btn fs-controls-add-ctrl">
                             <option value="bool">bool</option>
                             <option value="int">int</option>
-                            <!--<option value="uint">uint</option>-->
                             <option value="float">float</option>
                         </select>
                         <br/>
@@ -674,7 +670,6 @@ attribute vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                         <select id="fs_vectors_ctrl_type" class="fs-btn fs-controls-add-ctrl">
                             <option value="bvec">bvec</option>
                             <option value="ivec">ivec</option>
-                            <!--<option value="uvec">uvec</option>-->
                             <option value="vec">vec</option>
                         </select>
                         <br/>
@@ -690,14 +685,12 @@ attribute vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                             <option value="3">3</option>
                             <option value="4">4</option>
                         </select>
-                        <!--<input id="fs_vectors_ctrl_comps" type="number" value="2" class="wui-rangeslider-input fs-controls-add-ctrl">-->
                         <br/>
                         <label class="fs-input-label" for="fs_vectors_ctrl_array_size">Count:</label>
                         <input id="fs_vectors_ctrl_array_size" type="number" value="1" min="1" class="wui-rangeslider-input fs-controls-add-ctrl">
                         <br/>
                         <button id="fs_vectors_ctrl_add" class="fs-btn fs-controls-add-ctrl">Add</button>
                     </div>
-                    <!--
                     <div class="fs-settings-panel">
                         Matrices
                         <br/>
@@ -715,11 +708,11 @@ attribute vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                         <br/>
                         <button id="fs_matrices_ctrl_add" class="fs-btn fs-controls-add-ctrl">Add</button>
                     </div>
-                    -->
                 </div>
                 <div id="fs_controls_panel" class="fs-controls-panel">
                 </div>
             </div>
+-->
         </div>
 
         <div id="fs_right_dialog">
@@ -735,13 +728,13 @@ attribute vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                 <input id="fs_discuss_input" type="text" placeholder="..." class="wui-rangeslider-input fs-discuss-input">
             </div>
         </div>
-        
+<!--
         <div id="fs_analysis_dialog">
             <div>
                 
             </div>
         </div>
-        
+-->
         <div id="fs_import_dialog">
             <div>
                 <div class="fs-audio-import-settings">

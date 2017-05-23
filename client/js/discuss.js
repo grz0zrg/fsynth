@@ -141,7 +141,7 @@ _right_dialog = WUI_Dialog.create(_discuss_dialog_id, {
     draggable: true,
     minimizable: true,
     resizable: true,
-    detachable: false,
+    detachable: true,
     
     min_width: 300,
     min_height: 200,

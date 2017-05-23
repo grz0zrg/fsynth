@@ -9,7 +9,7 @@ var _FS_WAVETABLE = 0,
     
     _audio_context = new window.AudioContext(),
     
-    _analyser_node = _audio_context.createAnalyser(),
+    _analyser_node,// = _audio_context.createAnalyser(),
     _analyser_fftsize = 16384,
     _analyser_freq_bin,
     
@@ -542,11 +542,11 @@ var _audioInit = function () {
         
         _is_script_node_connected = true;
     }
-
+/*
     _analyser_node.smoothingTimeConstant = 0;
     _analyser_node.fftSize = _analyser_fftsize;
     _analyser_freq_bin = new Uint8Array(_analyser_node.frequencyBinCount);
-
+*/
     // workaround, webkit bug ?
     //window._fs_sn = _script_node;
 
