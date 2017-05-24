@@ -15750,6 +15750,14 @@ var _getElementOffset = function (elem) {
     return { top: Math.round(top), left: Math.round(left), width: box.width, height: box.height };
 };
 
+var _rgbToHex = function (r, g, b) {
+    return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+};
+
+var _decimalToHTMLColor = function (n) {
+    return ('00000' + (n | 0).toString(16)).substr(-6);
+};
+
 var _logScale = function (index, total, opt_base) {
     var base = opt_base || 2, 
         logmax = Math.log(total + 1) / Math.log(base),
@@ -20975,6 +20983,16 @@ var _uiInit = function () {
 var _controllers_canvas = document.getElementById("fs_controllers"),
     _controllers_canvas_ctx = _controllers_canvas.getContext("2d"),
     
+    _hit_canvas = document.createElement("canvas"),
+    _hit_canvas_ctx = _hit_canvas.getContext("2d"),
+    
+    _hit_curr = null,
+    
+    _hit_curr_color = 1,
+    _hit_x = 0,
+    _hit_y = 0,
+    _hit_under_cursor = null,
+    
     _controllers_settings = {
         margin: 20,
         width: 200,
@@ -20995,8 +21013,20 @@ var _controllers_canvas = document.getElementById("fs_controllers"),
             opts: {
                 n: 16,
                 values: new Array(16)
-            }
+            },
+            init: function (o) {
+                var i = 0;
+                
+                for (i = 0; i < o.values.length; i += 1) {
+                    o.values[i] = 0;
+                }
+            },
+            position: null
         }
+    },
+    
+    _controllers_hit_hashes = {
+        
     },
     
     _controls_per_page = 0,
@@ -21445,13 +21475,26 @@ var _buildControls = function (ctrl_obj) {
     }
 };
 
-var _drawMultislider = function (ctx, c, x, y) {
+var _eventMultislider = function (x, y, e) {
+    var c = e.c,
+        n = e.n,
+        
+        v = 1 - (y - c.position.y) / _controllers_settings.height;
+    
+    c.values[n] = v;
+
+    _drawMultislider(_controllers_canvas_ctx, c, c.position.x, c.position.y, n);
+};
+
+var _drawMultislider = function (ctx, c, x, y, n) {
     var i = 0,
         
         palette = _controllers_settings.palette,
         
         controller_width = _controllers_settings.width,
         controller_height = _controllers_settings.height,
+        
+        hit_ctx = _hit_canvas_ctx,
         
         w = Math.floor(controller_width / c.n),
         wr = controller_width % c.n,
@@ -21461,12 +21504,25 @@ var _drawMultislider = function (ctx, c, x, y) {
         lh = 6,
         
         v = 0,
-        iv = 0;
+        iv = 0,
+        
+        i_start = 0,
+        i_end = c.n,
+        
+        color = "";
     
     x = x + wr / 2;
+
+    if (n !== undefined) {
+        i_start = n;
+        i_end = i_start + 1;
+        
+        ctx.fillStyle = "#111111";
+        ctx.fillRect(x + w * i_start, y, w, controller_height);
+    }
     
-    for (i = 0; i < c.n; i += 1) {
-        v = Math.random();//c.values[i];
+    for (i = i_start; i < i_end; i += 1) {
+        v = c.values[i];
         iv = 1 - v;
         
         ly = y + iv * (controller_height - lh);
@@ -21476,6 +21532,20 @@ var _drawMultislider = function (ctx, c, x, y) {
         
         ctx.fillStyle = palette[i % palette.length];
         ctx.fillRect(x + w * i, ly + lh, w, Math.max((controller_height - lh) - (iv * (controller_height - lh)), 0));
+        
+        // hit testing
+        if (i >= c.hit_hashes.length) {
+            color = _decimalToHTMLColor(_hit_curr_color);
+            
+            c.hit_hashes[i] = "#" + color;
+            
+            _controllers_hit_hashes[color] = { f: _eventMultislider, e: { c: c, n: i } };
+            
+            _hit_curr_color += 1;
+        }
+        
+        hit_ctx.fillStyle = c.hit_hashes[i];
+        hit_ctx.fillRect(x + w * i, y, w, controller_height);
     }
 };
 
@@ -21486,6 +21556,7 @@ var _drawControls = function () {
         y = 0,
         
         ctx = _controllers_canvas_ctx,
+        hit_ctx = _hit_canvas_ctx,
         
         canvas_width = _controllers_canvas.width,
         canvas_height = _controllers_canvas.height,
@@ -21527,12 +21598,17 @@ var _drawControls = function () {
         ctx.fillStyle = '#111111';
         ctx.fillRect(x, y, controller_width, controller_height);
         
+        _hit_canvas_ctx.fillStyle = '#000000';
+        _hit_canvas_ctx.fillRect(x, y, controller_width, controller_height);
+        
         ctx.fillStyle = 'white';
         ctx.fillText(c.name, x + controller_width / 2, y - 2);
         
         _controllers[c.type].draw(ctx, c, x, y);
         
         ctx.strokeRect(x - 1, y - 1, controller_width + 2, controller_height + 2);
+        
+        c.position = { x: x, y: y };
     }
     
     _draw_list = [];
@@ -21561,7 +21637,8 @@ var _addControlWidget = function (type) {
         var controller = {
                 id: _controls.length,
                 type: type,
-                name: "control" + _controls.length
+                name: "control" + _controls.length,
+                hit_hashes: []
             },
             
             key;
@@ -21571,6 +21648,8 @@ var _addControlWidget = function (type) {
                 controller[key] = _controllers[type].opts[key];
             }
         }
+        
+        _controllers[type].init(controller);
         
         _computeControlsPage();
         
@@ -21585,8 +21664,12 @@ var _addControlWidget = function (type) {
     Functions.
 ************************************************************/
 
+_controllers_canvas.style.position = "relative";
 _controllers_canvas.width = window.innerWidth / 1.5;
 _controllers_canvas.height = window.innerHeight / 1.5;
+
+_hit_canvas.width = _controllers_canvas.width;
+_hit_canvas.height = _controllers_canvas.height;
 
 WUI_ToolBar.create("fs_controls_toolbar", {
             allow_groups_minimize: false
@@ -21603,8 +21686,57 @@ WUI_ToolBar.create("fs_controls_toolbar", {
 
 _controllers.multislider.draw = _drawMultislider;
 
-_controllers_canvas.addEventListener("mousedown", function () {
+_controllers_canvas.addEventListener("mousemove", function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
     
+    var hit_canvas_offset = _getElementOffset(_controllers_canvas),
+        
+        hit_x = e.clientX - hit_canvas_offset.left,
+        hit_y = e.clientY - hit_canvas_offset.top,
+        
+        hit_img_data = _hit_canvas_ctx.getImageData(hit_x, hit_y, 1, 1).data,
+        
+        hit_color = _rgbToHex(hit_img_data[0], hit_img_data[1], hit_img_data[2]),
+        
+        c = null;
+    
+    _hit_x = hit_x;
+    _hit_y = hit_y;
+    
+    if (_controllers_hit_hashes.hasOwnProperty(hit_color)) {
+        _hit_under_cursor = _controllers_hit_hashes[hit_color];
+        
+        if (_hit_curr) {
+            _hit_under_cursor.f(_hit_x, _hit_y, _hit_under_cursor.e);
+        }
+        
+        document.body.style.cursor = "pointer";
+    } else {
+        _hit_under_cursor = null;
+        
+        document.body.style.cursor = "";
+    }
+});
+
+_controllers_canvas.addEventListener("mousedown", function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    
+    var c = null;
+    
+    if (_hit_under_cursor) {
+        _hit_curr = _hit_under_cursor;
+        
+        _hit_under_cursor.f(_hit_x, _hit_y, _hit_under_cursor.e);
+    }
+});
+
+_controllers_canvas.addEventListener("mouseup", function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    
+    _hit_curr = null;
 });/* jslint browser: true */
 
 /***********************************************************
