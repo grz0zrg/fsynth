@@ -16256,7 +16256,7 @@ _utter_fail_element.innerHTML = "";
 
         _program,
 
-        _controls = {},
+        //_controls = {},
 
         _fragment_input_data = [],
 
@@ -18051,8 +18051,7 @@ var _compile = function () {
 
         fragment_input,
         
-        ctrl_name,
-        ctrl_obj,
+        ctrl_obj_uniform,
         
         temp_program,
 
@@ -18089,12 +18088,20 @@ var _compile = function () {
     }
     
     // inputs uniform from controllers
-    for(ctrl_name in _controls) { 
+/*
+    for (ctrl_name in _controls) { 
         if (_controls.hasOwnProperty(ctrl_name)) {
            ctrl_obj = _controls[ctrl_name];
 
            glsl_code += "uniform " + ((ctrl_obj.comps !== undefined) ? ctrl_obj.type + ctrl_obj.comps : ctrl_obj.type) + " " + ctrl_name + ((ctrl_obj.count > 1) ? "[" + ctrl_obj.count + "]" : "") + ";";
         }
+    }
+*/
+    
+    for (i = 0; i < _controls.length; i += 1) {
+        ctrl_obj_uniform = _controls[i].uniform;
+        
+        glsl_code += "uniform " + ((ctrl_obj_uniform.comps !== undefined) ? ctrl_obj_uniform.type + ctrl_obj_uniform.comps : ctrl_obj_uniform.type) + " " + _controls[i].name + ((ctrl_obj_uniform.count > 1) ? "[" + ctrl_obj_uniform.count + "]" : "") + ";";
     }
     
     // add user fragment code
@@ -18127,6 +18134,13 @@ var _compile = function () {
         _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
         
         // set uniforms to value from controllers
+        for (i = 0; i < _controls.length; i += 1) {
+            ctrl_obj_uniform = _controls[i].uniform;
+            
+            _setUniforms(_gl, ctrl_obj_uniform.type, _program, _controls[i].name, _controls[i].values, ctrl_obj_uniform.comps);
+        }
+        
+/*
         for(ctrl_name in _controls) { 
             if (_controls.hasOwnProperty(ctrl_name)) {
                 ctrl_obj = _controls[ctrl_name];
@@ -18134,7 +18148,8 @@ var _compile = function () {
                 _setUniforms(_gl, ctrl_obj.type, _program, ctrl_name, ctrl_obj.values, ctrl_obj.comps);
             }
         }
-
+*/
+        
         position = _gl.getAttribLocation(_program, "position");
         _gl.enableVertexAttribArray(position);
         _gl.vertexAttribPointer(position, 2, _gl.FLOAT, false, 0, 0);
@@ -21012,14 +21027,30 @@ var _controllers_canvas = document.getElementById("fs_controllers"),
             draw: null,
             opts: {
                 n: 16,
-                values: new Array(16)
+                values: null,
+                onChange: function (o) {
+                    var uniform_location = _getUniformLocation(o.name, _program);
+                    
+                    _useProgram(_program);
+                    _gl.uniform1fv(uniform_location, new Float32Array(o.values));
+                }
             },
             init: function (o) {
                 var i = 0;
                 
+                o.values = new Array(16);
+                
                 for (i = 0; i < o.values.length; i += 1) {
                     o.values[i] = 0;
                 }
+                
+                o["uniform"] = {
+                        type: "float",
+                        count: o.values.length
+                    };
+                
+                _useProgram(_program);
+                _setUniforms(_gl, o.uniform.type, _program, o.name, o.values, o.uniform.comps);
             },
             position: null
         }
@@ -21479,11 +21510,21 @@ var _eventMultislider = function (x, y, e) {
     var c = e.c,
         n = e.n,
         
+        v;
+    
+    if (y < e.c.position.y) {
+        v = 1;
+    } else if (y > (c.position.y + _controllers_settings.height)) {
+        v = 0;
+    } else {
         v = 1 - (y - c.position.y) / _controllers_settings.height;
+    }
     
     c.values[n] = v;
 
     _drawMultislider(_controllers_canvas_ctx, c, c.position.x, c.position.y, n);
+    
+    c.onChange(c);
 };
 
 var _drawMultislider = function (ctx, c, x, y, n) {
@@ -21657,19 +21698,28 @@ var _addControlWidget = function (type) {
         _draw_list.push(controller);
         
         _drawControls();
+        
+        _compile();
     }
+};
+
+var _setControllersCanvasDim = function () {
+    _controllers_canvas.style.position = "relative";
+    _controllers_canvas.width = window.innerWidth / 1.5;
+    _controllers_canvas.height = window.innerHeight / 1.5;
+
+    _hit_canvas.width = _controllers_canvas.width;
+    _hit_canvas.height = _controllers_canvas.height;
+    
+    _controllers_canvas_ctx.translate(0.5, 0.5);
+    _hit_canvas_ctx.translate(0.5, 0.5);
 };
 
 /***********************************************************
     Functions.
 ************************************************************/
 
-_controllers_canvas.style.position = "relative";
-_controllers_canvas.width = window.innerWidth / 1.5;
-_controllers_canvas.height = window.innerHeight / 1.5;
-
-_hit_canvas.width = _controllers_canvas.width;
-_hit_canvas.height = _controllers_canvas.height;
+_setControllersCanvasDim();
 
 WUI_ToolBar.create("fs_controls_toolbar", {
             allow_groups_minimize: false
@@ -21688,8 +21738,7 @@ _controllers.multislider.draw = _drawMultislider;
 
 _controllers_canvas.addEventListener("mousemove", function (e) {
     e.preventDefault();
-    e.stopImmediatePropagation();
-    
+
     var hit_canvas_offset = _getElementOffset(_controllers_canvas),
         
         hit_x = e.clientX - hit_canvas_offset.left,
@@ -21708,14 +21757,22 @@ _controllers_canvas.addEventListener("mousemove", function (e) {
         _hit_under_cursor = _controllers_hit_hashes[hit_color];
         
         if (_hit_curr) {
-            _hit_under_cursor.f(_hit_x, _hit_y, _hit_under_cursor.e);
+            _hit_curr.f(_hit_x, _hit_y, _hit_under_cursor.e);
         }
         
-        document.body.style.cursor = "pointer";
+        if (document.body.style.cursor !== "pointer") {
+            document.body.style.cursor = "pointer";
+        }
     } else {
-        _hit_under_cursor = null;
-        
-        document.body.style.cursor = "";
+        if (_hit_curr) {
+            _hit_curr.f(_hit_x, _hit_y, _hit_under_cursor.e);
+        } else {
+            _hit_under_cursor = null;
+
+            if (document.body.style.cursor !== "") {
+                document.body.style.cursor = "";
+            }
+        }
     }
 });
 

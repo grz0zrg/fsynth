@@ -327,7 +327,7 @@ var FragmentSynth = function (params) {
 
         _program,
 
-        _controls = {},
+        //_controls = {},
 
         _fragment_input_data = [],
 

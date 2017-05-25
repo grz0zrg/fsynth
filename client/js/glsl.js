@@ -140,8 +140,7 @@ var _compile = function () {
 
         fragment_input,
         
-        ctrl_name,
-        ctrl_obj,
+        ctrl_obj_uniform,
         
         temp_program,
 
@@ -178,12 +177,20 @@ var _compile = function () {
     }
     
     // inputs uniform from controllers
-    for(ctrl_name in _controls) { 
+/*
+    for (ctrl_name in _controls) { 
         if (_controls.hasOwnProperty(ctrl_name)) {
            ctrl_obj = _controls[ctrl_name];
 
            glsl_code += "uniform " + ((ctrl_obj.comps !== undefined) ? ctrl_obj.type + ctrl_obj.comps : ctrl_obj.type) + " " + ctrl_name + ((ctrl_obj.count > 1) ? "[" + ctrl_obj.count + "]" : "") + ";";
         }
+    }
+*/
+    
+    for (i = 0; i < _controls.length; i += 1) {
+        ctrl_obj_uniform = _controls[i].uniform;
+        
+        glsl_code += "uniform " + ((ctrl_obj_uniform.comps !== undefined) ? ctrl_obj_uniform.type + ctrl_obj_uniform.comps : ctrl_obj_uniform.type) + " " + _controls[i].name + ((ctrl_obj_uniform.count > 1) ? "[" + ctrl_obj_uniform.count + "]" : "") + ";";
     }
     
     // add user fragment code
@@ -216,6 +223,13 @@ var _compile = function () {
         _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
         
         // set uniforms to value from controllers
+        for (i = 0; i < _controls.length; i += 1) {
+            ctrl_obj_uniform = _controls[i].uniform;
+            
+            _setUniforms(_gl, ctrl_obj_uniform.type, _program, _controls[i].name, _controls[i].values, ctrl_obj_uniform.comps);
+        }
+        
+/*
         for(ctrl_name in _controls) { 
             if (_controls.hasOwnProperty(ctrl_name)) {
                 ctrl_obj = _controls[ctrl_name];
@@ -223,7 +237,8 @@ var _compile = function () {
                 _setUniforms(_gl, ctrl_obj.type, _program, ctrl_name, ctrl_obj.values, ctrl_obj.comps);
             }
         }
-
+*/
+        
         position = _gl.getAttribLocation(_program, "position");
         _gl.enableVertexAttribArray(position);
         _gl.vertexAttribPointer(position, 2, _gl.FLOAT, false, 0, 0);
