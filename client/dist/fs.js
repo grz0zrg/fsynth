@@ -21802,6 +21802,9 @@ var _drawControls = function () {
 };
 
 var _redrawControls = function () {
+    _controllers_canvas_ctx.fillStyle = '#000000';
+    _controllers_canvas_ctx.fillRect(0, 0, _controllers_canvas.width, _controllers_canvas.height);
+    
     var i = 0;
     
     for (i = 0; i < _controls.length; i += 1) {
