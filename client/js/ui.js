@@ -64,6 +64,11 @@ var _togglePlay = function (toggle_ev) {
 };
 
 var _showControlsDialog = function () {
+    _controllers_canvas = document.getElementById("fs_controllers");
+    _controllers_canvas_ctx = _controllers_canvas.getContext('2d');
+
+    _redrawControls();
+    
     WUI_Dialog.open(_controls_dialog);
 };
 
@@ -830,6 +835,15 @@ var _uiInit = function () {
                 _buildControls(_controls);
             },
 */
+            on_detach: function (new_window) {
+                var previous_canvas = _controllers_canvas;
+                
+                _controllers_canvas = new_window.document.getElementById("fs_controllers");
+                _controllers_canvas_ctx = _controllers_canvas.getContext('2d');
+                
+                _controllers_canvas_ctx.drawImage(previous_canvas, 0, 0);
+            },
+        
             open: false,
 
             status_bar: false,

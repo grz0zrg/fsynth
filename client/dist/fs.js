@@ -19611,6 +19611,11 @@ var _togglePlay = function (toggle_ev) {
 };
 
 var _showControlsDialog = function () {
+    _controllers_canvas = document.getElementById("fs_controllers");
+    _controllers_canvas_ctx = _controllers_canvas.getContext('2d');
+
+    _redrawControls();
+    
     WUI_Dialog.open(_controls_dialog);
 };
 
@@ -20377,6 +20382,15 @@ var _uiInit = function () {
                 _buildControls(_controls);
             },
 */
+            on_detach: function (new_window) {
+                var previous_canvas = _controllers_canvas;
+                
+                _controllers_canvas = new_window.document.getElementById("fs_controllers");
+                _controllers_canvas_ctx = _controllers_canvas.getContext('2d');
+                
+                _controllers_canvas_ctx.drawImage(previous_canvas, 0, 0);
+            },
+        
             open: false,
 
             status_bar: false,
@@ -21787,6 +21801,16 @@ var _drawControls = function () {
     _draw_list = [];
 };
 
+var _redrawControls = function () {
+    var i = 0;
+    
+    for (i = 0; i < _controls.length; i += 1) {
+        _draw_list.push(_controls[i]);
+    }
+    
+    _drawControls();
+};
+
 var _computeControlsPage = function () {
     var canvas_width = _controllers_canvas.width,
         canvas_height = _controllers_canvas.height,
@@ -21846,9 +21870,6 @@ var _setControllersCanvasDim = function () {
     
     _controllers_canvas_ctx.imageSmoothingEnabled = false;
     _hit_canvas_ctx.imageSmoothingEnabled = false;
-    
-    //_controllers_canvas_ctx.translate(0.5, 0.5);
-    //_hit_canvas_ctx.translate(0.5, 0.5);
 };
 
 /***********************************************************
@@ -21895,8 +21916,10 @@ _controllers_canvas.addEventListener("mousemove", function (e) {
         
         hit_color = _rgbToHex(hit_img_data[0], hit_img_data[1], hit_img_data[2]),
         
+        doc = _controllers_canvas.ownerDocument,
+        
         c = null;
-    
+
     _hit_x = hit_x;
     _hit_y = hit_y;
     
@@ -21907,8 +21930,8 @@ _controllers_canvas.addEventListener("mousemove", function (e) {
             _hit_under_cursor = _controllers_hit_hashes[hit_color];
         }
         
-        if (document.body.style.cursor !== "pointer") {
-            document.body.style.cursor = "pointer";
+        if (doc.body.style.cursor !== "pointer") {
+            doc.body.style.cursor = "pointer";
         }
     } else {
         if (_hit_curr) {
@@ -21916,8 +21939,8 @@ _controllers_canvas.addEventListener("mousemove", function (e) {
         } else {
             _hit_under_cursor = null;
 
-            if (document.body.style.cursor !== "") {
-                document.body.style.cursor = "";
+            if (doc.body.style.cursor !== "") {
+                doc.body.style.cursor = "";
             }
         }
     }
