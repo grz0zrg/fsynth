@@ -22,13 +22,10 @@ var _controllers_canvas = document.getElementById("fs_controllers"),
         width: 200,
         height: 150,
         text_size: 12,
-        palette: [
-            "#0040a0",
-            "#0060c0",
-            "#0080e0",
-            "#00a0ff",
-            "#00ffff"
-        ]
+        background: "#111111",
+        border_color: "#555555",
+        // http://colorbrewer2.org/#type=sequential&scheme=GnBu&n=9
+        palette: ['#f7fbff','#deebf7','#c6dbef','#9ecae1','#6baed6','#4292c6','#2171b5','#08519c','#08306b']
     },
     
     _controllers = {
@@ -95,6 +92,155 @@ var _controllers_canvas = document.getElementById("fs_controllers"),
                 
                 _useProgram(_program);
                 _setUniforms(_gl, o.uniform.type, _program, o.name, o.values, o.uniform.comps);
+            },
+            position: null
+        },
+        iannix: {
+            draw: null,
+            opts: {
+                osc: {
+                    port: null,
+                    url: "127.0.0.1:8081"
+                },
+                n: 6,
+                values: null,
+                onChange: function (o) {
+                    var uniform_location = _getUniformLocation(o.name, _program);
+                    
+                    _useProgram(_program);
+                    _gl.uniform3fv(uniform_location, new Float32Array(o.values));
+                },
+                cursors: {
+                    count: 0
+                }
+            },
+            init: function (o) {
+                var i = 0;
+                
+                o.values = new Array(o.n);
+                
+                for (i = 0; i < o.values.length; i += 1) {
+                    o.values[i] = 0.;
+                }
+                
+                o["uniform"] = {
+                        type: "vec",
+                        count: o.values.length,
+                        comps: 3
+                    };
+                
+                o.title = "float[" + o.values.length + "] " + o.name;
+                
+                _useProgram(_program);
+                _setUniforms(_gl, o.uniform.type, _program, o.name, o.values, o.uniform.comps);
+
+                o.osc.port = new osc.WebSocketPort({
+                    url: "ws://" + o.osc.url,
+                    metadata: true
+                });
+                
+                o.osc.port.on("bundle", function (bundle) {
+                    var packets = bundle.packets,
+                        
+                        address,
+                        
+                        args,
+                        
+                        cid = 0,
+                        vid = 0,
+                        
+                        i = 0, j = 0;
+                    
+                    for (i = 0; i < packets.length; i += 1) {
+                        address = packets[i].address;
+                        args = packets[i].args;
+                    
+                        if (address === "/cursor") {
+                            cid = args[0].value;
+                            
+                            if (o.cursors.hasOwnProperty(cid)) {
+                                vid = o.cursors[cid] * 6;
+                            } else {
+                                vid = o.cursors.count * 6;
+                                
+                                o.cursors[cid] = o.cursors.count;
+                                
+                                o.cursors.count += 1;
+                            }
+                            
+                            for (j = 0; j < 6; j += 1) {
+                                if (args.length <= (j + 2)) {
+                                    o.values[vid + j] = 0.;
+                                } else {
+                                    o.values[vid + j] = args[j + 2].value;
+                                }
+                            }
+                        } else if (address === "/trigger") {
+                            // TODO
+                        }
+                    }
+                    
+                    while ((o.values.length % 6) !== 0) {
+                        o.values.push(0);
+                    }
+                    
+                    if (o.uniform.count !== o.values.length) {
+                        _compile();
+
+                        o.uniform.count = o.values.length;
+                        
+                        o.title = "float[" + o.values.length + "] " + o.name;
+                        
+                        _draw_list.push(o);
+                        _drawControls();
+                    }
+                    
+                    o.onChange(o);
+                });
+
+                o.osc.port.on("message", function (m) {
+                    var address = m.address,
+                        
+                        args = m.args,
+                        
+                        t;
+                    
+                    if (address === "/cursor") {
+                        // See bundle
+                    } else if (address === "/trigger") {
+                        // See bundle
+                    } else if (address === "/transport") {
+                        _time = args[1].value;
+                        
+                        if (args[0].value === "play") {
+                            _play();
+                        } else if (args[0].value === "fastrewind") {
+                            o.cursors = { count: 0 };
+                            
+                            o.values = [];
+                            
+                            _rewind();
+                        } else if (args[0].value === "stop") {
+                            o.cursors = { count: 0 };
+                            
+                            o.values = [];
+                            
+                            _stop();
+                        }
+                    }
+                });
+                
+                o.osc.port.on("close", function () {
+                    _notification("IanniX OSC connection to '" + o.osc.url + "' failed, trying again in ~5sec", 2500);
+                        
+                    setTimeout(function () { o.init(o) }, 5000);
+                });
+                
+                o.osc.port.on("error", function (e) {
+                    console.log(e);
+                });
+                
+                o.osc.port.open();
             },
             position: null
         }
@@ -564,6 +710,21 @@ var _addHitHash = function (c, i, eo) {
     }
 };
 
+var _drawIannix = function (ctx, c, x, y) {
+    var controller_width = _controllers_settings.width,
+        controller_height = _controllers_settings.height;
+    
+    ctx.save();
+    ctx.font = "32px monospace";
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "center";
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = _controllers_settings.border_color;
+    ctx.fillStyle = 'white';
+    ctx.fillText("IanniX", x + controller_width / 2, y + controller_height / 2);
+    ctx.restore();
+};
+
 var _eventXYPad = function (x, y, e) {
     var c = e.c,
         n = e.n,
@@ -624,7 +785,7 @@ var _drawXYPad = function (ctx, c, x, y, n) {
         
         color = "";
     
-    ctx.fillStyle = "#111111";
+    ctx.fillStyle = _controllers_settings.background;
     ctx.fillRect(x, y, controller_width, controller_height);
     
     hit_ctx.fillStyle = "#000000";
@@ -707,7 +868,7 @@ var _drawMultislider = function (ctx, c, x, y, n) {
         i_start = n;
         i_end = i_start + 1;
         
-        ctx.fillStyle = "#111111";
+        ctx.fillStyle = _controllers_settings.background;
         ctx.fillRect(x + w * i_start, y, w, controller_height);
     }
     
@@ -765,7 +926,7 @@ var _drawControls = function () {
     ctx.textBaseline = "bottom";
     ctx.textAlign = "center";
     ctx.lineWidth = 1;
-    ctx.strokeStyle = '#555555';
+    ctx.strokeStyle = _controllers_settings.border_color;
     
     for (i = 0; i < _draw_list.length; i += 1) {
         c = _draw_list[i];
@@ -774,10 +935,14 @@ var _drawControls = function () {
             continue;
         }
         
+
         x = Math.round(margin + lcw + (c.id % lc) * controller_width_m);
         y = Math.round(margin + hcw + Math.floor(c.id / lc) * controller_height_m);
 
-        ctx.fillStyle = '#111111';
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(x - 2, y - margin + 4, controller_width + 8, controller_height + margin + 6);
+        
+        ctx.fillStyle = _controllers_settings.background;
         ctx.fillRect(x, y, controller_width, controller_height);
 
         _hit_canvas_ctx.fillStyle = '#000000';
@@ -797,9 +962,6 @@ var _drawControls = function () {
 };
 
 var _redrawControls = function () {
-    _controllers_canvas_ctx.fillStyle = '#000000';
-    _controllers_canvas_ctx.fillRect(0, 0, _controllers_canvas.width, _controllers_canvas.height);
-    
     var i = 0;
     
     for (i = 0; i < _controls.length; i += 1) {
@@ -845,7 +1007,9 @@ var _addControlWidget = function (type) {
             }
         }
         
-        _controllers[type].init(controller);
+        controller["init"] = _controllers[type].init;
+        
+        controller.init(controller);
         
         _computeControlsPage();
         
@@ -882,9 +1046,9 @@ WUI_ToolBar.create("fs_controls_toolbar", {
         {
             controls: [
                 {
-                    text: "OSC",
-                    on_click: _addControlWidget("osc"),
-                    tooltip: "Add OSC controller"
+                    text: "IanniX (OSC)",
+                    on_click: _addControlWidget("iannix"),
+                    tooltip: "Add IanniX (OSC) controller"
                 },
                 {
                     text: "XY Pad",
@@ -901,6 +1065,7 @@ WUI_ToolBar.create("fs_controls_toolbar", {
 
 _controllers.multislider.draw = _drawMultislider;
 _controllers.xypad.draw = _drawXYPad;
+_controllers.iannix.draw = _drawIannix;
 
 _controllers_canvas.addEventListener("mousemove", function (e) {
     e.preventDefault();
@@ -923,6 +1088,12 @@ _controllers_canvas.addEventListener("mousemove", function (e) {
     
     if (_controllers_hit_hashes.hasOwnProperty(hit_color)) {
         if (_hit_curr) {
+            // "continuous" mode only for specific widgets
+            if (_hit_under_cursor.e.c.type === "multislider" &&
+               _controllers_hit_hashes[hit_color].e.c.type === "multislider") {
+                _hit_under_cursor = _controllers_hit_hashes[hit_color];
+            }
+            
             _hit_curr.f(_hit_x, _hit_y, _hit_under_cursor.e);
         } else {
             _hit_under_cursor = _controllers_hit_hashes[hit_color];

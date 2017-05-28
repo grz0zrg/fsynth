@@ -5,6 +5,9 @@
 // WUI - https://github.com/grz0zrg/wui
 /*#include wui/wui.js*/
 
+// osc.js - https://github.com/colinbdclark/osc.js/
+/*#include osc.js/osc-browser.js*/
+
 // CodeMirror - https://codemirror.net/
 /*#include codemirror/codemirror.js*/
 /*#include codemirror/addon/search/searchcursor.js*/

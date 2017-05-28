@@ -24,7 +24,7 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
  * Adjustable audio output channel per slices
  * Feedback via framebuffer (for fx like reverb, delay, Release part of envelopes and more)
  * Shader inputs: webcam, images, audio files (translated to images)
- * Real-time analysis (logarithmic spectrum view of the output etc.)
+ * Uniform controllers (Multislider, XY Pad, [IanniX](https://www.iannix.org/en/) cursors via OSC)
  * Per-sessions discussion system
  * Global and per sessions settings automatic saving/loading; make use of *localStorage*
  * No authentifications (make use of *localStorage* and is *sessions* based)
@@ -55,6 +55,7 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
  * fss - main server (discuss. system, slices)
  * fsdb - sharedb server (collaborative features)
  * fsws - web. server (only used for development or local installation)
+ * osc_relay - an OSC relay which use the osc.js library (must be launched to use the IanniX controller)
  * editor - external GLSL code editor
  * documentation - MAML (Minimalist Anubis Markup Language) with the latest HTML and PDF doc.
  * main.js - Electron app. file
@@ -83,6 +84,8 @@ Fragment make use of NodeJS, NPM, MongoDB and Redis database, once those are ins
  * point your browser to http://127.0.0.1:3000
  
  If you just want to try it out without the collaborative feature and saving, you just need "fsws" then point your browser to http://127.0.0.1:3000
+ 
+ If you want to use it with IanniX or OSC, please look at the osc_relay directory, this should be launched before you use the IanniX controller.
 
 ## Prod. system
 
@@ -109,6 +112,7 @@ Client :
  * [Vanilla JS](http://vanilla-js.com/) yup!
  * [WUI](https://github.com/grz0zrg/wui) vanilla collection of UI widgets for the web
  * [CodeMirror](http://codemirror.net/) for the awesome editor and its addons/modes
+ * [osc.js](https://github.com/colinbdclark/osc.js/)
  * [glsl-simulator](https://github.com/burg/glsl-simulator) the GLSL parser is based on glsl-simulator
  * [ShareDB](https://github.com/share/sharedb/) for the collaborative features
  * [Normalize](https://necolas.github.io/normalize.css/)

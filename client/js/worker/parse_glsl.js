@@ -50,7 +50,7 @@ var parse_statements = function (statements, root) {
                 
                 if (root) {
                     if ((declarator.name.name in root_declarator_exceptions) ||
-                       (declarator.name.name.match(/iInput\d+/g) && statement.typeAttribute.name === "sampler2D")) {
+                       ((declarator.name.name.match(/iInput\d+/g) && statement.typeAttribute.name === "sampler2D")) || declarator.name.name.match(/control\d+/g)) {
                         continue;
                     }
                 }

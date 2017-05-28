@@ -1190,6 +1190,8 @@ var _uiInit = function () {
             value_min_width: 88,
 
             on_change: function (polyphony) {
+                var i = 0;
+                
                 if (polyphony <= 0) {
                     return;
                 }

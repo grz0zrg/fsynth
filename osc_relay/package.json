@@ -1,0 +1,10 @@
+{
+    "name": "fs-osc-relay",
+    "version": "1.0.0",
+    "description": "Fragment OSC Relay",
+    "dependencies": {
+        "osc": "2.2.0",
+        "express": "~4.9.1",
+        "serve-static": "~1.11.1"
+    }
+}

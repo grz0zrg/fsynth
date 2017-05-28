@@ -6343,6 +6343,14 @@ var _getElementOffset = function (elem) {
     return { top: Math.round(top), left: Math.round(left), width: box.width, height: box.height };
 };
 
+var _rgbToHex = function (r, g, b) {
+    return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+};
+
+var _decimalToHTMLColor = function (n) {
+    return ('00000' + (n | 0).toString(16)).substr(-6);
+};
+
 var _logScale = function (index, total, opt_base) {
     var base = opt_base || 2, 
         logmax = Math.log(total + 1) / Math.log(base),
