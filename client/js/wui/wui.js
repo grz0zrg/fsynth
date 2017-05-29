@@ -4132,7 +4132,8 @@ var WUI_CircularMenu = new (function() {
 
         _class_name = {
             item:       "wui-circularmenu-item",
-            show:       "wui-circularmenu-show"
+            show:       "wui-circularmenu-show",
+            content:    "wui-circularmenu-content"
         },
 
         _known_options = {
@@ -4236,7 +4237,7 @@ var WUI_CircularMenu = new (function() {
     var _addItems = function (opts, items, win, doc, x, y) {
         _destroy(doc);
 
-        var elem, item, i, handler,
+        var elem, content, item, i, handler,
             a = -(Math.PI / 2) + _toRadians(opts.angle),
             c = items.length,
             ia = (Math.PI * 2 / c);
@@ -4260,6 +4261,19 @@ var WUI_CircularMenu = new (function() {
 
             if (item.tooltip) {
                 elem.title = item.tooltip;
+            }
+
+            if (item.content) {
+                content = document.createElement("div");
+
+                content.style.width = opts.item_width  + "px";
+                content.style.height = opts.item_height + "px";
+
+                content.classList.add(_class_name.content);
+
+                content.innerHTML = item.content;
+
+                elem.appendChild(content);
             }
 
             doc.body.appendChild(elem);

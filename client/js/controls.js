@@ -18,7 +18,7 @@ var _controllers_canvas = document.getElementById("fs_controllers"),
     _hit_under_cursor = null,
     
     _controllers_settings = {
-        margin: 20,
+        margin: 28,
         width: 200,
         height: 150,
         text_size: 12,
@@ -251,6 +251,8 @@ var _controllers_canvas = document.getElementById("fs_controllers"),
     },
     
     _controls_per_page = 0,
+    
+    _controls_page = 0,
         
     _controls = [],
     
@@ -805,9 +807,9 @@ var _drawXYPad = function (ctx, c, x, y, n) {
         //ctx.fill();
         ctx.fillRect(x + Math.round(area_width * vx), y + Math.round(area_height * vy), 16, 16);
         
-        _addHitHash(c, ii, { f: _eventXYPad, e: { c: c, n: i } })
+        _addHitHash(c, ii + 1, { f: _eventXYPad, e: { c: c, n: i } })
 
-        hit_ctx.fillStyle = c.hit_hashes[ii];
+        hit_ctx.fillStyle = c.hit_hashes[ii + 1];
         //hit_ctx.arc(x + 8 + Math.round(area_width * vx), y + 8 + Math.round(area_height * vy), 8, 0, 2 * Math.PI);
         //hit_ctx.fill();
         hit_ctx.fillRect(x + Math.round(area_width * vx), y + Math.round(area_height * vy), 16, 16);
@@ -885,15 +887,16 @@ var _drawMultislider = function (ctx, c, x, y, n) {
         ctx.fillRect(x + w * i, ly + lh, w, Math.max((controller_height - lh) - (iv * (controller_height - lh)), 0));
         
         // hit testing
-        _addHitHash(c, i, { f: _eventMultislider, e: { c: c, n: i } })
+        _addHitHash(c, i + 1, { f: _eventMultislider, e: { c: c, n: i } })
         
-        hit_ctx.fillStyle = c.hit_hashes[i];
+        hit_ctx.fillStyle = c.hit_hashes[i + 1];
         hit_ctx.fillRect(x + w * i, y, w, controller_height);
     }
 };
 
 var _drawControls = function () {
     var i = 0,
+        j = 0,
         
         x = 0,
         y = 0,
@@ -919,28 +922,28 @@ var _drawControls = function () {
         
         hc = Math.floor(canvas_height / controller_height_m),
         hcw = (canvas_height % controller_height_m) / 2 - margin,
-        
+
         c;
     
     ctx.font = text_size + "px monospace";
     ctx.textBaseline = "bottom";
     ctx.textAlign = "center";
     ctx.lineWidth = 1;
-    ctx.strokeStyle = _controllers_settings.border_color;
-    
+
     for (i = 0; i < _draw_list.length; i += 1) {
         c = _draw_list[i];
         
-        if (c.id >= _controls_per_page) {
+        if (c.id >= (_controls_page + _controls_per_page) || c.id < _controls_page) {
             continue;
         }
         
-
+        ctx.strokeStyle = _controllers_settings.border_color;
+        
         x = Math.round(margin + lcw + (c.id % lc) * controller_width_m);
         y = Math.round(margin + hcw + Math.floor(c.id / lc) * controller_height_m);
 
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(x - 2, y - margin + 4, controller_width + 8, controller_height + margin + 6);
+        //ctx.fillStyle = '#000000';
+        ctx.clearRect(x - 2, y - margin + 4, controller_width + 8, controller_height + margin + 6);
         
         ctx.fillStyle = _controllers_settings.background;
         ctx.fillRect(x, y, controller_width, controller_height);
@@ -951,13 +954,20 @@ var _drawControls = function () {
         ctx.fillStyle = 'white';
         ctx.fillText(c.title, x + controller_width / 2, y - 2);
         
+        // controller menu, we reserve the first hit hash for it!
+        _addHitHash(c, 0, { f: _controllerMenu, e: { c: c, n: c.id } })
+        
+        hit_ctx.fillStyle = c.hit_hashes[0];
+        hit_ctx.fillRect(x, y - text_size - 8, controller_width, text_size + 8);
+        //
+        
         _controllers[c.type].draw(ctx, c, x, y);
         
         ctx.strokeRect(x - 1, y - 1, controller_width + 2, controller_height + 2);
         
         c.position = { x: x, y: y };
     }
-    
+
     _draw_list = [];
 };
 
@@ -1034,6 +1044,10 @@ var _setControllersCanvasDim = function () {
     _hit_canvas_ctx.imageSmoothingEnabled = false;
 };
 
+var _controllerMenu = function (x, y, e) {
+    console.log("Controller ID : " + e.n);
+};
+
 /***********************************************************
     Functions.
 ************************************************************/
@@ -1062,6 +1076,14 @@ WUI_ToolBar.create("fs_controls_toolbar", {
                 }
             ]
         });
+
+var _getControllerPageCb = function (p) {
+    return function () {
+        _controls_page = p;
+        
+        _redrawControls();
+    };
+};
 
 _controllers.multislider.draw = _drawMultislider;
 _controllers.xypad.draw = _drawXYPad;
@@ -1115,16 +1137,56 @@ _controllers_canvas.addEventListener("mousemove", function (e) {
     }
 });
 
+_controllers_canvas.addEventListener("contextmenu", function (e) {
+    e.preventDefault(); 
+});
+
 _controllers_canvas.addEventListener("mousedown", function (e) {
     e.preventDefault();
     e.stopImmediatePropagation();
     
-    var c = null;
-    
-    if (_hit_under_cursor) {
-        _hit_curr = _hit_under_cursor;
+    if (e.which === 3) { // right click
+        var pages_btn = [],
+            
+            pages = Math.ceil(_controls.length / (_controls_per_page + 1)),
+            
+            i = 0, it;
         
-        _hit_under_cursor.f(_hit_x, _hit_y, _hit_under_cursor.e);
+        for (i = 0; i < pages; i += 1) {
+            if (i === _controls_page) {
+                it = '<span style="color: green"><strong>' + i + '</strong></span>';
+            } else {
+                it = '<span style="color: white">' + i + '</span>';
+            }
+            
+            pages_btn.push({
+                    content: it,
+                    tooltip: "Page " + i,
+                    on_click: _getControllerPageCb(i)
+                });
+        }
+        
+        WUI_CircularMenu.create(
+            {
+                x: e.pageX,
+                y: e.pageY,
+                
+                rx: 48,
+                ry: 48,
+
+                item_width:  32,
+                item_height: 32,
+                
+                window: WUI_Dialog.getDetachedDialog(_controls_dialog)
+            }, pages_btn);
+    } else {
+        var c = null;
+
+        if (_hit_under_cursor) {
+            _hit_curr = _hit_under_cursor;
+
+            _hit_under_cursor.f(_hit_x, _hit_y, _hit_under_cursor.e);
+        }
     }
 });
 
