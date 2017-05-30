@@ -10,6 +10,8 @@ Fragment can also be used for live coding visuals, they can be synchronized to a
 
 This is a sort of [Shadertoy](https://www.shadertoy.com) for synthesis, it is compatible with most shaders written for it.
 
+Fragment is quite modular and has several external app. such as an external GLSL editor which can directly connect to the sharedb server and a native additive synthesis engine which communicate via the WebSocket API, a IanniX/OSC relay is also available and more is to come!
+
 For any questions, a message board is available [here](https://quiet.fsynth.com/)
 
 ## Feature list:
@@ -22,11 +24,11 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
  * Multitimbral
  * Continuous frames by frames recording with export
  * Adjustable audio output channel per slices
- * Feedback via framebuffer (for fx like reverb, delay, Release part of envelopes and more)
+ * Feedback via framebuffer (for fx like reverb, delay, complex spectral distortion or computation)
  * Shader inputs: webcam, images, audio files (translated to images)
  * Uniform controllers (Multislider, XY Pad, [IanniX](https://www.iannix.org/en/) cursors via OSC)
  * Per-sessions discussion system
- * Global and per sessions settings automatic saving/loading; make use of *localStorage*
+ * Global and per sessions settings automatic save/load; make use of *localStorage*
  * No authentifications (make use of *localStorage* and is *sessions* based)
 
  Note: Blue component output of the fragment shader can be used for real-time sounds/visuals sync or visual feedback of functions/textures/camera, it is also possible to have full RGB output for visuals by turning on the "monophonic" setting
@@ -47,6 +49,8 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
  * Recent medium multi-core CPU (a dual core should be ok with the native program, a beefy CPU is needed if you use more than one output channel), this is required for the audio synthesis part
  * Not necessary but a MIDI device such as a MIDI keyboard and a MIDI controller is recommended
  * Some friends to have fun with
+ 
+Excellent performances with a modern multi-core system and near "perfect" if you use the external synthesis program (FAS) and the external editor, the things that may cause poor performances is generally due to the browser reflow, also, altough a great feature, detached dialog have quite poor performances sometimes due to them being tied to the parent window thread... this may change with the future of browsers.
 
 ## The project
 
@@ -83,7 +87,7 @@ Fragment make use of NodeJS, NPM, MongoDB and Redis database, once those are ins
  * cd fsws & npm install & node fsws
  * point your browser to http://127.0.0.1:3000
  
- If you just want to try it out without the collaborative feature and saving, you just need "fsws" then point your browser to http://127.0.0.1:3000
+ If you just want to try it out without the collaborative feature and save, you just need "fsws" then point your browser to http://127.0.0.1:3000
  
  If you want to use it with IanniX or OSC, please look at the osc_relay directory, this should be launched before you use the IanniX controller.
 

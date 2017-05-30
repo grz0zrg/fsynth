@@ -391,6 +391,7 @@ var _frame = function (raf_time) {
     _gl.uniform1f(_getUniformLocation("baseFrequency"), _audio_infos.base_freq);
     _gl.uniform4f(_getUniformLocation("mouse"), _nmx, _nmy, _cnmx, _cnmy);
     _gl.uniform4f(_getUniformLocation("date"), date.getFullYear(), date.getMonth(), date.getDay(), date.getSeconds());
+    _gl.uniform1i(_getUniformLocation("frame", _program), _globalFrame);
 
     // fragment inputs
     for (i = 0; i < _fragment_input_data.length; i += 1) {
@@ -616,6 +617,8 @@ var _frame = function (raf_time) {
     }
     
     //_drawSpectrum();
+    
+    _globalFrame += 1;
     
     _raf = window.requestAnimationFrame(_frame);
 };

@@ -37,6 +37,8 @@ var _play = function (update_global_time) {
 };
 
 var _rewind = function () {
+    _globalFrame = 0;
+    
     if (_fs_state === 0 && _glsl_error === false) {
         _time = performance.now();
     } else {

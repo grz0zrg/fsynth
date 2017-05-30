@@ -337,6 +337,8 @@ var FragmentSynth = function (params) {
         _input_panel_element = document.getElementById("fs_input_panel"),
 
         _codemirror_line_widgets = [],
+        
+        _globalFrame = 0,
 
         _time = 0,
 

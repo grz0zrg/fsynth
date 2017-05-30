@@ -60,6 +60,9 @@ var _controllers_canvas = document.getElementById("fs_controllers"),
                 _useProgram(_program);
                 _setUniforms(_gl, o.uniform.type, _program, o.name, o.values, o.uniform.comps);
             },
+            destroy: function (o) {
+                
+            },
             position: null
         },
         xypad: {
@@ -92,6 +95,9 @@ var _controllers_canvas = document.getElementById("fs_controllers"),
                 
                 _useProgram(_program);
                 _setUniforms(_gl, o.uniform.type, _program, o.name, o.values, o.uniform.comps);
+            },
+            destroy: function (o) {
+                
             },
             position: null
         },
@@ -241,6 +247,9 @@ var _controllers_canvas = document.getElementById("fs_controllers"),
                 });
                 
                 o.osc.port.open();
+            },
+            destroy: function (o) {
+                o.osc.port.close();
             },
             position: null
         }
@@ -727,7 +736,7 @@ var _drawIannix = function (ctx, c, x, y) {
     ctx.restore();
 };
 
-var _eventXYPad = function (x, y, e) {
+var _eventXYPad = function (ev, x, y, e) {
     var c = e.c,
         n = e.n,
         
@@ -818,7 +827,7 @@ var _drawXYPad = function (ctx, c, x, y, n) {
     ctx.closePath();
 };
 
-var _eventMultislider = function (x, y, e) {
+var _eventMultislider = function (ev, x, y, e) {
     var c = e.c,
         n = e.n,
         
@@ -922,25 +931,36 @@ var _drawControls = function () {
         
         hc = Math.floor(canvas_height / controller_height_m),
         hcw = (canvas_height % controller_height_m) / 2 - margin,
+        
+        pages = Math.floor(_controls.length / (_controls_per_page + 1)),
 
         c;
     
     ctx.font = text_size + "px monospace";
+    ctx.lineWidth = 1;
+    
+    ctx.clearRect(8, _controllers_canvas.height - 8 - text_size, canvas_width, text_size + 8);
+    
+    ctx.textBaseline = "bottom";
+    ctx.textAlign = "left";
+    ctx.fillStyle = 'white';
+    ctx.fillText((_controls_page + 1) + " / " + (pages + 1), 8, _controllers_canvas.height - 8);
+    
     ctx.textBaseline = "bottom";
     ctx.textAlign = "center";
-    ctx.lineWidth = 1;
-
+    
     for (i = 0; i < _draw_list.length; i += 1) {
         c = _draw_list[i];
         
-        if (c.id >= (_controls_page + _controls_per_page) || c.id < _controls_page) {
+        if (c.pos >= ((_controls_page + 1) * _controls_per_page) || 
+            c.pos < (_controls_page * _controls_per_page)) {
             continue;
         }
         
         ctx.strokeStyle = _controllers_settings.border_color;
         
-        x = Math.round(margin + lcw + (c.id % lc) * controller_width_m);
-        y = Math.round(margin + hcw + Math.floor(c.id / lc) * controller_height_m);
+        x = Math.round(margin + lcw + (c.pos % lc) * controller_width_m);
+        y = Math.round(margin + hcw + Math.floor((c.pos / lc) % hc) * controller_height_m);
 
         //ctx.fillStyle = '#000000';
         ctx.clearRect(x - 2, y - margin + 4, controller_width + 8, controller_height + margin + 6);
@@ -955,7 +975,7 @@ var _drawControls = function () {
         ctx.fillText(c.title, x + controller_width / 2, y - 2);
         
         // controller menu, we reserve the first hit hash for it!
-        _addHitHash(c, 0, { f: _controllerMenu, e: { c: c, n: c.id } })
+        _addHitHash(c, 0, { f: _controllerMenu, e: { c: c, n: c.id } });
         
         hit_ctx.fillStyle = c.hit_hashes[0];
         hit_ctx.fillRect(x, y - text_size - 8, controller_width, text_size + 8);
@@ -972,7 +992,13 @@ var _drawControls = function () {
 };
 
 var _redrawControls = function () {
-    var i = 0;
+    var i = 0,
+        
+        ctx = _controllers_canvas_ctx,
+        hit_ctx = _hit_canvas_ctx;
+    
+    ctx.clearRect(0, 0, _controllers_canvas.width, _controllers_canvas.height);
+    hit_ctx.clearRect(0, 0, _controllers_canvas.width, _controllers_canvas.height);
     
     for (i = 0; i < _controls.length; i += 1) {
         _draw_list.push(_controls[i]);
@@ -1001,10 +1027,28 @@ var _computeControlsPage = function () {
 
 var _addControlWidget = function (type) {
     return function () {
+        var name = _controls.length,
+            
+            c = 0,
+            m = 0,
+            i;
+        
+        // will look for the highest generated controller name so that a new one can be generated (meh)
+        for (i = 0; i < _controls.length; i += 1) {
+            c = parseInt(_controls[i].name.substring(7), 10);
+            
+            if (c > m) {
+                m = c + 1;
+            } else {
+                m += 1;
+            }
+        }
+        
         var controller = {
                 id: _controls.length,
+                pos: _controls.length,
                 type: type,
-                name: "control" + _controls.length,
+                name: "control" + m,
                 title: "",
                 hit_hashes: []
             },
@@ -1018,10 +1062,9 @@ var _addControlWidget = function (type) {
         }
         
         controller["init"] = _controllers[type].init;
+        controller["destroy"] = _controllers[type].destroy;
         
         controller.init(controller);
-        
-        _computeControlsPage();
         
         _controls.push(controller);
         _draw_list.push(controller);
@@ -1042,10 +1085,55 @@ var _setControllersCanvasDim = function () {
     
     _controllers_canvas_ctx.imageSmoothingEnabled = false;
     _hit_canvas_ctx.imageSmoothingEnabled = false;
+    
+    _computeControlsPage();
 };
 
-var _controllerMenu = function (x, y, e) {
-    console.log("Controller ID : " + e.n);
+var _deleteControllerCb = function (c) {
+    return function () {
+        var color_hex,
+            j = 0,
+            i = 0;
+        
+        // remove its events
+        for (i = 0; i < c.hit_hashes.length; i += 1) {
+            color_hex = c.hit_hashes[i].substring(1);
+
+            delete _controllers_hit_hashes[color_hex];
+        }
+
+        _controls.splice(c.id, 1);
+        
+        for (i = c.id; i < _controls.length; i += 1) {
+            _controls[i].id -= 1;
+            _controls[i].pos -= 1;
+        }
+        
+        _redrawControls();
+        
+        _hit_under_cursor = null;
+    };
+};
+
+var _controllerMenu = function (ev, x, y, e) {
+    WUI_CircularMenu.create(
+        {
+            x: ev.pageX,
+            y: ev.pageY,
+
+            rx: 48,
+            ry: 48,
+
+            item_width:  32,
+            item_height: 32,
+
+            window: WUI_Dialog.getDetachedDialog(_controls_dialog)
+        }, 
+        [{
+            icon: "fp-trash-icon",
+            tooltip: "Delete",
+            on_click: _deleteControllerCb(e.c)
+        }]);
 };
 
 /***********************************************************
@@ -1074,16 +1162,32 @@ WUI_ToolBar.create("fs_controls_toolbar", {
                     on_click: _addControlWidget("multislider"),
                     tooltip: "Add a multislider"
                 }
+            ],
+            page_controls: [
+                {
+                    text: "<",
+                    on_click: function () {
+                        if (_controls_page > 0) {
+                            _controls_page -= 1;
+                            _redrawControls();
+                        }
+                    },
+                    tooltip: "Previous page"
+                },
+                {
+                    text: ">",
+                    on_click: function () {
+                        var pages = Math.floor(_controls.length / (_controls_per_page + 1));
+                        
+                        if (_controls_page < pages) {
+                            _controls_page += 1;
+                            _redrawControls();
+                        }
+                    },
+                    tooltip: "Next page"
+                }
             ]
         });
-
-var _getControllerPageCb = function (p) {
-    return function () {
-        _controls_page = p;
-        
-        _redrawControls();
-    };
-};
 
 _controllers.multislider.draw = _drawMultislider;
 _controllers.xypad.draw = _drawXYPad;
@@ -1107,7 +1211,7 @@ _controllers_canvas.addEventListener("mousemove", function (e) {
 
     _hit_x = hit_x;
     _hit_y = hit_y;
-    
+
     if (_controllers_hit_hashes.hasOwnProperty(hit_color)) {
         if (_hit_curr) {
             // "continuous" mode only for specific widgets
@@ -1115,8 +1219,8 @@ _controllers_canvas.addEventListener("mousemove", function (e) {
                _controllers_hit_hashes[hit_color].e.c.type === "multislider") {
                 _hit_under_cursor = _controllers_hit_hashes[hit_color];
             }
-            
-            _hit_curr.f(_hit_x, _hit_y, _hit_under_cursor.e);
+
+            _hit_curr.f(e, _hit_x, _hit_y, _hit_under_cursor.e);
         } else {
             _hit_under_cursor = _controllers_hit_hashes[hit_color];
         }
@@ -1126,7 +1230,7 @@ _controllers_canvas.addEventListener("mousemove", function (e) {
         }
     } else {
         if (_hit_curr) {
-            _hit_curr.f(_hit_x, _hit_y, _hit_under_cursor.e);
+            _hit_curr.f(e, _hit_x, _hit_y, _hit_under_cursor.e);
         } else {
             _hit_under_cursor = null;
 
@@ -1146,46 +1250,14 @@ _controllers_canvas.addEventListener("mousedown", function (e) {
     e.stopImmediatePropagation();
     
     if (e.which === 3) { // right click
-        var pages_btn = [],
-            
-            pages = Math.ceil(_controls.length / (_controls_per_page + 1)),
-            
-            i = 0, it;
-        
-        for (i = 0; i < pages; i += 1) {
-            if (i === _controls_page) {
-                it = '<span style="color: green"><strong>' + i + '</strong></span>';
-            } else {
-                it = '<span style="color: white">' + i + '</span>';
-            }
-            
-            pages_btn.push({
-                    content: it,
-                    tooltip: "Page " + i,
-                    on_click: _getControllerPageCb(i)
-                });
-        }
-        
-        WUI_CircularMenu.create(
-            {
-                x: e.pageX,
-                y: e.pageY,
-                
-                rx: 48,
-                ry: 48,
 
-                item_width:  32,
-                item_height: 32,
-                
-                window: WUI_Dialog.getDetachedDialog(_controls_dialog)
-            }, pages_btn);
     } else {
         var c = null;
 
         if (_hit_under_cursor) {
             _hit_curr = _hit_under_cursor;
 
-            _hit_under_cursor.f(_hit_x, _hit_y, _hit_under_cursor.e);
+            _hit_under_cursor.f(e, _hit_x, _hit_y, _hit_under_cursor.e);
         }
     }
 });
