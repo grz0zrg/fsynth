@@ -17,7 +17,7 @@ var _uniform_location_cache = {},
     Functions.
 ************************************************************/
 
-var _parse_glsl = function (glsl_code) {
+var _parseGLSL = function (glsl_code) {
     _glsl_parser_worker.postMessage(glsl_code);
 };
 
@@ -55,7 +55,7 @@ var _createShader = function (shader_type, shader_code) {
         log = _gl.getShaderInfoLog(shader);
 
         _fail("Failed to compile shader: " + log);
-
+        
         _parseCompileOutput(log);
 
         _gl.deleteShader(shader);
@@ -135,6 +135,11 @@ var _compile = function () {
     var frag,
 
         glsl_code = "",
+        glsl_code_to_compile = "",
+        
+        vertex_shader_code,
+        
+        editor_value = _code_editor.getValue(),
 
         position,
 
@@ -146,8 +151,21 @@ var _compile = function () {
 
         i = 0;
     
+    // some minor changes when using WebGL 2 & GLSL 3
+    if (_gl2) {
+        editor_value = editor_value.replace(/gl_FragColor/g, "fragColor");
+        editor_value = editor_value.replace(/texture2D/g, "texture");
+        
+        vertex_shader_code = "#version 300 es\n" + document.getElementById("vertex-shader-2").text;
+    } else {
+        glsl_code += "precision mediump float;";
+        editor_value = editor_value.replace(/texture/g, "texture2D");
+        
+        vertex_shader_code = document.getElementById("vertex-shader").text;
+    }
+    
     // add our uniforms
-    glsl_code = "precision mediump float; uniform float globalTime; uniform int frame; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "];"
+    glsl_code += "uniform float globalTime; uniform int frame; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "];"
     
     if (_feedback.enabled) {
         glsl_code += "uniform sampler2D pFrame;";
@@ -194,16 +212,22 @@ var _compile = function () {
     }
     
     // add user fragment code
-    glsl_code += _code_editor.getValue();
+    glsl_code += editor_value;
 
-    frag = _createShader(_gl.FRAGMENT_SHADER, glsl_code);
+    // this is to avoid dealing with issues relative to GLSL 3 usage :
+    // the pegjs GLSL parser will fail due to non support/bug with "in vec4 ..." so it was made inline
+    if (_gl2) {
+        frag = _createShader(_gl.FRAGMENT_SHADER, "#version 300 es\nprecision mediump float;out vec4 fragColor;" + glsl_code);
+    } else {
+        frag = _createShader(_gl.FRAGMENT_SHADER, glsl_code);
+    }
 
     temp_program = _createAndLinkProgram(
-            _createShader(_gl.VERTEX_SHADER, document.getElementById("vertex-shader").text),
+            _createShader(_gl.VERTEX_SHADER, vertex_shader_code),
             frag
         );
     
-    _parse_glsl(glsl_code);
+    _parseGLSL(glsl_code);
 
     if (temp_program) {
         _gl.deleteProgram(_program);
@@ -239,10 +263,17 @@ var _compile = function () {
         }
 */
         
-        position = _gl.getAttribLocation(_program, "position");
+        if (_gl2) {
+/*
+            var vao = gl.createVertexArray();
+            _gl.bindVertexArray(vao);*/
+            _gl.bindBuffer(_gl.ARRAY_BUFFER, _quad_vertex_buffer);
+        } else {
+            position = _gl.getAttribLocation(_program, "position");
+        }
         _gl.enableVertexAttribArray(position);
         _gl.vertexAttribPointer(position, 2, _gl.FLOAT, false, 0, 0);
-        
+
         if (_glsl_error) {
             _glsl_error = false;
 

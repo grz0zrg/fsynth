@@ -20,7 +20,8 @@ var parse_statements = function (statements, root) {
             baseFrequency: true,
             date: true,
             keyboard: true,
-            pFrame: true
+            pFrame: true,
+            frame: true
         },
         
         i, j;
@@ -87,9 +88,9 @@ self.onmessage = function (m) {
     try {
         glsl_o = _PEGLSL.parse(glsl_code);
     } catch (e) {
-        
+        console.log("parseGLSL : ", e);
     }
-
+    
     if (glsl_o) {
         outline = parse_statements(glsl_o.statements, true);
     }

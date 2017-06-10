@@ -8842,7 +8842,8 @@ var parse_statements = function (statements, root) {
             baseFrequency: true,
             date: true,
             keyboard: true,
-            pFrame: true
+            pFrame: true,
+            frame: true
         },
         
         i, j;
@@ -8872,7 +8873,7 @@ var parse_statements = function (statements, root) {
                 
                 if (root) {
                     if ((declarator.name.name in root_declarator_exceptions) ||
-                       (declarator.name.name.match(/iInput\d+/g) && statement.typeAttribute.name === "sampler2D")) {
+                       ((declarator.name.name.match(/iInput\d+/g) && statement.typeAttribute.name === "sampler2D")) || declarator.name.name.match(/control\d+/g)) {
                         continue;
                     }
                 }
@@ -8909,9 +8910,9 @@ self.onmessage = function (m) {
     try {
         glsl_o = _PEGLSL.parse(glsl_code);
     } catch (e) {
-        
+        console.log("parseGLSL : ", e);
     }
-
+    
     if (glsl_o) {
         outline = parse_statements(glsl_o.statements, true);
     }

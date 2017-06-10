@@ -34,6 +34,10 @@ var _parseCompileOutput = function (output) {
         msg_icon.className = "fs-error-icon";
         msg_container.appendChild(document.createTextNode(m[2]));
         msg_container.className = "fs-compile-error";
+        
+        if (_gl2) {
+            line = line - 1;
+        }
 
         _codemirror_line_widgets.push(_code_editor.addLineWidget(line - 1, msg_container, { coverGutter: false, noHScroll: true }));
     }

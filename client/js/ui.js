@@ -152,15 +152,15 @@ var _showSpectrumDialog = function () {
 };
 
 var _showRecordDialog = function () {
-    if (_record) {
-        _record = false;
+    //if (_record) {
+    //    _record = false;
         
-        WUI_Dialog.close(_record_dialog);
-    } else {
-        _record = true;
+    //    WUI_Dialog.close(_record_dialog);
+    //} else {
+    //   _record = true;
         
-        WUI_Dialog.open(_record_dialog);
-    }
+    WUI_Dialog.open(_record_dialog);
+    //}
 };
 
 var _onImportDialogClose = function () {
@@ -170,7 +170,7 @@ var _onImportDialogClose = function () {
 };
 
 var _onRecordDialogClose = function () {
-    WUI_ToolBar.toggle(_wui_main_toolbar, 7);
+    //WUI_ToolBar.toggle(_wui_main_toolbar, 7);
     
     // reattach the correct canvas
     var previous_canvas = _record_canvas;
@@ -971,8 +971,8 @@ var _uiInit = function () {
                 },
                 {
                     icon: "fs-record-icon",
-                    type: "toggle",
-                    toggle_state: false,
+                    //type: "toggle",
+                    //toggle_state: false,
                     on_click: _showRecordDialog,
                     tooltip: "Record"
                 },

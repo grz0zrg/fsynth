@@ -1215,10 +1215,13 @@ _controllers_canvas.addEventListener("mousemove", function (e) {
     if (_controllers_hit_hashes.hasOwnProperty(hit_color)) {
         if (_hit_curr) {
             // "continuous" mode only for specific widgets
+            // maybe add it back later as an option
+/*
             if (_hit_under_cursor.e.c.type === "multislider" &&
                _controllers_hit_hashes[hit_color].e.c.type === "multislider") {
                 _hit_under_cursor = _controllers_hit_hashes[hit_color];
             }
+*/
 
             _hit_curr.f(e, _hit_x, _hit_y, _hit_under_cursor.e);
         } else {
