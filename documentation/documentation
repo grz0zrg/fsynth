@@ -102,7 +102,7 @@ It is known to work on recent version of Safari and Opera as well.
 
 Chrome or Chromium browser is recommended.
 
-Fragment support the WebGL 2 API which improve performances and enable some advanced features which are only available if the browser support the WebGL 2 API.
+Fragment support the WebGL 2 API which improve performances and enable some advanced features in the fragment shader due to GLSL 3.0 usage.
 $nl
 $subsubsection(CPU)
 Fragment may be quite hungry in term of computing resources, a dual core with high clock speed is recommended, a CPU with more cores can be useful if you just want to use the browser for audio output.
@@ -630,6 +630,8 @@ The fragment program is written in GLSL (OpenGL Shading Language) which has a sy
 
 You can do anything from ray-traced 3D to drawing simple lines and define their behaviors with Fragment, the only requirement is high school mathematics.
 
+Fragment support GLSL 3.0 version automatically if it detect support for the WebGL 2.0 API (which is recommended), GLSL 3.0 allow to use dynamical indexes with arrays among many other things, it also allow to use shortcuts such as $rgb(0,130,0)(fragColor) instead of gl_FragColor and $rgb(0,130,0)(texture) instead of texture2D.
+
 This documentation focus on the audio synthesis aspect of Fragment as there is already plenty resources covering the creation of stunning visuals with GLSL programs on the web.
 
 There is also many applications that let you create stunning visuals in your browser by the same method, one of the most popular one and compatible with Fragment (by using the convert ShaderToy button of the toolbar) is $tlink(ShaderToy)(https://www.shadertoy.com/), this program let you build visuals and audio at the same time, just like Fragment but with a more conventional approach to audio synthesis.
@@ -934,7 +936,16 @@ $glslcode(
 $ifhtml($center($ogg(audio/fsynth_midi.ogg)))
 You can now play something with your MIDI keyboard and hear your simple timbre!
 
-You might find the loop kind of weird, why we don't just loop over all available note-on messages? This is because the GLSL spec. for the version that is used by all browsers is quite limited when it come to loop features... for example, it does not allow dynamicals indexes.
+You might find the loop kind of weird, why we don't just loop over all available note-on messages? This is because the default GLSL spec. with WebGL is quite limited when it come to loop features... for example, it does not allow dynamicals indexes however you can use dynamical indexes if your browser has support for WebGL 2.
+
+All the examples below will use the GLSL version that is the most compatible, if your browser has support for WebGL 2 you can replace this line :
+$glslcode(
+    for (int k = 0; k < 8; k += 1) {
+)
+by this line :
+$glslcode(
+    for (int k = 0; k < keyboard.length(); k += 1) {
+)
 
 $nl
 $subsection(Simple AR-like envelope)
@@ -1522,8 +1533,10 @@ void main () {
 
     // this is a GLSL trick to get the current step frequency
     // we do that because "sequence[seq_index]" is not accepted
-    // this is a limitation of the current WebGL spec.
+    // this is a limitation of the most compatible WebGL spec.
     // which do not allow dynamical indexes for arrays...
+    // if your browser has support for WebGL 2, this can be
+    // MUCH simpler!
     float seq_frq = 0.;
     for (int k = 0; k < 16; k += 1) {
       if (k == seq_index) {
