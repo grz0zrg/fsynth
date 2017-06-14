@@ -41,6 +41,8 @@ _canvas.addEventListener('contextmenu', function(ev) {
         return false;
     }, false);
 
+/*
+// slow
 _canvas.addEventListener('dblclick', function() {
     var child_window = null,
         screen_left = typeof window.screenLeft !== "undefined" ? window.screenLeft : screen.left,
@@ -88,6 +90,7 @@ _canvas.addEventListener('dblclick', function() {
             _detached_canvas_image_data = null;
         });
 });
+*/
 
 document.addEventListener('mousedown', function (e) {
     var e = e || window.event,
@@ -118,6 +121,9 @@ document.getElementById("fs_import_audio_window_settings").addEventListener('cha
 
 document.addEventListener('mouseup', function (e) {
     _mouse_btn = 0;
+    
+    // controllers
+    _hit_curr = null;
 });
 
 document.addEventListener('mousemove', function (e) {

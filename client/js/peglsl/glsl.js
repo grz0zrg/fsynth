@@ -8705,14 +8705,14 @@
       {
           this.type = type;
           this.position = position;
-      
+
           for (var prop in properties)
               if (properties.hasOwnProperty(prop))
                 this[prop] = properties[prop];
       };
-      
+
       ASTNode.__nextId = 1;
-      
+
       // Map of our node type names to values of the PEG parser's "type" property.
       // Expected properties are documented here per-node.
       //
@@ -8728,7 +8728,7 @@
           FunctionPrototype: 'function_prototype', // {name: string, returnType: Node.Type, parameters: [Node.Parameter]*}
           FunctionDeclaration: 'function_declaration', // {name: string, returnType: Node.Type, parameters: [Node.Parameter]*, body: Node.Scope}
           Scope: 'scope', // {statements: [Node.$statement]*}
-          IfStatement: 'if_statement', 
+          IfStatement: 'if_statement',
           ForStatement: 'for_statement',
           WhileStatement: 'while_statement', // {condition: Node.$expression, body: Node.Scope}
           DoStatement: 'do_statement', // {condition: Node.$expression, body: Node.Scope}
@@ -8738,11 +8738,11 @@
           DiscardStatement: 'discard', // {}
           ExpressionStatement: 'expression', // {expression: Node.$expression?}
           Declarator: 'declarator', // {typeAttribute: Node.Type, declarators: [Node.DeclaratorItem]+}
-          DeclaratorItem: 'declarator_item', 
+          DeclaratorItem: 'declarator_item',
           Invariant: 'invariant',
           Precision: 'precision',
           Parameter: 'parameter',
-          StructDefinition: 'struct_definition', 
+          StructDefinition: 'struct_definition',
           Type: 'type', // {name: string, precision: string?, qualifier: string?}
           IntegerLiteral: 'int', // {value: number}
           FloatLiteral: 'float', // {value: number}
@@ -8751,8 +8751,8 @@
           Operator: 'operator', // {operator: {string, Node.FieldSelector, Node.IndexSelector}}
           PostfixExpression: 'postfix', // {operator: Node.Operator, expression: Node.$expression}
           UnaryExpression: 'unary', // {operator: Node.Operator, expression: Node.$expression}
-          BinaryExpression: 'binary', 
-          TernaryExpression: 'ternary', 
+          BinaryExpression: 'binary',
+          TernaryExpression: 'ternary',
           IndexSelector: 'accessor', // {index: Node.$expression}
           FieldSelector: 'field_selector' // {selection: string}
       };

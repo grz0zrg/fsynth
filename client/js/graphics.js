@@ -585,6 +585,7 @@ var _frame = function (raf_time) {
         _data = buffer;
         
         // detached canvas (by a double click) TODO : Optimizations
+/*
         if (_detached_canvas_ctx) {
             if (_gl2) {
                 _gl.bindBuffer(_gl.PIXEL_PACK_BUFFER, _pbo);
@@ -603,6 +604,7 @@ var _frame = function (raf_time) {
 
             _detached_canvas_ctx.putImageData(_detached_canvas_image_data, 0, 0);
         }
+*/
     }
     
     if (_show_globaltime) {

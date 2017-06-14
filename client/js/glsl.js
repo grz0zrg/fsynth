@@ -153,6 +153,8 @@ var _compile = function () {
     
     // some minor changes when using WebGL 2 & GLSL 3
     if (_gl2) {
+        glsl_code += "#version 300 es\nprecision mediump float;out vec4 fragColor;";
+        
         editor_value = editor_value.replace(/gl_FragColor/g, "fragColor");
         editor_value = editor_value.replace(/texture2D/g, "texture");
         
@@ -214,17 +216,9 @@ var _compile = function () {
     // add user fragment code
     glsl_code += editor_value;
 
-    // this is to avoid dealing with issues relative to GLSL 3 usage :
-    // the pegjs GLSL parser will fail due to non support/bug with "in vec4 ..." so it was made inline
-    if (_gl2) {
-        frag = _createShader(_gl.FRAGMENT_SHADER, "#version 300 es\nprecision mediump float;out vec4 fragColor;" + glsl_code);
-    } else {
-        frag = _createShader(_gl.FRAGMENT_SHADER, glsl_code);
-    }
-
     temp_program = _createAndLinkProgram(
             _createShader(_gl.VERTEX_SHADER, vertex_shader_code),
-            frag
+            _createShader(_gl.FRAGMENT_SHADER, glsl_code)
         );
     
     _parseGLSL(glsl_code);
@@ -271,6 +265,7 @@ var _compile = function () {
         } else {
             position = _gl.getAttribLocation(_program, "position");
         }
+        
         _gl.enableVertexAttribArray(position);
         _gl.vertexAttribPointer(position, 2, _gl.FLOAT, false, 0, 0);
 

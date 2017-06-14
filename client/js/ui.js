@@ -152,6 +152,8 @@ var _showSpectrumDialog = function () {
 };
 
 var _showRecordDialog = function () {
+    _record = true;
+
     //if (_record) {
     //    _record = false;
         
@@ -178,6 +180,8 @@ var _onRecordDialogClose = function () {
     _record_canvas = document.getElementById("fs_record_canvas");
     _record_canvas_ctx = _record_canvas.getContext('2d');
     _record_canvas_ctx.drawImage(previous_canvas, 0, 0);
+    
+    _record = false;
 };
 
 var _showOutlineDialog = function () {

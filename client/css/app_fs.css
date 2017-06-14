@@ -232,7 +232,7 @@ canvas {
     padding: 4px;
 }
 
-.fs-outline > div {
+.fs-outline div {
     padding: 2px;
     color: #ffffff;
     font-weight: normal;
@@ -240,7 +240,7 @@ canvas {
     font-size: 13px;
 }
 
-.fs-outline > div:hover {
+.fs-outline div:hover {
     cursor: pointer;
 }
 

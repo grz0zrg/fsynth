@@ -1264,10 +1264,3 @@ _controllers_canvas.addEventListener("mousedown", function (e) {
         }
     }
 });
-
-_controllers_canvas.addEventListener("mouseup", function (e) {
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    
-    _hit_curr = null;
-});

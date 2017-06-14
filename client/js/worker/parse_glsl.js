@@ -21,7 +21,8 @@ var parse_statements = function (statements, root) {
             date: true,
             keyboard: true,
             pFrame: true,
-            frame: true
+            frame: true,
+            fragColor: true
         },
         
         i, j;
@@ -84,7 +85,13 @@ self.onmessage = function (m) {
         glsl_o,
         
         outline = [];
-    
+
+    /* hack for GLSL 3.0 support */
+    glsl_code = glsl_code.replace(/out vec4/g, "vec4"); // out vec4 fragColor;
+    glsl_code = glsl_code.replace(/.length()/g, ""); // array.length()
+    glsl_code = glsl_code.replace(/mat\d+x\d+/g, ""); // matNxN
+    glsl_code = glsl_code.replace(/#version 300 es/g, ""); // GLSL 3.0 define
+
     try {
         glsl_o = _PEGLSL.parse(glsl_code);
     } catch (e) {

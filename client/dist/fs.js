@@ -21149,6 +21149,7 @@ var _frame = function (raf_time) {
         _data = buffer;
         
         // detached canvas (by a double click) TODO : Optimizations
+/*
         if (_detached_canvas_ctx) {
             if (_gl2) {
                 _gl.bindBuffer(_gl.PIXEL_PACK_BUFFER, _pbo);
@@ -21167,6 +21168,7 @@ var _frame = function (raf_time) {
 
             _detached_canvas_ctx.putImageData(_detached_canvas_image_data, 0, 0);
         }
+*/
     }
     
     if (_show_globaltime) {
@@ -21340,6 +21342,8 @@ var _compile = function () {
     
     // some minor changes when using WebGL 2 & GLSL 3
     if (_gl2) {
+        glsl_code += "#version 300 es\nprecision mediump float;out vec4 fragColor;";
+        
         editor_value = editor_value.replace(/gl_FragColor/g, "fragColor");
         editor_value = editor_value.replace(/texture2D/g, "texture");
         
@@ -21401,17 +21405,9 @@ var _compile = function () {
     // add user fragment code
     glsl_code += editor_value;
 
-    // this is to avoid dealing with issues relative to GLSL 3 usage :
-    // the pegjs GLSL parser will fail due to non support/bug with "in vec4 ..." so it was made inline
-    if (_gl2) {
-        frag = _createShader(_gl.FRAGMENT_SHADER, "#version 300 es\nprecision mediump float;out vec4 fragColor;" + glsl_code);
-    } else {
-        frag = _createShader(_gl.FRAGMENT_SHADER, glsl_code);
-    }
-
     temp_program = _createAndLinkProgram(
             _createShader(_gl.VERTEX_SHADER, vertex_shader_code),
-            frag
+            _createShader(_gl.FRAGMENT_SHADER, glsl_code)
         );
     
     _parseGLSL(glsl_code);
@@ -21458,6 +21454,7 @@ var _compile = function () {
         } else {
             position = _gl.getAttribLocation(_program, "position");
         }
+        
         _gl.enableVertexAttribArray(position);
         _gl.vertexAttribPointer(position, 2, _gl.FLOAT, false, 0, 0);
 
@@ -23012,6 +23009,8 @@ var _showSpectrumDialog = function () {
 };
 
 var _showRecordDialog = function () {
+    _record = true;
+
     //if (_record) {
     //    _record = false;
         
@@ -23038,6 +23037,8 @@ var _onRecordDialogClose = function () {
     _record_canvas = document.getElementById("fs_record_canvas");
     _record_canvas_ctx = _record_canvas.getContext('2d');
     _record_canvas_ctx.drawImage(previous_canvas, 0, 0);
+    
+    _record = false;
 };
 
 var _showOutlineDialog = function () {
@@ -25584,13 +25585,7 @@ _controllers_canvas.addEventListener("mousedown", function (e) {
         }
     }
 });
-
-_controllers_canvas.addEventListener("mouseup", function (e) {
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    
-    _hit_curr = null;
-});/* jslint browser: true */
+/* jslint browser: true */
 
 /***********************************************************
     Functions.
@@ -26904,6 +26899,8 @@ _canvas.addEventListener('contextmenu', function(ev) {
         return false;
     }, false);
 
+/*
+// slow
 _canvas.addEventListener('dblclick', function() {
     var child_window = null,
         screen_left = typeof window.screenLeft !== "undefined" ? window.screenLeft : screen.left,
@@ -26951,6 +26948,7 @@ _canvas.addEventListener('dblclick', function() {
             _detached_canvas_image_data = null;
         });
 });
+*/
 
 document.addEventListener('mousedown', function (e) {
     var e = e || window.event,
@@ -26981,6 +26979,9 @@ document.getElementById("fs_import_audio_window_settings").addEventListener('cha
 
 document.addEventListener('mouseup', function (e) {
     _mouse_btn = 0;
+    
+    // controllers
+    _hit_curr = null;
 });
 
 document.addEventListener('mousemove', function (e) {
