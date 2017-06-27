@@ -302,13 +302,13 @@ var _playSlice = function (pixels_data) {
         if (l === 0) {
             osc.gain_node_l.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
         } else {
-            osc.gain_node_l.gain.setTargetAtTime(l / 255.0, audio_ctx_curr_time, _osc_fadeout);
+            osc.gain_node_l.gain.setTargetAtTime(l / 255.0, audio_ctx_curr_time, 0);
         }
         
         if (r === 0) {
             osc.gain_node_r.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
         } else {
-            osc.gain_node_r.gain.setTargetAtTime(r / 255.0, audio_ctx_curr_time, _osc_fadeout);
+            osc.gain_node_r.gain.setTargetAtTime(r / 255.0, audio_ctx_curr_time, 0);
         }
         y -= 1;
     }

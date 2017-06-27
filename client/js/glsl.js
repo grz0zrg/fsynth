@@ -145,6 +145,8 @@ var _compile = function () {
 
         fragment_input,
         
+        ctrl_name,
+        ctrl_obj,
         ctrl_obj_uniform,
         
         temp_program,
@@ -197,7 +199,6 @@ var _compile = function () {
     }
     
     // inputs uniform from controllers
-/*
     for (ctrl_name in _controls) { 
         if (_controls.hasOwnProperty(ctrl_name)) {
            ctrl_obj = _controls[ctrl_name];
@@ -205,13 +206,14 @@ var _compile = function () {
            glsl_code += "uniform " + ((ctrl_obj.comps !== undefined) ? ctrl_obj.type + ctrl_obj.comps : ctrl_obj.type) + " " + ctrl_name + ((ctrl_obj.count > 1) ? "[" + ctrl_obj.count + "]" : "") + ";";
         }
     }
-*/
-    
+
+/* // Recent controller
     for (i = 0; i < _controls.length; i += 1) {
         ctrl_obj_uniform = _controls[i].uniform;
         
         glsl_code += "uniform " + ((ctrl_obj_uniform.comps !== undefined) ? ctrl_obj_uniform.type + ctrl_obj_uniform.comps : ctrl_obj_uniform.type) + " " + _controls[i].name + ((ctrl_obj_uniform.count > 1) ? "[" + ctrl_obj_uniform.count + "]" : "") + ";";
     }
+*/
     
     // add user fragment code
     glsl_code += editor_value;

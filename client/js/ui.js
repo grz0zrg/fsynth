@@ -64,12 +64,13 @@ var _togglePlay = function (toggle_ev) {
 };
 
 var _showControlsDialog = function () {
+/* // Recent controllers
     _controllers_canvas = document.getElementById("fs_controllers");
     _controllers_canvas_ctx = _controllers_canvas.getContext('2d');
 
     _redrawControls();
-    
-    WUI_Dialog.open(_controls_dialog);
+*/  
+    WUI_Dialog.open(_controls_dialog, true);
 };
 
 var _showHelpDialog = function () {
@@ -654,7 +655,7 @@ var _uiInit = function () {
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
             title: "Import input (image, audio, webcam)",
 
-            width: "400px",
+            width: "380px",
             height: "480px",
 
             halign: "center",
@@ -806,7 +807,7 @@ var _uiInit = function () {
 
             halign: "center",
             valign: "center",
-/*
+
             on_pre_detach: function () {
                 var ctrl_panel_element = document.getElementById("fs_controls_panel"),
                     nodes, i;
@@ -838,7 +839,7 @@ var _uiInit = function () {
 
                 _buildControls(_controls);
             },
-*/
+/* // Recent controllers
             on_detach: function (new_window) {
                 var previous_canvas = _controllers_canvas;
                 
@@ -847,7 +848,7 @@ var _uiInit = function () {
                 
                 _controllers_canvas_ctx.drawImage(previous_canvas, 0, 0);
             },
-        
+*/
             open: false,
 
             status_bar: false,
@@ -1018,7 +1019,7 @@ var _uiInit = function () {
                     toggle_state: _xyf_grid,
                     on_click: _toggleGridInfos,
                     tooltip: "Hide/Show mouse hover axis grid"
-                }/*, // DISABLED (but work)
+                }/*, // DISABLED
                 {
                     icon: "fs-spectrum-icon",
                     on_click: _showSpectrumDialog,

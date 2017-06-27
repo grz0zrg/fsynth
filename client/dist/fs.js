@@ -2759,6 +2759,8 @@ var WUI_RangeSlider = new (function() {
 
         _update(range_slider, rs, opts.value);
 
+        _onChange(rs.opts.on_change, rs.value);
+
         return id;
     };
 
@@ -2820,7 +2822,7 @@ var WUI_RangeSlider = new (function() {
         return parameters;
     };
 
-    this.setParameters = function (id, parameters) {
+    this.setParameters = function (id, parameters, trigger_on_change) {
         var widget = _widget_list[id],
             key;
 
@@ -2849,6 +2851,10 @@ var WUI_RangeSlider = new (function() {
         }
 
         _update(widget.element, widget, widget.value);
+
+        if (trigger_on_change) {
+          _onChange(widget.opts.on_change, widget.value);
+        }
     };
 
     this.setValue = function (id, value, trigger_on_change) {
@@ -19973,13 +19979,13 @@ var _playSlice = function (pixels_data) {
         if (l === 0) {
             osc.gain_node_l.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
         } else {
-            osc.gain_node_l.gain.setTargetAtTime(l / 255.0, audio_ctx_curr_time, _osc_fadeout);
+            osc.gain_node_l.gain.setTargetAtTime(l / 255.0, audio_ctx_curr_time, 0);
         }
         
         if (r === 0) {
             osc.gain_node_r.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
         } else {
-            osc.gain_node_r.gain.setTargetAtTime(r / 255.0, audio_ctx_curr_time, _osc_fadeout);
+            osc.gain_node_r.gain.setTargetAtTime(r / 255.0, audio_ctx_curr_time, 0);
         }
         y -= 1;
     }
@@ -21334,6 +21340,8 @@ var _compile = function () {
 
         fragment_input,
         
+        ctrl_name,
+        ctrl_obj,
         ctrl_obj_uniform,
         
         temp_program,
@@ -21386,7 +21394,6 @@ var _compile = function () {
     }
     
     // inputs uniform from controllers
-/*
     for (ctrl_name in _controls) { 
         if (_controls.hasOwnProperty(ctrl_name)) {
            ctrl_obj = _controls[ctrl_name];
@@ -21394,13 +21401,14 @@ var _compile = function () {
            glsl_code += "uniform " + ((ctrl_obj.comps !== undefined) ? ctrl_obj.type + ctrl_obj.comps : ctrl_obj.type) + " " + ctrl_name + ((ctrl_obj.count > 1) ? "[" + ctrl_obj.count + "]" : "") + ";";
         }
     }
-*/
-    
+
+/* // Recent controller
     for (i = 0; i < _controls.length; i += 1) {
         ctrl_obj_uniform = _controls[i].uniform;
         
         glsl_code += "uniform " + ((ctrl_obj_uniform.comps !== undefined) ? ctrl_obj_uniform.type + ctrl_obj_uniform.comps : ctrl_obj_uniform.type) + " " + _controls[i].name + ((ctrl_obj_uniform.count > 1) ? "[" + ctrl_obj_uniform.count + "]" : "") + ";";
     }
+*/
     
     // add user fragment code
     glsl_code += editor_value;
@@ -22420,13 +22428,13 @@ var _removeInputChannel = function (input_id) {
     _dbRemoveInput(input_id);
 };
 
-var _createInputThumb = function (input_id, image, thumb_title) {
+var _createInputThumb = function (input_id, image, thumb_title, src) {
     var dom_image = document.createElement("img"),
         
         tmp_canvas,
         tmp_canvas_context;
 
-    if (image !== undefined) {
+    if (image) {
         // because the data is inverted for WebGL, so we revert it...
         tmp_canvas = document.createElement('canvas'),
         tmp_canvas_context = tmp_canvas.getContext('2d'),
@@ -22441,6 +22449,10 @@ var _createInputThumb = function (input_id, image, thumb_title) {
     }
 
     dom_image.title = thumb_title;
+    
+    if (src) {
+        dom_image.src = src;
+    }
 
     dom_image.dataset.inputId = input_id;
     dom_image.dataset.inputIdr = input_id;
@@ -22593,7 +22605,7 @@ var _addFragmentInput = function (type, input, settings) {
         navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia  || navigator.msGetUserMedia || navigator.oGetUserMedia;
 
         if (navigator.getUserMedia) {
-            navigator.getUserMedia({ video: { mandatory: { minWidth: 640, maxWidth: 1280, minHeight: 480, maxHeight: 720, minFrameRate: 30 }, optional: [ { minFrameRate: 60 } ] },
+            navigator.getUserMedia({ video: { mandatory: { /*minWidth: 640, maxWidth: 1280, minHeight: 320, maxHeight: 720, minFrameRate: 30*/ }, optional: [ { minFrameRate: 60 } ] },
                 audio: false }, function (media_stream) {
                     video_element.src = window.URL.createObjectURL(media_stream);
 
@@ -22630,7 +22642,7 @@ var _addFragmentInput = function (type, input, settings) {
                             db_obj: db_obj
                         });
 
-                    _fragment_input_data[input_id].elem = _createInputThumb(input_id, { src: "data/ui-icons/camera.png"}, _input_channel_prefix + input_id);
+                    _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/camera.png" );
 
                     _compile();
                 }, function (e) {
@@ -22921,12 +22933,13 @@ var _togglePlay = function (toggle_ev) {
 };
 
 var _showControlsDialog = function () {
+/* // Recent controllers
     _controllers_canvas = document.getElementById("fs_controllers");
     _controllers_canvas_ctx = _controllers_canvas.getContext('2d');
 
     _redrawControls();
-    
-    WUI_Dialog.open(_controls_dialog);
+*/  
+    WUI_Dialog.open(_controls_dialog, true);
 };
 
 var _showHelpDialog = function () {
@@ -23511,7 +23524,7 @@ var _uiInit = function () {
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
             title: "Import input (image, audio, webcam)",
 
-            width: "400px",
+            width: "380px",
             height: "480px",
 
             halign: "center",
@@ -23663,7 +23676,7 @@ var _uiInit = function () {
 
             halign: "center",
             valign: "center",
-/*
+
             on_pre_detach: function () {
                 var ctrl_panel_element = document.getElementById("fs_controls_panel"),
                     nodes, i;
@@ -23695,7 +23708,7 @@ var _uiInit = function () {
 
                 _buildControls(_controls);
             },
-*/
+/* // Recent controllers
             on_detach: function (new_window) {
                 var previous_canvas = _controllers_canvas;
                 
@@ -23704,7 +23717,7 @@ var _uiInit = function () {
                 
                 _controllers_canvas_ctx.drawImage(previous_canvas, 0, 0);
             },
-        
+*/
             open: false,
 
             status_bar: false,
@@ -23875,7 +23888,7 @@ var _uiInit = function () {
                     toggle_state: _xyf_grid,
                     on_click: _toggleGridInfos,
                     tooltip: "Hide/Show mouse hover axis grid"
-                }/*, // DISABLED (but work)
+                }/*, // DISABLED
                 {
                     icon: "fs-spectrum-icon",
                     on_click: _showSpectrumDialog,
@@ -24324,7 +24337,7 @@ var _uiInit = function () {
 /***********************************************************
     Fields.
 ************************************************************/
-
+/* // Recent controllers
 var _controllers_canvas = document.getElementById("fs_controllers"),
     _controllers_canvas_ctx = _controllers_canvas.getContext("2d"),
     
@@ -24587,6 +24600,11 @@ var _controllers_canvas = document.getElementById("fs_controllers"),
     _controls = [],
     
     _draw_list = [];
+*/
+
+var _controls = [],
+    
+    _hit_curr = null;
 
 /***********************************************************
     Functions.
@@ -24604,24 +24622,9 @@ var _getControlsChangeFn = function (value_fn, name, index, count, comps) {
         
             ctrl_obj.values[index] = value;
 
-        /*
-            if (comps) {
-                comp_index = index * comps;
-                
-                value = ctrl_obj.values.slice(comp_index, comp_index + comps);
-            }
-        */
-        
             _useProgram(_program);
 
             _setUniforms(_gl, ctrl_obj.type, _program, name, ctrl_obj.values, comps);
-        /*
-            if (ctrl_obj.values.length > 1 && ctrl_obj.values.length === count) {
-                _setUniforms(_gl, ctrl_obj.type, _program, name, ctrl_obj.values);
-            } else {
-                _setUniform(_gl, ctrl_obj.type, _program, name, value);
-            }
-        */
         };
 };
 
@@ -24958,28 +24961,6 @@ var _addControls = function (type, target_window, ctrl, params) {
         return;
     }
     
-    if (ctrl_components) {
-        for (i = 0; i < count; i += 1) {
-            for (j = 0; j < ctrl_components; j += 1) {
-                n = i * ctrl_components + j;
-                
-                WUI_RangeSlider.create(divs[n], opts[n]);
-                
-                if (params) {
-                    WUI_RangeSlider.setParameters(ids[n], params[n]);
-                }
-            }
-        }
-    } else {
-        for (i = 0; i < count; i += 1) {
-            WUI_RangeSlider.create(divs[i], opts[i]);
-            
-            if (params) {
-                WUI_RangeSlider.setParameters(ids[i], params[i]);
-            }
-        } 
-    }
-    
     ctrls_panel_elem.appendChild(div);
     
     delete_btn.addEventListener("click", _deleteControlsFn(ctrl_name, ids));
@@ -24993,6 +24974,28 @@ var _addControls = function (type, target_window, ctrl, params) {
     controls.ids = ids;
     
     _controls[ctrl_name] = controls;
+    
+    if (ctrl_components) {
+        for (i = 0; i < count; i += 1) {
+            for (j = 0; j < ctrl_components; j += 1) {
+                n = i * ctrl_components + j;
+                
+                WUI_RangeSlider.create(divs[n], opts[n]);
+
+                if (params) {
+                    WUI_RangeSlider.setParameters(ids[n], params[n], true);
+                }
+            }
+        }
+    } else {
+        for (i = 0; i < count; i += 1) {
+            WUI_RangeSlider.create(divs[i], opts[i]);
+            
+            if (params) {
+                WUI_RangeSlider.setParameters(ids[i], params[i], true);
+            }
+        } 
+    }
     
     if (ctrl === undefined || ctrl["nosync"] === undefined) {
         _shareCtrlsAdd(controls);
@@ -25461,6 +25464,7 @@ var _controllerMenu = function (ev, x, y, e) {
     Functions.
 ************************************************************/
 
+/* // Recent controller
 _setControllersCanvasDim();
 
 WUI_ToolBar.create("fs_controls_toolbar", {
@@ -25537,12 +25541,11 @@ _controllers_canvas.addEventListener("mousemove", function (e) {
         if (_hit_curr) {
             // "continuous" mode only for specific widgets
             // maybe add it back later as an option
-/*
-            if (_hit_under_cursor.e.c.type === "multislider" &&
-               _controllers_hit_hashes[hit_color].e.c.type === "multislider") {
-                _hit_under_cursor = _controllers_hit_hashes[hit_color];
-            }
-*/
+
+//            if (_hit_under_cursor.e.c.type === "multislider" &&
+//               _controllers_hit_hashes[hit_color].e.c.type === "multislider") {
+//                _hit_under_cursor = _controllers_hit_hashes[hit_color];
+//            }
 
             _hit_curr.f(e, _hit_x, _hit_y, _hit_under_cursor.e);
         } else {
@@ -25585,7 +25588,7 @@ _controllers_canvas.addEventListener("mousedown", function (e) {
         }
     }
 });
-/* jslint browser: true */
+*//* jslint browser: true */
 
 /***********************************************************
     Functions.
@@ -26980,7 +26983,7 @@ document.getElementById("fs_import_audio_window_settings").addEventListener('cha
 document.addEventListener('mouseup', function (e) {
     _mouse_btn = 0;
     
-    // controllers
+    // controller
     _hit_curr = null;
 });
 

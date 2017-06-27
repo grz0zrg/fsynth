@@ -3,7 +3,7 @@
 /***********************************************************
     Fields.
 ************************************************************/
-
+/* // Recent controllers
 var _controllers_canvas = document.getElementById("fs_controllers"),
     _controllers_canvas_ctx = _controllers_canvas.getContext("2d"),
     
@@ -266,6 +266,11 @@ var _controllers_canvas = document.getElementById("fs_controllers"),
     _controls = [],
     
     _draw_list = [];
+*/
+
+var _controls = [],
+    
+    _hit_curr = null;
 
 /***********************************************************
     Functions.
@@ -283,24 +288,9 @@ var _getControlsChangeFn = function (value_fn, name, index, count, comps) {
         
             ctrl_obj.values[index] = value;
 
-        /*
-            if (comps) {
-                comp_index = index * comps;
-                
-                value = ctrl_obj.values.slice(comp_index, comp_index + comps);
-            }
-        */
-        
             _useProgram(_program);
 
             _setUniforms(_gl, ctrl_obj.type, _program, name, ctrl_obj.values, comps);
-        /*
-            if (ctrl_obj.values.length > 1 && ctrl_obj.values.length === count) {
-                _setUniforms(_gl, ctrl_obj.type, _program, name, ctrl_obj.values);
-            } else {
-                _setUniform(_gl, ctrl_obj.type, _program, name, value);
-            }
-        */
         };
 };
 
@@ -637,28 +627,6 @@ var _addControls = function (type, target_window, ctrl, params) {
         return;
     }
     
-    if (ctrl_components) {
-        for (i = 0; i < count; i += 1) {
-            for (j = 0; j < ctrl_components; j += 1) {
-                n = i * ctrl_components + j;
-                
-                WUI_RangeSlider.create(divs[n], opts[n]);
-                
-                if (params) {
-                    WUI_RangeSlider.setParameters(ids[n], params[n]);
-                }
-            }
-        }
-    } else {
-        for (i = 0; i < count; i += 1) {
-            WUI_RangeSlider.create(divs[i], opts[i]);
-            
-            if (params) {
-                WUI_RangeSlider.setParameters(ids[i], params[i]);
-            }
-        } 
-    }
-    
     ctrls_panel_elem.appendChild(div);
     
     delete_btn.addEventListener("click", _deleteControlsFn(ctrl_name, ids));
@@ -672,6 +640,28 @@ var _addControls = function (type, target_window, ctrl, params) {
     controls.ids = ids;
     
     _controls[ctrl_name] = controls;
+    
+    if (ctrl_components) {
+        for (i = 0; i < count; i += 1) {
+            for (j = 0; j < ctrl_components; j += 1) {
+                n = i * ctrl_components + j;
+                
+                WUI_RangeSlider.create(divs[n], opts[n]);
+
+                if (params) {
+                    WUI_RangeSlider.setParameters(ids[n], params[n], true);
+                }
+            }
+        }
+    } else {
+        for (i = 0; i < count; i += 1) {
+            WUI_RangeSlider.create(divs[i], opts[i]);
+            
+            if (params) {
+                WUI_RangeSlider.setParameters(ids[i], params[i], true);
+            }
+        } 
+    }
     
     if (ctrl === undefined || ctrl["nosync"] === undefined) {
         _shareCtrlsAdd(controls);
@@ -1140,6 +1130,7 @@ var _controllerMenu = function (ev, x, y, e) {
     Functions.
 ************************************************************/
 
+/* // Recent controller
 _setControllersCanvasDim();
 
 WUI_ToolBar.create("fs_controls_toolbar", {
@@ -1216,12 +1207,11 @@ _controllers_canvas.addEventListener("mousemove", function (e) {
         if (_hit_curr) {
             // "continuous" mode only for specific widgets
             // maybe add it back later as an option
-/*
-            if (_hit_under_cursor.e.c.type === "multislider" &&
-               _controllers_hit_hashes[hit_color].e.c.type === "multislider") {
-                _hit_under_cursor = _controllers_hit_hashes[hit_color];
-            }
-*/
+
+//            if (_hit_under_cursor.e.c.type === "multislider" &&
+//               _controllers_hit_hashes[hit_color].e.c.type === "multislider") {
+//                _hit_under_cursor = _controllers_hit_hashes[hit_color];
+//            }
 
             _hit_curr.f(e, _hit_x, _hit_y, _hit_under_cursor.e);
         } else {
@@ -1264,3 +1254,4 @@ _controllers_canvas.addEventListener("mousedown", function (e) {
         }
     }
 });
+*/

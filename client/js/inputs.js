@@ -259,13 +259,13 @@ var _removeInputChannel = function (input_id) {
     _dbRemoveInput(input_id);
 };
 
-var _createInputThumb = function (input_id, image, thumb_title) {
+var _createInputThumb = function (input_id, image, thumb_title, src) {
     var dom_image = document.createElement("img"),
         
         tmp_canvas,
         tmp_canvas_context;
 
-    if (image !== undefined) {
+    if (image) {
         // because the data is inverted for WebGL, so we revert it...
         tmp_canvas = document.createElement('canvas'),
         tmp_canvas_context = tmp_canvas.getContext('2d'),
@@ -280,6 +280,10 @@ var _createInputThumb = function (input_id, image, thumb_title) {
     }
 
     dom_image.title = thumb_title;
+    
+    if (src) {
+        dom_image.src = src;
+    }
 
     dom_image.dataset.inputId = input_id;
     dom_image.dataset.inputIdr = input_id;
@@ -432,7 +436,7 @@ var _addFragmentInput = function (type, input, settings) {
         navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia  || navigator.msGetUserMedia || navigator.oGetUserMedia;
 
         if (navigator.getUserMedia) {
-            navigator.getUserMedia({ video: { mandatory: { minWidth: 640, maxWidth: 1280, minHeight: 480, maxHeight: 720, minFrameRate: 30 }, optional: [ { minFrameRate: 60 } ] },
+            navigator.getUserMedia({ video: { mandatory: { /*minWidth: 640, maxWidth: 1280, minHeight: 320, maxHeight: 720, minFrameRate: 30*/ }, optional: [ { minFrameRate: 60 } ] },
                 audio: false }, function (media_stream) {
                     video_element.src = window.URL.createObjectURL(media_stream);
 
@@ -469,7 +473,7 @@ var _addFragmentInput = function (type, input, settings) {
                             db_obj: db_obj
                         });
 
-                    _fragment_input_data[input_id].elem = _createInputThumb(input_id, { src: "data/ui-icons/camera.png"}, _input_channel_prefix + input_id);
+                    _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/camera.png" );
 
                     _compile();
                 }, function (e) {

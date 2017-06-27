@@ -122,7 +122,7 @@ document.getElementById("fs_import_audio_window_settings").addEventListener('cha
 document.addEventListener('mouseup', function (e) {
     _mouse_btn = 0;
     
-    // controllers
+    // controller
     _hit_curr = null;
 });
 
