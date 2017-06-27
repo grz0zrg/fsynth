@@ -110,23 +110,17 @@ var _toggleFas = function (toggle_ev) {
 };
 
 var _toggleGridInfos = function (toggle_ev) {
-    if (toggle_ev.state) {
-        _xyf_grid = true;
-    } else {
-        _xyf_grid = false;
-    }
+    _xyf_grid = toggle_ev.state;
 };
 
 var _toggleDetachCodeEditor = function (toggle_ev) {
     if (toggle_ev.state) {
-        _undock_code_editor = true;
-        
         _code_editor_element.style.display = "none";
     } else {
-        _undock_code_editor = false;
-        
         _code_editor_element.style.display = "";
     }
+    
+    _undock_code_editor = toggle_ev.state;
 };
 
 var _showSpectrumDialog = function () {

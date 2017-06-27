@@ -302,13 +302,13 @@ var _playSlice = function (pixels_data) {
         if (l === 0) {
             osc.gain_node_l.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
         } else {
-            osc.gain_node_l.gain.setTargetAtTime(l / 255.0, audio_ctx_curr_time, 0);
+            osc.gain_node_l.gain.setTargetAtTime(l / 255.0, audio_ctx_curr_time, 0.001);
         }
         
         if (r === 0) {
             osc.gain_node_r.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
         } else {
-            osc.gain_node_r.gain.setTargetAtTime(r / 255.0, audio_ctx_curr_time, 0);
+            osc.gain_node_r.gain.setTargetAtTime(r / 255.0, audio_ctx_curr_time, 0.001);
         }
         y -= 1;
     }
@@ -410,7 +410,7 @@ var _audioProcess = function (audio_processing_event) {
                 
                 _lerp_t_step = 1 / _note_time_samples;
                 
-                _curr_notes_data = new Float32Array(_next_notes_data);
+                _curr_notes_data = new Float32Array(_next_notes_data.pop());
                 
                 _data_switch = false;
             }
@@ -542,17 +542,12 @@ var _audioInit = function () {
         
         _is_script_node_connected = true;
     }
-/*
-    _analyser_node.smoothingTimeConstant = 0;
-    _analyser_node.fftSize = _analyser_fftsize;
-    _analyser_freq_bin = new Uint8Array(_analyser_node.frequencyBinCount);
-*/
-    // workaround, webkit bug ?
-    //window._fs_sn = _script_node;
 
     _notes_worker.addEventListener('message', function (w) {
-            _next_notes_data = w.data.d;
-
+            if (!_data_switch) {
+                _next_notes_data.push(w.data.d); 
+            }
+            
             _notes_worker_available = true;
 
             _data_switch = true;

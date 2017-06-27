@@ -123,15 +123,15 @@ document.addEventListener('mouseup', function (e) {
     _mouse_btn = 0;
     
     // controller
-    _hit_curr = null;
+    //_hit_curr = null;
 });
 
 document.addEventListener('mousemove', function (e) {
         var e = e || window.event,
             
             canvas_offset;
-    
-        if (e.target === _canvas) {
+
+        if (e.target === _canvas || e.target.dataset.group === "canvas") {
             canvas_offset = _getElementOffset(_canvas);
 
             _cx = e.pageX;
@@ -176,6 +176,17 @@ document.addEventListener('mousemove', function (e) {
             if (_mouse_btn === _LEFT_MOUSE_BTN) {
                 _nmx = 1. - _cx / _canvas_width;
                 _nmy = 1. - _cy / _canvas_height;
+            }
+        } else {
+            if (_xyf_grid) {
+                if (_haxis_infos.style.display !== "none" ||
+                    _vaxis_infos.style.display !== "none") {
+                    _haxis_infos.style.display = "none";
+                    _vaxis_infos.style.display = "none";
+                }
+            } else {
+                _xy_infos.innerHTML = "";
+                _hz_infos.innerHTML = "";
             }
         }
 

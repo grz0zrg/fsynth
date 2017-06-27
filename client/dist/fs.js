@@ -19979,13 +19979,13 @@ var _playSlice = function (pixels_data) {
         if (l === 0) {
             osc.gain_node_l.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
         } else {
-            osc.gain_node_l.gain.setTargetAtTime(l / 255.0, audio_ctx_curr_time, 0);
+            osc.gain_node_l.gain.setTargetAtTime(l / 255.0, audio_ctx_curr_time, 0.001);
         }
         
         if (r === 0) {
             osc.gain_node_r.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
         } else {
-            osc.gain_node_r.gain.setTargetAtTime(r / 255.0, audio_ctx_curr_time, 0);
+            osc.gain_node_r.gain.setTargetAtTime(r / 255.0, audio_ctx_curr_time, 0.001);
         }
         y -= 1;
     }
@@ -20087,7 +20087,7 @@ var _audioProcess = function (audio_processing_event) {
                 
                 _lerp_t_step = 1 / _note_time_samples;
                 
-                _curr_notes_data = new Float32Array(_next_notes_data);
+                _curr_notes_data = new Float32Array(_next_notes_data.pop());
                 
                 _data_switch = false;
             }
@@ -20219,17 +20219,12 @@ var _audioInit = function () {
         
         _is_script_node_connected = true;
     }
-/*
-    _analyser_node.smoothingTimeConstant = 0;
-    _analyser_node.fftSize = _analyser_fftsize;
-    _analyser_freq_bin = new Uint8Array(_analyser_node.frequencyBinCount);
-*/
-    // workaround, webkit bug ?
-    //window._fs_sn = _script_node;
 
     _notes_worker.addEventListener('message', function (w) {
-            _next_notes_data = w.data.d;
-
+            if (!_data_switch) {
+                _next_notes_data.push(w.data.d); 
+            }
+            
             _notes_worker_available = true;
 
             _data_switch = true;
@@ -22979,23 +22974,17 @@ var _toggleFas = function (toggle_ev) {
 };
 
 var _toggleGridInfos = function (toggle_ev) {
-    if (toggle_ev.state) {
-        _xyf_grid = true;
-    } else {
-        _xyf_grid = false;
-    }
+    _xyf_grid = toggle_ev.state;
 };
 
 var _toggleDetachCodeEditor = function (toggle_ev) {
     if (toggle_ev.state) {
-        _undock_code_editor = true;
-        
         _code_editor_element.style.display = "none";
     } else {
-        _undock_code_editor = false;
-        
         _code_editor_element.style.display = "";
     }
+    
+    _undock_code_editor = toggle_ev.state;
 };
 
 var _showSpectrumDialog = function () {
@@ -26984,15 +26973,15 @@ document.addEventListener('mouseup', function (e) {
     _mouse_btn = 0;
     
     // controller
-    _hit_curr = null;
+    //_hit_curr = null;
 });
 
 document.addEventListener('mousemove', function (e) {
         var e = e || window.event,
             
             canvas_offset;
-    
-        if (e.target === _canvas) {
+
+        if (e.target === _canvas || e.target.dataset.group === "canvas") {
             canvas_offset = _getElementOffset(_canvas);
 
             _cx = e.pageX;
@@ -27037,6 +27026,17 @@ document.addEventListener('mousemove', function (e) {
             if (_mouse_btn === _LEFT_MOUSE_BTN) {
                 _nmx = 1. - _cx / _canvas_width;
                 _nmy = 1. - _cy / _canvas_height;
+            }
+        } else {
+            if (_xyf_grid) {
+                if (_haxis_infos.style.display !== "none" ||
+                    _vaxis_infos.style.display !== "none") {
+                    _haxis_infos.style.display = "none";
+                    _vaxis_infos.style.display = "none";
+                }
+            } else {
+                _xy_infos.innerHTML = "";
+                _hz_infos.innerHTML = "";
             }
         }
 
