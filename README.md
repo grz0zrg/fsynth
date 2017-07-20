@@ -25,7 +25,7 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
  * Continuous frames by frames recording with export
  * Adjustable audio output channel per slices
  * Feedback via framebuffer (for fx like reverb, delay, spectral distortion etc)
- * Shader inputs: webcam, images, audio files (translated to images)
+ * Shader inputs: webcam, images, audio files (translated to images), canvas (with drawing operations which use images input as brushes)
  * Uniform controllers (WIP : Multislider, XY Pad, [IanniX](https://www.iannix.org/en/) cursors via OSC)
  * Per-sessions discussion system
  * Global and per sessions settings automatic save/load; make use of *localStorage*
