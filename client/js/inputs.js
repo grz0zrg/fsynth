@@ -602,6 +602,8 @@ var _addFragmentInput = function (type, input, settings) {
         canvas.style.top = co.top + "px";
         canvas.style.display = "none";
         
+        _setImageSmoothing(input_obj.canvas_ctx, false);
+        
         document.body.appendChild(canvas);
         
         canvas.addEventListener('mousedown', function (e) {
@@ -619,7 +621,7 @@ var _addFragmentInput = function (type, input, settings) {
             input_obj.mouse_btn = e.which;
 
             if (input_obj.mouse_btn === 1 ||
-               input_obj.mouse_btn === 2) {
+               input_obj.mouse_btn === 3) {
                 _paintStart(x, y);
             }
         });
@@ -653,9 +655,9 @@ var _addFragmentInput = function (type, input, settings) {
             }
 
             if (input_obj.mouse_btn === 1 ||
-               input_obj.mouse_btn === 2) {
+               input_obj.mouse_btn === 3) {
                 console.log(input_obj.mouse_btn);
-                _paint(input_obj.canvas_ctx, _paint_brush, input_obj.mouse_btn - 1, x, y, _paint_scalex, _paint_scaley, _paint_angle, _paint_opacity);
+                _paint(input_obj.canvas_ctx, _paint_brush, input_obj.mouse_btn - 2, x, y, _paint_scalex, _paint_scaley, _paint_angle, _paint_opacity);
                 
                 clearTimeout(input_obj.update_timeout);
                 input_obj.update_timeout = setTimeout(function () {

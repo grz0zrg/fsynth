@@ -2070,7 +2070,7 @@ canvas {
 }
 
 .fs-paint-canvas {
-    opacity: 0.5;
+    opacity: 0.4;
     -moz-user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;
