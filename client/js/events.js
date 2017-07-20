@@ -211,6 +211,9 @@ var _on_window_resize = function () {
     _updateAllPlayPosition();
     
     _updateCodeView();
+    
+    _c_helper.width  = window.innerWidth;
+    _c_helper.height = window.innerHeight;
 };
 
 ResizeThrottler.initialize([_on_window_resize]);

@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="utf-8">
-		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+		    <meta http-equiv="content-type" content="text/html; charset=utf-8">
 
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -11,7 +11,7 @@
         <meta name="Keywords" content="fragment, spectral synthesizer, computer graphics, rendering, realtime, shader, webgl, glsl, application, software, synthesizer, synthesis, additive, spectral, spectrum, sound, audio">
         <meta name="Description" content="Web-based collaborative spectral musical instrument driven by real-time visuals from shared GLSL scripts.">
         <meta name="Author" content="Julien Verneuil">
-        
+
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:site" content="@fsynth" />
         <meta name="twitter:title" content="Fragment Synthesizer" />
@@ -34,7 +34,7 @@
         <script type="x-webgl/x-vertex-shader" id="vertex-shader">
 attribute vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
         </script>
-        
+
         <script type="x-webgl/x-vertex-shader" id="vertex-shader-2">
 in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
         </script>
@@ -103,7 +103,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
       // this is optional but it might help with performances
       // so we don't compute harmonics uselessly
       if (kfrq == 0.) {
-       	break; 
+       	break;
       }
 
       for (float i = 1.; i < harmonics; i += 1.) {
@@ -115,7 +115,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
         r += fline(kfrq * i) * a * kvel;
       }
     }
-    
+
     l += fline(440.) * 0.25;
     r += fline(440.) * 0.25;
 
@@ -212,7 +212,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                                 <div>
                                     <label class="fs-input-label" for="fs_select_editor_themes">Audio device:</label>
                                     <select id="fs_fas_device" class="fs-btn">
-                                        
+
                                     </select>
                                     <!--<div id="fs_fas_device"></div>-->
                                 </div>
@@ -283,7 +283,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                     <div class="row">
                         <div class="column value">
                             <p class="value-description">
-                                
+
                             </p>
                             <form class="fp-session-form">
                                 <div class="row">
@@ -376,7 +376,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
         <div id="fs_right_toolbar" class="fs-right-toolbar">
 
         </div>
-        
+
         <div id="fs_midi_settings_dialog">
             <div class="fs-midi-settings">
             </div>
@@ -743,7 +743,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
 <!--
         <div id="fs_analysis_dialog">
             <div>
-                
+
             </div>
         </div>
 -->
@@ -782,18 +782,44 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                 </div>
             </div>
         </div>
-        
+
         <div id="fs_record_dialog">
             <div>
                 <div id="fs_record_toolbar" class="fs-record-toolbar"></div>
                 <canvas id="fs_record_canvas"></canvas>
             </div>
         </div>
-        
+
         <div id="fs_outline_dialog">
             <div>
                 <div id="fs_outline" class="fs-outline"></div>
             </div>
         </div>
+        
+        <div id="fs_paint_dialog">
+            <div>
+                <div>
+                    <div id="fs_paint_slider_scalex"></div>
+                    <div id="fs_paint_slider_scaley"></div>
+                    <div id="fs_paint_slider_opacity"></div>
+                    <div id="fs_paint_slider_angle"></div>
+                </div>
+                <div class="fs-brushes">
+                    Brushes
+                    <div id="fs_brushes_container" class="fs-brushes-container">
+                        <div class="fs-brush">
+                            <div>Pixel</div>
+                            <div>
+                                <img src="data/brushes/pixel.png">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <canvas id="fs_helper_canvas" class="fs-helper-canvas">
+            
+        </canvas>
     </body>
 </html>

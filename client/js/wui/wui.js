@@ -4380,10 +4380,10 @@ var WUI = new (function() {
 
     /***********************************************************
         Private section.
-        
+
         Fields.
     ************************************************************/
-    
+
     var _class_name = {
             display_none:  "wui-display-none",
             hide_fi_500:   "wui-hide-fi-500",
@@ -4402,13 +4402,13 @@ var WUI = new (function() {
 
         _drag_x = 0,
         _drag_y = 0;
-    
+
     /***********************************************************
         Private section.
-        
+
         Functions.
     ************************************************************/
-    
+
     var _hideHandler = function (element, fade_finish_cb, hide_when_fade_finish) {
         var handler = function () {
             if (hide_when_fade_finish) {
@@ -4430,7 +4430,7 @@ var WUI = new (function() {
 
         var x = ev.clientX,
             y = ev.clientY,
-            
+
             draggable,
 
             touches = ev.changedTouches;
@@ -4449,22 +4449,22 @@ var WUI = new (function() {
                 return;
             }
         }
-        
+
         draggable = _draggables[parseInt(ev.target.dataset.wui_draggable_id, 10)];
-        
+
         if (draggable.target_element !== undefined) {
             _dragged_element = draggable.target_element;
         } else {
             _dragged_element = ev.target;
         }
-        
+
         _dragged_element_id = parseInt(_dragged_element.dataset.wui_draggable_id, 10);
-        
+
         document.body.style.cursor = "move";
-        
+
         if (draggable.virtual) {
             draggable = _draggables[_dragged_element_id];
-            
+
             _drag_x = x - parseInt(draggable.x, 10);
             _drag_y = y - parseInt(draggable.y,  10);
         } else {
@@ -4494,7 +4494,7 @@ var WUI = new (function() {
             draggable = _draggables[_dragged_element_id],
 
             new_x = draggable.x, new_y = draggable.y;
-        
+
         if (touches) {
             for (i = 0; i < touches.length; i += 1) {
                 touch = touches[i];
@@ -4510,24 +4510,24 @@ var WUI = new (function() {
 
         if (draggable.axisLock !== 0) {
             new_x = x - _drag_x;
-            
+
             if (!draggable.virtual) {
                 _dragged_element.style.left = new_x + 'px';
             }
-            
+
             draggable.x = new_x;
         }
-        
+
         if (draggable.axisLock !== 1) {
             new_y = y - _drag_y;
-            
+
             if (!draggable.virtual) {
                 _dragged_element.style.top  = new_y + 'px';
             }
-            
+
             draggable.y = new_y;
         }
-        
+
         if (draggable) {
             if (draggable.cb !== undefined) {
                 draggable.cb(_dragged_element, new_x, new_y);
@@ -4575,7 +4575,7 @@ var WUI = new (function() {
 
     /***********************************************************
         Public section.
-        
+
         Functions.
     ************************************************************/
 
@@ -4587,7 +4587,7 @@ var WUI = new (function() {
      * @param {Boolean} hide_when_fade_finish  If true, add a "display: none;" style class automatically when the fade out effect finish
      */
     this.fadeOut = function (element, duration_ms, fade_finish_cb, hide_when_fade_finish) {
-        var transition;
+        var transition_str;
 
         if (duration_ms === undefined || duration_ms === null) {
             duration_ms = 500;
@@ -4613,7 +4613,7 @@ var WUI = new (function() {
      * @param {Object} element DOM Element
      */
     this.fadeIn = function (element, duration_ms) {
-        var transition;
+        var transition_str;
 
         if (duration_ms === undefined || duration_ms === null) {
             duration_ms = 500;
@@ -4663,7 +4663,7 @@ var WUI = new (function() {
             y: parseInt(element.style.top, 10)
         });
     };
-    
+
     /**
      * Make an element undraggable
      *
@@ -4691,14 +4691,14 @@ var WUI = new (function() {
             draggable.element.dataset.wui_draggable_id = i;
         }
     };
-    
+
     this.lockDraggable = function (element, axis) {
         if (!element.classList.contains(_class_name.draggable)) {
             return;
         }
-        
+
         var draggable = _draggables[parseInt(element.dataset.wui_draggable_id, 10)];
-        
+
         if (axis === 'x') {
             draggable.axisLock = 0;
         } else if (axis === 'y') {

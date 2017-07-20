@@ -321,6 +321,7 @@ canvas {
 
 .fs-middle-panel {
     border-top: solid 1px #333;
+    user-select: none;
 }
 
 .fs-input-panel {
@@ -817,4 +818,82 @@ canvas {
     margin-top: 0px;
     margin-bottom: 6px;
     color: #ffffff;
+}
+
+.fs-helper-canvas {
+    position: absolute;
+    pointer-events: none;
+    margin: 0 auto;
+    text-align: center;
+    overflow: hidden;
+
+    z-index: 200;
+    
+    top: 0;
+    left: 0;
+    
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.fs-brushes {
+    color: #ffffff;
+    margin: 4px;
+    
+    font-size: 11px;
+    user-select: none;
+}
+
+.fs-brush:hover {
+    cursor: pointer;
+}
+
+.fs-brushes-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    overflow: auto;
+    height: 100%;
+    margin: 4px;
+}
+
+.fs-brushes-container > div {
+    width: 48px;
+    height: 48px;
+    border: solid 1px #202020;
+    position: relative;
+}
+
+.fs-brushes-container > div > div:first-child {
+    position: absolute;
+    color: #ffffff;
+    font-size: 8px;
+}
+
+.fs-brushes-container > div > div:nth-child(1) {
+    width: 100%;
+    height: 100%;
+}
+
+.fs-brushes-container img {
+    image-rendering: crisp-edges;
+    margin: auto;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    
+    max-width: 48px;
+    max-height: 48px;
+}
+
+.fs-paint-canvas {
+    opacity: 0.5;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }

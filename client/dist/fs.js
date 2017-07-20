@@ -4385,10 +4385,10 @@ var WUI = new (function() {
 
     /***********************************************************
         Private section.
-        
+
         Fields.
     ************************************************************/
-    
+
     var _class_name = {
             display_none:  "wui-display-none",
             hide_fi_500:   "wui-hide-fi-500",
@@ -4407,13 +4407,13 @@ var WUI = new (function() {
 
         _drag_x = 0,
         _drag_y = 0;
-    
+
     /***********************************************************
         Private section.
-        
+
         Functions.
     ************************************************************/
-    
+
     var _hideHandler = function (element, fade_finish_cb, hide_when_fade_finish) {
         var handler = function () {
             if (hide_when_fade_finish) {
@@ -4435,7 +4435,7 @@ var WUI = new (function() {
 
         var x = ev.clientX,
             y = ev.clientY,
-            
+
             draggable,
 
             touches = ev.changedTouches;
@@ -4454,22 +4454,22 @@ var WUI = new (function() {
                 return;
             }
         }
-        
+
         draggable = _draggables[parseInt(ev.target.dataset.wui_draggable_id, 10)];
-        
+
         if (draggable.target_element !== undefined) {
             _dragged_element = draggable.target_element;
         } else {
             _dragged_element = ev.target;
         }
-        
+
         _dragged_element_id = parseInt(_dragged_element.dataset.wui_draggable_id, 10);
-        
+
         document.body.style.cursor = "move";
-        
+
         if (draggable.virtual) {
             draggable = _draggables[_dragged_element_id];
-            
+
             _drag_x = x - parseInt(draggable.x, 10);
             _drag_y = y - parseInt(draggable.y,  10);
         } else {
@@ -4499,7 +4499,7 @@ var WUI = new (function() {
             draggable = _draggables[_dragged_element_id],
 
             new_x = draggable.x, new_y = draggable.y;
-        
+
         if (touches) {
             for (i = 0; i < touches.length; i += 1) {
                 touch = touches[i];
@@ -4515,24 +4515,24 @@ var WUI = new (function() {
 
         if (draggable.axisLock !== 0) {
             new_x = x - _drag_x;
-            
+
             if (!draggable.virtual) {
                 _dragged_element.style.left = new_x + 'px';
             }
-            
+
             draggable.x = new_x;
         }
-        
+
         if (draggable.axisLock !== 1) {
             new_y = y - _drag_y;
-            
+
             if (!draggable.virtual) {
                 _dragged_element.style.top  = new_y + 'px';
             }
-            
+
             draggable.y = new_y;
         }
-        
+
         if (draggable) {
             if (draggable.cb !== undefined) {
                 draggable.cb(_dragged_element, new_x, new_y);
@@ -4580,7 +4580,7 @@ var WUI = new (function() {
 
     /***********************************************************
         Public section.
-        
+
         Functions.
     ************************************************************/
 
@@ -4592,7 +4592,7 @@ var WUI = new (function() {
      * @param {Boolean} hide_when_fade_finish  If true, add a "display: none;" style class automatically when the fade out effect finish
      */
     this.fadeOut = function (element, duration_ms, fade_finish_cb, hide_when_fade_finish) {
-        var transition;
+        var transition_str;
 
         if (duration_ms === undefined || duration_ms === null) {
             duration_ms = 500;
@@ -4618,7 +4618,7 @@ var WUI = new (function() {
      * @param {Object} element DOM Element
      */
     this.fadeIn = function (element, duration_ms) {
-        var transition;
+        var transition_str;
 
         if (duration_ms === undefined || duration_ms === null) {
             duration_ms = 500;
@@ -4668,7 +4668,7 @@ var WUI = new (function() {
             y: parseInt(element.style.top, 10)
         });
     };
-    
+
     /**
      * Make an element undraggable
      *
@@ -4696,14 +4696,14 @@ var WUI = new (function() {
             draggable.element.dataset.wui_draggable_id = i;
         }
     };
-    
+
     this.lockDraggable = function (element, axis) {
         if (!element.classList.contains(_class_name.draggable)) {
             return;
         }
-        
+
         var draggable = _draggables[parseInt(element.dataset.wui_draggable_id, 10)];
-        
+
         if (axis === 'x') {
             draggable.axisLock = 0;
         } else if (axis === 'y') {
@@ -19047,6 +19047,10 @@ var _melScale = function () {
     
 };
 
+var _degToRad = function (angle) {
+    return angle * Math.PI / 180.0;
+};
+
 var _barkScale = function (length, sample_rate, buffer_size) {
     var scale = new Float32Array(length),
         
@@ -19375,6 +19379,10 @@ _utter_fail_element.innerHTML = "";
             },
             f: null
         },
+        
+        // helper canvas
+        _c_helper = document.getElementById("fs_helper_canvas"),
+        _c_helper_ctx = _c_helper.getContext("2d"),
     
         _canvas_width  = 1024,
         _canvas_height = 439,//Math.round(window.innerHeight / 2) - 68,
@@ -22168,11 +22176,195 @@ _discuss_input.addEventListener("keypress", function (e) {
     Fields.
 ************************************************************/
 
+var _pvx = 0,
+    _pvy = 0,
+
+    _paint_brush = null,
+    _paint_scalex = 1,
+    _paint_scaley = 1,
+    _paint_opacity = 0.25,
+    _paint_angle = 0;
+
+/***********************************************************
+    Functions.
+************************************************************/
+
+var _paint = function (ctx, brush, mode, x, y, scale_x, scale_y, angle, opacity) {
+    var brush_width,
+        brush_height,
+        brush_width_d2,
+        brush_height_d2,
+        drawing_x,
+        drawing_y,
+        xinc,
+        yinc,
+        step,
+        dx,
+        dy,
+        
+        i = 0;
+    
+    ctx.globalAlpha = opacity;
+    
+    brush_width  = brush.naturalWidth * scale_x;
+    brush_height = brush.naturalHeight * scale_y;
+
+    brush_width_d2  = brush_width  / 2;
+    brush_height_d2 = brush_height / 2;
+    
+    dx = _pvx - x;
+    dy = _pvy - y;
+
+    if(Math.abs(dx) > Math.abs(dy)) {
+        step = Math.abs(dx);
+    } else {
+        step = Math.abs(dy);
+    }
+    
+    xinc = dx / step;
+    yinc = dy / step;
+    
+    _pvx = x;
+    _pvy = y;
+    
+    for(i = 1; i <= step; i += 1) {
+        x += xinc;
+        y += yinc;
+
+        drawing_x = Math.round(x - brush_width_d2);
+        drawing_y = Math.round(y - brush_height_d2);
+
+        ctx.save();
+        if (mode === 1) {
+            ctx.globalCompositeOperation = "destination-out";
+        }
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        ctx.translate(drawing_x - x, drawing_y - y);
+        ctx.scale(scale_x, scale_y);
+        ctx.drawImage(brush, 0, 0);
+        ctx.restore();
+    }
+};
+
+var _paintStart = function (x, y) { 
+    _pvx = x;
+    _pvy = y;
+};
+
+var _draw = function (ctx, brush, x, y, scale_x, scale_y, angle, opacity) {
+    var brush_width,
+        brush_height,
+        brush_width_d2,
+        brush_height_d2,
+        drawing_x,
+        drawing_y;
+    
+    drawing_x = Math.round(x - brush_width_d2);
+    drawing_y = Math.round(y - brush_height_d2);
+    
+    ctx.globalAlpha = opacity;
+    
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.translate(drawing_x - x, drawing_y - y);
+    ctx.scale(scale_x, scale_y);
+    ctx.drawImage(brush, 0, 0);
+    ctx.restore();
+};
+
+/* jslint browser: true */
+
+/***********************************************************
+    Functions.
+************************************************************/
+
+var _onBrushClick = function (e) {
+    var p = e.target.parentElement,
+        brushes = document.getElementsByClassName("fs-brush"),
+        i;
+    
+    for (i = 0; i < brushes.length; i += 1) {
+        brushes[i].style.border = "";
+    }
+
+    if (p.classList.contains("fs-brush")) {
+        p.style.border = "solid 1px #00ff00";
+    } else {
+        p.parentElement.style.border = "solid 1px #00ff00";
+    }
+    
+    _paint_brush = p.getElementsByTagName('img')[0];
+};
+
+var _applyBrushEvents = function () {
+    var brushes = document.getElementsByClassName("fs-brush"),
+        i;
+    
+    for (i = 0; i < brushes.length; i += 1) {
+        brushes[i].addEventListener("click", _onBrushClick);
+    }
+};
+
+var _addBrush = function (dom_image) {
+    var brushes_container = document.getElementById("fs_brushes_container"),
+        
+        brush_container = document.createElement("div"),
+        brush_name = document.createElement("div"),
+        brush_img_container = document.createElement("div"),
+        
+        brush_img = document.createElement("img");
+    
+    brush_img.src = dom_image.src;
+    
+    brush_img_container.appendChild(brush_img);
+    
+    brush_container.classList.add("fs-brush");
+
+    brush_container.appendChild(brush_name);
+    brush_container.appendChild(brush_img_container);
+    
+    brushes_container.appendChild(brush_container);
+    
+    _applyBrushEvents();
+};/* jslint browser: true */
+
+/***********************************************************
+    Fields.
+************************************************************/
+
 var _dragged_input = null;
 
 /***********************************************************
     Functions.
 ************************************************************/
+
+var _updateCanvasInputDimensions = function (new_width, new_height) {
+    var i = 0,
+        fragment_input_data,
+        tmp_canvas = document.createElement("canvas"),
+        tmp_canvas_ctx = tmp_canvas.getContext("2d");
+    
+    for (i = 0; i < _fragment_input_data.length; i += 1) {
+        fragment_input_data = _fragment_input_data[i];
+        
+        if (fragment_input_data.type === 2) {
+            tmp_canvas.width = new_width; 
+            tmp_canvas.height = new_height;
+            tmp_canvas_ctx.fillRect(0, 0, new_width, new_height);
+            tmp_canvas_ctx.drawImage(fragment_input_data.canvas, 0, 0);
+
+            fragment_input_data.canvas.width = new_width; 
+            fragment_input_data.canvas.height = new_height;
+            fragment_input_data.db_obj.width = _canvas_width;
+            fragment_input_data.db_obj.height = _canvas_height;
+            fragment_input_data.canvas_ctx.drawImage(tmp_canvas, 0, 0);
+            
+            _replace2DTexture(fragment_input_data.canvas, fragment_input_data.texture);
+        }
+    }
+};
 
 var _createChannelSettingsDialog = function (input_channel_id) {
     var dialog_element = document.createElement("div"),
@@ -22344,7 +22536,7 @@ var _imageProcessor = function (image_data, image_processing_done_cb) {
     var worker = new Worker("dist/worker/image_processor.min.js");
 
     worker.onmessage = function (e) {
-        _imageProcessingDone(e.data);
+        image_processing_done_cb(e.data);
     };
 
     worker.postMessage({ img_width: image_data.width, img_height: image_data.height, buffer: image_data.data.buffer }, [image_data.data.buffer]);
@@ -22380,8 +22572,47 @@ var _inputThumbMenu = function (e) {
                 } },
             { icon: "fs-xyf-icon", tooltip: "View image",  on_click: function () {
                     window.open(dom_image.src);
-                } },
+                } }
         ]);
+};
+
+var _selectCanvas = function (e) {
+    e.preventDefault();
+    
+    var input_id = _parseInt10(e.target.dataset.inputId),
+        input = _fragment_input_data[input_id],
+        input_tmp,
+        dom_image = input.elem,
+        
+        i = 0;
+    
+    for (i = 0; i < _fragment_input_data.length; i += 1) {
+        input_tmp = _fragment_input_data[i];
+        
+        if (i === input_id ||
+           input_tmp.type !== 2) {
+            continue;
+        }
+
+        input_tmp.elem.style.border = "";
+        input_tmp.canvas_enable = false;
+        
+        input_tmp.canvas.style.display = "none";
+    }
+    
+    input.canvas_enable = !input.canvas_enable;
+    
+    if (input.canvas_enable) {
+        dom_image.style.border = "solid 1px #00dd00";
+        
+        WUI_Dialog.open(_paint_dialog, false);
+        
+        input.canvas.style.display = "";
+    } else {
+        dom_image.style.border = "";
+        
+        input.canvas.style.display = "none";
+    }
 };
 
 var _sortInputs = function () {
@@ -22394,7 +22625,6 @@ var _sortInputs = function () {
         fragment_input_data.elem.title = _input_channel_prefix + i;
         fragment_input_data.elem.dataset.inputId = i;
     }
-
 };
 
 var _removeInputChannel = function (input_id) {
@@ -22425,6 +22655,8 @@ var _removeInputChannel = function (input_id) {
 
 var _createInputThumb = function (input_id, image, thumb_title, src) {
     var dom_image = document.createElement("img"),
+        
+        input = _fragment_input_data[input_id],
         
         tmp_canvas,
         tmp_canvas_context;
@@ -22457,6 +22689,10 @@ var _createInputThumb = function (input_id, image, thumb_title, src) {
     dom_image.draggable = true;
 
     dom_image.addEventListener("click", _inputThumbMenu);
+    
+    if (input.type === 2) {
+        dom_image.addEventListener("contextmenu", _selectCanvas);
+    }
     
     // drag & drop
     dom_image.addEventListener("drop", function (e) {
@@ -22531,6 +22767,11 @@ var _createInputThumb = function (input_id, image, thumb_title, src) {
     });
 
     _input_panel_element.appendChild(dom_image);
+    
+    // add it as brush as well
+    if (input.type === 0) {
+        _addBrush(dom_image);
+    }
 
     return dom_image;
 };
@@ -22541,6 +22782,9 @@ var _addFragmentInput = function (type, input, settings) {
         data,
         image,
         texture,
+        canvas,
+        
+        input_obj,
         
         video_element,
         
@@ -22646,6 +22890,143 @@ var _addFragmentInput = function (type, input, settings) {
         } else {
             _notification("Cannot capture audio/video, getUserMedia function is not supported by your browser.");
         }
+    } else if (type === "canvas") {
+        data = _create2DTexture({
+                empty: true,
+                width: _canvas_width,
+                height: _canvas_height,
+            }, false, true);
+        
+        db_obj.width = _canvas_width;
+        db_obj.height = _canvas_height;
+        db_obj.settings.wrap.s = data.wrap.ws;
+        db_obj.settings.wrap.t = data.wrap.wt;
+        db_obj.settings.flip = true;
+        
+        _dbStoreInput(input_id, db_obj);
+        
+        canvas = document.createElement("canvas");
+        canvas.width = _canvas_width;
+        canvas.height = _canvas_height;
+        canvas.classList.add("fs-paint-canvas");
+        
+        input_obj = {
+                type: 2,
+                image: data.image,
+                texture: data.texture,
+                elem: null,
+                db_obj: db_obj,
+                canvas: canvas,
+                canvas_ctx: canvas.getContext("2d"),
+                canvas_enable: false,
+                mouse_btn: 0,
+                update_timeout: null
+            };
+        
+        _fragment_input_data.push(input_obj);
+
+        var co = _getElementOffset(_canvas);
+            
+        canvas.style.position = "absolute";
+        canvas.style.left = co.left + "px";
+        canvas.style.top = co.top + "px";
+        canvas.style.display = "none";
+        
+        document.body.appendChild(canvas);
+        
+        canvas.addEventListener('mousedown', function (e) {
+            if (!input_obj.canvas_enable) {
+                return false;
+            }
+            
+            var e = e || window.event,
+
+                canvas_offset = _getElementOffset(canvas),
+
+                x = e.pageX - canvas_offset.left,
+                y = e.pageY - canvas_offset.top;
+
+            input_obj.mouse_btn = e.which;
+
+            if (input_obj.mouse_btn === 1 ||
+               input_obj.mouse_btn === 2) {
+                _paintStart(x, y);
+            }
+        });
+
+        canvas.addEventListener('mouseup', function (e) {
+            input_obj.mouse_btn = 0;
+        });
+
+        canvas.addEventListener('mouseout', function (e) {
+            input_obj.mouse_btn = 0;
+        });
+        
+        canvas.addEventListener('contextmenu', function (e) {
+            e.preventDefault();
+        });
+
+        canvas.addEventListener('mousemove', function (e) {
+            if (!input_obj.canvas_enable) {
+                return false;
+            }
+            
+            var e = e || window.event,
+
+                canvas_offset = _getElementOffset(canvas),
+
+                x = e.pageX - canvas_offset.left,
+                y = e.pageY - canvas_offset.top;
+            
+            if (!_paint_brush) {
+                return;
+            }
+
+            if (input_obj.mouse_btn === 1 ||
+               input_obj.mouse_btn === 2) {
+                console.log(input_obj.mouse_btn);
+                _paint(input_obj.canvas_ctx, _paint_brush, input_obj.mouse_btn - 1, x, y, _paint_scalex, _paint_scaley, _paint_angle, _paint_opacity);
+                
+                clearTimeout(input_obj.update_timeout);
+                input_obj.update_timeout = setTimeout(function () {
+                        var image_data = input_obj.canvas_ctx.getImageData(0, 0, input_obj.canvas.width, input_obj.canvas.height);
+                    
+                        _imageProcessor(image_data, function (m) {
+                            _gl.bindTexture(_gl.TEXTURE_2D, input_obj.texture);
+                            _gl.pixelStorei(_gl.UNPACK_FLIP_Y_WEBGL, true);
+                            _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, m.img_width, m.img_height, 0, _gl.RGBA, _gl.UNSIGNED_BYTE, new Uint8Array(m.data));
+                            _gl.bindTexture(_gl.TEXTURE_2D, null);
+
+                            //input_obj.canvas_ctx.clearRect(0, 0, input_obj.canvas.width, input_obj.canvas.height);
+
+                            db_obj.data = input_obj.canvas.toDataURL();
+                            _dbStoreInput(input_id, db_obj);
+                        });
+                    }, 500);
+            }
+        });
+        
+        if (settings !== undefined) {
+            _flipYTexture(data.texture, settings.flip);
+            _setTextureFilter(data.texture, settings.f);
+            _setTextureWrapS(data.texture, settings.wrap.s);
+            _setTextureWrapT(data.texture, settings.wrap.t);
+            
+            db_obj.settings.f = settings.f;
+            db_obj.settings.wrap.s = settings.wrap.s;
+            db_obj.settings.wrap.t = settings.wrap.t;
+            db_obj.settings.flip = settings.flip;
+            
+            if (settings.flip) {
+                _fragment_input_data[input_id].texture = _replace2DTexture(data.image, data.texture);
+            }
+        }
+
+        input_thumb = input;
+
+        _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/paint_brush.png" );
+
+        _compile();
     } else {
         return;
     }
@@ -22874,6 +23255,8 @@ var _icon_class = {
     
     _selected_slice,
     
+    _brush_helper_timeout,
+    
     _slice_settings_dialog_id = "fs_slice_settings_dialog",
     _slice_settings_dialog,
     
@@ -22881,6 +23264,9 @@ var _icon_class = {
     
     _midi_out_dialog_id = "fs_midi_out_dialog",
     _midi_out_dialog,
+    
+    _paint_dialog_id = "fs_paint_dialog",
+    _paint_dialog,
     
     _settings_dialog_id = "fs_settings_dialog",
     _settings_dialog,
@@ -23113,6 +23499,69 @@ var _addRecordInput = function () {
     tmp_image_data = tmp_canvas_context.getImageData(0, 0, tmp_canvas.width, tmp_canvas.height);
     
     _imageDataToInput(tmp_image_data);
+};
+
+var _drawBrushHelper = function () {
+    if (_paint_brush === null) {
+        return;
+    }
+    
+    var scale_x  = _paint_scalex,
+        scale_y  = _paint_scaley,
+        img    = _paint_brush,
+        brush_width,
+        brush_height,
+        drawing_x,
+        drawing_y,
+        info_y = 0,
+        info_txt = "",
+        canvas_width_d2  = _c_helper.width / 2,
+        canvas_height_d2 = _c_helper.height / 2;
+    
+    brush_width  = img.naturalWidth * scale_x;
+    brush_height = img.naturalHeight * scale_y;
+    
+    // clear
+    _c_helper.width = _c_helper.width;
+
+    drawing_x = canvas_width_d2 - brush_width / 2;
+    drawing_y = canvas_height_d2 - brush_height / 2;
+
+    _c_helper_ctx.save();
+    _c_helper_ctx.translate(canvas_width_d2, canvas_height_d2);
+    _c_helper_ctx.rotate(_paint_angle);
+    _c_helper_ctx.translate(drawing_x - canvas_width_d2, drawing_y - canvas_height_d2);
+    _c_helper_ctx.scale(scale_x, scale_y);
+    _c_helper_ctx.globalAlpha = _paint_opacity;
+    _c_helper_ctx.drawImage(img, 0, 0);
+    _c_helper_ctx.restore();
+    
+    brush_width = parseInt(brush_width, 10);
+    brush_height = parseInt(brush_height, 10);
+    
+    if (brush_height > (window.innerHeight - 224)) {
+        info_y = canvas_height_d2;
+    } else {
+        info_y = drawing_y + brush_height + 24;
+    }
+    
+    if (img.naturalWidth === brush_width && img.naturalHeight === brush_height) {
+        info_txt = parseInt(brush_width, 10) + "x" + parseInt(brush_height, 10);
+    } else {
+        info_txt = img.naturalWidth + "x" + img.naturalHeight + " - " + parseInt(brush_width, 10) + "x" + parseInt(brush_height, 10);
+    }
+    
+    _c_helper_ctx.font = "14px Arial";
+    _c_helper_ctx.textAlign = "center";
+    _c_helper_ctx.fillStyle = "white";
+    _c_helper_ctx.fillText(info_txt, canvas_width_d2, info_y);
+
+    WUI.fadeIn(_c_helper);
+    
+    clearTimeout(_brush_helper_timeout);
+    _brush_helper_timeout = setTimeout(function () {
+            WUI.fadeOut(_c_helper);
+        }, 2000);
 };
 
 /***********************************************************
@@ -23560,13 +24009,13 @@ var _uiInit = function () {
                         on_click: (function () { _addFragmentInput("camera"); }),
                         tooltip: "Webcam",
                         text: "Webcam"
-                    }/*,
+                    },
                     {
-                        icon: "fs-record-icon",
-                        on_click: (function () { _addFragmentInput("record"); }),
-                        tooltip: "Record",
-                        text: "Record"
-                    }*/
+                        icon: "fs-canvas-icon",
+                        on_click: (function () { _addFragmentInput("canvas"); }),
+                        tooltip: "Canvas",
+                        text: "Canvas"
+                    }
                 ]
             });
     
@@ -23628,6 +24077,33 @@ var _uiInit = function () {
             status_bar: false,
             detachable: true,
             draggable: true
+        });
+    
+    _paint_dialog = WUI_Dialog.create(_paint_dialog_id, {
+            title: "Paint tools",
+
+            width: "380px",
+            height: "500px",
+
+            halign: "center",
+            valign: "center",
+
+            open: false,
+
+            detachable: true,
+
+            status_bar: false,
+            draggable: true,
+        
+            header_btn: [
+                {
+                    title: "Help",
+                    on_click: function () {
+                        window.open(_documentation_link + "#subsec5_3_1"); 
+                    },
+                    class_name: "fs-help-icon"
+                }
+            ]
         });
 
     _slice_settings_dialog = WUI_Dialog.create(_slice_settings_dialog_id, {
@@ -23943,6 +24419,136 @@ var _uiInit = function () {
 */
                 }
             ]
+        });
+    
+    WUI_RangeSlider.create("fs_paint_slider_scalex",  {
+            width: 120,
+            height: 8,
+
+            min: 0,
+            max: 10,
+
+            step: 0.1,
+
+            midi: true,
+        
+            default_value: _paint_scalex,
+            value: _paint_scalex,
+
+            title: "Brush scale x",
+
+            title_min_width: 110,
+            value_min_width: 48,
+
+            configurable: {
+                min: {},
+                max: {},
+                step: {},
+                scroll_step: {}
+            },
+
+            on_change: function (value) {
+                _paint_scalex = value;
+                
+                _drawBrushHelper();
+            }
+        });
+    
+    WUI_RangeSlider.create("fs_paint_slider_scaley",  {
+            width: 120,
+            height: 8,
+
+            min: 0,
+            max: 10,
+
+            step: 0.1,
+        
+            midi: true,
+        
+            default_value: _paint_scaley,
+            value: _paint_scaley,
+
+            title: "Brush scale y",
+
+            title_min_width: 110,
+            value_min_width: 48,
+
+            configurable: {
+                min: {},
+                max: {},
+                step: {},
+                scroll_step: {}
+            },
+
+            on_change: function (value) {
+                _paint_scaley = value;
+                
+                _drawBrushHelper();
+            }
+        });
+    
+    WUI_RangeSlider.create("fs_paint_slider_opacity", {
+            width: 120,
+            height: 8,
+
+            min: 0.0,
+            max: 1.0,
+
+            step: 0.01,
+            scroll_step: 0.01,
+
+            midi: true,
+
+            default_value: _paint_opacity,
+            value: _paint_opacity,
+
+            title: "Brush opacity",
+
+            title_min_width: 110,
+            value_min_width: 48,
+        
+            configurable: {
+                step: {},
+                scroll_step: {}
+            },
+
+            on_change: function (value) {
+                _paint_opacity = value;
+                
+                _drawBrushHelper();
+            }
+        });
+
+    WUI_RangeSlider.create("fs_paint_slider_angle", {
+            width: 120,
+            height: 8,
+
+            min: 0.0,
+            max: 360.0,
+
+            step: 1,
+            scroll_step: 0.1,
+
+            midi: true,
+
+            default_value: _paint_angle,
+            value: _paint_angle,
+
+            title: "Brush angle",
+
+            title_min_width: 110,
+            value_min_width: 48,
+        
+            configurable: {
+                step: {},
+                scroll_step: {}
+            },
+
+            on_change: function (value) {
+                _paint_angle = _degToRad(value);
+                
+                _drawBrushHelper();
+            }
         });
 
     WUI_RangeSlider.create("fs_score_width_input", {
@@ -26629,6 +27235,10 @@ var _fasInit = function () {
             _initializePBO();
         }
         
+        if (update_obj.width || update_obj.height) {
+            _updateCanvasInputDimensions(update_obj.width, update_obj.height);
+        }
+        
         // detached canvas
         _detached_canvas_buffer = new Uint8Array(_canvas_width * _canvas_height * 4);
         if (_detached_canvas_ctx) {
@@ -27061,6 +27671,9 @@ var _on_window_resize = function () {
     _updateAllPlayPosition();
     
     _updateCodeView();
+    
+    _c_helper.width  = window.innerWidth;
+    _c_helper.height = window.innerHeight;
 };
 
 ResizeThrottler.initialize([_on_window_resize]);

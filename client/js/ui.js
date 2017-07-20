@@ -10,6 +10,8 @@ var _icon_class = {
     
     _selected_slice,
     
+    _brush_helper_timeout,
+    
     _slice_settings_dialog_id = "fs_slice_settings_dialog",
     _slice_settings_dialog,
     
@@ -17,6 +19,9 @@ var _icon_class = {
     
     _midi_out_dialog_id = "fs_midi_out_dialog",
     _midi_out_dialog,
+    
+    _paint_dialog_id = "fs_paint_dialog",
+    _paint_dialog,
     
     _settings_dialog_id = "fs_settings_dialog",
     _settings_dialog,
@@ -249,6 +254,69 @@ var _addRecordInput = function () {
     tmp_image_data = tmp_canvas_context.getImageData(0, 0, tmp_canvas.width, tmp_canvas.height);
     
     _imageDataToInput(tmp_image_data);
+};
+
+var _drawBrushHelper = function () {
+    if (_paint_brush === null) {
+        return;
+    }
+    
+    var scale_x  = _paint_scalex,
+        scale_y  = _paint_scaley,
+        img    = _paint_brush,
+        brush_width,
+        brush_height,
+        drawing_x,
+        drawing_y,
+        info_y = 0,
+        info_txt = "",
+        canvas_width_d2  = _c_helper.width / 2,
+        canvas_height_d2 = _c_helper.height / 2;
+    
+    brush_width  = img.naturalWidth * scale_x;
+    brush_height = img.naturalHeight * scale_y;
+    
+    // clear
+    _c_helper.width = _c_helper.width;
+
+    drawing_x = canvas_width_d2 - brush_width / 2;
+    drawing_y = canvas_height_d2 - brush_height / 2;
+
+    _c_helper_ctx.save();
+    _c_helper_ctx.translate(canvas_width_d2, canvas_height_d2);
+    _c_helper_ctx.rotate(_paint_angle);
+    _c_helper_ctx.translate(drawing_x - canvas_width_d2, drawing_y - canvas_height_d2);
+    _c_helper_ctx.scale(scale_x, scale_y);
+    _c_helper_ctx.globalAlpha = _paint_opacity;
+    _c_helper_ctx.drawImage(img, 0, 0);
+    _c_helper_ctx.restore();
+    
+    brush_width = parseInt(brush_width, 10);
+    brush_height = parseInt(brush_height, 10);
+    
+    if (brush_height > (window.innerHeight - 224)) {
+        info_y = canvas_height_d2;
+    } else {
+        info_y = drawing_y + brush_height + 24;
+    }
+    
+    if (img.naturalWidth === brush_width && img.naturalHeight === brush_height) {
+        info_txt = parseInt(brush_width, 10) + "x" + parseInt(brush_height, 10);
+    } else {
+        info_txt = img.naturalWidth + "x" + img.naturalHeight + " - " + parseInt(brush_width, 10) + "x" + parseInt(brush_height, 10);
+    }
+    
+    _c_helper_ctx.font = "14px Arial";
+    _c_helper_ctx.textAlign = "center";
+    _c_helper_ctx.fillStyle = "white";
+    _c_helper_ctx.fillText(info_txt, canvas_width_d2, info_y);
+
+    WUI.fadeIn(_c_helper);
+    
+    clearTimeout(_brush_helper_timeout);
+    _brush_helper_timeout = setTimeout(function () {
+            WUI.fadeOut(_c_helper);
+        }, 2000);
 };
 
 /***********************************************************
@@ -696,13 +764,13 @@ var _uiInit = function () {
                         on_click: (function () { _addFragmentInput("camera"); }),
                         tooltip: "Webcam",
                         text: "Webcam"
-                    }/*,
+                    },
                     {
-                        icon: "fs-record-icon",
-                        on_click: (function () { _addFragmentInput("record"); }),
-                        tooltip: "Record",
-                        text: "Record"
-                    }*/
+                        icon: "fs-canvas-icon",
+                        on_click: (function () { _addFragmentInput("canvas"); }),
+                        tooltip: "Canvas",
+                        text: "Canvas"
+                    }
                 ]
             });
     
@@ -764,6 +832,33 @@ var _uiInit = function () {
             status_bar: false,
             detachable: true,
             draggable: true
+        });
+    
+    _paint_dialog = WUI_Dialog.create(_paint_dialog_id, {
+            title: "Paint tools",
+
+            width: "380px",
+            height: "500px",
+
+            halign: "center",
+            valign: "center",
+
+            open: false,
+
+            detachable: true,
+
+            status_bar: false,
+            draggable: true,
+        
+            header_btn: [
+                {
+                    title: "Help",
+                    on_click: function () {
+                        window.open(_documentation_link + "#subsec5_3_1"); 
+                    },
+                    class_name: "fs-help-icon"
+                }
+            ]
         });
 
     _slice_settings_dialog = WUI_Dialog.create(_slice_settings_dialog_id, {
@@ -1079,6 +1174,136 @@ var _uiInit = function () {
 */
                 }
             ]
+        });
+    
+    WUI_RangeSlider.create("fs_paint_slider_scalex",  {
+            width: 120,
+            height: 8,
+
+            min: 0,
+            max: 10,
+
+            step: 0.1,
+
+            midi: true,
+        
+            default_value: _paint_scalex,
+            value: _paint_scalex,
+
+            title: "Brush scale x",
+
+            title_min_width: 110,
+            value_min_width: 48,
+
+            configurable: {
+                min: {},
+                max: {},
+                step: {},
+                scroll_step: {}
+            },
+
+            on_change: function (value) {
+                _paint_scalex = value;
+                
+                _drawBrushHelper();
+            }
+        });
+    
+    WUI_RangeSlider.create("fs_paint_slider_scaley",  {
+            width: 120,
+            height: 8,
+
+            min: 0,
+            max: 10,
+
+            step: 0.1,
+        
+            midi: true,
+        
+            default_value: _paint_scaley,
+            value: _paint_scaley,
+
+            title: "Brush scale y",
+
+            title_min_width: 110,
+            value_min_width: 48,
+
+            configurable: {
+                min: {},
+                max: {},
+                step: {},
+                scroll_step: {}
+            },
+
+            on_change: function (value) {
+                _paint_scaley = value;
+                
+                _drawBrushHelper();
+            }
+        });
+    
+    WUI_RangeSlider.create("fs_paint_slider_opacity", {
+            width: 120,
+            height: 8,
+
+            min: 0.0,
+            max: 1.0,
+
+            step: 0.01,
+            scroll_step: 0.01,
+
+            midi: true,
+
+            default_value: _paint_opacity,
+            value: _paint_opacity,
+
+            title: "Brush opacity",
+
+            title_min_width: 110,
+            value_min_width: 48,
+        
+            configurable: {
+                step: {},
+                scroll_step: {}
+            },
+
+            on_change: function (value) {
+                _paint_opacity = value;
+                
+                _drawBrushHelper();
+            }
+        });
+
+    WUI_RangeSlider.create("fs_paint_slider_angle", {
+            width: 120,
+            height: 8,
+
+            min: 0.0,
+            max: 360.0,
+
+            step: 1,
+            scroll_step: 0.1,
+
+            midi: true,
+
+            default_value: _paint_angle,
+            value: _paint_angle,
+
+            title: "Brush angle",
+
+            title_min_width: 110,
+            value_min_width: 48,
+        
+            configurable: {
+                step: {},
+                scroll_step: {}
+            },
+
+            on_change: function (value) {
+                _paint_angle = _degToRad(value);
+                
+                _drawBrushHelper();
+            }
         });
 
     WUI_RangeSlider.create("fs_score_width_input", {

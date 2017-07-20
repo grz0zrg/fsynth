@@ -95,6 +95,10 @@ var _melScale = function () {
     
 };
 
+var _degToRad = function (angle) {
+    return angle * Math.PI / 180.0;
+};
+
 var _barkScale = function (length, sample_rate, buffer_size) {
     var scale = new Float32Array(length),
         

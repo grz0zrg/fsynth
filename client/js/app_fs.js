@@ -172,6 +172,10 @@ var FragmentSynth = function (params) {
             },
             f: null
         },
+        
+        // helper canvas
+        _c_helper = document.getElementById("fs_helper_canvas"),
+        _c_helper_ctx = _c_helper.getContext("2d"),
     
         _canvas_width  = 1024,
         _canvas_height = 439,//Math.round(window.innerHeight / 2) - 68,
@@ -363,6 +367,8 @@ var FragmentSynth = function (params) {
     /*#include glsl.js*/
     /*#include network.js*/
     /*#include discuss.js*/
+    /*#include paint.js*/
+    /*#include brushes.js*/
     /*#include inputs.js*/
     /*#include editor.js*/
     /*#include transports.js*/
@@ -454,6 +460,10 @@ var FragmentSynth = function (params) {
             _gl.viewport(0, 0, _canvas.width, _canvas.height);
             
             _initializePBO();
+        }
+        
+        if (update_obj.width || update_obj.height) {
+            _updateCanvasInputDimensions(update_obj.width, update_obj.height);
         }
         
         // detached canvas
