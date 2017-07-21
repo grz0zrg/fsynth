@@ -4,7 +4,11 @@
 
 Source code repository for the Fragment app. which can be found at : https://www.fsynth.com
 
-This is a web. spectral synthesizer powered by live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)
+This is a web. additive/spectral/granular synthesizer powered by live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)
+
+Fragment basically capture slices of a WebGL canvas at the display refresh rate and translate RGBA pixels value to notes, the notes are then interpreted and played by one of the synthesis engine method.
+
+The content of the WebGL canvas is produced on the GPU by a collaborative GLSL script, this make it extremely fast to do any kinds of pixels manipulations.
 
 Fragment can also be used for live coding visuals, they can be synchronized to any audio using the MIDI capabilities AND also synchronized to the synthesized sound
 
@@ -14,31 +18,37 @@ Fragment is quite modular and has several external app. such as an external GLSL
 
 For any questions, a message board is available [here](https://quiet.fsynth.com/)
 
-## Feature list:
+## Features
 
- * Full-blown additive synthesizer powered by WebAudio oscillators, a wavetable (slow) OR a native program written in C (fastest)
+ * Complete additive/granular synthesizer powered by WebAudio oscillators (work best in Chrome), a Wavetable (slow) OR a C native audio server (fastest)
  * Live coding/JIT compilation of shader code
  * Real-time, collaborative app.
  * Stereophonic or monaural
  * Polyphonic
  * Multitimbral
- * Continuous frames by frames recording with export
+ * Real-time frames by frames recording with export as image or Fragment input (export back into itself, this can be used to build complex brushes for drawing canvas inputs)
+ * WebGL 2.0 and GLSL 3.0 support when compatibility is detected
  * Adjustable audio output channel per slices
+ * Slices can be added/deleted anywhere on the canvas, move left or right automatically and have independent pitch offset for convenience
  * Feedback via framebuffer (for fx like reverb, delay, spectral distortion etc)
- * Shader inputs: webcam, images, audio files (translated to images), canvas (with drawing operations which use images input as brushes)
+ * Shader inputs:
+    * Webcam
+    * Images
+    * Audio files (translated to images)
+    * Drawing canvas with drawing operations which use images Fragment input as brushes
  * Uniform controllers (WIP : Multislider, XY Pad, [IanniX](https://www.iannix.org/en/) cursors via OSC)
  * Per-sessions discussion system
  * Global and per sessions settings automatic save/load; make use of *localStorage*
  * No authentifications (make use of *localStorage* and is *sessions* based)
 
- Note: Blue component output of the fragment shader can be used for real-time sounds/visuals sync or visual feedback of functions/textures/camera, it is also possible to have full RGB output for visuals by turning on the "monophonic" setting
+ ***Note**: By default, Fragment interpret the Red and Green shader output when stereophonic mode is enabled, the blue component output is left unused and can be used for real-time sounds/visuals sync or direct visual feedback (debug, aesthetic ...) of functions/textures etc... when in monophonic mode the full RGB output is available for visuals and the synthesizer use the alpha channel*
 
- Note: WebAudio oscillators and wavetable mode can only have two output channels (l/r) due to performances issues and limitations (this may change in the future!)
+ ***Note**: WebAudio oscillators and Wavetable mode can only have two output channels (L/R) due to performances issues (this may change in the future!)*
 
-## MIDI Feature list (Integrated MIDI support with the WebMIDI API):
+## MIDI Features (Integrated MIDI support with the WebMIDI API):
 
  * Integrated note-on/note-off messages, note frequency, velocity, MIDI channel and elapsed time are accessible in the fragment shader (this is not shared between users)
- * Polyphony is automatically detected from the GPU capabilities (704 notes with a GeForce GTX 970 GPU, 16 notes is the minimum, maximum also depend on the shader complexity)
+ * Polyphony is automatically detected from the GPU capabilities (704 notes with a GeForce GTX 970 GPU, 16 notes is the minimum, maximum notes depend on the GPU capability/shader complexity)
  * Hot plugging of MIDI devices are supported
  * MIDI enabled shader inputs
 
@@ -50,7 +60,7 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
  * Not necessary but a MIDI device such as a MIDI keyboard and a MIDI controller is recommended
  * Some friends to have fun with
 
-Excellent performances with a modern multi-core system and near "perfect" if you use the external synthesis program (FAS) and the external editor, the things that may cause poor performances is generally due to the browser reflow, also, altough a great feature, detached dialog have quite poor performances sometimes due to them being tied to the parent window thread... this may change with the future of browsers.
+Fragment has excellent performances with a modern multi-core system and a browser such as Chrome, if you experience crackles or need advanced audio features, it is recommended that you use the external synthesis program (FAS) and the external code editor, the things that may cause poor performances is generally due to the browser reflow (UI side), also, although a great feature, detached dialog have quite poor performances sometimes due to them being tied to the parent window thread... this may change with the future of browsers.
 
 ## The project
 
@@ -65,15 +75,15 @@ Excellent performances with a modern multi-core system and near "perfect" if you
  * main.js - Electron app. file
  * common.js - Server config. file
 
- All the servers are clusterized for scalability and smooth updates.
+ All servers are clustered for scalability and smooth updates.
 
 ## Build
 
-Fragment is built with a custom build system called Nut scanning for changes in real-time and which include files when it read /\*#include file\*/, it execute several programs on the output files such as code minifier for production ready usage, the build system was made with the functional *Anubis* programming language.
+Fragment is built with a custom build system called Nut scanning for changes in real-time and which include files when it read /\*#include file\*/, it execute several programs on the output files such as code minifier for production ready usage, the build system was made with the functional *Anubis* programming language based on cartesian closed category theory.
 
 _app_fs.\*_ and _app_cm.\*_ are the entry point files used by the build system to produce a single file and a production ready file in the *dist* directory.
 
-If you want to build it by yourself, you will have to find a way to run a pre-processor over _app_fs.\*_ and _app_cm.\*_ or implement other systems like requireJS!
+If you want to build it by yourself, you will have to find a way to run a pre-processor over _app_fs.\*_ and _app_cm.\*_ or implement other systems like requireJS! This was made like this for build system simplicity and independence.
 
 The build system can be found [here](https://github.com/grz0zrg/nut) and the build system is called by the shell script named `nutbuild` (root folder)
 
@@ -87,29 +97,33 @@ Fragment make use of NodeJS, NPM, MongoDB and Redis database, once those are ins
  * cd fsws & npm install & node fsws
  * point your browser to http://127.0.0.1:3000
 
- If you just want to try it out without the collaborative feature and save, you just need "fsws" then point your browser to http://127.0.0.1:3000
+ If you just want to try it out without the collaborative feature and GLSL code save, you don't need MongoDB and Redis, you just need "fsws" then point your browser to http://127.0.0.1:3000
 
  If you want to use it with IanniX or OSC app, please look at the osc_relay directory, this should be launched before you use the IanniX controller.
 
 ## Prod. system
 
  * *prod_files* contain a list of files and directories that will be copied to the production system
- * *prod* is a shell script which produce an archive from *prod_files*, perform additional cleaning and unarchive over SSH
- * *setup* is a script which is executed on the server after everything has been uploaded and which configure Fragment for the production system
+ * *prod* is a shell script which produce an archive from *prod_files* list, perform additional cleanup and unarchive over SSH
+ * *setup* is a script which is executed on the server after everything has been uploaded, this configure Fragment for the production system
 
 ## Native app.
 
 A native app. was developed with [Electron](http://electron.atom.io/) featuring a special login page but it is deprecated as some features does not work with Electron (like dialogs), the advantage of the native app was the built-in [C powered additive synthesis engine](https://github.com/grz0zrg/fas) which made Fragment a bit more accessible (download & play), you can run the native app with Electron by executing `electron .` in the root directory
 
+A launcher for the audio server program is planned.
+
 ## Tips and tricks
 
  * If you enable the *monophonic* setting, you have the RGB output for live coding visuals which can be fully synchronized with the synthesized sounds which will be synthesized by using the alpha channel
- * Pressing F11 in the GLSL code editor trigger fullscreen editor
- * You can feed the display content of any apps on your desktop (such as GIMP or Krita) by streaming your desktop as a camera (v4l2loopback and ffmpeg is usefull to pull of this on Linux)
+ * Pressing F11 in the GLSL code editor make the editor fullscreen (as an overlay)
+ * You can feed the display content of any apps on your desktop (such as GIMP or Krita) by streaming your desktop as a camera (v4l2loopback and ffmpeg is useful to pull of this on Linux)
 
-## Future
+## The future
 
-A native viewer app. will probably be done soon, some more work involving parallelism and bugfix on the native FAS program need to be done, maybe a VST/LV2 plugin for accessibility and of course many new features are coming soon. ;)
+Some more work involving parallelism and bugfix on the native FAS program need to be done, maybe a VST/LV2 plugin for accessibility and of course many new features are coming soon. ;)
+
+A native app. will be done soon but with a totally different paradigm, i believe that it will be the "ultimate" image synth while being extremely simple technically and very flexible/accessible, it will also fix the main limitation of Fragment real-time synthesis by allowing > 60 FPS capture (configurable) which mean better and basically unlimited granularity as the hardware get faster.
 
 ## Stuff used to make this
 
@@ -177,6 +191,6 @@ Simplified BSD license
 
 ## Credits
 
-The biggest inspiration for all of this was [Alexander Zolotov Virtual ANS software](http://www.warmplace.ru/soft/ans/), thank to him.
+The main inspiration (how it started) for all of this is [Alexander Zolotov Virtual ANS software](http://www.warmplace.ru/soft/ans/), thank to him.
 
 Heavily inspired by [Shadertoy](https://www.shadertoy.com) as well.
