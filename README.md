@@ -4,23 +4,27 @@
 
 Source code repository for the Fragment app. which can be found at : https://www.fsynth.com
 
-This is a web. additive/spectral/granular synthesizer powered by live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)
+This is a web. additive/spectral/granular synthesizer/sequencer powered by live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)
 
 Fragment basically capture slices of a WebGL canvas at the display refresh rate and translate RGBA pixels value to notes, the notes are then interpreted and played by one of the synthesis engine method.
 
-The content of the WebGL canvas is produced on the GPU by a collaborative GLSL script, this make it extremely fast to do any kinds of pixels manipulations.
+The content of the WebGL canvas is produced on the GPU by a collaborative GLSL script, this make it extremely fast and easy to do any kinds of pixels manipulations.
 
-Fragment can also be used for live coding visuals, they can be synchronized to any audio using the MIDI capabilities AND also synchronized to the synthesized sound
+Fragment has many features making it a bliss to produce any kind of sounds, it is aimed at artists seeking a creative environment with few limitations to experiment with, a programmable noise-of-all-kinds software.
 
-This is a sort of [Shadertoy](https://www.shadertoy.com) for audio synthesis, it is compatible with most shaders written for it.
+Fragment can also be used for live coding visuals, either exclusively like ShaderToy or with sounds, the visual can be synchronized to any audio using the MIDI capabilities AND also synchronized to the synthesized sound, canvas inputs can be quite fun to use with generated visuals!
+
+This is a sort of [Shadertoy](https://www.shadertoy.com) for audio synthesis where the visual content produced is a spectrogram, it is compatible with most shaders written for it.
 
 Fragment is quite modular and has several external app. such as an external GLSL editor which can directly connect to the sharedb server and a native additive synthesis engine which communicate via the WebSocket API, a WIP IanniX/OSC relay is also available and more is to come!
+
+Fragment can also act as a standalone sequencer but you have to make your own software that interpret the data which is sent via WebSocket.
 
 For any questions, a message board is available [here](https://quiet.fsynth.com/)
 
 ## Features
 
- * Complete additive/granular synthesizer powered by WebAudio oscillators (work best in Chrome), a Wavetable (slow) OR a C native audio server (fastest)
+ * Complete additive and granular (WIP) synthesizer powered by WebAudio oscillators (work best in Chrome), a Wavetable (slow) OR a C native audio server (fastest)
  * Live coding/JIT compilation of shader code
  * Real-time, collaborative app.
  * Stereophonic or monaural
@@ -35,7 +39,7 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
     * Webcam
     * Images
     * Audio files (translated to images)
-    * Drawing canvas with drawing operations which use images Fragment input as brushes
+    * Drawing canvas with drawing and compositing operations which use images Fragment input as brushes, Fragment is also bundled with 970 high-quality brushes
  * Uniform controllers (WIP : Multislider, XY Pad, [IanniX](https://www.iannix.org/en/) cursors via OSC)
  * Per-sessions discussion system
  * Global and per sessions settings automatic save/load; make use of *localStorage*
@@ -44,7 +48,7 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
  ***Note**: By default, Fragment interpret the Red and Green shader output when stereophonic mode is enabled, the blue component output is left unused and can be used for real-time sounds/visuals sync or direct visual feedback (debug, aesthetic ...) of functions/textures etc... when in monophonic mode the full RGB output is available for visuals and the synthesizer use the alpha channel*
 
  ***Note**: WebAudio oscillators and Wavetable mode can only have two output channels (L/R) due to performances issues (this may change in the future!)*
-
+ 
 ## MIDI Features (Integrated MIDI support with the WebMIDI API):
 
  * Integrated note-on/note-off messages, note frequency, velocity, MIDI channel and elapsed time are accessible in the fragment shader (this is not shared between users)
@@ -58,7 +62,6 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
  * Recent medium GPU (Graphics Processing Unit), this app. was made and is used with a GeForce GTX 970
  * Recent medium multi-core CPU (a dual core should be ok with the native program, a beefy CPU is needed if you use more than one output channel), this is required for the audio synthesis part
  * Not necessary but a MIDI device such as a MIDI keyboard and a MIDI controller is recommended
- * Some friends to have fun with
 
 Fragment has excellent performances with a modern multi-core system and a browser such as Chrome, if you experience crackles or need advanced audio features, it is recommended that you use the external synthesis program (FAS) and the external code editor, the things that may cause poor performances is generally due to the browser reflow (UI side), also, although a great feature, detached dialog have quite poor performances sometimes due to them being tied to the parent window thread... this may change with the future of browsers.
 
@@ -121,9 +124,9 @@ A launcher for the audio server program is planned.
 
 ## The future
 
-Some more work involving parallelism and bugfix on the native FAS program need to be done, maybe a VST/LV2 plugin for accessibility and of course many new features are coming soon. ;)
+Some more work involving parallelism and plenty of bugfix on the native FAS program need to be done, maybe a VST/LV2 plugin for accessibility and of course many new features are coming soon. ;)
 
-A native app. will be done soon but with a totally different paradigm, i believe that it will be the "ultimate" image synth while being extremely simple technically and very flexible/accessible, it will also fix the main limitation of Fragment real-time synthesis by allowing > 60 FPS capture (configurable) which mean better and basically unlimited granularity as the hardware get faster.
+A native app. will be done soon but with a totally different paradigm, it may be the "ultimate" image synth while being extremely simple technically and very flexible/accessible, it will also fix the main limitation of Fragment by allowing > 60 FPS capture (configurable so not limited to the display refresh rate...) which mean basically unlimited granularity as the hardware get faster.
 
 ## Stuff used to make this
 
@@ -172,6 +175,10 @@ Utilities :
  * [The Anubis programming language](http://redmine.anubis-language.com/)
  * [Minimalist Anubis Markup Language](http://redmine.anubis-language.com/)
  * [Nut](https://github.com/grz0zrg/nut)
+ * [HotShots](https://sourceforge.net/projects/hotshots) for the UI quick reference
+
+Data :
+ * [Brushes](http://www.texturemate.com)
 
 The repository for the early proof of concept can be found [here](https://github.com/grz0zrg/fs).
 

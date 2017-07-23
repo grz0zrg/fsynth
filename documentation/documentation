@@ -27,7 +27,8 @@ $define(date)(0)($apply(datesep)($sublist(0)(2)($time))$nth(2)($time))
 $//
 $input(basis.maml)
 $//
-$define(gif)(1)($ifhtml($tlink($center($pagewidthimage(gif/$1.gif)))(gif/$1.gif))$ifpdf($center($pagewidthimage(gif/$1.png))))
+$define(gif)(2)($ifhtml($tlink($center($image($1)(gif/$2.gif)))(gif/$2.gif))$ifpdf($center($image($1)(gif/$2.png))))
+$define(pagewidthgif)(1)($ifhtml($tlink($center($pagewidthimage(gif/$1.gif)))(gif/$1.gif))$ifpdf($center($pagewidthimage(gif/$1.png))))
 $define(p)(0)()
 $define(bigtitle)(1)($center($big($big($big($big($big($1)))))))
 $define(title)(1)($center($big($big($1))))
@@ -44,11 +45,13 @@ $nl
 $center($bold(Table of Contents))
 $tableofcontents
 $section(Introduction)
-The $bold($tlink(Fragment synthesizer)(https://www.fsynth.com)) (also called fsynth) is a collaborative web-based musical instrument which allow direct manipulation of the sound spectrum by the use of on-the-fly GPU (Graphics Processing Unit) programming.
+The $bold($tlink(Fragment synthesizer)(https://www.fsynth.com)) is a collaborative web-based musical instrument which allow direct manipulation of the sound spectrum by the use of on-the-fly GPU (Graphics Processing Unit) coding.
 
 Fragment is stereophonic, polyphonic, multitimbral and support live coding of audio and visuals at the same time.
 
-Fragment is first and foremost a powerfull additive synthesizer which let you have complete control over the sound spectrum in real-time with direct visual feedback.
+Fragment main synthesis method is additive, granular synthesis was successfully implemented as well but not yet available.
+
+Fragment has many features making it a bliss to produce any kind of sounds, it is aimed at artists seeking a real-time creative environment with direct visual feedback and few limitations to experiment with, a programmable noise-of-all-kinds software.
 
 Many videos of Fragment live sessions were recorded and are available on YouTube as a $tlink(playlist)(https://www.youtube.com/playlist?list=PLYhyS2OKJmqe_PEimydWZN1KbvCzkjgeI).
 
@@ -59,10 +62,10 @@ a software emulation of the Russian photoelectronic synthesizer $tlink(ANS)(http
 
 I was blown away by the remarquable possibilities offered by the Virtual ANS which let you draw the sound spectrum over time, i then discovered programs such as MetaSynth or $tlink(HighC)(https://highc.org), this is how i started to experiment with the "drawn sound" method.
 
-Fragment started in 2015, when i was making the first prototype of a web-based ANS-like synthesizer software which is still a work in progress, a prototype of Fragment was made in a single week, 
-the prototype was quite mature but lacked in features, i considered Fragment as a pretty but failed experiment at the time.
+Fragment started in 2015, when i was making the first prototype of a web-based ANS-like synthesizer software, a prototype of Fragment was made in a single week, 
+the prototype was quite mature but lacked in features, i considered Fragment as a pretty failed experiment at the time.
 
-In the summer 2016 while i was releasing the prototype source code, i played with it again and after tweaking the GLSL code, i was able to make some nice sounds and envision what would be possible with this technology, so i started to think about that prototype again and come up with many ideas that would make Fragment more functional and easier to use, the real work begun.
+In the summer 2016 while i was releasing the prototype source code, i played with it again and after tweaking the GLSL code, i was able to make some nice sounds, so i started to think about that prototype again and come up with many ideas that would make Fragment more functional and easier to use, the real work begun.
 
 After many hours spent crafting the software, the first version of Fragment was released in January 2017, it was quite limited at that time, Fragment has now improved alot.
 
@@ -71,22 +74,22 @@ $subsection(Capabilities)
 $list(
 	$item Powerful additive synthesizer
 		$list($item Powered by WebAudio oscillators $item Powered by $ref(fas)(FAS), an independent program $item Powered by a wavetable )
-	$item Stereophonic
-	$item Monaural
+	$item Stereophonic / Monaural
 	$item Polyphonic
 		$list($item Automatically detected from the GPU capabilities $item 16 notes minimum $item 704 notes with a GeForce GTX 970 GPU)
 	$item Multitimbral
-	$item Spectral recording with mixing and export as PNG
+	$item Spectral recording with mixing and PNG export
 	$item Adjustable audio output channel per slices
 		$list($item Multiple audio channels are only supported with $ref(fas)(FAS))
-	$item Shader inputs, webcam, textures, audio files
+	$item Shader inputs, webcam, textures, audio files, canvas
+	$item WebGL 2.0 and GLSL 3.0 support when compatibility is detected
 	$item MIDI Enabled
 		$list($item Only with WebMIDI API enabled browsers (Google Chrome) $item Hot plugging of MIDI devices is supported)
 	$item Collaborative app.
 		$list($item MIDI and shader inputs are not synchronized between users)
   $item Feedback support
 	$item Live coding/JIT compilation of shader code
-	$item Global and per sessions settings automatic saving/loading
+	$item Global and per sessions settings auto save/load
 	$item No authentifications (sessions based)
 	$item Per-sessions discussion system)
 $nl
@@ -102,16 +105,16 @@ It is known to work on recent version of Safari and Opera as well.
 
 Chrome or Chromium browser is recommended.
 
-Fragment support the WebGL 2 API which improve performances and enable some advanced features in the fragment shader due to GLSL 3.0 usage.
+Fragment support the WebGL 2 API which improve performances, possibilities and enable advanced features in the fragment shader due to GLSL 3.0 usage.
 $nl
 $subsubsection(CPU)
 Fragment may be quite hungry in term of computing resources, a dual core with high clock speed is recommended, a CPU with more cores can be useful if you just want to use the browser for audio output.
 
 Several methods are provided to synthesize sounds, each with performances pros and cons:
 $list(
-	$item $ref(fas)(FAS) ($bold(recommended)): $list($item Very fast $item Multiple output support with soundcard choice $item Many settings $item Can run on a dedicated computer such as a Raspberry PI $item Dedicated program which receive Fragment data over the network $item Enhanced noise modeling by adding band-limited noise)
-	$item WebAudio oscillators: $list($item Fastest under Chrome $item May not work with Firefox $item Require a fast CPU $item Integrated global "release" envelope)
-	$item Wavetable (not recommended): $list($item Most compatible browser method $item Will produce crackles))
+	$item $ref(fas)(FAS) ($bold(recommended method)): $list($item Fastest $item Multiple output support with soundcard choice $item Many audio settings $item Can run on a dedicated computer such as a Raspberry PI $item Dedicated program which receive Fragment data over the network $item Enhanced noise modeling with band-limited noise $item Granular synthesis capability (soon))
+	$item WebAudio oscillators: $list($item Fastest with Chrome $item May not work with Firefox if the canvas is too high vertically $item Require a fast CPU $item Integrated global "release" envelope)
+	$item Wavetable $bold(not recommended): $list($item Most compatible browser method $item Will produce crackles))
 $subsubsection(GPU)
 Fragment was developed and tested with a NVIDIA GeForce GTX 970 GPU, a powerful GPU may be required if:
 $list(
@@ -119,14 +122,14 @@ $list(
 	$item you want to do visuals alongside audio
 	$item you are doing complex things/use many inputs in your shader
 	$item you want greater polyphonic/harmonics/partials capabilities)
-$section(Concepts)
-Fragment is an additive synthesizer, it let you have full control over the timbral qualities of your sounds by the mean of GPU programming.
+$section(Concept)
+Fragment basically capture 1 pixel wide slices of a canvas at the display refresh rate and translate RGBA pixels value to notes, the notes are then interpreted and played by one of the synthesis tool.
 
-Unlike other additive synthesizer software, there is no need for knobs, sliders or any other controllers to sculpt your sounds, all of that is done by generating visuals which will determine your sounds harmonic content and dynamic characteristics.
+The content of the canvas is produced on the GPU by a collaborative GLSL script, the GPU make it extremely fast and easy to do any kinds of pixels manipulations.
 
 There is many features in Fragment which allow any creative minds to produce complex sounds in different ways and even with external tools, i suggest all the readers to look at great softwares like the $tlink(IanniX sequencer)(https://www.iannix.org) and to use it with Fragment using the MIDI capabilities.
 
-While Fragment may seem overwhelming at first, the only thing that is required to produce sounds with it is to know how to generate the visuals.
+While Fragment may seem overwhelming at first, the only thing that is required to produce sounds with it is to know how to generate the visuals, the visuals can be drawn directly over the canvas with a canvas input, produced directly by the GLSL code, come from images, sound files, webcam etc.
 
 The goal of this section is to clarify the inner working of Fragment.
 
@@ -134,7 +137,7 @@ $nl
 $subsection(Additive synthesis)
 Fragment is first and foremost a powerful additive synthesizer which make an extended use of additive synthesis.
 
-Additive synthesis is a sound synthesis technique that creates timbre by adding sine waves together.
+Additive synthesis is a sound synthesis technique that create timbres by adding sine waves together.
 
 Adding sine waves produce a timbre, the timbre quality is mainly defined by its harmonic content and the dynamic characteristics of the harmonic content.
 
@@ -146,22 +149,22 @@ The only limit to the amount of sine waves that can be added by Fragment is the 
 
 For example, on a Raspberry PI 3 (1.2GHz 64-bit quad-core ARMv8 CPU) ~700 oscillators can be played simultaneously using two cores, matching the capability of the ANS synthesizer.
 
-Actually, there is a also a hard limit which is that the frequency capture of slices cannot go beyond the refresh rate of your monitor (and this also depend on the browser implementation), this could however be bypassed easily by switching to a different monitor.
+Actually, there is a also a hard limit which is that the frequency capture of slices cannot go beyond the refresh rate of your monitor (and this also depend on the browser implementation, commonly 60 FPS which mean ~16ms time granularity), this could however be bypassed by switching to a different monitor.
 
-Fragment can also do other types of synthesis like substractive synthesis.
+Fragment can also do other types of synthesis like granular synthesis.
 
 $nl
 $label(score)
 $subsection(The graphical score)
 Fragment graphical score represent the sound spectrum which is generated by the GPU from a fragment program.
 
-The fragment program (also known as a fragment shader) is executed by the GPU and compute the color and other attributes of each "fragment" - a technical term which usually mean a single pixel.
+The fragment program (also known as a fragment shader) is executed by the GPU and compute the color and other attributes of each "fragment" - a technical term which mean a single pixel.
 
 The graphical score represent a kind of sonic canvas where the X axis represent time and the Y axis represent frequencies, you "paint" the graphical score by writing a fragment program which will be executed for each pixels of the graphical score.
 
 What you hear in Fragment is determined by the position of "slices" which are added on the graphical score, slices are vertical bits of the graphical score which are merged together and produce an audible result.
 
-The content of slices is captured at the rate of display refresh rate which conventionally should be 60fps most of the time.
+The content of slices is captured at the rate of the display refresh rate which conventionally should be 60fps most of the time which mean a time granularity of at best ~16ms.
 
 The frequency mapping of the graphical score is fixed by a logarithmic formula, altough the formula cannot be changed right now, some parameters are available in the settings dialog to fine tune the frequency map.
 
@@ -177,7 +180,7 @@ $list(
 $section(Sessions)
 Fragment sessions are isolated spaces which are open to all peoples who has access to the session name, they can be joined by going to the Fragment $tlink(homepage)(https://www.fsynth.com) or by typing the session name directly into the address bar as demonstrated below.
 
-You can join any sessions directly from your browser address bar by replacing "yoursessionname" for the URL shown below by the session name you want to join or create, session names are limited to a maximum of 100 characters and cannot have the "$" character:
+You can join any sessions directly from your browser address bar by replacing "yoursessionname" for the URL shown below by the session name you want to join or create, session names are limited to a maximum of 100 characters and cannot use the "$$" character:
 
 $center(https://www.fsynth.com/app/$bold(yoursessionname))
 Fragment store sessions content and settings on a server which mean that any of the synchronizable actions in the session such as the code editor content, canvas settings, slices and $ref(uniformsdialog)(uniform inputs) are automatically saved $bold(if) Fragment is connected.
@@ -204,9 +207,9 @@ $label(fas)
 $section(FAS)
 FAS (Fragment Audio Server) is the Fragment synthesis engine as a server, it is an external independent program written with the C language for very fast real-time audio synthesis.
 
-It is recommended to use Fragment with FAS enabled or use the standalone version of Fragment which include FAS.
+It is recommended to use Fragment with FAS enabled.
 
-The advantage of using FAS is that it provide the best audio performances along with audio device choice, multiple audio output per slices, sample rate choice and realtime scheduling under Linux.
+The advantage of using FAS is that it provide the best audio performances along with audio devices choice, multiple audio output per slices, sample rate choice, granular synthesis method, realtime scheduling under Linux and more...
 
 Fragment communicate with FAS by sending data through the network when the FAS option is enabled, FAS can run on any machines independently of the Fragment application, it gather the pixels data from Fragment in real-time, compute things and deliver the audio through the selected audio device.
 
@@ -272,33 +275,33 @@ $list(
 		$list(
 			$item this is the same as frames_queue_size except for commands (gain changes etc.)
 			$item should be a power of 2 and positive integer))
-Once run, you can stop the FAS application by pressing any keys.
+Once launched, you can stop the FAS server by pressing any keys.
 $nl
 $section(The user interface)
 $tlink($center($pagewidthimage(images/ui_help.png)))(images/ui_help.png)
 $tlink($center(Click to view the full image))(images/ui_help.png)
-Fragment user interface is quite easy to get once you figure out its layout.
+Fragment user interface is quite easy to use once you figure out its layout.
 
-It is composed of a few parts with very specific roles, here is the list of parts along with detailed informations of their functions and supported actions.
+It is composed of a few parts with very specific roles, below is a list of parts with detailed informations of their functions and supported actions.
 
 $nl
 $subsection(Dialogs)
 There is many dialogs in Fragment, they are composed of a title bar with some actions, the dialog content and sometimes a status bar, dialogs hover above the rest of the application, you can move them around and close them, some are also resizable, minimizable and detachable in a separate window.
 
-To resize them, place your mouse cursor on the bottom left corner of the dialog, click and drag to the desired size.
+To resize dialogs, place the mouse cursor on the bottom right corner of the dialog, click and drag to the desired size.
 
-$gif(dialog_resize)
+$pagewidthgif(dialog_resize)
 A minimized dialog will take less space on the screen by only displaying the title bar.
 
 Here is a list of dialog actions (in the order by which they appear from left to right):
-$tlink($center($image(74)(images/dialog_actions.png)))(images/dialog_actions.png)
+$tlink($center($image(93)(images/dialog_actions.png)))(images/dialog_actions.png)
 $list(
 	$item close the dialog
 	$item minimize/maximize
 	$item detach the dialog in a new window
 	$item help (direct link to the documentation section))
 $nl
-$subsection(infobar)(The information bar)
+$subsection(The information bar)
 The information bar at the top convey minor and major informations such as (in order from left to right):
 $list(
 	$item connectivity status
@@ -313,21 +316,21 @@ $list(
 		$item the current frequency under the mouse cursor
 		$item the actual number of simultaneous MIDI notes
 		$item the actual number of oscillators playing)
-	$item the playback time
+	$item the playback time at the center
 	$item a gain controller (master volume))
 
 $subsection(The graphical score)
 You can slice the graphical score by right-clicking on it and by clicking on the + icon, this will add a vertical bar which will capture that part of the canvas.
-$gif(add_slices)
+$gif(294)(add_slices)
 You are free to add any number of slices, adding many slices may have an impact on performances.
 $nl
 $subsubsection(Slice)
 Slices are an important part of Fragment, there will be no sounds if you don't add at least one slice.
 
-The purpose of slices is to capture the pixels of vertical parts of the canvas which will be fed to the additive synthesis engine, they are like turntable needles, they can be dragged around in real-time by the mouse or by a MIDI controller, you can use programs like $tlink(IanniX)(https://www.iannix.org) to move them following certain kind of patterns.
+The purpose of slices is to capture the pixels of vertical parts of the canvas which will be fed to the audio synthesis engine, they are like turntable needles, they can be dragged around in real-time by the mouse or by a MIDI controller, you can use programs like $tlink(IanniX)(https://www.iannix.org) to move them following certain kind of patterns.
 
 Slices can be moved by dragging them on the X axis, to do so, maintain the left mouse button on a slice and move the mouse cursor around on the horizontal axis.
-$gif(dragging_slices)
+$pagewidthgif(dragging_slices)
 Double-clicking on a slice open its settings dialog directly:
 $tlink($center($image(336)(images/slice_settings.png)))(images/slice_settings.png)
 The following actions are possible by right-clicking on a slice:
@@ -342,9 +345,9 @@ $list(
 		$item $ref(fas)(FAS) Output channel: the l/r output channel which will be used by FAS for that slice)
 	$item deletion)
 Here is how you can mute a slice:
-$gif(mute_slice)
+$pagewidthgif(mute_slice)
 Here is how you can delete a slice:
-$gif(remove_slices)
+$pagewidthgif(remove_slices)
 
 $subsection(The toolbar)
 $tlink($center($image($ifhtml(574)$ifpdf(400))(images/toolbar.png)))(images/toolbar.png)
@@ -377,22 +380,26 @@ $list(
 		$item $ref(uniformsdialog)(uniforms)
 		$item $ref(finputs)(GLSL inputs import)))
 
+$label(finputs)
 $subsection(The fragment inputs)
 Fragment inputs are complex inputs which can be used in the fragment program as a 2D texture.
 
 The fragment inputs panel is a complete list of all the added inputs, each of them appear as a thumbnail near the $bold(add complex inputs button), nothing will be shown if no complex inputs were added.
 
-All complex inputs can be used as 2D textures (texture2d) in the fragment program, they are defined as $bold(iInputN) where N is the id of the input starting from 0.
-
-Complex inputs can be reordered in real-time by drag & drop.
+All complex inputs can be used as 2D textures (texture2d) within the fragment program, they are defined as $bold(iInputN) where N is the id of the input starting from 0.
 
 You can find the input id by hovering over the thumbnail or in the title of the complex input settings dialog.
 
+$gif(294)(input_reorder)
+$center(Complex inputs can be reordered in real-time by drag & drop.)
+
 To open the complex input import dialog, click on the "add complex inputs" button, a new dialog will appear with three sections:
+
+$center($image(394)(images/import.png))
 $list(
 	$item Audio import settings: This determine how audio files will be analyzed when imported
 	$list(
-		$item Window type: The windowing function
+		$item Window type: The windowing function to use
 		$item Window length: Analysis window length (tradeoff between time and frequency resolution)
 		$item Overlap
 		$item BPM
@@ -404,15 +411,20 @@ $list(
 	$list(
 		$item Image: This will open a file selection window to import images
 		$item Audio: This will open a file selection window to import audio files
-		$item Webcam)
+		$item Webcam
+		$item Canvas)
 	$item Dropzone: You can use this to import many files at the same time)
 	
-Once added, by right clicking on a complex input thumbnail and the following actions appear:
+Once added, by left clicking on a complex input thumbnail the following actions appear:
 $list(
 	$item complex input settings dialog
 	$item delete
-	$item export as PNG (open a new window))
-$gif(fragment_input)
+	$item export as PNG (only for images, open a new window))
+
+By rick-clicking on the input thumbnail of a canvas input, the canvas input will be selected and a $ref(canvas)("paint tools" dialog) will appear
+
+$pagewidthgif(fragment_input)
+$center(The complex input settings dialog)
 $nl
 The complex input settings dialog have several options:
 $list(
@@ -434,14 +446,52 @@ $list(
 $bold(Note): The "repeat" and "mirrored" Wrap S/T option will be unavailable if your browser does not support the WebGL 2 API, it is only available by adding images with power-of-2 dimensions (128x64, 256x256 etc.) or by using a browser with WebGL 2 support.
 
 $nl
+$label(canvas)
+$subsection(The canvas input)
+The canvas input is a powerful feature which allow to draw on a canvas with brushes, the canvas is usable within the fragment shader as a texture which is directly updated as you draw on it.
+
+When you right click on the canvas input thumbnail, the canvas input will be selected and appear with green borders, the canvas content will appear in front of the graphical score and a "paint tools" dialog will open.
+
+You can directly draw on the graphical score when a canvas input is selected but you cannot move or add slices anymore, you must unselect the selected canvas input before.
+
+A right click on a selected canvas input thumbnail will unselect it.
+
+Brushes can be added by adding complex inputs images from the $ref(finputs)(import inputs dialog).
+
+Brushes can be selected by clicking on the corresponding brush thumbnail.
+
+Any actions affecting brushes will display an overlay helper for some seconds to help you visualize the changes.
+
+To draw on the canvas input, you must first select a brush in the "paint tools" dialog, Fragment is bundled with 970 high-quality brushes.
+
+$center($image(411)(images/paint_toolbox.png))
+$center(The "paint tools" dialog has three parts, a toolbar, brush settings and brushes list.)
+The toolbar actions:
+$list(
+	$item Clear the canvas
+	$item Lock the horizontal axis when drawing
+	$item Lock the vertical axis when drawing
+	$item Compositing method selection
+	$list(
+		$item Compositing methods details can be found $tlink(here)(https://developer.mozilla.org/fr/docs/Web/API/CanvasRenderingContext2D/globalCompositeOperation))
+)
+The sliders:
+$list(
+	$item Brush width scale
+	$item Brush height scale
+	$item Brush opacity
+	$item Brush angle
+)
+
+$nl
 $subsection(The code editor)
-The fragment editor is one of the most important tool of Fragment since it allow the user to generate the visuals which are fed to the additive synthesis engine.
+The code editor is one of the most important Fragment since it allow the user to generate the visuals which are fed to the audio synthesis engine.
 
 $tlink(GLSL)(https://www.khronos.org/files/opengles_shading_language.pdf) code is what you type in the code editor to generate the visuals.
 
 The fragment program is compiled as you type, if the compilation fail, the code editor will notice you with a floating message and with a red message at the lines that cause the compilation to fail, all of that without interrupting sounds/visuals output, this enable powerful live coding.
 
-$gif(glsl_inline_report)
+$pagewidthgif(glsl_inline_report)
 $nl
 The changes that you make in the code editor are automatically saved per named sessions, changes are also synchronized in real-time between all the users of the session you are currently in, this is the collaborative nature of Fragment.
 
@@ -457,6 +507,7 @@ $list(
 Some of the code editor features can be enabled/disabled in the $ref(globalsettingsdialog)(global settings dialog).
 
 If you experience audio stuttering as you type, it is recommended to detach the code editor off the main window, due to the complexity of the web and the complexity of the Fragment application, many things are not as optimal as they should be, you may hear audio crackles due to browser reflow.
+
 $nl
 $subsection(MIDI learn functionality)
 MIDI learn is a neat feature of Fragment which enable any MIDI learn enabled widget to be controlled by a MIDI controller.
@@ -755,7 +806,7 @@ $glslcode(
 )
 $ifhtml($center($ogg(audio/fsynth_fundamental.ogg)))
 You can verify that the produced horizontal line is a 440Hz sine wave by enabling the axis details tool in the toolbar and point your cursor on the horizontal line:
-$gif(freq_details)
+$pagewidthgif(freq_details)
 You might be surprised to see that this is actually not exactly a 440Hz sine wave, the value is rounded due to the way $ref(score)(frequencies are mapped), this can be fixed by increasing the score height to get a more precise mapping, this will require higher processing power however.
 
 $nl
@@ -1647,11 +1698,16 @@ $list(
 		$item $tlink(NGINX)(https://www.nginx.com/)
 		$item $tlink(Flarum)(http://flarum.org/)
 		$item $tlink(pm2)(https://github.com/Unitech/pm2)
+		$item $tlink(HotShots)(https://sourceforge.net/projects/hotshot)
 		$item $tlink(MongoDB)(https://www.mongodb.com/)
 		$item $tlink(Redis)(https://redis.io/)
 		$item $tlink(Winston)(https://github.com/winstonjs/winston)
 		$item $tlink(Express)(http://expressjs.com/)
-		$item $tlink(strong-cluster-control)(https://github.com/strongloop/strong-cluster-control)))
+		$item $tlink(strong-cluster-control)(https://github.com/strongloop/strong-cluster-control))
+	$item Data: $list(
+		$item $tlink(Bundled brushes)(http://www.texturemate.com)
+		))
+
 $nl
 $center($big($big($big($big($colorize(funny)(Thank you!))))))
 $center(last update: $date)
