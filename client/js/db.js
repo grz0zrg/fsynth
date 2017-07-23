@@ -15,7 +15,7 @@ var _dbStoreInput = function (input_name, input_data) {
     if (!_db) {
         return;
     }
-    
+
     var object_store = _db.transaction(["inputs"], "readwrite").objectStore("inputs"),
         
         request = object_store.openCursor(input_name);
@@ -86,7 +86,14 @@ var _initDb = function () {
             _dbGetInputs(function (name, value) {
                 var image_element = null;
 
-                if (value.type === "image") {
+                if (value.type === "image" ||
+                   value.type === "canvas") {
+                    if (value.data.length === 0) {
+                        _addFragmentInput(value.type);
+                        
+                        return true;
+                    }
+                    
                     image_element = document.createElement("img");
                     image_element.src = value.data;
                     image_element.width = value.width;
@@ -95,7 +102,7 @@ var _initDb = function () {
                     image_element.onload = function () {
                         image_element.onload = null;
 
-                        _addFragmentInput("image", image_element, value.settings);
+                        _addFragmentInput(value.type, image_element, value.settings);
                     };
                 } else {
                     _addFragmentInput(value.type);

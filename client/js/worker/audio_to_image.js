@@ -29,6 +29,7 @@ var ndarray     = require("ndarray"),
 ************************************************************/
 
 var _progress = 0,
+    _prev_progress = 0,
     _stereo = false;
 
 /***********************************************************
@@ -73,7 +74,6 @@ var _convert = function (params, data) {
         n, adiff, amax = 0,
         
         progress_step = note_samples / data_buffer.length * 100,
-        progress_submit_freq = _parseInt10(image_width / 8),
     
         i,
         
@@ -127,7 +127,7 @@ var _convert = function (params, data) {
                 // get magnitude data
                 for (k = start; k < end; k += 1) {
                     stft_data_index = lid + _logScale(k - start, hid);
-                    
+                   
                     im = imag_final[stft_data_index],
                     r  = real_final[stft_data_index],
                         
@@ -149,12 +149,15 @@ var _convert = function (params, data) {
 
     // stft processing
     for (i = 0; i < data_buffer.length; i += note_samples) {
+        _prev_progress = parseInt(_progress, 10);
         _progress += progress_step;
 
         stft(data_buffer.subarray(i, i + note_samples));
-        
-        if ((i % progress_submit_freq) === 0) {
-            postMessage(_parseInt10(_progress, 10));
+
+        if (parseInt(_progress, 10) !== _prev_progress) {
+            if ((parseInt(_progress, 10) % 5) === 0) {
+                postMessage(_parseInt10(_progress, 10));
+            }
         }
     }
     
@@ -177,6 +180,7 @@ var _convert = function (params, data) {
     return { width: image_width, height: image_height, data: image_data };
 };
 
+// when in stereo, we basically assign R = L, G = R and G = (L + R) / 2
 var _mergeChannels = function (l, r) {
     var i = 0;
     

@@ -715,7 +715,7 @@ var _uiInit = function () {
         });
     
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
-            title: "Import input (image, audio, webcam)",
+            title: "Import image, audio, webcam, canvas",
 
             width: "380px",
             height: "480px",
@@ -837,8 +837,8 @@ var _uiInit = function () {
     _paint_dialog = WUI_Dialog.create(_paint_dialog_id, {
             title: "Paint tools",
 
-            width: "380px",
-            height: "500px",
+            width: "400px",
+            height: "520px",
 
             halign: "center",
             valign: "center",
@@ -846,9 +846,14 @@ var _uiInit = function () {
             open: false,
 
             detachable: true,
+            resizable: true,
 
             status_bar: false,
             draggable: true,
+        
+            on_detach: function (new_window) {
+                new_window.document.body.style.overflow = "hidden";
+            },
         
             header_btn: [
                 {
@@ -964,7 +969,7 @@ var _uiInit = function () {
                         icon: "fs-reset-icon",
                         on_click: _rewindRecording,
                         tooltip: "Reset recording"
-                    },
+                    }
                 ],
                 opts: [
                     {
@@ -1002,14 +1007,160 @@ var _uiInit = function () {
                         icon: "fs-save-icon",
                         on_click: _saveRecord,
                         tooltip: "Save as PNG"
-                    }/*,
-                    {
-                        icon: "fs-record-icon",
-                        on_click: _renderRecord,
-                        tooltip: "Render audio"
-                    }*/
+                    }
                 ]
             });
+    
+    WUI_ToolBar.create("fs_paint_toolbar", {
+            allow_groups_minimize: false
+        },
+        {
+            acts: [
+                {
+                    icon: "fs-eraser-icon",
+                    on_click: function () {
+                        _canvasInputClear(_selected_input_canvas);
+                        _canvasInputUpdate(_selected_input_canvas);
+                    },
+                    tooltip: "Clear canvas"
+                },
+                {
+                    icon: "fs-lockx-icon",
+                    type: "toggle",
+                    toggle_state: false,
+                    on_click: function () {
+                        _paint_lock_x = !_paint_lock_x;
+                    },
+                    tooltip: "Lock horizontal axis"
+                },
+                {
+                    icon: "fs-locky-icon",
+                    type: "toggle",
+                    toggle_state: false,
+                    on_click: function () {
+                        _paint_lock_y = !_paint_lock_y;
+                    },
+                    tooltip: "Lock vertical axis"
+                }
+            ],
+            compositing: [
+                {
+                    text: "Compositing",
+                    tooltip: "Compositing method",
+                    type: "dropdown",
+                    
+                    orientation: "s",
+                    dropdown_items_width: "80px",
+
+                    items: [
+                      {
+                        title: "source-over",
+                        on_click: _setPaintCompositingMode("source-over")
+                      },
+                      {
+                        title: "source-in",
+                        on_click: _setPaintCompositingMode("source-in")
+                      },
+                      {
+                        title: "source-out",
+                        on_click: _setPaintCompositingMode("source-out")
+                      },
+                      {
+                        title: "source-atop",
+                        on_click: _setPaintCompositingMode("source-atop")
+                      },
+                      {
+                        title: "destination-over",
+                        on_click: _setPaintCompositingMode("destination-over")
+                      },
+                      {
+                        title: "destination-in",
+                        on_click: _setPaintCompositingMode("destination-in")
+                      },
+                      {
+                        title: "destination-out",
+                        on_click: _setPaintCompositingMode("destination-out")
+                      },
+                      {
+                        title: "destination-atop",
+                        on_click: _setPaintCompositingMode("destination-atop")
+                      },
+                      {
+                        title: "lighter",
+                        on_click: _setPaintCompositingMode("lighter")
+                      },
+                      {
+                        title: "copy",
+                        on_click: _setPaintCompositingMode("copy")
+                      },
+                      {
+                        title: "xor",
+                        on_click: _setPaintCompositingMode("xor")
+                      },
+                      {
+                        title: "multiply",
+                        on_click: _setPaintCompositingMode("multiply")
+                      },
+                      {
+                        title: "screen",
+                        on_click: _setPaintCompositingMode("screen")
+                      },
+                      {
+                        title: "overlay",
+                        on_click: _setPaintCompositingMode("overlay")
+                      },
+                      {
+                        title: "darken",
+                        on_click: _setPaintCompositingMode("darken")
+                      },
+                      {
+                        title: "lighten",
+                        on_click: _setPaintCompositingMode("lighten")
+                      },
+                      {
+                        title: "color-dodge",
+                        on_click: _setPaintCompositingMode("color-dodge")
+                      },
+                      {
+                        title: "color-burn",
+                        on_click: _setPaintCompositingMode("color-burn")
+                      },
+                      {
+                        title: "hard-light",
+                        on_click: _setPaintCompositingMode("hard-light")
+                      },
+                      {
+                        title: "soft-light",
+                        on_click: _setPaintCompositingMode("soft-light")
+                      },
+                      {
+                        title: "difference",
+                        on_click: _setPaintCompositingMode("difference")
+                      },
+                      {
+                        title: "exclusion",
+                        on_click: _setPaintCompositingMode("exclusion")
+                      },
+                      {
+                        title: "hue",
+                        on_click: _setPaintCompositingMode("hue")
+                      },
+                      {
+                        title: "saturation",
+                        on_click: _setPaintCompositingMode("saturation")
+                      },
+                      {
+                        title: "color",
+                        on_click: _setPaintCompositingMode("color")
+                      },
+                      {
+                        title: "luminosity",
+                        on_click: _setPaintCompositingMode("luminosity")
+                      }
+                    ]
+                }
+            ]
+        });
 
     _wui_main_toolbar = WUI_ToolBar.create("fs_middle_toolbar", {
             allow_groups_minimize: false

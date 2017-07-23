@@ -6363,6 +6363,20 @@ var _melScale = function () {
     
 };
 
+var _degToRad = function (angle) {
+    return angle * Math.PI / 180.0;
+};
+
+var _setImageSmoothing = function (ctx, state) {
+    if (ctx) {
+        ctx.mozImageSmoothingEnabled    = state;
+        ctx.oImageSmoothingEnabled      = state;
+        //ctx.webkitImageSmoothingEnabled = state;
+        ctx.msImageSmoothingEnabled     = state;
+        ctx.imageSmoothingEnabled       = state;
+    }
+};
+
 var _barkScale = function (length, sample_rate, buffer_size) {
     var scale = new Float32Array(length),
         
@@ -6488,6 +6502,7 @@ _toolsInit();
 ************************************************************/
 
 var _progress = 0,
+    _prev_progress = 0,
     _stereo = false;
 
 /***********************************************************
@@ -6532,7 +6547,6 @@ var _convert = function (params, data) {
         n, adiff, amax = 0,
         
         progress_step = note_samples / data_buffer.length * 100,
-        progress_submit_freq = _parseInt10(image_width / 8),
     
         i,
         
@@ -6586,7 +6600,7 @@ var _convert = function (params, data) {
                 // get magnitude data
                 for (k = start; k < end; k += 1) {
                     stft_data_index = lid + _logScale(k - start, hid);
-                    
+                   
                     im = imag_final[stft_data_index],
                     r  = real_final[stft_data_index],
                         
@@ -6608,12 +6622,15 @@ var _convert = function (params, data) {
 
     // stft processing
     for (i = 0; i < data_buffer.length; i += note_samples) {
+        _prev_progress = parseInt(_progress, 10);
         _progress += progress_step;
 
         stft(data_buffer.subarray(i, i + note_samples));
-        
-        if ((i % progress_submit_freq) === 0) {
-            postMessage(_parseInt10(_progress, 10));
+
+        if (parseInt(_progress, 10) !== _prev_progress) {
+            if ((parseInt(_progress, 10) % 5) === 0) {
+                postMessage(_parseInt10(_progress, 10));
+            }
         }
     }
     

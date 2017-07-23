@@ -38,6 +38,7 @@
     border-top: none !important;
     border-left: none !important;
     border-right: none !important;
+    line-height: 20px !important;
 }
 
 .fs-input-label {

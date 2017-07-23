@@ -51,7 +51,7 @@ var _fasEnable = function () {
             audio_infos: _audio_infos
         });
     
-    _fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
+    //_fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
     
     _fas.enabled = true;
 };

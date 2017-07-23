@@ -99,6 +99,28 @@ var _degToRad = function (angle) {
     return angle * Math.PI / 180.0;
 };
 
+var _swapNode = function (elem1, elem2) {
+    if (elem1 && elem2) {
+        var P1 = elem1.parentNode,
+            T1 = document.createElement("span"),
+            P2,
+            T2; 
+        
+        P1.insertBefore(T1, elem1);
+
+        P2 = elem2.parentNode;
+        T2 = document.createElement("span");
+        
+        P2.insertBefore(T2, elem2);
+
+        P1.insertBefore(elem2, T1);
+        P2.insertBefore(elem1, T2);
+
+        P1.removeChild(T1);
+        P2.removeChild(T2);
+    }
+};
+
 var _setImageSmoothing = function (ctx, state) {
     if (ctx) {
         ctx.mozImageSmoothingEnabled    = state;

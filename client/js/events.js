@@ -122,6 +122,8 @@ document.getElementById("fs_import_audio_window_settings").addEventListener('cha
 document.addEventListener('mouseup', function (e) {
     _mouse_btn = 0;
     
+    _canvasInputStopPainting();
+    
     // controller
     //_hit_curr = null;
 });
@@ -192,6 +194,8 @@ document.addEventListener('mousemove', function (e) {
 
         _mx = e.pageX;
         _my = e.pageY;
+    
+        _canvasInputPaint(e);
    });
 
 document.getElementById("fs_ui_doc_btn").addEventListener("click", function () {

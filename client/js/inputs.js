@@ -4,37 +4,13 @@
     Fields.
 ************************************************************/
 
-var _dragged_input = null;
+var _dragged_input = null,
+    
+    _selected_input_canvas = null;
 
 /***********************************************************
     Functions.
 ************************************************************/
-
-var _updateCanvasInputDimensions = function (new_width, new_height) {
-    var i = 0,
-        fragment_input_data,
-        tmp_canvas = document.createElement("canvas"),
-        tmp_canvas_ctx = tmp_canvas.getContext("2d");
-    
-    for (i = 0; i < _fragment_input_data.length; i += 1) {
-        fragment_input_data = _fragment_input_data[i];
-        
-        if (fragment_input_data.type === 2) {
-            tmp_canvas.width = new_width; 
-            tmp_canvas.height = new_height;
-            tmp_canvas_ctx.fillRect(0, 0, new_width, new_height);
-            tmp_canvas_ctx.drawImage(fragment_input_data.canvas, 0, 0);
-
-            fragment_input_data.canvas.width = new_width; 
-            fragment_input_data.canvas.height = new_height;
-            fragment_input_data.db_obj.width = _canvas_width;
-            fragment_input_data.db_obj.height = _canvas_height;
-            fragment_input_data.canvas_ctx.drawImage(tmp_canvas, 0, 0);
-            
-            _replace2DTexture(fragment_input_data.canvas, fragment_input_data.texture);
-        }
-    }
-};
 
 var _createChannelSettingsDialog = function (input_channel_id) {
     var dialog_element = document.createElement("div"),
@@ -214,36 +190,43 @@ var _imageProcessor = function (image_data, image_processing_done_cb) {
 
 var _inputThumbMenu = function (e) {
     var input_id = _parseInt10(e.target.dataset.inputId),
-        dom_image = _fragment_input_data[input_id].elem;
+        input = _fragment_input_data[input_id],
+        dom_image = input.elem,
+        
+        items = [
+                { icon: "fs-gear-icon", tooltip: "Settings",  on_click: function () {
+                        _createChannelSettingsDialog(input_id);
+                    } },
+    /*
+                { icon: "fs-replace-icon", tooltip: "Replace",  on_click: function () {
+
+                    } },
+    */
+                { icon: "fs-cross-45-icon", tooltip: "Delete",  on_click: function () {
+                        _input_panel_element.removeChild(dom_image);
+
+                        _removeInputChannel(input_id);
+                        _delBrush(input_id);
+                    } }
+            ];
+    
+    if (input.type === 0) {
+        items.push({ icon: "fs-xyf-icon", tooltip: "View image",  on_click: function () {
+                window.open(dom_image.src);
+            } });
+    }
 
     WUI_CircularMenu.create(
-        {
-            element: dom_image,
+            {
+                element: dom_image,
 
-            rx: 32,
-            ry: 32,
+                rx: 32,
+                ry: 32,
 
-            item_width:  32,
-            item_height: 32
-        },
-        [
-            { icon: "fs-gear-icon", tooltip: "Settings",  on_click: function () {
-                    _createChannelSettingsDialog(input_id);
-                } },
-/*
-            { icon: "fs-replace-icon", tooltip: "Replace",  on_click: function () {
-
-                } },
-*/
-            { icon: "fs-cross-45-icon", tooltip: "Delete",  on_click: function () {
-                    _input_panel_element.removeChild(dom_image);
-
-                    _removeInputChannel(input_id);
-                } },
-            { icon: "fs-xyf-icon", tooltip: "View image",  on_click: function () {
-                    window.open(dom_image.src);
-                } }
-        ]);
+                item_width:  32,
+                item_height: 32
+            }, items
+        );
 };
 
 var _selectCanvas = function (e) {
@@ -264,7 +247,7 @@ var _selectCanvas = function (e) {
             continue;
         }
 
-        input_tmp.elem.style.border = "";
+        input_tmp.elem.classList.remove("fs-selected-input");
         input_tmp.canvas_enable = false;
         
         input_tmp.canvas.style.display = "none";
@@ -273,15 +256,19 @@ var _selectCanvas = function (e) {
     input.canvas_enable = !input.canvas_enable;
     
     if (input.canvas_enable) {
-        dom_image.style.border = "solid 1px #00dd00";
+        dom_image.classList.add("fs-selected-input");
         
         WUI_Dialog.open(_paint_dialog, false);
         
         input.canvas.style.display = "";
+        
+        _selected_input_canvas = input;
     } else {
-        dom_image.style.border = "";
+        dom_image.classList.remove("fs-selected-input");
         
         input.canvas.style.display = "none";
+        
+        _selected_input_canvas = null;
     }
 };
 
@@ -314,6 +301,10 @@ var _removeInputChannel = function (input_id) {
         _fragment_input_data.video_elem = null;
     }
     
+    if (fragment_input_data.canvas) {
+        document.body.removeChild(fragment_input_data.canvas);   
+    }
+    
     _fragment_input_data.splice(input_id, 1);
 
     _sortInputs();
@@ -333,8 +324,8 @@ var _createInputThumb = function (input_id, image, thumb_title, src) {
 
     if (image) {
         // because the data is inverted for WebGL, so we revert it...
-        tmp_canvas = document.createElement('canvas'),
-        tmp_canvas_context = tmp_canvas.getContext('2d'),
+        tmp_canvas = document.createElement('canvas');
+        tmp_canvas_context = tmp_canvas.getContext('2d');
         tmp_canvas.width  = image.naturalWidth;
         tmp_canvas.height = image.naturalHeight;
 
@@ -352,17 +343,12 @@ var _createInputThumb = function (input_id, image, thumb_title, src) {
     }
 
     dom_image.dataset.inputId = input_id;
-    dom_image.dataset.inputIdr = input_id;
-    
+
     dom_image.classList.add("fs-input-thumb");
     
     dom_image.draggable = true;
 
     dom_image.addEventListener("click", _inputThumbMenu);
-    
-    if (input.type === 2) {
-        dom_image.addEventListener("contextmenu", _selectCanvas);
-    }
     
     // drag & drop
     dom_image.addEventListener("drop", function (e) {
@@ -379,28 +365,30 @@ var _createInputThumb = function (input_id, image, thumb_title, src) {
         var src_input_id = _parseInt10(_dragged_input.dataset.inputId),
             dst_input_id = _parseInt10(e.target.dataset.inputId),
             
-            src_input_idr = _parseInt10(_dragged_input.dataset.inputIdr),
-            dst_input_idr = _parseInt10(e.target.dataset.inputIdr),
-            
             elem_src = _fragment_input_data[src_input_id].elem,
             
             dst_data = e.target.src,
-            src_title = _dragged_input.title;
+            src_title = _dragged_input.title,
+            
+            dst_input_data,
+            src_input_data;
 
         _fragment_input_data = _swapArrayItem(_fragment_input_data, src_input_id, dst_input_id);
 
-        e.target.src = _dragged_input.src;
-        _dragged_input.src = dst_data;
+        e.target.dataset.inputId = src_input_id;
+        _dragged_input.dataset.inputId = dst_input_id;
         
-        e.target.dataset.idr = src_input_idr;
-        _dragged_input.dataset.idr = dst_input_idr;
+        e.target.title = "iInput" + src_input_id;
+        _dragged_input.title = "iInput" + dst_input_id;
         
-        _fragment_input_data[dst_input_idr].elem = _fragment_input_data[src_input_idr].elem;
-        _fragment_input_data[src_input_idr].elem = elem_src;
+        _swapNode(e.target, _dragged_input);
+        
+        dst_input_data = _fragment_input_data[dst_input_id];
+        src_input_data = _fragment_input_data[src_input_id];
         
         // db update
-        _dbUpdateInput(dst_input_id, _fragment_input_data[dst_input_idr].db_obj);
-        _dbUpdateInput(src_input_id, _fragment_input_data[src_input_id].db_obj);
+        _dbUpdateInput(dst_input_id, dst_input_data.db_obj);
+        _dbUpdateInput(src_input_id, src_input_data.db_obj);
         //
 
         e.target.style = "";
@@ -440,10 +428,126 @@ var _createInputThumb = function (input_id, image, thumb_title, src) {
     
     // add it as brush as well
     if (input.type === 0) {
-        _addBrush(dom_image);
+        _addBrush(dom_image, dom_image.dataset.inputId);
     }
 
     return dom_image;
+};
+
+var _canvasInputUpdate = function (input_obj) {
+    clearTimeout(input_obj.update_timeout);
+    input_obj.update_timeout = setTimeout(function () {
+            var image_data = input_obj.canvas_ctx.getImageData(0, 0, input_obj.canvas.width, input_obj.canvas.height);
+
+            _imageProcessor(image_data, function (m) {
+                _gl.bindTexture(_gl.TEXTURE_2D, input_obj.texture);
+                _gl.pixelStorei(_gl.UNPACK_FLIP_Y_WEBGL, true);
+                _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, m.img_width, m.img_height, 0, _gl.RGBA, _gl.UNSIGNED_BYTE, new Uint8Array(m.data));
+                _gl.bindTexture(_gl.TEXTURE_2D, null);
+
+                input_obj.db_obj.data = input_obj.canvas.toDataURL();
+                
+                var input_id = _parseInt10(input_obj.elem.dataset.inputId);
+                
+                _dbUpdateInput(input_id, input_obj.db_obj);
+            });
+        }, 500);
+};
+
+var _canvasInputDraw = function (input_obj, x, y, once) {
+    if (_paint_brush === null) {
+        return;
+    }
+    
+    if (once) {
+        _draw(input_obj.canvas_ctx, _paint_brush, input_obj.mouse_btn - 2, x, y, _paint_scalex, _paint_scaley, _paint_angle, _paint_opacity);
+    } else {
+        _paint(input_obj.canvas_ctx, _paint_brush, input_obj.mouse_btn - 2, x, y, _paint_scalex, _paint_scaley, _paint_angle, _paint_opacity);
+    }
+
+    _canvasInputUpdate(input_obj);
+};
+
+var _canvasInputPaint = function (e) {
+    if (_selected_input_canvas) {
+        if (!_selected_input_canvas.canvas_enable) {
+            return false;
+        }
+
+        var e = e || window.event,
+
+            canvas_offset = _getElementOffset(_selected_input_canvas.canvas),
+
+            x = e.pageX - canvas_offset.left,
+            y = e.pageY - canvas_offset.top;
+
+        if (!_paint_brush) {
+            return;
+        }
+
+        if (_selected_input_canvas.mouse_btn === 1 ||
+           _selected_input_canvas.mouse_btn === 3) {
+            _canvasInputDraw(_selected_input_canvas, x, y);
+        }
+    }
+};
+
+var _canvasInputStopPainting = function () {
+    if (_selected_input_canvas) {
+        _selected_input_canvas.mouse_btn = 0;
+    }
+    
+    document.body.classList.remove("fs-no-select");
+};
+
+var _canvasInputClear = function (input_obj) {
+    input_obj.canvas_ctx.clearRect(0, 0, input_obj.canvas.width, input_obj.canvas.height);
+};
+
+var _updateCanvasInputDimensions = function (new_width, new_height) {
+    var i = 0,
+        fragment_input_data,
+        tmp_canvas = document.createElement("canvas"),
+        tmp_canvas_ctx = tmp_canvas.getContext("2d"),
+        input_id;
+    
+    if (!new_width) {
+        new_width = _canvas_width;
+    }
+    
+    if (!new_height) {
+        new_height = _canvas_height;
+    }
+    
+    new_width = _parseInt10(new_width);
+    new_height = _parseInt10(new_height);
+    
+    for (i = 0; i < _fragment_input_data.length; i += 1) {
+        fragment_input_data = _fragment_input_data[i];
+        
+        if (fragment_input_data.type === 2) {
+            tmp_canvas.width = new_width; 
+            tmp_canvas.height = new_height;
+            tmp_canvas_ctx.fillRect(0, 0, new_width, new_height);
+            tmp_canvas_ctx.drawImage(fragment_input_data.canvas, 0, 0);
+
+            fragment_input_data.canvas.width = new_width; 
+            fragment_input_data.canvas.height = new_height;
+            fragment_input_data.db_obj.width = _canvas_width;
+            fragment_input_data.db_obj.height = _canvas_height;
+            fragment_input_data.canvas_ctx.drawImage(tmp_canvas, 0, 0, new_width, new_height);
+
+            fragment_input_data.texture = _replace2DTexture({ empty: true, width: new_width, height: new_height }, fragment_input_data.texture);
+            
+            _flipYTexture(fragment_input_data.texture, true);
+            
+            _canvasInputUpdate(fragment_input_data);
+            
+            input_id = _parseInt10(fragment_input_data.elem.dataset.inputId);
+            
+            _dbUpdateInput(input_id, fragment_input_data.db_obj);
+        }
+    }
 };
 
 var _addFragmentInput = function (type, input, settings) {
@@ -565,7 +669,13 @@ var _addFragmentInput = function (type, input, settings) {
                 empty: true,
                 width: _canvas_width,
                 height: _canvas_height,
-            }, false, true);
+            }, true, true);
+        
+        if (input) {
+            db_obj.data = input.src;
+        } else {
+            db_obj.data = "";
+        }
         
         db_obj.width = _canvas_width;
         db_obj.height = _canvas_height;
@@ -602,7 +712,15 @@ var _addFragmentInput = function (type, input, settings) {
         canvas.style.top = co.top + "px";
         canvas.style.display = "none";
         
+        canvas.dataset.group = "canvas";
+        
         _setImageSmoothing(input_obj.canvas_ctx, false);
+        
+        if (input) {
+            input_obj.canvas_ctx.drawImage(input, 0, 0);
+
+            _canvasInputUpdate(input_obj);
+        }
         
         document.body.appendChild(canvas);
         
@@ -623,59 +741,15 @@ var _addFragmentInput = function (type, input, settings) {
             if (input_obj.mouse_btn === 1 ||
                input_obj.mouse_btn === 3) {
                 _paintStart(x, y);
+                
+                _canvasInputDraw(input_obj, x, y, true);
+                
+                document.body.classList.add("fs-no-select");
             }
         });
 
-        canvas.addEventListener('mouseup', function (e) {
-            input_obj.mouse_btn = 0;
-        });
-
-        canvas.addEventListener('mouseout', function (e) {
-            input_obj.mouse_btn = 0;
-        });
-        
         canvas.addEventListener('contextmenu', function (e) {
             e.preventDefault();
-        });
-
-        canvas.addEventListener('mousemove', function (e) {
-            if (!input_obj.canvas_enable) {
-                return false;
-            }
-            
-            var e = e || window.event,
-
-                canvas_offset = _getElementOffset(canvas),
-
-                x = e.pageX - canvas_offset.left,
-                y = e.pageY - canvas_offset.top;
-            
-            if (!_paint_brush) {
-                return;
-            }
-
-            if (input_obj.mouse_btn === 1 ||
-               input_obj.mouse_btn === 3) {
-                console.log(input_obj.mouse_btn);
-                _paint(input_obj.canvas_ctx, _paint_brush, input_obj.mouse_btn - 2, x, y, _paint_scalex, _paint_scaley, _paint_angle, _paint_opacity);
-                
-                clearTimeout(input_obj.update_timeout);
-                input_obj.update_timeout = setTimeout(function () {
-                        var image_data = input_obj.canvas_ctx.getImageData(0, 0, input_obj.canvas.width, input_obj.canvas.height);
-                    
-                        _imageProcessor(image_data, function (m) {
-                            _gl.bindTexture(_gl.TEXTURE_2D, input_obj.texture);
-                            _gl.pixelStorei(_gl.UNPACK_FLIP_Y_WEBGL, true);
-                            _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, m.img_width, m.img_height, 0, _gl.RGBA, _gl.UNSIGNED_BYTE, new Uint8Array(m.data));
-                            _gl.bindTexture(_gl.TEXTURE_2D, null);
-
-                            //input_obj.canvas_ctx.clearRect(0, 0, input_obj.canvas.width, input_obj.canvas.height);
-
-                            db_obj.data = input_obj.canvas.toDataURL();
-                            _dbStoreInput(input_id, db_obj);
-                        });
-                    }, 500);
-            }
         });
         
         if (settings !== undefined) {
@@ -698,6 +772,8 @@ var _addFragmentInput = function (type, input, settings) {
 
         _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/paint_brush.png" );
 
+        _fragment_input_data[input_id].elem.addEventListener("contextmenu", _selectCanvas);
+        
         _compile();
     } else {
         return;

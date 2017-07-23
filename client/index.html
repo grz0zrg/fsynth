@@ -704,6 +704,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                         <br/>
                         <button id="fs_vectors_ctrl_add" class="fs-btn fs-controls-add-ctrl">Add</button>
                     </div>
+<!--
                     <div class="fs-settings-panel">
                         Matrices
                         <br/>
@@ -721,6 +722,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                         <br/>
                         <button id="fs_matrices_ctrl_add" class="fs-btn fs-controls-add-ctrl">Add</button>
                     </div>
+-->
                 </div>
                 <div id="fs_controls_panel" class="fs-controls-panel">
                 </div>
@@ -798,6 +800,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
         
         <div id="fs_paint_dialog">
             <div>
+                <div id="fs_paint_toolbar" style="padding: 8px"></div>
                 <div>
                     <div id="fs_paint_slider_scalex"></div>
                     <div id="fs_paint_slider_scaley"></div>
@@ -805,7 +808,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                     <div id="fs_paint_slider_angle"></div>
                 </div>
                 <div class="fs-brushes">
-                    Brushes
+                    <span id="fs_brushes_info">Brushes (Mode : source-over)</span>
                     <div id="fs_brushes_container" class="fs-brushes-container">
                         <div class="fs-brush">
                             <div>Pixel</div>

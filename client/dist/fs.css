@@ -1038,6 +1038,7 @@ span.CodeMirror-selectedtext { background: none; }
     border-top: none !important;
     border-left: none !important;
     border-right: none !important;
+    line-height: 20px !important;
 }
 
 .fs-input-label {
@@ -1169,6 +1170,18 @@ span.CodeMirror-selectedtext { background: none; }
 
 .fs-canvas-icon {
     background-image: url("../data/ui-icons/paint_brush.png");
+}
+
+.fs-eraser-icon {
+    background-image: url("../data/ui-icons/eraser.png");
+}
+
+.fs-lockx-icon {
+    background-image: url("../data/ui-icons/lock_x.png");
+}
+
+.fs-locky-icon {
+    background-image: url("../data/ui-icons/lock_y.png");
 }
 
 .fs-error-icon {
@@ -1977,10 +1990,18 @@ canvas {
     border-radius: 4px;
     background-color: #1f1f1f;
     color: #fff;
+    display: -webkit-box;
+    display: -ms-flexbox;
     display: flex;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
     justify-content: center;
+    -ms-flex-line-pack: center;
     align-content: center;
     margin-left: 1px;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: column;
     flex-direction: column;
     text-align: center;
     
@@ -2019,10 +2040,13 @@ canvas {
 
 .fs-brushes {
     color: #ffffff;
-    margin: 4px;
+    margin-left: 4px;
+    margin-right: 4px;
     
     font-size: 11px;
     user-select: none;
+    
+    height: calc(100% - 156px);
 }
 
 .fs-brush:hover {
@@ -2030,12 +2054,20 @@ canvas {
 }
 
 .fs-brushes-container {
+    display: -webkit-box;
+    display: -ms-flexbox;
     display: flex;
+    -ms-flex-wrap: wrap;
     flex-wrap: wrap;
+    -ms-flex-line-pack: start;
     align-content: flex-start;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
     overflow: auto;
-    height: 100%;
+    height: calc(100% - 82px);
     margin: 4px;
+    align-content: flex-start;
 }
 
 .fs-brushes-container > div {
@@ -2043,6 +2075,7 @@ canvas {
     height: 48px;
     border: solid 1px #202020;
     position: relative;
+    background-color: black;
 }
 
 .fs-brushes-container > div > div:first-child {
@@ -2071,6 +2104,17 @@ canvas {
 
 .fs-paint-canvas {
     opacity: 0.4;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.fs-selected-input {
+    border: solid 1px #00dd00;
+}
+
+.fs-no-select {
     -moz-user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;

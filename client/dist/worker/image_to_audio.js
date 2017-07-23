@@ -4059,6 +4059,20 @@ var _melScale = function () {
     
 };
 
+var _degToRad = function (angle) {
+    return angle * Math.PI / 180.0;
+};
+
+var _setImageSmoothing = function (ctx, state) {
+    if (ctx) {
+        ctx.mozImageSmoothingEnabled    = state;
+        ctx.oImageSmoothingEnabled      = state;
+        //ctx.webkitImageSmoothingEnabled = state;
+        ctx.msImageSmoothingEnabled     = state;
+        ctx.imageSmoothingEnabled       = state;
+    }
+};
+
 var _barkScale = function (length, sample_rate, buffer_size) {
     var scale = new Float32Array(length),
         
