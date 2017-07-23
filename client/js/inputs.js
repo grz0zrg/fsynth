@@ -451,7 +451,7 @@ var _canvasInputUpdate = function (input_obj) {
                 
                 _dbUpdateInput(input_id, input_obj.db_obj);
             });
-        }, 500);
+        }, 250);
 };
 
 var _canvasInputDraw = function (input_obj, x, y, once) {

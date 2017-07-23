@@ -307,7 +307,7 @@ The toolbar is a collection of tools and settings which are grouped by sections,
 		<li> <a rel="tag" href="#finputs">GLSL inputs import</a></ul></span></ul></span><br><br><a id="finputs"></a>
 <a id="subsec5_5"></a><span style="font-size: 120%;"><strong>5.5. The fragment inputs</strong></span><br><br>
 Fragment inputs are complex inputs which can be used in the fragment program as a 2D texture.<br><br>The fragment inputs panel is a complete list of all the added inputs, each of them appear as a thumbnail near the <strong>add complex inputs button</strong>, nothing will be shown if no complex inputs were added.<br><br>All complex inputs can be used as 2D textures (texture2d) within the fragment program, they are defined as <strong>iInputN</strong> where N is the id of the input starting from 0.<br><br>You can find the input id by hovering over the thumbnail or in the title of the complex input settings dialog.<br><br><a href="gif/input_reorder.gif"><div style="text-align: center; color: inherit; font-size: inherit;"><p><img src="gif/input_reorder.gif" width="294"></p></div></a>
-<div style="text-align: center; color: inherit; font-size: inherit;"><p>Complex inputs can be reordered in real-time by drag &amp; drop.</p></div><br><br>To open the complex input import dialog, click on the "add complex inputs" button, a new dialog will appear with three sections:<br><br><div style="text-align: center; color: inherit; font-size: inherit;"><p><img src="images/import.png" width="394"></p></div>
+<div style="text-align: center; color: inherit; font-size: inherit;"><p>Complex inputs can be ordered in real-time by drag &amp; drop.</p></div><br><br>To open the complex input import dialog, click on the "add complex inputs" button, a new dialog will appear with three sections:<br><br><div style="text-align: center; color: inherit; font-size: inherit;"><p><img src="images/import.png" width="394"></p></div>
 <span><ul>
 	<li> Audio import settings: This determine how audio files will be analyzed when imported
 	<span><ul>
@@ -354,13 +354,16 @@ The complex input settings dialog have several options:
 <strong>Note</strong>: The "repeat" and "mirrored" Wrap S/T option will be unavailable if your browser does not support the WebGL 2 API, it is only available by adding images with power-of-2 dimensions (128x64, 256x256 etc.) or by using a browser with WebGL 2 support.<br><br><br>
 <a id="canvas"></a>
 <a id="subsec5_6"></a><span style="font-size: 120%;"><strong>5.6. The canvas input</strong></span><br><br>
-The canvas input is a powerful feature which allow to draw on a canvas with brushes, the canvas is usable within the fragment shader as a texture which is directly updated as you draw on it.<br><br>When you right click on the canvas input thumbnail, the canvas input will be selected and appear with green borders, the canvas content will appear in front of the graphical score and a "paint tools" dialog will open.<br><br>You can directly draw on the graphical score when a canvas input is selected but you cannot move or add slices anymore, you must unselect the selected canvas input before.<br><br>A right click on a selected canvas input thumbnail will unselect it.<br><br>Brushes can be added by adding complex inputs images from the <a rel="tag" href="#finputs">import inputs dialog</a>.<br><br>Brushes can be selected by clicking on the corresponding brush thumbnail.<br><br>Any actions affecting brushes will display an overlay helper for some seconds to help you visualize the changes.<br><br>To draw on the canvas input, you must first select a brush in the "paint tools" dialog, Fragment is bundled with 970 high-quality brushes.<br><br><div style="text-align: center; color: inherit; font-size: inherit;"><p><img src="images/paint_toolbox.png" width="411"></p></div>
-<div style="text-align: center; color: inherit; font-size: inherit;"><p>The "paint tools" dialog has three parts, a toolbar, brush settings and brushes list.</p></div>
+The canvas input is a powerful feature which allow to draw on a canvas with brushes, the canvas is usable within the fragment shader as a texture which is updated as you draw on it.<br><br>When you right click on the canvas input thumbnail, the canvas input will be selected and appear with green borders, the canvas content will appear in front of the graphical score and a "paint tools" dialog will open.<br><br>You can directly draw on the graphical score when a canvas input is selected but you cannot move or add slices anymore, you must unselect the selected canvas input before.<br><br>A right click on a selected canvas input thumbnail will unselect it.<br><br>Brushes can be added by adding complex inputs images from the <a rel="tag" href="#finputs">import inputs dialog</a>.<br><br>Brushes can be selected by clicking on the corresponding brush thumbnail.<br><br>Any actions affecting brushes will display an overlay helper for some seconds to help you visualize the changes.<br><br>To draw on the canvas input, you must first select a brush in the "paint tools" dialog, Fragment is bundled with 970 high-quality brushes.<br><br><div style="text-align: center; color: inherit; font-size: inherit;"><p><img src="images/paint_toolbox.png" width="410"></p></div>
+<div style="text-align: center; color: inherit; font-size: inherit;"><p>The "paint tools" dialog has three parts, a toolbar, brush settings and the brushes list.</p></div>
 The toolbar actions:
 <span><ul>
 	<li> Clear the canvas
 	<li> Lock the horizontal axis when drawing
 	<li> Lock the vertical axis when drawing
+	<li> Randomize
+	<span><ul>
+		<li> Randomize brush scale, opacity and angle when drawing</ul></span>
 	<li> Compositing method selection
 	<span><ul>
 		<li> Compositing methods details can be found <a href="https://developer.mozilla.org/fr/docs/Web/API/CanvasRenderingContext2D/globalCompositeOperation">here</a></ul></span>
@@ -371,9 +374,9 @@ The sliders:
 	<li> Brush height scale
 	<li> Brush opacity
 	<li> Brush angle
-</ul></span><br><br><br>
-<a id="subsec5_7"></a><span style="font-size: 120%;"><strong>5.7. The code editor</strong></span><br><br>
-The fragment editor is one of the most important tool of Fragment since it allow the user to generate the visuals which are fed to the additive synthesis engine.<br><br><a href="https://www.khronos.org/files/opengles_shading_language.pdf">GLSL</a> code is what you type in the code editor to generate the visuals.<br><br>The fragment program is compiled as you type, if the compilation fail, the code editor will notice you with a floating message and with a red message at the lines that cause the compilation to fail, all of that without interrupting sounds/visuals output, this enable powerful live coding.<br><br><a href="gif/glsl_inline_report.gif"><div style="text-align: center; color: inherit; font-size: inherit;"><p><img src="gif/glsl_inline_report.gif" width="600"></p></div></a>
+	<li> Brush spacing delay (milliseconds)
+</ul></span><br><br><a id="subsec5_7"></a><span style="font-size: 120%;"><strong>5.7. The code editor</strong></span><br><br>
+The code editor is one of the most important Fragment since it allow the user to generate the visuals which are fed to the audio synthesis engine.<br><br><a href="https://www.khronos.org/files/opengles_shading_language.pdf">GLSL</a> code is what you type in the code editor to generate the visuals.<br><br>The fragment program is compiled as you type, if the compilation fail, the code editor will notice you with a floating message and with a red message at the lines that cause the compilation to fail, all of that without interrupting sounds/visuals output, this enable powerful live coding.<br><br><a href="gif/glsl_inline_report.gif"><div style="text-align: center; color: inherit; font-size: inherit;"><p><img src="gif/glsl_inline_report.gif" width="600"></p></div></a>
 <br>
 The changes that you make in the code editor are automatically saved per named sessions, changes are also synchronized in real-time between all the users of the session you are currently in, this is the collaborative nature of Fragment.<br><br>The code editor is powered by the CodeMirror library, it feature many neat things such as:
 <span><ul>
@@ -384,8 +387,7 @@ The changes that you make in the code editor are automatically saved per named s
 	<li> integrated compilation errors/messages (does not interrupt sounds/visuals)
 	<li> line numbers
 	<li> many bundled editor themes</ul></span>
-Some of the code editor features can be enabled/disabled in the <a rel="tag" href="#globalsettingsdialog">global settings dialog</a>.<br><br>If you experience audio stuttering as you type, it is recommended to detach the code editor off the main window, due to the complexity of the web and the complexity of the Fragment application, many things are not as optimal as they should be, you may hear audio crackles due to browser reflow.
-<br>
+Some of the code editor features can be enabled/disabled in the <a rel="tag" href="#globalsettingsdialog">global settings dialog</a>.<br><br>If you experience audio stuttering as you type, it is recommended to detach the code editor off the main window, due to the complexity of the web and the complexity of the Fragment application, many things are not as optimal as they should be, you may hear audio crackles due to browser reflow.<br><br><br>
 <a id="subsec5_8"></a><span style="font-size: 120%;"><strong>5.8. MIDI learn functionality</strong></span><br><br>
 MIDI learn is a neat feature of Fragment which enable any MIDI learn enabled widget to be controlled by a MIDI controller.
 <a href="images/midi_learn.png"><div style="text-align: center; color: inherit; font-size: inherit;"><p><img src="images/midi_learn.png" width="104"></p></div></a>

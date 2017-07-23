@@ -1041,6 +1041,15 @@ var _uiInit = function () {
                         _paint_lock_y = !_paint_lock_y;
                     },
                     tooltip: "Lock vertical axis"
+                },
+                {
+                    icon: "fs-dice-icon",
+                    type: "toggle",
+                    toggle_state: false,
+                    on_click: function () {
+                        _paint_random = !_paint_random;
+                    },
+                    tooltip: "Randomize scale, opacity and angle"
                 }
             ],
             compositing: [
@@ -1327,6 +1336,37 @@ var _uiInit = function () {
             ]
         });
     
+    WUI_RangeSlider.create("fs_paint_slider_delay",  {
+            width: 120,
+            height: 8,
+
+            min: 0,
+            max: 500,
+
+            step: 1,
+
+            midi: true,
+        
+            default_value: _paint_delay,
+            value: _paint_delay,
+
+            title: "Brush spacing",
+
+            title_min_width: 110,
+            value_min_width: 48,
+
+            configurable: {
+                min: {},
+                max: {},
+                step: {},
+                scroll_step: {}
+            },
+
+            on_change: function (value) {
+                _paint_delay = value;
+            }
+        });
+    
     WUI_RangeSlider.create("fs_paint_slider_scalex",  {
             width: 120,
             height: 8,
@@ -1334,7 +1374,7 @@ var _uiInit = function () {
             min: 0,
             max: 10,
 
-            step: 0.1,
+            step: 0.001,
 
             midi: true,
         
@@ -1367,7 +1407,7 @@ var _uiInit = function () {
             min: 0,
             max: 10,
 
-            step: 0.1,
+            step: 0.001,
         
             midi: true,
         
@@ -1400,7 +1440,7 @@ var _uiInit = function () {
             min: 0.0,
             max: 1.0,
 
-            step: 0.01,
+            step: 0.001,
             scroll_step: 0.01,
 
             midi: true,
@@ -1433,7 +1473,7 @@ var _uiInit = function () {
             max: 360.0,
 
             step: 1,
-            scroll_step: 0.1,
+            scroll_step: 0.01,
 
             midi: true,
 

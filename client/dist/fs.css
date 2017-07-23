@@ -1184,6 +1184,10 @@ span.CodeMirror-selectedtext { background: none; }
     background-image: url("../data/ui-icons/lock_y.png");
 }
 
+.fs-dice-icon {
+    background-image: url("../data/ui-icons/dice.png");
+}
+
 .fs-error-icon {
     background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAHlBMVEW7AAC7AACxAAC7AAC7AAAAAAC4AAC5AAD///+7AAAUdclpAAAABnRSTlMXnORSiwCK0ZKSAAAATUlEQVR42mWPOQ7AQAgDuQLx/z8csYRmPRIFIwRGnosRrpamvkKi0FTIiMASR3hhKW+hAN6/tIWhu9PDWiTGNEkTtIOucA5Oyr9ckPgAWm0GPBog6v4AAAAASUVORK5CYII=");
     
@@ -2046,7 +2050,7 @@ canvas {
     font-size: 11px;
     user-select: none;
     
-    height: calc(100% - 156px);
+    height: calc(100% - 196px);
 }
 
 .fs-brush:hover {
@@ -2103,7 +2107,7 @@ canvas {
 }
 
 .fs-paint-canvas {
-    opacity: 0.4;
+    opacity: 0.8;
     -moz-user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;

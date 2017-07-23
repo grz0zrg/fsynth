@@ -854,7 +854,7 @@ canvas {
     font-size: 11px;
     user-select: none;
     
-    height: calc(100% - 156px);
+    height: calc(100% - 196px);
 }
 
 .fs-brush:hover {
@@ -911,7 +911,7 @@ canvas {
 }
 
 .fs-paint-canvas {
-    opacity: 0.4;
+    opacity: 0.8;
     -moz-user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;

@@ -391,7 +391,7 @@ All complex inputs can be used as 2D textures (texture2d) within the fragment pr
 You can find the input id by hovering over the thumbnail or in the title of the complex input settings dialog.
 
 $gif(294)(input_reorder)
-$center(Complex inputs can be reordered in real-time by drag & drop.)
+$center(Complex inputs can be ordered in real-time by drag & drop.)
 
 To open the complex input import dialog, click on the "add complex inputs" button, a new dialog will appear with three sections:
 
@@ -448,7 +448,7 @@ $bold(Note): The "repeat" and "mirrored" Wrap S/T option will be unavailable if 
 $nl
 $label(canvas)
 $subsection(The canvas input)
-The canvas input is a powerful feature which allow to draw on a canvas with brushes, the canvas is usable within the fragment shader as a texture which is directly updated as you draw on it.
+The canvas input is a powerful feature which allow to draw on a canvas with brushes, the canvas is usable within the fragment shader as a texture which is updated as you draw on it.
 
 When you right click on the canvas input thumbnail, the canvas input will be selected and appear with green borders, the canvas content will appear in front of the graphical score and a "paint tools" dialog will open.
 
@@ -464,13 +464,16 @@ Any actions affecting brushes will display an overlay helper for some seconds to
 
 To draw on the canvas input, you must first select a brush in the "paint tools" dialog, Fragment is bundled with 970 high-quality brushes.
 
-$center($image(411)(images/paint_toolbox.png))
-$center(The "paint tools" dialog has three parts, a toolbar, brush settings and brushes list.)
+$center($image(410)(images/paint_toolbox.png))
+$center(The "paint tools" dialog has three parts, a toolbar, brush settings and the brushes list.)
 The toolbar actions:
 $list(
 	$item Clear the canvas
 	$item Lock the horizontal axis when drawing
 	$item Lock the vertical axis when drawing
+	$item Randomize
+	$list(
+		$item Randomize brush scale, opacity and angle when drawing)
 	$item Compositing method selection
 	$list(
 		$item Compositing methods details can be found $tlink(here)(https://developer.mozilla.org/fr/docs/Web/API/CanvasRenderingContext2D/globalCompositeOperation))
@@ -481,9 +484,9 @@ $list(
 	$item Brush height scale
 	$item Brush opacity
 	$item Brush angle
+	$item Brush spacing delay (milliseconds)
 )
 
-$nl
 $subsection(The code editor)
 The code editor is one of the most important Fragment since it allow the user to generate the visuals which are fed to the audio synthesis engine.
 

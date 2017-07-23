@@ -18972,6 +18972,14 @@ var _fs_palette = {
     Functions.
 ************************************************************/
 
+var _randomInt = function (min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+};
+
+var _random = function (min, max) {
+    return Math.random() * (max - min) + min;
+};
+
 var _webMIDISupport = function () {
     if (navigator.requestMIDIAccess) {
         return true;
@@ -22218,13 +22226,18 @@ _discuss_input.addEventListener("keypress", function (e) {
 var _pvx = 0,
     _pvy = 0,
     
+    _paint_start_time = 0,
+    
     _paint_lock_x = false,
     _paint_lock_y = false,
+    
+    _paint_delay = 0,
+    _paint_random = false,
 
     _paint_brush = null,
     _paint_mode = "source-over",
-    _paint_scalex = 1,
-    _paint_scaley = 1,
+    _paint_scalex = 0.15,
+    _paint_scaley = 0.15,
     _paint_opacity = 0.25,
     _paint_angle = 0;
 
@@ -22246,6 +22259,25 @@ var _paint = function (ctx, brush, mode, x, y, scale_x, scale_y, angle, opacity)
         dy,
         
         i = 0;
+    
+    if (_paint_delay !== 0) {
+        if ((performance.now() - _paint_start_time) > _paint_delay) {
+            _draw(ctx, brush, mode, x, y, scale_x, scale_y, angle, opacity);
+
+            _paint_start_time = performance.now();
+
+            return;
+        } else {
+            return;
+        }
+    }
+    
+    if (_paint_random) {
+        angle = _random(0, angle);
+        scale_x = _random(0, scale_x);
+        scale_y = _random(0, scale_y);
+        opacity = _random(0, opacity);
+    }
     
     ctx.globalAlpha = opacity;
     
@@ -22303,6 +22335,8 @@ var _paint = function (ctx, brush, mode, x, y, scale_x, scale_y, angle, opacity)
 var _paintStart = function (x, y) { 
     _pvx = x;
     _pvy = y;
+    
+    _paint_start_time = performance.now();
 };
 
 var _draw = function (ctx, brush, mode, x, y, scale_x, scale_y, angle, opacity) {
@@ -22312,6 +22346,13 @@ var _draw = function (ctx, brush, mode, x, y, scale_x, scale_y, angle, opacity) 
         brush_height_d2,
         drawing_x,
         drawing_y;
+    
+    if (_paint_random) {
+        angle = _random(0, angle);
+        scale_x = _random(0, scale_x);
+        scale_y = _random(0, scale_y);
+        opacity = _random(0, opacity);
+    }
     
     brush_width  = brush.naturalWidth * scale_x;
     brush_height = brush.naturalHeight * scale_y;
@@ -22927,7 +22968,7 @@ var _canvasInputUpdate = function (input_obj) {
                 
                 _dbUpdateInput(input_id, input_obj.db_obj);
             });
-        }, 500);
+        }, 250);
 };
 
 var _canvasInputDraw = function (input_obj, x, y, once) {
@@ -24510,6 +24551,15 @@ var _uiInit = function () {
                         _paint_lock_y = !_paint_lock_y;
                     },
                     tooltip: "Lock vertical axis"
+                },
+                {
+                    icon: "fs-dice-icon",
+                    type: "toggle",
+                    toggle_state: false,
+                    on_click: function () {
+                        _paint_random = !_paint_random;
+                    },
+                    tooltip: "Randomize scale, opacity and angle"
                 }
             ],
             compositing: [
@@ -24796,6 +24846,37 @@ var _uiInit = function () {
             ]
         });
     
+    WUI_RangeSlider.create("fs_paint_slider_delay",  {
+            width: 120,
+            height: 8,
+
+            min: 0,
+            max: 500,
+
+            step: 1,
+
+            midi: true,
+        
+            default_value: _paint_delay,
+            value: _paint_delay,
+
+            title: "Brush spacing",
+
+            title_min_width: 110,
+            value_min_width: 48,
+
+            configurable: {
+                min: {},
+                max: {},
+                step: {},
+                scroll_step: {}
+            },
+
+            on_change: function (value) {
+                _paint_delay = value;
+            }
+        });
+    
     WUI_RangeSlider.create("fs_paint_slider_scalex",  {
             width: 120,
             height: 8,
@@ -24803,7 +24884,7 @@ var _uiInit = function () {
             min: 0,
             max: 10,
 
-            step: 0.1,
+            step: 0.001,
 
             midi: true,
         
@@ -24836,7 +24917,7 @@ var _uiInit = function () {
             min: 0,
             max: 10,
 
-            step: 0.1,
+            step: 0.001,
         
             midi: true,
         
@@ -24869,7 +24950,7 @@ var _uiInit = function () {
             min: 0.0,
             max: 1.0,
 
-            step: 0.01,
+            step: 0.001,
             scroll_step: 0.01,
 
             midi: true,
@@ -24902,7 +24983,7 @@ var _uiInit = function () {
             max: 360.0,
 
             step: 1,
-            scroll_step: 0.1,
+            scroll_step: 0.01,
 
             midi: true,
 
