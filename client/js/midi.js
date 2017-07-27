@@ -202,7 +202,7 @@ var _onMIDIMessage = function (midi_message) {
                         time: Date.now(),
                         channel: channel
                     };
-
+                
                 i = 0;
 
                 for (key in _keyboard.pressed) { 
@@ -226,8 +226,16 @@ var _onMIDIMessage = function (midi_message) {
             }
             break;
 
-        case 0x80:
+        case 0x80:            
             key = channel + "_" + midi_message.data[1];
+            
+            value = _keyboard.pressed[key];
+            
+            _pkeyboard.data[value.channel * 3]     = value.frq;
+            _pkeyboard.data[value.channel * 3 + 1] = value.vel;
+            _pkeyboard.data[value.channel * 3 + 2] = value.time;
+            
+            _setUniforms(_gl, "vec", _program, "pKey", _pkeyboard.data, _pkeyboard.data_components);
 
             delete _keyboard.pressed[key];
 

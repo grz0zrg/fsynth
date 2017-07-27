@@ -19503,6 +19503,12 @@ _utter_fail_element.innerHTML = "";
             polyphony: 0 // current polyphony
         },
         
+        // last note-on/note-off (MIDI)
+        _pkeyboard = {
+            data: [],
+            data_components: 3,
+        },
+        
         _webgl = {
             max_fragment_uniform_vector: -1
         },
@@ -21414,7 +21420,7 @@ var _compile = function () {
     }
     
     // add our uniforms
-    glsl_code += "uniform float globalTime; uniform int frame; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "];"
+    glsl_code += "uniform float globalTime; uniform int frame; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "]; uniform vec3 pKey[" + _keyboard.polyphony_max + "];"
     
     if (_feedback.enabled) {
         glsl_code += "uniform sampler2D pFrame;";
@@ -22194,7 +22200,7 @@ _right_dialog = WUI_Dialog.create(_discuss_dialog_id, {
         {
             title: "Help",
             on_click: function () {
-                window.open(_documentation_link + "#subsec5_12"); 
+                window.open(_documentation_link + "#subsec5_13"); 
             },
             class_name: "fs-help-icon"
         }
@@ -23186,7 +23192,7 @@ var _addFragmentInput = function (type, input, settings) {
                 empty: true,
                 width: _canvas_width,
                 height: _canvas_height,
-            }, true, true);
+            }, false, true);
         
         if (input) {
             db_obj.data = input.src;
@@ -23687,7 +23693,7 @@ var _onRecordDialogClose = function () {
     // reattach the correct canvas
     var previous_canvas = _record_canvas;
     
-    _record_canvas = document.getElementById("fs_record_canvas");
+    _record_canvas = _canvas.ownerDocument.getElementById("fs_record_canvas");
     _record_canvas_ctx = _record_canvas.getContext('2d');
     _record_canvas_ctx.drawImage(previous_canvas, 0, 0);
     
@@ -23881,7 +23887,7 @@ var _uiInit = function () {
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "#subsec5_8"); 
+                        window.open(_documentation_link + "#subsec5_9"); 
                     },
                     class_name: "fs-help-icon"
                 }
@@ -24176,11 +24182,15 @@ var _uiInit = function () {
             detachable: true,
             draggable: true,
         
+            on_detach: function (new_window) {
+                new_window.document.body.style.overflow = "hidden";
+            },
+        
             header_btn: [
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "#subsec5_9"); 
+                        window.open(_documentation_link + "#subsec5_10"); 
                     },
                     class_name: "fs-help-icon"
                 }
@@ -24208,7 +24218,7 @@ var _uiInit = function () {
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "#subsec5_10"); 
+                        window.open(_documentation_link + "#subsec5_11"); 
                     },
                     class_name: "fs-help-icon"
                 }
@@ -24299,11 +24309,15 @@ var _uiInit = function () {
             detachable: true,
             draggable: true,
         
+            on_detach: function (new_window) {
+                new_window.document.body.style.overflow = "hidden";
+            },
+        
             header_btn: [
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "#subsec5_11"); 
+                        window.open(_documentation_link + "#subsec5_12"); 
                     },
                     class_name: "fs-help-icon"
                 }
@@ -24332,7 +24346,7 @@ var _uiInit = function () {
             title: "Fragment - Help",
 
             width: "380px",
-            height: "645px",
+            height: "685px",
 
             halign: "center",
             valign: "center",
@@ -24369,7 +24383,7 @@ var _uiInit = function () {
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "#subsec5_3_1"); 
+                        window.open(_documentation_link + "#subsec5_6"); 
                     },
                     class_name: "fs-help-icon"
                 }
@@ -24396,7 +24410,7 @@ var _uiInit = function () {
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "#subsec5_3_1"); 
+                        window.open(_documentation_link + "#subsubsec5_3_1"); 
                     },
                     class_name: "fs-help-icon"
                 }
@@ -24463,7 +24477,7 @@ var _uiInit = function () {
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "#subsec5_13"); 
+                        window.open(_documentation_link + "#subsec5_14"); 
                     },
                     class_name: "fs-help-icon"
                 }
@@ -27399,7 +27413,7 @@ var _onMIDIMessage = function (midi_message) {
                         time: Date.now(),
                         channel: channel
                     };
-
+                
                 i = 0;
 
                 for (key in _keyboard.pressed) { 
@@ -27423,8 +27437,16 @@ var _onMIDIMessage = function (midi_message) {
             }
             break;
 
-        case 0x80:
+        case 0x80:            
             key = channel + "_" + midi_message.data[1];
+            
+            value = _keyboard.pressed[key];
+            
+            _pkeyboard.data[value.channel * 3]     = value.frq;
+            _pkeyboard.data[value.channel * 3 + 1] = value.vel;
+            _pkeyboard.data[value.channel * 3 + 2] = value.time;
+            
+            _setUniforms(_gl, "vec", _program, "pKey", _pkeyboard.data, _pkeyboard.data_components);
 
             delete _keyboard.pressed[key];
 

@@ -256,6 +256,12 @@ var FragmentSynth = function (params) {
             polyphony: 0 // current polyphony
         },
         
+        // last note-on/note-off (MIDI)
+        _pkeyboard = {
+            data: [],
+            data_components: 3,
+        },
+        
         _webgl = {
             max_fragment_uniform_vector: -1
         },

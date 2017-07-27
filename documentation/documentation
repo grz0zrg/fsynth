@@ -752,6 +752,9 @@ $list(
 	$list(
 		$item this uniform will be available when feedback is enabled and contain the previous frame
 		$item typical usage: texture2D(pFrame, uv))
+	$item $bold(int) $rgb(0,100,100)(frame)
+	$list(
+		$item The current frame)
 	$item $bold(vec4[N]) $rgb(0,100,100)(keyboard)
 	$list(
 		$item note-on frequency

@@ -150,7 +150,7 @@ _right_dialog = WUI_Dialog.create(_discuss_dialog_id, {
         {
             title: "Help",
             on_click: function () {
-                window.open(_documentation_link + "#subsec5_12"); 
+                window.open(_documentation_link + "#subsec5_13"); 
             },
             class_name: "fs-help-icon"
         }

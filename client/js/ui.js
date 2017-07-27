@@ -177,7 +177,7 @@ var _onRecordDialogClose = function () {
     // reattach the correct canvas
     var previous_canvas = _record_canvas;
     
-    _record_canvas = document.getElementById("fs_record_canvas");
+    _record_canvas = _canvas.ownerDocument.getElementById("fs_record_canvas");
     _record_canvas_ctx = _record_canvas.getContext('2d');
     _record_canvas_ctx.drawImage(previous_canvas, 0, 0);
     
@@ -371,7 +371,7 @@ var _uiInit = function () {
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "#subsec5_8"); 
+                        window.open(_documentation_link + "#subsec5_9"); 
                     },
                     class_name: "fs-help-icon"
                 }
@@ -666,11 +666,15 @@ var _uiInit = function () {
             detachable: true,
             draggable: true,
         
+            on_detach: function (new_window) {
+                new_window.document.body.style.overflow = "hidden";
+            },
+        
             header_btn: [
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "#subsec5_9"); 
+                        window.open(_documentation_link + "#subsec5_10"); 
                     },
                     class_name: "fs-help-icon"
                 }
@@ -698,7 +702,7 @@ var _uiInit = function () {
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "#subsec5_10"); 
+                        window.open(_documentation_link + "#subsec5_11"); 
                     },
                     class_name: "fs-help-icon"
                 }
@@ -789,11 +793,15 @@ var _uiInit = function () {
             detachable: true,
             draggable: true,
         
+            on_detach: function (new_window) {
+                new_window.document.body.style.overflow = "hidden";
+            },
+        
             header_btn: [
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "#subsec5_11"); 
+                        window.open(_documentation_link + "#subsec5_12"); 
                     },
                     class_name: "fs-help-icon"
                 }
@@ -822,7 +830,7 @@ var _uiInit = function () {
             title: "Fragment - Help",
 
             width: "380px",
-            height: "645px",
+            height: "685px",
 
             halign: "center",
             valign: "center",
@@ -859,7 +867,7 @@ var _uiInit = function () {
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "#subsec5_3_1"); 
+                        window.open(_documentation_link + "#subsec5_6"); 
                     },
                     class_name: "fs-help-icon"
                 }
@@ -886,7 +894,7 @@ var _uiInit = function () {
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "#subsec5_3_1"); 
+                        window.open(_documentation_link + "#subsubsec5_3_1"); 
                     },
                     class_name: "fs-help-icon"
                 }
@@ -953,7 +961,7 @@ var _uiInit = function () {
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "#subsec5_13"); 
+                        window.open(_documentation_link + "#subsec5_14"); 
                     },
                     class_name: "fs-help-icon"
                 }

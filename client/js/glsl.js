@@ -169,7 +169,7 @@ var _compile = function () {
     }
     
     // add our uniforms
-    glsl_code += "uniform float globalTime; uniform int frame; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "];"
+    glsl_code += "uniform float globalTime; uniform int frame; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "]; uniform vec3 pKey[" + _keyboard.polyphony_max + "];"
     
     if (_feedback.enabled) {
         glsl_code += "uniform sampler2D pFrame;";

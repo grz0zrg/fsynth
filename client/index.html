@@ -629,6 +629,17 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                                     </li>
                                 </ul>
                             </li>
+                            <li>
+                                vec3[N] <span class="fs-documentation-keyword">pKey</span> :
+                                <ul>
+                                    <li>
+                                        frequency, velocity, elapsed time since the key was pressed
+                                    </li>
+                                    <li>
+                                        Note : store the previous note-off for each channels
+                                    </li>
+                                </ul>
+                            </li>
                         </ul>
                     </div>
                 </div>

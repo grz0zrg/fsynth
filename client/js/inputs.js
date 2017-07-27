@@ -669,7 +669,7 @@ var _addFragmentInput = function (type, input, settings) {
                 empty: true,
                 width: _canvas_width,
                 height: _canvas_height,
-            }, true, true);
+            }, false, true);
         
         if (input) {
             db_obj.data = input.src;
