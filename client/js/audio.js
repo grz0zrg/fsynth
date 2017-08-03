@@ -327,15 +327,15 @@ var _notesProcessing = function (arr, prev_arr) {
         if (_notes_worker_available) {
             _notes_worker.postMessage({
                     score_height: _canvas_height,
-                    data: arr.buffer,
-                    prev_data: prev_arr.buffer,
+                    data: arr[0].buffer,
+                    prev_data: prev_arr[0].buffer,
                     mono: _audio_infos.monophonic
-                }, [arr.buffer, prev_arr.buffer]);
+                }, [arr[0].buffer, prev_arr[0].buffer]);
 
             _notes_worker_available = false;
         }
     } else if (_osc_mode === _FS_OSC_NODES) {
-        _playSlice(arr);
+        _playSlice(arr[0]);
     }
 };
 

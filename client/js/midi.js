@@ -9,8 +9,13 @@ var _midi_access = null,
     
     _midi_devices = {
         input: {},
-        output: {}
+        output: {},
+        
+        i_total_active: 0,
+        o_total_active: 0
     },
+    
+    _midi_notes = [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
     
     _midi_device_uid = 0;
 
@@ -36,6 +41,14 @@ var _loadMIDISettings = function (midi_settings_json) {
                     enabled: midi_device.enabled
                 };
         }
+        
+        for(key in midi_settings_obj.o) { 
+            midi_device = midi_settings_obj.o[key];
+            
+            _midi_devices.output[key] = {
+                    enabled: midi_device.enabled
+                };
+        }
     } catch (e) {
         _notification('_loadMIDISettings JSON message parsing failed : ' + e);
     }
@@ -52,29 +65,54 @@ var _saveMIDISettings = function () {
             };
     }
     
+    for(key in _midi_devices.output) { 
+        midi_device = _midi_devices.output[key];
+        
+        midi_settings_obj.o[key] = {
+                enabled: midi_device.enabled
+            };
+    }
+    
     _local_session_settings['midi_settings'] = JSON.stringify(midi_settings_obj);
     _saveLocalSessionSettings();
 };
 
 var _MIDIDeviceCheckboxChange = function () {
-    var midi_device = _midi_devices.input[this.dataset.did],
+    var midi_device = _midi_devices[this.dataset.type][this.dataset.did],
         
-        midi_input_enabled_ck_id = "fs_midi_settings_ck_" + midi_device.iid;
+        midi_enabled_ck_id = "fs_midi_settings_ck_" + midi_device.iid,
+        
+        key;
 
     midi_device.enabled = this.checked;
     
     _saveMIDISettings();
     
     if (this.checked) {
-        document.getElementById(midi_input_enabled_ck_id).setAttribute("checked", "checked");
+        document.getElementById(midi_enabled_ck_id).setAttribute("checked", "checked");
     } else {
-        document.getElementById(midi_input_enabled_ck_id).removeAttribute("checked");
+        document.getElementById(midi_enabled_ck_id).removeAttribute("checked");
+    }
+    
+    _midi_devices.i_total_active = 0;
+    _midi_devices.o_total_active = 0;
+    
+    for(key in _midi_devices.input) { 
+        if(_midi_devices.input[key].enabled) {
+            _midi_devices.i_total_active += 1;
+        }
+    }
+    
+    for(key in _midi_devices.output) { 
+        if(_midi_devices.output[key].enabled) {
+            _midi_devices.o_total_active += 1;
+        }
     }
 };
 
-var _addMIDIDevice = function (midi_input) {
-    var midi_input_element = document.createElement("div"),
-        midi_input_enabled_ck_id = "fs_midi_settings_ck_" + _midi_device_uid,
+var _addMIDIDevice = function (midi, io_type) {
+    var midi_element = document.createElement("div"),
+        midi_enabled_ck_id = "fs_midi_settings_ck_" + _midi_device_uid,
         midi_settings_element = document.getElementById(_midi_settings_dialog_id).lastElementChild,
         midi_device_enabled = false,
         midi_device_enabled_ck = "",
@@ -85,61 +123,64 @@ var _addMIDIDevice = function (midi_input) {
         detached_dialog_midi_settings_element = null;
     
     // settings were loaded previously
-    if (midi_input.id in _midi_devices.input) {
-        midi_device_enabled = _midi_devices.input[midi_input.id].enabled;
+    if (midi.id in _midi_devices[io_type]) {
+        midi_device_enabled = _midi_devices[io_type][midi.id].enabled;
         if (midi_device_enabled) {
             midi_device_enabled_ck = "checked";
         }
         
-        if (_midi_devices.input[midi_input.id].connected) {
+        if (_midi_devices[io_type][midi.id].connected) {
             return;
         }
     }
 
-    midi_input_element.classList.add("fs-midi-settings-device");
+    midi_element.classList.add("fs-midi-settings-device");
 
-    midi_input_element.innerHTML = [
-                midi_input.name,
+    midi_element.innerHTML = [
+                midi.name,
                 '<div>',
                 '    <label class="fs-ck-label">',
-                '        <div>Enable</div>&nbsp;',
-                '        <input id="' + midi_input_enabled_ck_id + '" type="checkbox" data-did="' + midi_input.id + '" ' + midi_device_enabled_ck + '>',
+                '        <div>(' + io_type + ') Enable</div>&nbsp;',
+                '        <input id="' + midi_enabled_ck_id + '" type="checkbox" data-type="' + io_type + '" data-did="' + midi.id + '" ' + midi_device_enabled_ck + '>',
                 '    </label>',
                 '</div>'].join('');
 
-    midi_settings_element.appendChild(midi_input_element);
+    midi_settings_element.appendChild(midi_element);
 
-    _midi_devices.input[midi_input.id] = {
-            type: midi_input.type,
-            id: midi_input.id,
-            manufacturer: midi_input.manufacturer,
-            name: midi_input.name,
-            version: midi_input.version,
+    _midi_devices[io_type][midi.id] = {
+            obj: midi,
+            type: midi.type,
+            id: midi.id,
+            manufacturer: midi.manufacturer,
+            name: midi.name,
+            version: midi.version,
             iid: _midi_device_uid,
             enabled: midi_device_enabled,
-            element: midi_input_element,
+            element: midi_element,
             detached_element: null,
             connected: true
         };
 
-    document.getElementById(midi_input_enabled_ck_id).addEventListener("change", _MIDIDeviceCheckboxChange);
+    document.getElementById(midi_enabled_ck_id).addEventListener("change", _MIDIDeviceCheckboxChange);
     
     if (detached_dialog) {
-        tmp_element = midi_input_element.cloneNode(true);
+        tmp_element = midi_element.cloneNode(true);
         
         detached_dialog_midi_settings_element = detached_dialog.document.getElementById(_midi_settings_dialog_id).lastElementChild,
         detached_dialog_midi_settings_element.appendChild(tmp_element);
         
-        _midi_devices.input[midi_input.id].detached_element = tmp_element;
+        _midi_devices[io_type][midi.id].detached_element = tmp_element;
     }
     
-    midi_input.onmidimessage = _onMIDIMessage;
+    if (io_type === "input") {
+        midi.onmidimessage = _onMIDIMessage;
+    }
     
     _midi_device_uid += 1;
 };
 
-var _deleteMIDIDevice = function (id) {
-    var midi_device = _midi_devices.input[id],
+var _deleteMIDIDevice = function (id, type) {
+    var midi_device = _midi_devices[type][id],
         
         detached_dialog = WUI_Dialog.getDetachedDialog(_midi_settings_dialog),
         
@@ -160,21 +201,100 @@ var _deleteMIDIDevice = function (id) {
         }
     }
     
-    delete _midi_devices.input[id]
+    delete _midi_devices[type][id]
 };
 
 var _onMIDIAccessChange = function (connection_event) {
     var device = connection_event.port;
     
     // only inputs are supported at the moment
-    if (device.type !== "input") {
+    if (device.type !== "input" && device.type !== "output") {
         return;
     }
 
     if (device.state === "connected") {
-        _addMIDIDevice(device);
+        _addMIDIDevice(device, device.type);
     } else if (device.state === "disconnected") {
-        _deleteMIDIDevice(device.id);
+        _deleteMIDIDevice(device.id, device.type);
+    }
+};
+
+var _midiSendAllActive = function (msg_arr) {
+    var key, midi_device;
+    
+    for(key in _midi_devices.output) { 
+        midi_device = _midi_devices.output[key];
+        
+        if (midi_device.enabled) {
+            midi_device.obj.send(msg_arr);
+        }
+    }
+};
+
+var _midiDataOut = function (pixels_data, prev_pixels_data) {
+    var data_length,
+        data,
+        prev_data,
+        osc = null,
+        l = 0, pl = 0,
+        r = 0, pr = 0,
+        y = _oscillators.length - 1,
+        li = 0,
+        ri = 1,
+        i = 0,
+        k = 0,
+
+        midi_note = 0;
+    
+    if (_audio_infos.monophonic) {
+        li = 3;
+        ri = 3;
+    }
+    
+    for (k = 0; k < pixels_data.length; k += 4) {
+        data = pixels_data[k];
+        prev_data = prev_pixels_data[k];
+        data_length = data.length;
+        
+        for (i = 0; i < data_length; i += 4) {
+            l = data[i + li];
+            r = data[i + ri];
+            
+            pl = data[i + li];
+            pr = data[i + ri];
+            
+            osc = _oscillators[y];
+            midi_note = _hzToMIDINote(osc.freq);
+            
+            if (!_midi_notes[k][midi_note]) {
+                _midi_notes[k][midi_note] = { on: false };
+            }
+            
+            midi_note = _midi_notes[k][midi_note];
+            
+            if (l > 0 || r > 0) {
+                if (pl <= 0 || pr <= 0) {
+                    _midiSendAllActive([0x90 + k, midi_note, 127]);
+                    midi_note.on = true;
+                }
+                
+                if (pl !== l || pr !== r) {
+                    if (midi_note.on) {
+                        _midiSendAllActive([0xB0 + k, 0x07, Math.floor((l + r) / 4)]);
+                        _midiSendAllActive([0xB0 + k, 0x08, Math.floor(64 + (l - r) / 4)]);
+                    }
+                }
+            } else {
+                if (pl > 0 || pr > 0) {
+                    if (midi_note.on) {
+                        _midiSendAllActive([0x80 + k, midi_note, 127.]);
+                        midi_note.on = false;
+                    }
+                }
+            }
+
+            y -= 1;
+        }
     }
 };
 
@@ -276,8 +396,14 @@ var _midiAccessSuccess = function (midi_access) {
     midi_settings_element.innerHTML = '<div class="fs-midi-settings-section">MIDI Inputs</div>';
     
     _midi_access.inputs.forEach(
-        function (midi_input) {
-            _addMIDIDevice(midi_input);
+        function (midi_in) {
+            _addMIDIDevice(midi_in, midi_in.type);
+        }
+    );
+    
+    _midi_access.outputs.forEach(
+        function (midi_out) {
+            _addMIDIDevice(midi_out, midi_out.type);
         }
     );
     

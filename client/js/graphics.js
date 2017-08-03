@@ -579,8 +579,10 @@ var _frame = function (raf_time) {
         if (fas_enabled) {
             _fasNotifyFast(_FAS_FRAME, _data);
         } else {
-            _notesProcessing(_data[0], _prev_data[0]);
+            _notesProcessing(_data, _prev_data);
         }
+        
+        //_midiDataOut(_data, _prev_data);
         
         _data = buffer;
         

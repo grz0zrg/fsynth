@@ -20,6 +20,10 @@ var _fs_palette = {
     Functions.
 ************************************************************/
 
+var _hzToMIDINote = function (freq) {
+    return 69 + 12 * Math.log2(freq / 440);
+};
+
 var _randomInt = function (min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 };
