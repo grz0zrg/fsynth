@@ -155,7 +155,7 @@ var _compile = function () {
     
     // some minor changes when using WebGL 2 & GLSL 3
     if (_gl2) {
-        glsl_code += "#version 300 es\nprecision mediump float;out vec4 fragColor;";
+        glsl_code += "#version 300 es\nprecision mediump float;layout(location = 0) out vec4 synthOutput;layout(location = 1) out vec4 fragColor;";
         
         editor_value = editor_value.replace(/gl_FragColor/g, "fragColor");
         editor_value = editor_value.replace(/texture2D/g, "texture");
@@ -164,6 +164,8 @@ var _compile = function () {
     } else {
         glsl_code += "precision mediump float;";
         editor_value = editor_value.replace(/texture/g, "texture2D");
+        editor_value = editor_value.replace(/fragColor/g, "gl_FragColor");
+        editor_value = editor_value.replace(/synthOuput.*;/g, "");
         
         vertex_shader_code = document.getElementById("vertex-shader").text;
     }
@@ -172,7 +174,11 @@ var _compile = function () {
     glsl_code += "uniform float globalTime; uniform int frame; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "]; uniform vec3 pKey[" + _keyboard.polyphony_max + "];"
     
     if (_feedback.enabled) {
-        glsl_code += "uniform sampler2D pFrame;";
+        if (_gl2) {
+            glsl_code += "uniform sampler2D pFrame; uniform sampler2D pFrameSynth;";
+        } else {
+            glsl_code += "uniform sampler2D pFrame;";
+        }
     }
     
     // add htoy

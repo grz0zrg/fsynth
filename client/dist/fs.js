@@ -19249,6 +19249,8 @@ var _fail = function (message, utter) {
         
         document.body.appendChild(_utter_fail_element);
     }
+    
+    //console.log(message);
 };
 
 var _utterFailRemove = function () {
@@ -19387,6 +19389,8 @@ _utter_fail_element.innerHTML = "";
 
         _username = localStorage.getItem('fs-user-name'),
         _local_session_settings = localStorage.getItem(_getSessionName()),
+        
+        _synthDataArray = Uint8Array,
 
         _red_curtain_element = document.getElementById("fs_red_curtain"),
         _user_name_element = document.getElementById("fs_user_name"),
@@ -19423,6 +19427,16 @@ _utter_fail_element.innerHTML = "";
             },
             f: null
         },
+        
+        _generic_fragment_shader = [
+            "precision mediump float;",
+            "uniform vec2 resolution;",
+            "uniform sampler2D texture;",
+            "void main () {",
+            "    vec2 uv = gl_FragCoord.xy / resolution;",
+            "    vec4 c = texture2D(texture, uv);",
+            "    gl_FragColor = c;",
+            "}"].join(""),
         
         // helper canvas
         _c_helper = document.getElementById("fs_helper_canvas"),
@@ -20630,6 +20644,11 @@ _import_dropzone_elem.addEventListener("dragenter", function (e) {
     e.target.style = "outline: dashed 1px #00ff00; background-color: #444444";
 });/* jslint browser: true */
 
+var _main_program = null,
+    _main_attch0 = null,
+    _main_attch1 = null,
+    _main_fbo = null;
+
 var _buildScreenAlignedQuad = function() {
     var position;
 
@@ -20639,13 +20658,34 @@ var _buildScreenAlignedQuad = function() {
     _gl.bufferData(_gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), _gl.STATIC_DRAW);
 };
 
-var _createFramebuffer = function (texture) {
-    var framebuffer = _gl.createFramebuffer();
-
-    _gl.bindTexture(_gl.TEXTURE_2D, texture);
-    _gl.bindFramebuffer(_gl.FRAMEBUFFER, framebuffer);
-    _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0, _gl.TEXTURE_2D, texture, 0);
+var _createFramebuffer = function (texture, color_attachments) {
+    var framebuffer = _gl.createFramebuffer(),
+        buffers = [],
+        i;
+    
+    if (!color_attachments) {
+        _gl.bindTexture(_gl.TEXTURE_2D, texture);
+        _gl.bindFramebuffer(_gl.FRAMEBUFFER, framebuffer);
+        _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0, _gl.TEXTURE_2D, texture, 0);
+    } else {
+        for (i = 0; i < color_attachments; i += 1) {
+            _gl.bindTexture(_gl.TEXTURE_2D, texture[i]);
+            _gl.bindFramebuffer(_gl.FRAMEBUFFER, framebuffer);
+            _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0 + i, _gl.TEXTURE_2D, texture[i], 0);
+            
+            buffers.push(_gl.COLOR_ATTACHMENT0 + i);
+        }
+        
+        _gl.drawBuffers(buffers);
+    }
+    
+    if (_gl.checkFramebufferStatus(_gl.FRAMEBUFFER) != _gl.FRAMEBUFFER_COMPLETE) {
+        console.log("_createFramebuffer failed");
+        return;
+    }
+    
     _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
+    _gl.bindTexture(_gl.TEXTURE_2D, null);
     
     return framebuffer;
 };
@@ -20654,7 +20694,13 @@ var _create2DTexture = function (image, default_wrap_filter, bind_now) {
     var new_texture = _gl.createTexture(),
         
         ws = "clamp",
-        wt = "clamp";
+        wt = "clamp",
+        
+        format = _gl.UNSIGNED_BYTE;
+    
+    if (image.float) {
+        format = _gl.FLOAT;
+    }
 
     _gl.bindTexture(_gl.TEXTURE_2D, new_texture);
 
@@ -20671,10 +20717,10 @@ var _create2DTexture = function (image, default_wrap_filter, bind_now) {
     }
 
     if (image.empty) {
-        _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, image.width, image.height, 0, _gl.RGBA, _gl.UNSIGNED_BYTE, null);
+        _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, image.width, image.height, 0, _gl.RGBA, format, null);
     } else {
         if (bind_now) {
-            _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, image);
+            _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, format, image);
         }
     }
 
@@ -20786,26 +20832,40 @@ var _flipYTexture = function (texture, flip) {
 };
 
 var _buildFeedback = function () {
-    var i = 0, frame;
+    var i = 0, j = 0, frame, fragment_shader, vertex_shader = document.getElementById("vertex-shader").text;
     
     if (_feedback.enabled) {
         if (_feedback.program) {
             _gl.deleteProgram(_program);
         }
         
+        if (_gl2) {
+            fragment_shader = [
+                "#version 300 es\n",
+                "precision mediump float;",
+                "layout(location = 0) out vec4 synthOutput;",
+                "layout(location = 1) out vec4 fragColor;",
+                "uniform vec2 resolution;",
+                "uniform sampler2D synthInput;",
+                "uniform sampler2D colorInput;",
+                "void main () {",
+                "    vec2 uv = gl_FragCoord.xy / resolution;",
+                "    vec4 c = texture(colorInput, uv);",
+                "    vec4 s = texture(synthInput, uv);",
+                "    fragColor = c;",
+                "    synthOutput = s;",
+                "}"].join("");
+            
+            vertex_shader = "#version 300 es\n" + document.getElementById("vertex-shader-2").text;
+        } else {
+            fragment_shader = _generic_fragment_shader;
+        }
+
         _feedback.program = _createAndLinkProgram(
-                _createShader(_gl.VERTEX_SHADER, document.getElementById("vertex-shader").text),
-                _createShader(_gl.FRAGMENT_SHADER, [
-                    "precision mediump float;",
-                    "uniform vec2 resolution;",
-                    "uniform sampler2D texture;",
-                    "void main () {",
-                    "    vec2 uv = gl_FragCoord.xy / resolution;",
-                    "    vec4 c = texture2D(texture, uv);",
-                    "    gl_FragColor = c;",
-                    "}"].join(""))
+                _createShader(_gl.VERTEX_SHADER, vertex_shader),
+                _createShader(_gl.FRAGMENT_SHADER, fragment_shader)
             );
-        
+
         if (!_feedback.program) {
             _feedback.enabled = false;
             
@@ -20821,8 +20881,10 @@ var _buildFeedback = function () {
             frame = _feedback.pframe[i];
             
             if (frame.data) {
-                if (frame.data.texture) {
-                    _gl.deleteTexture(frame.data.texture);
+                for (j = 0; j < frame.data.length; j += 1) {
+                    if (frame.data[j].texture) {
+                        _gl.deleteTexture(frame.data[j].texture);
+                    }
                 }
             }
 
@@ -20831,17 +20893,65 @@ var _buildFeedback = function () {
             }
         }
         
-        _feedback.pframe[0] = { data: null, buffer: null };
-        _feedback.pframe[1] = { data: null, buffer: null };
+        _feedback.pframe[0] = { data: [], buffer: null };
+        _feedback.pframe[1] = { data: [], buffer: null };
         
-        _feedback.pframe[0].data = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true });
-        _feedback.pframe[0].buffer = _createFramebuffer(_feedback.pframe[0].data.texture);
-        
-        _feedback.pframe[1].data = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true });
-        _feedback.pframe[1].buffer = _createFramebuffer(_feedback.pframe[1].data.texture);
+        if (!_gl2) {
+            _feedback.pframe[0].data[0] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true });
+            _feedback.pframe[0].buffer = _createFramebuffer(_feedback.pframe[0].data[0].texture);
+
+            _feedback.pframe[1].data[0] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true });
+            _feedback.pframe[1].buffer = _createFramebuffer(_feedback.pframe[1].data[0].texture);
+        } else {
+            _feedback.pframe[0].data[0] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true });
+            _feedback.pframe[0].data[1] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true });
+            _feedback.pframe[0].buffer = _createFramebuffer([_feedback.pframe[0].data[0].texture, _feedback.pframe[0].data[1].texture], 2);
+
+            _feedback.pframe[1].data[0] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true });
+            _feedback.pframe[1].data[1] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true });
+            _feedback.pframe[1].buffer = _createFramebuffer([_feedback.pframe[1].data[0].texture, _feedback.pframe[1].data[1].texture], 2);
+        }
     }
     
     _compile();
+};
+
+var _buildMainFBO = function () {
+    if (_gl2) {
+        if (_main_program) {
+            _gl.deleteProgram(_main_program);
+        }
+        
+        _main_program = _createAndLinkProgram(
+                _createShader(_gl.VERTEX_SHADER, document.getElementById("vertex-shader").text),
+                _createShader(_gl.FRAGMENT_SHADER, _generic_fragment_shader)
+            );
+    
+        if (!_main_program) {
+            _notification("Could not enable multi-output feature.");
+            
+            return;
+        }
+        
+        _useProgram(_main_program);
+        _gl.uniform2f(_gl.getUniformLocation(_main_program, "resolution"), _canvas.width, _canvas.height);
+        
+        if (_main_attch0) {
+            _gl.deleteTexture(_main_attch0);
+        }
+
+        if (_main_attch1) {
+            _gl.deleteTexture(_main_attch1);
+        }
+
+        if (_main_fbo) {
+            _gl.deleteFramebuffer(_main_fbo);
+        }
+
+        _main_attch0 = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true }).texture;
+        _main_attch1 = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true }).texture;
+        _main_fbo = _createFramebuffer([_main_attch0, _main_attch1], 2);
+    }
 };
 
 var _transformData = function (slice_obj, data) {
@@ -20947,8 +21057,8 @@ var _allocateFramesData = function () {
     _prev_data = [];
     
     for (i = 0; i < _output_channels; i += 1) {
-        _data.push(new Uint8Array(_canvas_height_mul4));
-        _prev_data.push(new Uint8Array(_canvas_height_mul4));
+        _data.push(new _synthDataArray(_canvas_height_mul4));
+        _prev_data.push(new _synthDataArray(_canvas_height_mul4));
     }
 };
 
@@ -20980,7 +21090,7 @@ var _frame = function (raf_time) {
         
         f, v, key,
         
-        data, data2,
+        data, data2, temp_data,
         
         buffer = [];
 
@@ -21000,7 +21110,7 @@ var _frame = function (raf_time) {
     if (_feedback.enabled) {
         current_frame = _feedback.pframe[_feedback.index];
         previous_frame = _feedback.pframe[(_feedback.index + 1) % 2];
-        
+
         _gl.bindFramebuffer(_gl.FRAMEBUFFER, current_frame.buffer);
         _gl.viewport(0, 0, _canvas_width, _canvas_height);
         
@@ -21008,9 +21118,25 @@ var _frame = function (raf_time) {
         
         o = _fragment_input_data.length;
         
-        _gl.activeTexture(_gl.TEXTURE0 + o);
-        _gl.bindTexture(_gl.TEXTURE_2D, previous_frame.data.texture);
-        _gl.uniform1i(_getUniformLocation("pFrame", _program), o);
+        if (_gl2) {
+            _gl.activeTexture(_gl.TEXTURE0 + o);
+            _gl.bindTexture(_gl.TEXTURE_2D, previous_frame.data[0].texture);
+            _gl.uniform1i(_getUniformLocation("pFrameSynth", _program), o);
+            
+            _gl.activeTexture(_gl.TEXTURE0 + o + 1);
+            _gl.bindTexture(_gl.TEXTURE_2D, previous_frame.data[1].texture);
+            _gl.uniform1i(_getUniformLocation("pFrame", _program), o + 1);
+        } else {
+            _gl.activeTexture(_gl.TEXTURE0 + o);
+            _gl.bindTexture(_gl.TEXTURE_2D, previous_frame.data[0].texture);
+            _gl.uniform1i(_getUniformLocation("pFrame", _program), o);
+        }
+
+        _feedback.index += 1;
+        _feedback.index = _feedback.index % 2;
+    } else {
+        _gl.bindFramebuffer(_gl.FRAMEBUFFER, _main_fbo);
+        _useProgram(_program);
     }
     
     _gl.uniform4fv(_getUniformLocation("keyboard"), _keyboard.data);
@@ -21045,25 +21171,47 @@ var _frame = function (raf_time) {
 
     //_gl.bindBuffer(_gl.ARRAY_BUFFER, _quad_vertex_buffer);
     _gl.drawArrays(_gl.TRIANGLE_STRIP, 0, 4);
-    
+
     if (_feedback.enabled) {
-        _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
+        _gl.bindFramebuffer(_gl.FRAMEBUFFER, _main_fbo);
+
         _gl.viewport(0, 0, _canvas_width, _canvas_height);
         _useProgram(_feedback.program);
         
+        if (_main_fbo) {
+            _gl.activeTexture(_gl.TEXTURE0);
+            _gl.bindTexture(_gl.TEXTURE_2D, current_frame.data[0].texture);
+            _gl.uniform1i(_getUniformLocation("synthInput", _feedback.program), 0);
+            _gl.activeTexture(_gl.TEXTURE1);
+            _gl.bindTexture(_gl.TEXTURE_2D, current_frame.data[1].texture);
+            _gl.uniform1i(_getUniformLocation("colorInput", _feedback.program), 1);
+        } else {
+            _gl.activeTexture(_gl.TEXTURE0);
+            _gl.bindTexture(_gl.TEXTURE_2D, current_frame.data[0].texture);
+            _gl.uniform1i(_getUniformLocation("texture", _feedback.program), 0);
+        }
+        
+        _gl.drawArrays(_gl.TRIANGLE_STRIP, 0, 4);
+    }
+    
+    if (_main_fbo) {
+        _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
+        _gl.viewport(0, 0, _canvas_width, _canvas_height);
+        _useProgram(_main_program);
+        
         _gl.activeTexture(_gl.TEXTURE0);
-        _gl.bindTexture(_gl.TEXTURE_2D, current_frame.data.texture);
-        _gl.uniform1i(_getUniformLocation("texture", _feedback.program), 0);
+        _gl.bindTexture(_gl.TEXTURE_2D, _main_attch1);
+        
+        _gl.uniform1i(_gl.getUniformLocation(_main_program, "texture"), 0);
         
         _gl.drawArrays(_gl.TRIANGLE_STRIP, 0, 4);
         
-        _feedback.index += 1;
-        _feedback.index = _feedback.index % 2;
+        _gl.bindFramebuffer(_gl.FRAMEBUFFER, _main_fbo);
     }
     
     if ((_notesWorkerAvailable() || fas_enabled) && _play_position_markers.length > 0) {
         if (!fas_enabled) {
-            _prev_data[0] = new Uint8Array(_data[0]);
+            _prev_data[0] = new _synthDataArray(_data[0]);
         }
         
         if (_gl2) {
@@ -21077,7 +21225,7 @@ var _frame = function (raf_time) {
         channel = play_position_marker.output_channel - 1;
         
         if (play_position_marker.mute) {
-            _data[channel] = new Uint8Array(_canvas_height_mul4);
+            _data[channel] = new _synthDataArray(_canvas_height_mul4);
         } else {
             if (play_position_marker.frame_increment != 0) {
                 _setPlayPosition(play_position_marker.id, play_position_marker.x + play_position_marker.frame_increment, play_position_marker.y, false, true);
@@ -21128,7 +21276,7 @@ var _frame = function (raf_time) {
         }
     
         for (i = 0; i < _output_channels; i += 1) {
-            buffer.push(new Uint8Array(_canvas_height_mul4));
+            buffer.push(new _synthDataArray(_canvas_height_mul4));
         }
         
         if (_show_oscinfos) {
@@ -21157,11 +21305,11 @@ var _frame = function (raf_time) {
             }
             
             // merge all
-            _temp_data = new Uint8Array(_canvas_height_mul4);
+            temp_data = new Uint8Array(_canvas_height_mul4);
             
             for (i = 0; i < _output_channels; i += 1) {
                 for (j = 0; j <= _canvas_height_mul4; j += 1) {
-                    _temp_data[j] += _data[i][j];
+                    temp_data[j] += _data[i][j];
                 }
             }
             
@@ -21175,18 +21323,18 @@ var _frame = function (raf_time) {
                 for (i = 0; i <= _canvas_height_mul4; i += 4) {
                     o = _canvas_height_mul4 - i;
 
-                    data[o] = _record_opts.f(data[o], _temp_data[i + 3]);
-                    data[o + 1] = _record_opts.f(data[o + 1], _temp_data[i + 3]);
-                    data[o + 2] = _record_opts.f(data[o + 2], _temp_data[i + 3]);
+                    data[o] = _record_opts.f(data[o], temp_data[i + 3]);
+                    data[o + 1] = _record_opts.f(data[o + 1], temp_data[i + 3]);
+                    data[o + 2] = _record_opts.f(data[o + 2], temp_data[i + 3]);
                     data[o + 3] = 255;
                 }
             } else {
                 for (i = 0; i <= _canvas_height_mul4; i += 4) {
                     o = _canvas_height_mul4 - i;
 
-                    data[o] = _record_opts.f(data[o], _temp_data[i]);
-                    data[o + 1] = _record_opts.f(data[o + 1], _temp_data[i + 1]);
-                    data[o + 2] = _record_opts.f(data[o + 2], _temp_data[i + 2]);
+                    data[o] = _record_opts.f(data[o], temp_data[i]);
+                    data[o + 1] = _record_opts.f(data[o + 1], temp_data[i + 1]);
+                    data[o + 2] = _record_opts.f(data[o + 2], temp_data[i + 2]);
                     data[o + 3] = 255;
                 }
             }
@@ -21412,7 +21560,7 @@ var _compile = function () {
     
     // some minor changes when using WebGL 2 & GLSL 3
     if (_gl2) {
-        glsl_code += "#version 300 es\nprecision mediump float;out vec4 fragColor;";
+        glsl_code += "#version 300 es\nprecision mediump float;layout(location = 0) out vec4 synthOutput;layout(location = 1) out vec4 fragColor;";
         
         editor_value = editor_value.replace(/gl_FragColor/g, "fragColor");
         editor_value = editor_value.replace(/texture2D/g, "texture");
@@ -21421,6 +21569,8 @@ var _compile = function () {
     } else {
         glsl_code += "precision mediump float;";
         editor_value = editor_value.replace(/texture/g, "texture2D");
+        editor_value = editor_value.replace(/fragColor/g, "gl_FragColor");
+        editor_value = editor_value.replace(/synthOuput.*;/g, "");
         
         vertex_shader_code = document.getElementById("vertex-shader").text;
     }
@@ -21429,7 +21579,11 @@ var _compile = function () {
     glsl_code += "uniform float globalTime; uniform int frame; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "]; uniform vec3 pKey[" + _keyboard.polyphony_max + "];"
     
     if (_feedback.enabled) {
-        glsl_code += "uniform sampler2D pFrame;";
+        if (_gl2) {
+            glsl_code += "uniform sampler2D pFrame; uniform sampler2D pFrameSynth;";
+        } else {
+            glsl_code += "uniform sampler2D pFrame;";
+        }
     }
     
     // add htoy
@@ -27823,7 +27977,7 @@ var _fasInit = function () {
 
             _vaxis_infos.style.height = _canvas_height + "px";
 
-            _temp_data = new Uint8Array(_canvas_height_mul4);
+            _temp_data = new _synthDataArray(_canvas_height_mul4);
             _allocateFramesData();
 
             _gl.viewport(0, 0, _canvas.width, _canvas.height);
@@ -27883,6 +28037,8 @@ var _fasInit = function () {
                     prev_base_freq, base_freq
                 ]);
         }
+        
+        _buildMainFBO();
         
         _buildFeedback();
     };
@@ -27999,7 +28155,12 @@ var _fasInit = function () {
     } else {
         _gl2 = true;
         
+        //_gl.getExtension("OES_texture_float");
+        //_gl.getExtension("OES_texture_float_linear");
+        
         _initializePBO();
+        
+        //_synthDataArray = Float32Array;
     }
 
     if (!_gl) {

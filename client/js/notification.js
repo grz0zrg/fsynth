@@ -33,6 +33,8 @@ var _fail = function (message, utter) {
         
         document.body.appendChild(_utter_fail_element);
     }
+    
+    //console.log(message);
 };
 
 var _utterFailRemove = function () {

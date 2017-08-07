@@ -6,15 +6,15 @@ Source code repository for the Fragment app. which can be found at : https://www
 
 This is a web. additive/spectral/granular synthesizer/sequencer powered by live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)
 
-Fragment basically capture slices of a WebGL canvas at the display refresh rate and translate RGBA pixels value to notes, the notes are then interpreted and played by one of the synthesis engine method.
+Fragment basically capture slices of a WebGL canvas at the display refresh rate and translate RGBA pixels value to notes, the notes are then interpreted and played by one of the synthesis engine method, with the additive synthesis engine, this is actually like generating the sound spectrum by code.
 
 The content of the WebGL canvas is produced on the GPU by a collaborative GLSL script, this make it extremely fast and easy to do any kinds of pixels manipulations.
 
-Fragment has many features making it a bliss to produce any kind of sounds, it is aimed at artists seeking a creative environment with few limitations to experiment with, a programmable noise-of-all-kinds software.
+Fragment has many features making it a bliss to produce any kind of sounds associated (or not) with visuals, it is aimed at artists seeking a creative environment with few limitations to experiment with, a programmable noise-of-all-kinds software.
 
-Fragment can also be used for live coding visuals, either exclusively like ShaderToy or with sounds, the visual can be synchronized to any audio using the MIDI capabilities AND also synchronized to the synthesized sound, canvas inputs can be quite fun to use with generated visuals!
+Fragment can be used for live coding visuals, either exclusively like ShaderToy or with sounds, the visual can be synchronized to any audio using the MIDI capabilities AND also synchronized to the synthesized sound, canvas inputs can be quite fun to use with generated visuals!
 
-This is a sort of [Shadertoy](https://www.shadertoy.com) for audio synthesis where the visual content produced is a spectrogram, it is compatible with most shaders written for it.
+This is a sort of [Shadertoy](https://www.shadertoy.com) with a special kind of audio data source, it is compatible with most shaders written for it.
 
 Fragment is quite modular and has several external app. such as an external GLSL editor which can directly connect to the sharedb server and a native additive synthesis engine which communicate via the WebSocket API, a WIP IanniX/OSC relay is also available and more is to come!
 
@@ -32,6 +32,7 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
  * Multitimbral
  * Real-time frames by frames recording with export as image or Fragment input (export back into itself, this can be used to build complex brushes for drawing canvas inputs)
  * WebGL 2.0 and GLSL 3.0 support when compatibility is detected
+ * RGBA Live visuals with stereophonic sound generation (WebGL 2.0) or monophonic sound generation (WebGL 1)
  * Adjustable audio output channel per slices
  * Slices can be added/deleted anywhere on the canvas, move left or right automatically and have independent pitch offset for convenience
  * Feedback via framebuffer (for fx like reverb, delay, spectral distortion etc)
@@ -45,10 +46,12 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
  * Global and per sessions settings automatic save/load; make use of *localStorage*
  * No authentifications (make use of *localStorage* and is *sessions* based)
 
- ***Note**: By default, Fragment interpret the Red and Green shader output when stereophonic mode is enabled, the blue component output is left unused and can be used for real-time sounds/visuals sync or direct visual feedback (debug, aesthetic ...) of functions/textures etc... when in monophonic mode the full RGB output is available for visuals and the synthesizer use the alpha channel*
+ ***Note**: With WebGL 2 compatible browser, Fragment make use of two separate output by default, "synthOutput" can be used to feed the synthesizer while "fragColor" or "gl_FragColor" can be used to do visuals.
+
+ ***Note**: Without WebGL 2 compatible browser, Fragment interpret the Red and Green shader output (gl_FragColor or fragColor) when stereophonic mode is enabled, the blue component output is left unused and can be used for real-time sounds/visuals sync or direct visual feedback (debug, aesthetic ...) of functions/textures etc... when in monophonic mode the full RGB output is available for visuals and the synthesizer use the alpha channel*
 
  ***Note**: WebAudio oscillators and Wavetable mode can only have two output channels (L/R) due to performances issues (this may change in the future!)*
- 
+
 ## MIDI Features (Integrated MIDI support with the WebMIDI API):
 
  * Integrated note-on/note-off messages, note frequency, velocity, MIDI channel and elapsed time are accessible in the fragment shader (this is not shared between users)

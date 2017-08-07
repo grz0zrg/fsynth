@@ -124,7 +124,9 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
     // for the LEFT and RIGHT audio channel in stereophonic mode
     // if monophonic mode is enabled, the alpha component will be used for the audio and the full RGB output is available for visuals
     // in stereophonic mode the blue component can be used for visuals or debugging etc.
-    gl_FragColor = vec4(l, r, 0., 0.);
+    // NOTE : If your browser support WebGL 2, the audio and visuals output is separated thus you can do visuals alongside stereo audio by default by using fragColor (or gl_FragColor) and synthOutput
+    synthOutput = vec4(l, r, 0., 0.);
+    gl_FragColor = vec4(l, r, 0., 1.);
   }
         </script>
 

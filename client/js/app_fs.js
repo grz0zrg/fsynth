@@ -136,6 +136,8 @@ var FragmentSynth = function (params) {
 
         _username = localStorage.getItem('fs-user-name'),
         _local_session_settings = localStorage.getItem(_getSessionName()),
+        
+        _synthDataArray = Uint8Array,
 
         _red_curtain_element = document.getElementById("fs_red_curtain"),
         _user_name_element = document.getElementById("fs_user_name"),
@@ -172,6 +174,16 @@ var FragmentSynth = function (params) {
             },
             f: null
         },
+        
+        _generic_fragment_shader = [
+            "precision mediump float;",
+            "uniform vec2 resolution;",
+            "uniform sampler2D texture;",
+            "void main () {",
+            "    vec2 uv = gl_FragCoord.xy / resolution;",
+            "    vec4 c = texture2D(texture, uv);",
+            "    gl_FragColor = c;",
+            "}"].join(""),
         
         // helper canvas
         _c_helper = document.getElementById("fs_helper_canvas"),
@@ -446,7 +458,7 @@ var FragmentSynth = function (params) {
 
             _vaxis_infos.style.height = _canvas_height + "px";
 
-            _temp_data = new Uint8Array(_canvas_height_mul4);
+            _temp_data = new _synthDataArray(_canvas_height_mul4);
             _allocateFramesData();
 
             _gl.viewport(0, 0, _canvas.width, _canvas.height);
@@ -506,6 +518,8 @@ var FragmentSynth = function (params) {
                     prev_base_freq, base_freq
                 ]);
         }
+        
+        _buildMainFBO();
         
         _buildFeedback();
     };
@@ -622,7 +636,12 @@ var FragmentSynth = function (params) {
     } else {
         _gl2 = true;
         
+        //_gl.getExtension("OES_texture_float");
+        //_gl.getExtension("OES_texture_float_linear");
+        
         _initializePBO();
+        
+        //_synthDataArray = Float32Array;
     }
 
     if (!_gl) {
