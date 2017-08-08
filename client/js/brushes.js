@@ -107,7 +107,7 @@ var _delBrush = function (id, detached) {
 var _addPreloaded = function () {
     var i= 0;
     
-    for (i = 1; i < 970; i += 1) {
+    for (i = 1; i < 20; i += 1) {
         _addBrush({ src: "data/brushes/" + i + ".png" });
     }
 };

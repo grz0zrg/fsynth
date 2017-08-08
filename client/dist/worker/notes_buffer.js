@@ -17,18 +17,32 @@ self.onmessage = function (m) {
     
         note_buffer = new Float32Array(score_height * 5),
         
-        prev_data = new Uint8ClampedArray(m.data.prev_data),
-        data = new Uint8ClampedArray(m.data.data),
+        prev_data,
+        data,
         
         pvl = 0, pvr = 0, pr, pg, r, g,
-        inv_full_brightness = 1 / 255.0,
+        inv_full_brightness,
 
-        dlen = data.length,
+        dlen,
         y = score_height - 1, i,
         volume_l, volume_r,
         index = 0,
         li = 0,
         ri = 1;
+    
+    if (m.data.float) {
+        prev_data = new Float32Array(m.data.prev_data);
+        data = new Float32Array(m.data.data);
+        
+        inv_full_brightness = 1;
+    } else {
+        prev_data = new Uint8ClampedArray(m.data.prev_data);
+        data = new Uint8ClampedArray(m.data.data);
+        
+        inv_full_brightness = 1 / 255.0;
+    }
+    
+    dlen = data.length;
     
     if (m.data.mono) {
         li = 3;
@@ -65,13 +79,6 @@ self.onmessage = function (m) {
                 note_buffer[index + 3] = -pvl;
                 note_buffer[index + 4] = -pvr;
             } else {
-/*
-                note_buffer[index] = y;
-                note_buffer[index + 1] = 0;
-                note_buffer[index + 2] = 0;
-                note_buffer[index + 3] = 0;
-                note_buffer[index + 4] = 0;
-*/
                 y -= 1;
                 continue;
             }

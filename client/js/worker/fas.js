@@ -32,14 +32,15 @@ var _getAudioInfosBuffer = function (audio_infos) {
         return;
     }
 
-    var audio_infos_buffer = new ArrayBuffer(8 + 4 + 4 + 8),
+    var audio_infos_buffer = new ArrayBuffer(8 + 4 + 4 + (4 + 4) + 8),
         uint8_view = new Uint8Array(audio_infos_buffer, 0, 1),
-        uint32_view = new Uint32Array(audio_infos_buffer, 8, 2),
-        float64_view = new Float64Array(audio_infos_buffer, 16);
+        uint32_view = new Uint32Array(audio_infos_buffer, 8, 3),
+        float64_view = new Float64Array(audio_infos_buffer, 24);
 
     uint8_view[0] = 0; // packet id
     uint32_view[0] = audio_infos.h;
     uint32_view[1] = audio_infos.octaves;
+    uint32_view[2] = audio_infos.float_data === true ? 1 : 0;
 
     float64_view[0] = audio_infos.base_freq;
 
@@ -91,26 +92,48 @@ var _sendGain = function (audio_infos) {
     }
 };
 
-var _sendFrame = function (frame, mono) {
+var _sendFrame = function (frame, mono, float, synthesis_type) {
     if (_fas_ws.readyState !== 1) {
         return;
     }
     
-    var frame_data = new Uint8Array(frame[0]),
-        fas_data = new ArrayBuffer(8 + 4 + 4 + (frame_data.length * frame.length)),
-        uint8_view = new Uint8Array(fas_data, 0, 1),
-        uint32_view = new Uint32Array(fas_data, 8, 2),
-        data_view = [],
-        i = 0;
+    var frame_data,
+        fas_data,
+        uint8_view,
+        uint32_view,
+        data_length,
+        i;
+    
+    if (float) {
+        frame_data = new Float32Array(frame[0]);
+        data_length = 8 + 4 + 4 + 4 + 4 + (frame_data.length * 4 * frame.length);
+    } else {
+        frame_data = new Uint8Array(frame[0]);
+        data_length = 8 + 4 + 4 + 4 + 4 + (frame_data.length * frame.length);
+    }
+    
+    fas_data = new ArrayBuffer(data_length);
+    uint8_view = new Uint8Array(fas_data, 0, 1);
+    uint32_view = new Uint32Array(fas_data, 8, 3);
+    i = 0;
     
     uint8_view[0] = 1; // packet id
     uint32_view[0] = frame.length;
     uint32_view[1] = mono === true ? 1 : 0;
+    uint32_view[2] = synthesis_type;
 
-    for (i = 0; i < frame.length; i += 1) {
-        uint8_view = new Uint8Array(fas_data, 16 + frame_data.length * i, frame_data.length);
-        
-        uint8_view.set(new Uint8Array(frame[i]));
+    if (float) {
+        for (i = 0; i < frame.length; i += 1) {
+            uint8_view = new Float32Array(fas_data, 24 + frame_data.length * i, frame_data.length);
+
+            uint8_view.set(new Float32Array(frame[i]));
+        }
+    } else {
+        for (i = 0; i < frame.length; i += 1) {
+            uint8_view = new Uint8Array(fas_data, 24 + frame_data.length * i, frame_data.length);
+
+            uint8_view.set(new Uint8Array(frame[i]));
+        }
     }
 
     try {
@@ -180,6 +203,6 @@ self.onmessage = function (m) {
     } else if (cmd === _FAS_GAIN_INFOS) {
         _sendGain(arg);
     } else if (cmd === _FAS_FRAME) {
-        _sendFrame(arg, data.mono);
+        _sendFrame(arg, data.mono, data.float, data.synthesis_type);
     }
 };

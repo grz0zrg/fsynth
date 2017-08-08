@@ -19390,7 +19390,7 @@ _utter_fail_element.innerHTML = "";
         _username = localStorage.getItem('fs-user-name'),
         _local_session_settings = localStorage.getItem(_getSessionName()),
         
-        _synthDataArray = Uint8Array,
+        _synth_data_array = Uint8Array,
 
         _red_curtain_element = document.getElementById("fs_red_curtain"),
         _user_name_element = document.getElementById("fs_user_name"),
@@ -19517,7 +19517,7 @@ _utter_fail_element.innerHTML = "";
             // amount of allocated uniform vectors
             uniform_vectors: 0,
             pressed: {},
-            polyphony_max: 60,
+            polyphony_max: 32,
             polyphony: 0 // current polyphony
         },
         
@@ -19538,6 +19538,9 @@ _utter_fail_element.innerHTML = "";
         _xyf_grid = false,
 
         _glsl_error = false,
+        
+        _OES_texture_float_linear = null,
+        _EXT_color_buffer_float = null,
         
         // settings
         _show_globaltime = true,
@@ -19574,6 +19577,9 @@ _utter_fail_element.innerHTML = "";
         _gl2 = false,
         
         _pbo = null,
+        _pbo_size = 0,
+        
+        _read_pixels_format,
 
         _play_position_markers = [],
 
@@ -19618,7 +19624,7 @@ _utter_fail_element.innerHTML = "";
         _time = 0,
 
         _pause_time = 0,
-
+        
         _hover_freq = null,
 
         _input_channel_prefix = "iInput";
@@ -19813,6 +19819,11 @@ var _FS_WAVETABLE = 0,
     _curr_notes_data = [],
     _next_notes_data = [],
     
+    _amp_divisor = 255.0,
+    
+    // 0 = additive, 1 = granular : this is only used with FAS otherwise only additive synthesis is supported
+    _synthesis_type = 0,
+
     _curr_sample = 0,
         
     _lerp_t = 0,
@@ -19824,7 +19835,8 @@ var _FS_WAVETABLE = 0,
             base_freq: 0,
             octaves: 0,
             gain: _volume,
-            monophonic: false
+            monophonic: false,
+            float_data: false
         },
     
     _is_script_node_connected = false,
@@ -20058,13 +20070,13 @@ var _playSlice = function (pixels_data) {
         if (l === 0) {
             osc.gain_node_l.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
         } else {
-            osc.gain_node_l.gain.setTargetAtTime(l / 255.0, audio_ctx_curr_time, 0.001);
+            osc.gain_node_l.gain.setTargetAtTime(l / _amp_divisor, audio_ctx_curr_time, 0.001);
         }
         
         if (r === 0) {
             osc.gain_node_r.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
         } else {
-            osc.gain_node_r.gain.setTargetAtTime(r / 255.0, audio_ctx_curr_time, 0.001);
+            osc.gain_node_r.gain.setTargetAtTime(r / _amp_divisor, audio_ctx_curr_time, 0.001);
         }
         y -= 1;
     }
@@ -20085,7 +20097,8 @@ var _notesProcessing = function (arr, prev_arr) {
                     score_height: _canvas_height,
                     data: arr[0].buffer,
                     prev_data: prev_arr[0].buffer,
-                    mono: _audio_infos.monophonic
+                    mono: _audio_infos.monophonic,
+                    float: _audio_infos.float_data
                 }, [arr[0].buffer, prev_arr[0].buffer]);
 
             _notes_worker_available = false;
@@ -20661,16 +20674,16 @@ var _buildScreenAlignedQuad = function() {
 var _createFramebuffer = function (texture, color_attachments) {
     var framebuffer = _gl.createFramebuffer(),
         buffers = [],
+        completeness_reason,
         i;
     
+    _gl.bindFramebuffer(_gl.FRAMEBUFFER, framebuffer);
+    
     if (!color_attachments) {
-        _gl.bindTexture(_gl.TEXTURE_2D, texture);
-        _gl.bindFramebuffer(_gl.FRAMEBUFFER, framebuffer);
         _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0, _gl.TEXTURE_2D, texture, 0);
     } else {
+        
         for (i = 0; i < color_attachments; i += 1) {
-            _gl.bindTexture(_gl.TEXTURE_2D, texture[i]);
-            _gl.bindFramebuffer(_gl.FRAMEBUFFER, framebuffer);
             _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0 + i, _gl.TEXTURE_2D, texture[i], 0);
             
             buffers.push(_gl.COLOR_ATTACHMENT0 + i);
@@ -20679,9 +20692,27 @@ var _createFramebuffer = function (texture, color_attachments) {
         _gl.drawBuffers(buffers);
     }
     
-    if (_gl.checkFramebufferStatus(_gl.FRAMEBUFFER) != _gl.FRAMEBUFFER_COMPLETE) {
-        console.log("_createFramebuffer failed");
-        return;
+    completeness_reason = _gl.checkFramebufferStatus(_gl.FRAMEBUFFER);
+    
+    if (completeness_reason !== _gl.FRAMEBUFFER_COMPLETE) {
+        if (completeness_reason === _gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT) {
+            console.log("_createFramebuffer failed: incomplete attachment.");
+        } else if (completeness_reason === _gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT) {
+            console.log("_createFramebuffer failed: incomplete mising attachment.");
+        } else if (completeness_reason === _gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS) {
+            console.log("_createFramebuffer failed: incomplete dimensions.");
+        } else if (completeness_reason === _gl.FRAMEBUFFER_UNSUPPORTED) {
+            console.log("_createFramebuffer failed: unsupported.");
+        }
+        
+        if (_gl2) {
+            if (completeness_reason === _gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE) {
+                console.log("_createFramebuffer failed: incomplete multisample.");
+            } else if (completeness_reason === _gl.RENDERBUFFER_SAMPLES) {
+                console.log("_createFramebuffer failed: renderbuffer samples.");
+            }
+        }
+        return null;
     }
     
     _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
@@ -20696,18 +20727,27 @@ var _create2DTexture = function (image, default_wrap_filter, bind_now) {
         ws = "clamp",
         wt = "clamp",
         
-        format = _gl.UNSIGNED_BYTE;
+        format = _gl.UNSIGNED_BYTE,
+        internal_format = _gl.RGBA;
     
+    // WebGL 2 only
     if (image.float) {
         format = _gl.FLOAT;
+        
+        internal_format = _gl.RGBA32F;
     }
 
     _gl.bindTexture(_gl.TEXTURE_2D, new_texture);
 
     if (!default_wrap_filter) {
-        _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.LINEAR);
-        _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.LINEAR);
-
+        if (!_OES_texture_float_linear && image.float) {
+            _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.NEAREST);
+            _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.NEAREST);
+        } else {
+            _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.LINEAR);
+            _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.LINEAR);
+        }
+        
         if ((!_isPowerOf2(image.width) || !_isPowerOf2(image.height)) && !_gl2) {
             _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_S, _gl.CLAMP_TO_EDGE);
             _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_T, _gl.CLAMP_TO_EDGE);
@@ -20717,10 +20757,10 @@ var _create2DTexture = function (image, default_wrap_filter, bind_now) {
     }
 
     if (image.empty) {
-        _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, image.width, image.height, 0, _gl.RGBA, format, null);
+        _gl.texImage2D(_gl.TEXTURE_2D, 0, internal_format, image.width, image.height, 0, _gl.RGBA, format, null);
     } else {
         if (bind_now) {
-            _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, format, image);
+            _gl.texImage2D(_gl.TEXTURE_2D, 0, internal_format, _gl.RGBA, format, image);
         }
     }
 
@@ -20917,6 +20957,8 @@ var _buildFeedback = function () {
 };
 
 var _buildMainFBO = function () {
+    var float_textures = false;
+    
     if (_gl2) {
         if (_main_program) {
             _gl.deleteProgram(_main_program);
@@ -20947,9 +20989,13 @@ var _buildMainFBO = function () {
         if (_main_fbo) {
             _gl.deleteFramebuffer(_main_fbo);
         }
+        
+        if (_EXT_color_buffer_float) {
+            float_textures = true;
+        }
 
-        _main_attch0 = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true }).texture;
-        _main_attch1 = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true }).texture;
+        _main_attch0 = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true, float: float_textures }).texture;
+        _main_attch1 = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true, float: float_textures }).texture;
         _main_fbo = _createFramebuffer([_main_attch0, _main_attch1], 2);
     }
 };
@@ -21057,8 +21103,8 @@ var _allocateFramesData = function () {
     _prev_data = [];
     
     for (i = 0; i < _output_channels; i += 1) {
-        _data.push(new _synthDataArray(_canvas_height_mul4));
-        _prev_data.push(new _synthDataArray(_canvas_height_mul4));
+        _data.push(new _synth_data_array(_canvas_height_mul4));
+        _prev_data.push(new _synth_data_array(_canvas_height_mul4));
     }
 };
 
@@ -21211,12 +21257,12 @@ var _frame = function (raf_time) {
     
     if ((_notesWorkerAvailable() || fas_enabled) && _play_position_markers.length > 0) {
         if (!fas_enabled) {
-            _prev_data[0] = new _synthDataArray(_data[0]);
+            _prev_data[0] = new _synth_data_array(_data[0]);
         }
         
         if (_gl2) {
             _gl.bindBuffer(_gl.PIXEL_PACK_BUFFER, _pbo);
-            _gl.bufferData(_gl.PIXEL_PACK_BUFFER, 1 * _canvas.height * 4, _gl.STATIC_READ);
+            _gl.bufferData(_gl.PIXEL_PACK_BUFFER, _pbo_size, _gl.STATIC_READ);
         }
 
         // populate array first
@@ -21225,7 +21271,7 @@ var _frame = function (raf_time) {
         channel = play_position_marker.output_channel - 1;
         
         if (play_position_marker.mute) {
-            _data[channel] = new _synthDataArray(_canvas_height_mul4);
+            _data[channel] = new _synth_data_array(_canvas_height_mul4);
         } else {
             if (play_position_marker.frame_increment != 0) {
                 _setPlayPosition(play_position_marker.id, play_position_marker.x + play_position_marker.frame_increment, play_position_marker.y, false, true);
@@ -21234,10 +21280,10 @@ var _frame = function (raf_time) {
             play_position_marker_x = play_position_marker.x;
             
             if (_gl2) {
-                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, 0);
+                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _read_pixels_format, 0);
                 _gl.getBufferSubData(_gl.PIXEL_PACK_BUFFER, 0, _data[channel]);
             } else {
-                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, _data[channel]);
+                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _read_pixels_format, _data[channel]);
             }
 
             _transformData(play_position_marker, _data[channel]);
@@ -21259,10 +21305,10 @@ var _frame = function (raf_time) {
             channel = play_position_marker.output_channel - 1;
 
             if (_gl2) {
-                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, 0);
+                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _read_pixels_format, 0);
                 _gl.getBufferSubData(_gl.PIXEL_PACK_BUFFER, 0, _temp_data);
             } else {
-                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, _temp_data);
+                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _read_pixels_format, _temp_data);
             }
      
             _transformData(play_position_marker, _temp_data);
@@ -21276,7 +21322,7 @@ var _frame = function (raf_time) {
         }
     
         for (i = 0; i < _output_channels; i += 1) {
-            buffer.push(new _synthDataArray(_canvas_height_mul4));
+            buffer.push(new _synth_data_array(_canvas_height_mul4));
         }
         
         if (_show_oscinfos) {
@@ -21307,9 +21353,17 @@ var _frame = function (raf_time) {
             // merge all
             temp_data = new Uint8Array(_canvas_height_mul4);
             
-            for (i = 0; i < _output_channels; i += 1) {
-                for (j = 0; j <= _canvas_height_mul4; j += 1) {
-                    temp_data[j] += _data[i][j];
+            if (_read_pixels_format === _gl.FLOAT) {
+                for (i = 0; i < _output_channels; i += 1) {
+                    for (j = 0; j <= _canvas_height_mul4; j += 1) {
+                        temp_data[j] += _data[i][j] * 255;
+                    }
+                }
+            } else {
+                for (i = 0; i < _output_channels; i += 1) {
+                    for (j = 0; j <= _canvas_height_mul4; j += 1) {
+                        temp_data[j] += _data[i][j];
+                    }
                 }
             }
             
@@ -21412,6 +21466,8 @@ var _frame = function (raf_time) {
 
 var _uniform_location_cache = {},
     _current_program,
+    
+    _glsl_compile_timeout = null,
     
     _outline_element = document.getElementById("fs_outline"),
     
@@ -21536,7 +21592,7 @@ var _setUniforms = function (gl_ctx, type_str, program, name, values, comps) {
     }
 };
 
-var _compile = function () {
+var _glsl_compilation = function () {
     var frag,
 
         glsl_code = "",
@@ -21576,7 +21632,7 @@ var _compile = function () {
     }
     
     // add our uniforms
-    glsl_code += "uniform float globalTime; uniform int frame; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "]; uniform vec3 pKey[" + _keyboard.polyphony_max + "];"
+    glsl_code += "uniform float globalTime; uniform int frame; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "]; uniform vec3 pKey[" + 16 + "];"
     
     if (_feedback.enabled) {
         if (_gl2) {
@@ -21694,6 +21750,12 @@ var _compile = function () {
 
         //_stop();
     }
+};
+
+var _compile = function () {
+    clearTimeout(_glsl_compile_timeout);
+    
+    _glsl_compile_timeout = setTimeout(_glsl_compilation, 100);
 };
 
 var setCursorCb = function (position) {
@@ -22668,7 +22730,7 @@ var _delBrush = function (id, detached) {
 var _addPreloaded = function () {
     var i= 0;
     
-    for (i = 1; i < 970; i += 1) {
+    for (i = 1; i < 20; i += 1) {
         _addBrush({ src: "data/brushes/" + i + ".png" });
     }
 };
@@ -22880,11 +22942,6 @@ var _inputThumbMenu = function (e) {
                 { icon: "fs-gear-icon", tooltip: "Settings",  on_click: function () {
                         _createChannelSettingsDialog(input_id);
                     } },
-    /*
-                { icon: "fs-replace-icon", tooltip: "Replace",  on_click: function () {
-
-                    } },
-    */
                 { icon: "fs-cross-45-icon", tooltip: "Delete",  on_click: function () {
                         _input_panel_element.removeChild(dom_image);
 
@@ -26815,6 +26872,8 @@ _controllers_canvas.addEventListener("mousedown", function (e) {
 });
 *//* jslint browser: true */
 
+var _selected_slice_marker = null;
+
 /***********************************************************
     Functions.
 ************************************************************/
@@ -27310,7 +27369,21 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, submit) {
             _setSlicePositionFromAbsolute(element.dataset.slice, x, y);
         });
     WUI.lockDraggable(play_position_marker_element, 'y');
-    
+/*
+    play_position_marker_element.addEventListener('click', function (ev) {
+            var i = 0, slice;
+        
+            _selected_slice_marker = play_position_marker;
+        
+            for (i = 0; i < _play_position_markers.length; i += 1) {
+                slice = _play_position_markers[i];
+
+                slice.element.classList.remove("fs-selected-slice");
+            }
+        
+            _selected_slice_marker.element.classList.add("fs-selected-slice");
+        });
+*/  
     play_position_marker_element.addEventListener('dblclick', function (ev) {
             _updateSliceSettingsDialog(play_position_marker, true);
         });
@@ -27722,9 +27795,11 @@ var _onMIDIMessage = function (midi_message) {
             
             value = _keyboard.pressed[key];
             
-            _pkeyboard.data[value.channel * 3]     = value.frq;
-            _pkeyboard.data[value.channel * 3 + 1] = value.vel;
-            _pkeyboard.data[value.channel * 3 + 2] = value.time;
+            if (value) { 
+                _pkeyboard.data[value.channel * 3]     = value.frq;
+                _pkeyboard.data[value.channel * 3 + 1] = value.vel;
+                _pkeyboard.data[value.channel * 3 + 2] = value.time;
+            }
             
             _setUniforms(_gl, "vec", _program, "pKey", _pkeyboard.data, _pkeyboard.data_components);
 
@@ -27847,7 +27922,9 @@ var _fasNotifyFast = function (cmd, data) {
     _fas.worker.postMessage({
             cmd: cmd,
             arg: output_data_buffer,
-            mono: _audio_infos.monophonic
+            mono: _audio_infos.monophonic,
+            float: _audio_infos.float_data,
+            synthesis_type: _synthesis_type
         }, output_data_buffer);
 };
 
@@ -27927,7 +28004,13 @@ var _fasInit = function () {
 
             _pbo = _gl.createBuffer();
             _gl.bindBuffer(_gl.PIXEL_PACK_BUFFER, _pbo);
-            _gl.bufferData(_gl.PIXEL_PACK_BUFFER, 1 * _canvas.height * 4, _gl.STATIC_READ);
+            if (_gl2 && _EXT_color_buffer_float) {
+                _pbo_size = 1 * _canvas.height * 4 * 4;
+            } else {
+                _pbo_size = 1 * _canvas.height * 4;
+            }
+            _gl.bufferData(_gl.PIXEL_PACK_BUFFER, _pbo_size, _gl.STATIC_READ);
+            
             _gl.bindBuffer(_gl.PIXEL_PACK_BUFFER, null);
         }
     };
@@ -27977,7 +28060,7 @@ var _fasInit = function () {
 
             _vaxis_infos.style.height = _canvas_height + "px";
 
-            _temp_data = new _synthDataArray(_canvas_height_mul4);
+            _temp_data = new _synth_data_array(_canvas_height_mul4);
             _allocateFramesData();
 
             _gl.viewport(0, 0, _canvas.width, _canvas.height);
@@ -28152,15 +28235,27 @@ var _fasInit = function () {
     _gl = _canvas.getContext("webgl2", _webgl_opts) || _canvas.getContext("experimental-webgl2", _webgl_opts);
     if (!_gl) {
         _gl = _canvas.getContext("webgl", _webgl_opts) || _canvas.getContext("experimental-webgl", _webgl_opts);
+        
+        _read_pixels_format = _gl.UNSIGNED_BYTE;
     } else {
         _gl2 = true;
         
-        //_gl.getExtension("OES_texture_float");
-        //_gl.getExtension("OES_texture_float_linear");
+        _OES_texture_float_linear = _gl.getExtension("OES_texture_float_linear");
+        _EXT_color_buffer_float = _gl.getExtension("EXT_color_buffer_float");
         
         _initializePBO();
         
-        //_synthDataArray = Float32Array;
+        if (_EXT_color_buffer_float) {
+            _audio_infos.float_data = true;
+            
+            _synth_data_array = Float32Array;
+            
+            _read_pixels_format = _gl.FLOAT;
+            
+            _amp_divisor = 1.0;
+        } else {
+            _read_pixels_format = _gl.UNSIGNED_BYTE;
+        }
     }
 
     if (!_gl) {

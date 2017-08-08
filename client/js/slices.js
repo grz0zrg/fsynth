@@ -1,5 +1,7 @@
 /* jslint browser: true */
 
+var _selected_slice_marker = null;
+
 /***********************************************************
     Functions.
 ************************************************************/
@@ -495,7 +497,21 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, submit) {
             _setSlicePositionFromAbsolute(element.dataset.slice, x, y);
         });
     WUI.lockDraggable(play_position_marker_element, 'y');
-    
+/*
+    play_position_marker_element.addEventListener('click', function (ev) {
+            var i = 0, slice;
+        
+            _selected_slice_marker = play_position_marker;
+        
+            for (i = 0; i < _play_position_markers.length; i += 1) {
+                slice = _play_position_markers[i];
+
+                slice.element.classList.remove("fs-selected-slice");
+            }
+        
+            _selected_slice_marker.element.classList.add("fs-selected-slice");
+        });
+*/  
     play_position_marker_element.addEventListener('dblclick', function (ev) {
             _updateSliceSettingsDialog(play_position_marker, true);
         });

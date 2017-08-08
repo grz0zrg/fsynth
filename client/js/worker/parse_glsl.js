@@ -91,6 +91,7 @@ self.onmessage = function (m) {
     glsl_code = glsl_code.replace(/.length()/g, ""); // array.length()
     glsl_code = glsl_code.replace(/mat\d+x\d+/g, ""); // matNxN
     glsl_code = glsl_code.replace(/#version 300 es/g, ""); // GLSL 3.0 define
+    glsl_code = glsl_code.replace(/.*\[\d+\].*\[\].*\([\s\S]+?\);$/mg, ""); // array initializer
 
     try {
         glsl_o = _PEGLSL.parse(glsl_code);

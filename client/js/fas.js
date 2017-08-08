@@ -41,7 +41,9 @@ var _fasNotifyFast = function (cmd, data) {
     _fas.worker.postMessage({
             cmd: cmd,
             arg: output_data_buffer,
-            mono: _audio_infos.monophonic
+            mono: _audio_infos.monophonic,
+            float: _audio_infos.float_data,
+            synthesis_type: _synthesis_type
         }, output_data_buffer);
 };
 

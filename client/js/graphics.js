@@ -17,16 +17,16 @@ var _buildScreenAlignedQuad = function() {
 var _createFramebuffer = function (texture, color_attachments) {
     var framebuffer = _gl.createFramebuffer(),
         buffers = [],
+        completeness_reason,
         i;
     
+    _gl.bindFramebuffer(_gl.FRAMEBUFFER, framebuffer);
+    
     if (!color_attachments) {
-        _gl.bindTexture(_gl.TEXTURE_2D, texture);
-        _gl.bindFramebuffer(_gl.FRAMEBUFFER, framebuffer);
         _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0, _gl.TEXTURE_2D, texture, 0);
     } else {
+        
         for (i = 0; i < color_attachments; i += 1) {
-            _gl.bindTexture(_gl.TEXTURE_2D, texture[i]);
-            _gl.bindFramebuffer(_gl.FRAMEBUFFER, framebuffer);
             _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.COLOR_ATTACHMENT0 + i, _gl.TEXTURE_2D, texture[i], 0);
             
             buffers.push(_gl.COLOR_ATTACHMENT0 + i);
@@ -35,9 +35,27 @@ var _createFramebuffer = function (texture, color_attachments) {
         _gl.drawBuffers(buffers);
     }
     
-    if (_gl.checkFramebufferStatus(_gl.FRAMEBUFFER) != _gl.FRAMEBUFFER_COMPLETE) {
-        console.log("_createFramebuffer failed");
-        return;
+    completeness_reason = _gl.checkFramebufferStatus(_gl.FRAMEBUFFER);
+    
+    if (completeness_reason !== _gl.FRAMEBUFFER_COMPLETE) {
+        if (completeness_reason === _gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT) {
+            console.log("_createFramebuffer failed: incomplete attachment.");
+        } else if (completeness_reason === _gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT) {
+            console.log("_createFramebuffer failed: incomplete mising attachment.");
+        } else if (completeness_reason === _gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS) {
+            console.log("_createFramebuffer failed: incomplete dimensions.");
+        } else if (completeness_reason === _gl.FRAMEBUFFER_UNSUPPORTED) {
+            console.log("_createFramebuffer failed: unsupported.");
+        }
+        
+        if (_gl2) {
+            if (completeness_reason === _gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE) {
+                console.log("_createFramebuffer failed: incomplete multisample.");
+            } else if (completeness_reason === _gl.RENDERBUFFER_SAMPLES) {
+                console.log("_createFramebuffer failed: renderbuffer samples.");
+            }
+        }
+        return null;
     }
     
     _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
@@ -52,18 +70,27 @@ var _create2DTexture = function (image, default_wrap_filter, bind_now) {
         ws = "clamp",
         wt = "clamp",
         
-        format = _gl.UNSIGNED_BYTE;
+        format = _gl.UNSIGNED_BYTE,
+        internal_format = _gl.RGBA;
     
+    // WebGL 2 only
     if (image.float) {
         format = _gl.FLOAT;
+        
+        internal_format = _gl.RGBA32F;
     }
 
     _gl.bindTexture(_gl.TEXTURE_2D, new_texture);
 
     if (!default_wrap_filter) {
-        _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.LINEAR);
-        _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.LINEAR);
-
+        if (!_OES_texture_float_linear && image.float) {
+            _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.NEAREST);
+            _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.NEAREST);
+        } else {
+            _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.LINEAR);
+            _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.LINEAR);
+        }
+        
         if ((!_isPowerOf2(image.width) || !_isPowerOf2(image.height)) && !_gl2) {
             _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_S, _gl.CLAMP_TO_EDGE);
             _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_T, _gl.CLAMP_TO_EDGE);
@@ -73,10 +100,10 @@ var _create2DTexture = function (image, default_wrap_filter, bind_now) {
     }
 
     if (image.empty) {
-        _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, image.width, image.height, 0, _gl.RGBA, format, null);
+        _gl.texImage2D(_gl.TEXTURE_2D, 0, internal_format, image.width, image.height, 0, _gl.RGBA, format, null);
     } else {
         if (bind_now) {
-            _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, format, image);
+            _gl.texImage2D(_gl.TEXTURE_2D, 0, internal_format, _gl.RGBA, format, image);
         }
     }
 
@@ -273,6 +300,8 @@ var _buildFeedback = function () {
 };
 
 var _buildMainFBO = function () {
+    var float_textures = false;
+    
     if (_gl2) {
         if (_main_program) {
             _gl.deleteProgram(_main_program);
@@ -303,9 +332,13 @@ var _buildMainFBO = function () {
         if (_main_fbo) {
             _gl.deleteFramebuffer(_main_fbo);
         }
+        
+        if (_EXT_color_buffer_float) {
+            float_textures = true;
+        }
 
-        _main_attch0 = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true }).texture;
-        _main_attch1 = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true }).texture;
+        _main_attch0 = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true, float: float_textures }).texture;
+        _main_attch1 = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true, float: float_textures }).texture;
         _main_fbo = _createFramebuffer([_main_attch0, _main_attch1], 2);
     }
 };
@@ -413,8 +446,8 @@ var _allocateFramesData = function () {
     _prev_data = [];
     
     for (i = 0; i < _output_channels; i += 1) {
-        _data.push(new _synthDataArray(_canvas_height_mul4));
-        _prev_data.push(new _synthDataArray(_canvas_height_mul4));
+        _data.push(new _synth_data_array(_canvas_height_mul4));
+        _prev_data.push(new _synth_data_array(_canvas_height_mul4));
     }
 };
 
@@ -567,12 +600,12 @@ var _frame = function (raf_time) {
     
     if ((_notesWorkerAvailable() || fas_enabled) && _play_position_markers.length > 0) {
         if (!fas_enabled) {
-            _prev_data[0] = new _synthDataArray(_data[0]);
+            _prev_data[0] = new _synth_data_array(_data[0]);
         }
         
         if (_gl2) {
             _gl.bindBuffer(_gl.PIXEL_PACK_BUFFER, _pbo);
-            _gl.bufferData(_gl.PIXEL_PACK_BUFFER, 1 * _canvas.height * 4, _gl.STATIC_READ);
+            _gl.bufferData(_gl.PIXEL_PACK_BUFFER, _pbo_size, _gl.STATIC_READ);
         }
 
         // populate array first
@@ -581,7 +614,7 @@ var _frame = function (raf_time) {
         channel = play_position_marker.output_channel - 1;
         
         if (play_position_marker.mute) {
-            _data[channel] = new _synthDataArray(_canvas_height_mul4);
+            _data[channel] = new _synth_data_array(_canvas_height_mul4);
         } else {
             if (play_position_marker.frame_increment != 0) {
                 _setPlayPosition(play_position_marker.id, play_position_marker.x + play_position_marker.frame_increment, play_position_marker.y, false, true);
@@ -590,10 +623,10 @@ var _frame = function (raf_time) {
             play_position_marker_x = play_position_marker.x;
             
             if (_gl2) {
-                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, 0);
+                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _read_pixels_format, 0);
                 _gl.getBufferSubData(_gl.PIXEL_PACK_BUFFER, 0, _data[channel]);
             } else {
-                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, _data[channel]);
+                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _read_pixels_format, _data[channel]);
             }
 
             _transformData(play_position_marker, _data[channel]);
@@ -615,10 +648,10 @@ var _frame = function (raf_time) {
             channel = play_position_marker.output_channel - 1;
 
             if (_gl2) {
-                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, 0);
+                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _read_pixels_format, 0);
                 _gl.getBufferSubData(_gl.PIXEL_PACK_BUFFER, 0, _temp_data);
             } else {
-                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _gl.UNSIGNED_BYTE, _temp_data);
+                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _read_pixels_format, _temp_data);
             }
      
             _transformData(play_position_marker, _temp_data);
@@ -632,7 +665,7 @@ var _frame = function (raf_time) {
         }
     
         for (i = 0; i < _output_channels; i += 1) {
-            buffer.push(new _synthDataArray(_canvas_height_mul4));
+            buffer.push(new _synth_data_array(_canvas_height_mul4));
         }
         
         if (_show_oscinfos) {
@@ -663,9 +696,17 @@ var _frame = function (raf_time) {
             // merge all
             temp_data = new Uint8Array(_canvas_height_mul4);
             
-            for (i = 0; i < _output_channels; i += 1) {
-                for (j = 0; j <= _canvas_height_mul4; j += 1) {
-                    temp_data[j] += _data[i][j];
+            if (_read_pixels_format === _gl.FLOAT) {
+                for (i = 0; i < _output_channels; i += 1) {
+                    for (j = 0; j <= _canvas_height_mul4; j += 1) {
+                        temp_data[j] += _data[i][j] * 255;
+                    }
+                }
+            } else {
+                for (i = 0; i < _output_channels; i += 1) {
+                    for (j = 0; j <= _canvas_height_mul4; j += 1) {
+                        temp_data[j] += _data[i][j];
+                    }
                 }
             }
             

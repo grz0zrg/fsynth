@@ -6288,6 +6288,18 @@ var _fs_palette = {
     Functions.
 ************************************************************/
 
+var _hzToMIDINote = function (freq) {
+    return 69 + 12 * Math.log2(freq / 440);
+};
+
+var _randomInt = function (min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+};
+
+var _random = function (min, max) {
+    return Math.random() * (max - min) + min;
+};
+
 var _webMIDISupport = function () {
     if (navigator.requestMIDIAccess) {
         return true;
@@ -6365,6 +6377,28 @@ var _melScale = function () {
 
 var _degToRad = function (angle) {
     return angle * Math.PI / 180.0;
+};
+
+var _swapNode = function (elem1, elem2) {
+    if (elem1 && elem2) {
+        var P1 = elem1.parentNode,
+            T1 = document.createElement("span"),
+            P2,
+            T2; 
+        
+        P1.insertBefore(T1, elem1);
+
+        P2 = elem2.parentNode;
+        T2 = document.createElement("span");
+        
+        P2.insertBefore(T2, elem2);
+
+        P1.insertBefore(elem2, T1);
+        P2.insertBefore(elem1, T2);
+
+        P1.removeChild(T1);
+        P2.removeChild(T2);
+    }
 };
 
 var _setImageSmoothing = function (ctx, state) {
@@ -6653,6 +6687,7 @@ var _convert = function (params, data) {
     return { width: image_width, height: image_height, data: image_data };
 };
 
+// when in stereo, we basically assign R = L, G = R and G = (L + R) / 2
 var _mergeChannels = function (l, r) {
     var i = 0;
     

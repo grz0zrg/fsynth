@@ -2124,3 +2124,11 @@ canvas {
     -ms-user-select: none;
     user-select: none;
 }
+
+.fs-selected-slice:nth-child(0) {
+    border-top-color: green;
+}
+
+.fs-selected-slice:nth-child(1) {
+    border-bottom-color: green;
+}

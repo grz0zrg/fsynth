@@ -30,23 +30,24 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
  * Stereophonic or monaural
  * Polyphonic
  * Multitimbral
+ * Adjustable audio output channel per slices
  * Real-time frames by frames recording with export as image or Fragment input (export back into itself, this can be used to build complex brushes for drawing canvas inputs)
  * WebGL 2.0 and GLSL 3.0 support when compatibility is detected
  * RGBA Live visuals with stereophonic sound generation (WebGL 2.0) or monophonic sound generation (WebGL 1)
- * Adjustable audio output channel per slices
+ * Synthesis data processed in 32-bit precision (WebGL 2.0 & EXT_color_buffer_float extension) or 8-bit precision
  * Slices can be added/deleted anywhere on the canvas, move left or right automatically and have independent pitch offset for convenience
  * Feedback via framebuffer (for fx like reverb, delay, spectral distortion etc)
  * Shader inputs:
     * Webcam
     * Images
     * Audio files (translated to images)
-    * Drawing canvas with drawing and compositing operations which use images Fragment input as brushes, Fragment is also bundled with 970 high-quality brushes
+    * Drawing canvas with drawing and compositing operations which use images Fragment input as brushes, Fragment is bundled with 20 high-quality brushes, a pack of 950 high-quality brushes is also available as a separate download
  * Uniform controllers (WIP : Multislider, XY Pad, [IanniX](https://www.iannix.org/en/) cursors via OSC)
  * Per-sessions discussion system
  * Global and per sessions settings automatic save/load; make use of *localStorage*
  * No authentifications (make use of *localStorage* and is *sessions* based)
 
- ***Note**: With WebGL 2 compatible browser, Fragment make use of two separate output by default, "synthOutput" can be used to feed the synthesizer while "fragColor" or "gl_FragColor" can be used to do visuals.
+ ***Note**: With WebGL 2 compatible browser, Fragment make use of two separate output by default, "synthOutput" can be used to feed the synthesizer (with R=L, G=R, see note below) while "fragColor" or "gl_FragColor" can be used to do visuals.
 
  ***Note**: Without WebGL 2 compatible browser, Fragment interpret the Red and Green shader output (gl_FragColor or fragColor) when stereophonic mode is enabled, the blue component output is left unused and can be used for real-time sounds/visuals sync or direct visual feedback (debug, aesthetic ...) of functions/textures etc... when in monophonic mode the full RGB output is available for visuals and the synthesizer use the alpha channel*
 

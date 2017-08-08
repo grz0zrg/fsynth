@@ -8,6 +8,8 @@
 var _uniform_location_cache = {},
     _current_program,
     
+    _glsl_compile_timeout = null,
+    
     _outline_element = document.getElementById("fs_outline"),
     
     _glsl_parser_worker = new Worker("dist/worker/parse_glsl.min.js");
@@ -131,7 +133,7 @@ var _setUniforms = function (gl_ctx, type_str, program, name, values, comps) {
     }
 };
 
-var _compile = function () {
+var _glsl_compilation = function () {
     var frag,
 
         glsl_code = "",
@@ -171,7 +173,7 @@ var _compile = function () {
     }
     
     // add our uniforms
-    glsl_code += "uniform float globalTime; uniform int frame; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "]; uniform vec3 pKey[" + _keyboard.polyphony_max + "];"
+    glsl_code += "uniform float globalTime; uniform int frame; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "]; uniform vec3 pKey[" + 16 + "];"
     
     if (_feedback.enabled) {
         if (_gl2) {
@@ -289,6 +291,12 @@ var _compile = function () {
 
         //_stop();
     }
+};
+
+var _compile = function () {
+    clearTimeout(_glsl_compile_timeout);
+    
+    _glsl_compile_timeout = setTimeout(_glsl_compilation, 100);
 };
 
 var setCursorCb = function (position) {

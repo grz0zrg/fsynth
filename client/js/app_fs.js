@@ -137,7 +137,7 @@ var FragmentSynth = function (params) {
         _username = localStorage.getItem('fs-user-name'),
         _local_session_settings = localStorage.getItem(_getSessionName()),
         
-        _synthDataArray = Uint8Array,
+        _synth_data_array = Uint8Array,
 
         _red_curtain_element = document.getElementById("fs_red_curtain"),
         _user_name_element = document.getElementById("fs_user_name"),
@@ -264,7 +264,7 @@ var FragmentSynth = function (params) {
             // amount of allocated uniform vectors
             uniform_vectors: 0,
             pressed: {},
-            polyphony_max: 60,
+            polyphony_max: 32,
             polyphony: 0 // current polyphony
         },
         
@@ -285,6 +285,9 @@ var FragmentSynth = function (params) {
         _xyf_grid = false,
 
         _glsl_error = false,
+        
+        _OES_texture_float_linear = null,
+        _EXT_color_buffer_float = null,
         
         // settings
         _show_globaltime = true,
@@ -321,6 +324,9 @@ var FragmentSynth = function (params) {
         _gl2 = false,
         
         _pbo = null,
+        _pbo_size = 0,
+        
+        _read_pixels_format,
 
         _play_position_markers = [],
 
@@ -365,7 +371,7 @@ var FragmentSynth = function (params) {
         _time = 0,
 
         _pause_time = 0,
-
+        
         _hover_freq = null,
 
         _input_channel_prefix = "iInput";
@@ -408,7 +414,13 @@ var FragmentSynth = function (params) {
 
             _pbo = _gl.createBuffer();
             _gl.bindBuffer(_gl.PIXEL_PACK_BUFFER, _pbo);
-            _gl.bufferData(_gl.PIXEL_PACK_BUFFER, 1 * _canvas.height * 4, _gl.STATIC_READ);
+            if (_gl2 && _EXT_color_buffer_float) {
+                _pbo_size = 1 * _canvas.height * 4 * 4;
+            } else {
+                _pbo_size = 1 * _canvas.height * 4;
+            }
+            _gl.bufferData(_gl.PIXEL_PACK_BUFFER, _pbo_size, _gl.STATIC_READ);
+            
             _gl.bindBuffer(_gl.PIXEL_PACK_BUFFER, null);
         }
     };
@@ -458,7 +470,7 @@ var FragmentSynth = function (params) {
 
             _vaxis_infos.style.height = _canvas_height + "px";
 
-            _temp_data = new _synthDataArray(_canvas_height_mul4);
+            _temp_data = new _synth_data_array(_canvas_height_mul4);
             _allocateFramesData();
 
             _gl.viewport(0, 0, _canvas.width, _canvas.height);
@@ -633,15 +645,27 @@ var FragmentSynth = function (params) {
     _gl = _canvas.getContext("webgl2", _webgl_opts) || _canvas.getContext("experimental-webgl2", _webgl_opts);
     if (!_gl) {
         _gl = _canvas.getContext("webgl", _webgl_opts) || _canvas.getContext("experimental-webgl", _webgl_opts);
+        
+        _read_pixels_format = _gl.UNSIGNED_BYTE;
     } else {
         _gl2 = true;
         
-        //_gl.getExtension("OES_texture_float");
-        //_gl.getExtension("OES_texture_float_linear");
+        _OES_texture_float_linear = _gl.getExtension("OES_texture_float_linear");
+        _EXT_color_buffer_float = _gl.getExtension("EXT_color_buffer_float");
         
         _initializePBO();
         
-        //_synthDataArray = Float32Array;
+        if (_EXT_color_buffer_float) {
+            _audio_infos.float_data = true;
+            
+            _synth_data_array = Float32Array;
+            
+            _read_pixels_format = _gl.FLOAT;
+            
+            _amp_divisor = 1.0;
+        } else {
+            _read_pixels_format = _gl.UNSIGNED_BYTE;
+        }
     }
 
     if (!_gl) {

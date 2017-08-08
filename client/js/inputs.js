@@ -197,11 +197,6 @@ var _inputThumbMenu = function (e) {
                 { icon: "fs-gear-icon", tooltip: "Settings",  on_click: function () {
                         _createChannelSettingsDialog(input_id);
                     } },
-    /*
-                { icon: "fs-replace-icon", tooltip: "Replace",  on_click: function () {
-
-                    } },
-    */
                 { icon: "fs-cross-45-icon", tooltip: "Delete",  on_click: function () {
                         _input_panel_element.removeChild(dom_image);
 

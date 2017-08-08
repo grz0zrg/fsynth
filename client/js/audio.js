@@ -57,6 +57,11 @@ var _FS_WAVETABLE = 0,
     _curr_notes_data = [],
     _next_notes_data = [],
     
+    _amp_divisor = 255.0,
+    
+    // 0 = additive, 1 = granular : this is only used with FAS otherwise only additive synthesis is supported
+    _synthesis_type = 0,
+
     _curr_sample = 0,
         
     _lerp_t = 0,
@@ -68,7 +73,8 @@ var _FS_WAVETABLE = 0,
             base_freq: 0,
             octaves: 0,
             gain: _volume,
-            monophonic: false
+            monophonic: false,
+            float_data: false
         },
     
     _is_script_node_connected = false,
@@ -302,13 +308,13 @@ var _playSlice = function (pixels_data) {
         if (l === 0) {
             osc.gain_node_l.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
         } else {
-            osc.gain_node_l.gain.setTargetAtTime(l / 255.0, audio_ctx_curr_time, 0.001);
+            osc.gain_node_l.gain.setTargetAtTime(l / _amp_divisor, audio_ctx_curr_time, 0.001);
         }
         
         if (r === 0) {
             osc.gain_node_r.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
         } else {
-            osc.gain_node_r.gain.setTargetAtTime(r / 255.0, audio_ctx_curr_time, 0.001);
+            osc.gain_node_r.gain.setTargetAtTime(r / _amp_divisor, audio_ctx_curr_time, 0.001);
         }
         y -= 1;
     }
@@ -329,7 +335,8 @@ var _notesProcessing = function (arr, prev_arr) {
                     score_height: _canvas_height,
                     data: arr[0].buffer,
                     prev_data: prev_arr[0].buffer,
-                    mono: _audio_infos.monophonic
+                    mono: _audio_infos.monophonic,
+                    float: _audio_infos.float_data
                 }, [arr[0].buffer, prev_arr[0].buffer]);
 
             _notes_worker_available = false;
