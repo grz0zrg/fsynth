@@ -27096,6 +27096,10 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
         slice_settings_container.id = "slice_settings_container_" + i;
     }
     
+    if (_play_position_markers.length === 0) {
+        _stopOscillators();
+    }
+    
     if (submit) {
         _submitRemoveSlice(marker_id);
     }
