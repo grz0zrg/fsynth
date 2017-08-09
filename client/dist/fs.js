@@ -21889,7 +21889,7 @@ var _shareDBConnect = function () {
         });
     
     ws.addEventListener("error", function (event) {
-        
+
         });
     
     _sharedb_connection = new ShareDB.Connection(ws);
@@ -22213,6 +22213,9 @@ var _shareCodeEditorChanges = function (changes) {
         t: "text0",
         o: []
     };
+    
+    // we must do it in order (this avoid issue with same-time op)
+    changes.reverse();
 
     for (i = 0; i < changes.length; i += 1) {
         change = changes[i];

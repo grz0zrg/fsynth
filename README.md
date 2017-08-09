@@ -41,7 +41,7 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
     * Webcam
     * Images
     * Audio files (translated to images)
-    * Drawing canvas with drawing and compositing operations which use images Fragment input as brushes, Fragment is bundled with 20 high-quality brushes, a pack of 950 high-quality brushes is also available as a separate download
+    * Drawing canvas with drawing and compositing operations which use images Fragment input as brushes, Fragment is bundled with 20 high-quality brushes, a pack of 969 high-quality brushes is also available as a [separate download](https://www.fsynth.com/data/969_png_brushes_pack.7z)
  * Uniform controllers (WIP : Multislider, XY Pad, [IanniX](https://www.iannix.org/en/) cursors via OSC)
  * Per-sessions discussion system
  * Global and per sessions settings automatic save/load; make use of *localStorage*
