@@ -380,12 +380,6 @@ var _shareCodeEditorChanges = function (changes) {
         return;
     }
     
-    op = {
-        p: [],
-        t: "text0",
-        o: []
-    };
-    
     // we must do it in order (this avoid issue with same-time op)
     //changes.reverse();
 

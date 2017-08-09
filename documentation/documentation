@@ -463,7 +463,7 @@ Brushes can be selected by clicking on the corresponding brush thumbnail.
 
 Any actions affecting brushes will display an overlay helper for some seconds to help you visualize the changes.
 
-To draw on the canvas input, you must first select a brush in the "paint tools" dialog, Fragment is bundled with 970 high-quality brushes.
+To draw on the canvas input, you must first select a brush in the "paint tools" dialog, Fragment is bundled with 20 high-quality brushes and 949 are available as a separate download.
 
 $center($image(410)(images/paint_toolbox.png))
 $center(The "paint tools" dialog has three parts, a toolbar, brush settings and the brushes list.)
@@ -687,7 +687,7 @@ You can do anything from ray-traced 3D to drawing simple lines and define their 
 
 Fragment support GLSL 3.0 version automatically if it detect support for the WebGL 2.0 API (which is recommended), GLSL 3.0 allow to use dynamical indexes with arrays among many other things, it also allow to use shortcuts such as $rgb(0,130,0)(fragColor) instead of gl_FragColor and $rgb(0,130,0)(texture) instead of texture2D.
 
-If WebGL 2.0 is supported, there is actually two output in the fragment shader, gl_FragColor or fragColor for the visuals and synthOutput for the pixels data which will be used by the audio synthesis engine, this allow to do visuals alongside stereo audio synthesis.
+If WebGL 2.0 is supported, there is actually two output in the fragment shader, gl_FragColor or fragColor for the visuals and synthOutput for the pixels data which will be used by the audio synthesis engine, this allow to do visuals alongside stereo audio synthesis, when WebGL 2.0 is enabled and the EXT_color_buffer_float extension is available, the pixels data output will be encoded as 32-bit float, this give higher quality sounds and possibilities.
 
 This documentation focus on the audio synthesis aspect of Fragment as there is already plenty resources covering the creation of stunning visuals with GLSL programs on the web.
 
@@ -1497,7 +1497,7 @@ The given functions are not set in stone, you can change them, those functions h
 
 $nl
 $subsection(Timbral possibilities)
-A neat thing that can be done with Fragment is modulating the parameters you want with the current horizontal or vertical position, the canvas will then show you many timbral possibilities that you can chose to listen to by adding and positioning slices on the canvas, you can also modulate the horizontal position to move between timbral possibilities.
+A neat thing that can be done with Fragment is modulating the parameters you want with the current horizontal or vertical position, the canvas will then show you the timbral possibilities along the chosen axis that you can chose to listen to by adding and positioning slices on the canvas, you can also modulate the horizontal position to move between timbral possibilities.
 
 By adding many slices at different positions, you can build very complex sounds and explore without having to write code.
 
