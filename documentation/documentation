@@ -51,7 +51,7 @@ Fragment is stereophonic, polyphonic, multitimbral and support live coding of au
 
 Fragment main synthesis method is additive, granular synthesis was successfully implemented as well but not yet available.
 
-Fragment has many features making it a bliss to produce any kind of sounds, it is aimed at artists seeking a real-time creative environment with direct visual feedback and few limitations to experiment with, a programmable noise-of-all-kinds software.
+Fragment has many features making it a bliss to produce any kind of sounds or visuals, it is aimed at artists seeking a real-time creative environment with direct visual feedback and few limitations to experiment with, a programmable noise-of-all-kinds software.
 
 Many videos of Fragment live sessions were recorded and are available on YouTube as a $tlink(playlist)(https://www.youtube.com/playlist?list=PLYhyS2OKJmqe_PEimydWZN1KbvCzkjgeI).
 
@@ -79,6 +79,7 @@ $list(
 		$list($item Automatically detected from the GPU capabilities $item 16 notes minimum $item 704 notes with a GeForce GTX 970 GPU)
 	$item Multitimbral
 	$item Spectral recording with mixing and PNG export
+	$item 8-bit or 32-bit floating point processing of pixels data for audio synthesis (WebGL 2.0 only)
 	$item Adjustable audio output channel per slices
 		$list($item Multiple audio channels are only supported with $ref(fas)(FAS))
 	$item Shader inputs, webcam, textures, audio files, canvas
@@ -686,6 +687,8 @@ You can do anything from ray-traced 3D to drawing simple lines and define their 
 
 Fragment support GLSL 3.0 version automatically if it detect support for the WebGL 2.0 API (which is recommended), GLSL 3.0 allow to use dynamical indexes with arrays among many other things, it also allow to use shortcuts such as $rgb(0,130,0)(fragColor) instead of gl_FragColor and $rgb(0,130,0)(texture) instead of texture2D.
 
+If WebGL 2.0 is supported, there is actually two output in the fragment shader, gl_FragColor or fragColor for the visuals and synthOutput for the pixels data which will be used by the audio synthesis engine, this allow to do visuals alongside stereo audio synthesis.
+
 This documentation focus on the audio synthesis aspect of Fragment as there is already plenty resources covering the creation of stunning visuals with GLSL programs on the web.
 
 There is also many applications that let you create stunning visuals in your browser by the same method, one of the most popular one and compatible with Fragment (by using the convert ShaderToy button of the toolbar) is $tlink(ShaderToy)(https://www.shadertoy.com/), this program let you build visuals and audio at the same time, just like Fragment but with a more conventional approach to audio synthesis.
@@ -711,10 +714,11 @@ $list(
 		$item $tlink(Page 3 PDF)(pdf/webgl2_glsl_3.pdf))
 )
 $nl
-Here is a simple example of GLSL code that Fragment accept which just set all pixels to black:
+Here is a simple example of GLSL code that Fragment accept which just set all pixels to black and all oscillators to off:
 $glslcode(
   void main () {
     gl_FragColor = vec4(0., 0., 0., 0.);
+    synthOutput = vec4(0., 0., 0., 0.); // WebGL 2.0 only
   }
 )
 In the subsequent GLSL code, $rgb(10,0,130)(blue words) are GLSL keywords, $rgb(130,0,0)(red) are float values and $rgb(0,130,0)(green words) are pre-defined specific definitions or functions.
@@ -747,11 +751,11 @@ $list(
 		$item time in seconds)
 	$item $bold(sampler2D) $rgb(0,100,100)(iInput)$rgb(0,100,100)($bold(N))
 	$list(
-		$item typical usage: texture2D(iInput0, uv))
+		$item typical usage: texture(iInput0, uv))
 	$item $bold(sampler2D) $rgb(0,100,100)(pFrame)
 	$list(
 		$item this uniform will be available when feedback is enabled and contain the previous frame
-		$item typical usage: texture2D(pFrame, uv))
+		$item typical usage: texture(pFrame, uv))
 	$item $bold(int) $rgb(0,100,100)(frame)
 	$list(
 		$item The current frame)
@@ -767,6 +771,11 @@ $list(
 	$item $bold(function) $rgb(0,100,100)(fline)
 	$list(
 		$item take a frequency as argument and return either 1 or 0, this is a shortcut to draw a line at a specified frequency, it use the htoy function internally)
+	$item $bold(vec3[N]) $rgb(0,100,100)(pKey)
+	$list(
+		$item Store the previous note-off event for each channels (typically used for gliding)
+		$item Content: frequency, velocity, elapsed time since the key was pressed
+		$item typical usage: vec3 chn1pkey = pKey[1];)
 )
 
 $subsection(The timbre)
@@ -807,7 +816,8 @@ $glslcode(
     // if monophonic mode is enabled, the alpha component will be used for the audio
     // in this case all other components are unused
     // thus the blue component can be used for visuals or debugging etc.
-    gl_FragColor = vec4(l, r, 0., 0.);
+    gl_FragColor = vec4(l, r, 0., 1.);
+    synthOutput = vec4(l, r, 0., 0.); // WebGL 2.0 only
   }
 )
 $ifhtml($center($ogg(audio/fsynth_fundamental.ogg)))
@@ -839,7 +849,8 @@ $glslcode(
       r += fline(base_frequency * i);
     }
     
-    gl_FragColor = vec4(l, r, 0., 0.);
+    gl_FragColor = vec4(l, r, 0., 1.);
+    synthOutput = vec4(l, r, 0., 0.); // WebGL 2.0 only
   }
 )
 $ifhtml($center($ogg(audio/fsynth_harmonics.ogg)))
@@ -864,7 +875,8 @@ $glslcode(
       r += fline(base_frequency * i) * a;
     }
     
-    gl_FragColor = vec4(l, r, 0., 0.);
+    gl_FragColor = vec4(l, r, 0., 1.);
+    synthOutput = vec4(l, r, 0., 0.); // WebGL 2.0 only
   }
 )
 $ifhtml($center($ogg(audio/fsynth_attenuation.ogg)))
@@ -892,7 +904,8 @@ $glslcode(
       r += fline(base_frequency * i) * a;
     }
     
-    gl_FragColor = vec4(l, r, 0., 0.);
+    gl_FragColor = vec4(l, r, 0., 1.);
+    synthOutput = vec4(l, r, 0., 0.); // WebGL 2.0 only
   }
 )
 $ifhtml($center($ogg(audio/fsynth_square.ogg)))
@@ -925,7 +938,8 @@ $glslcode(
       r += fline(base_frequency * i) * pm;
     }
     
-    gl_FragColor = vec4(l, r, 0., 0.);
+    gl_FragColor = vec4(l, r, 0., 1.);
+    synthOutput = vec4(l, r, 0., 0.); // WebGL 2.0 only
   }
 )
 $ifhtml($center($ogg(audio/fsynth_pulsewave.ogg)))
@@ -987,7 +1001,9 @@ $glslcode(
     
     // notice how the blue channel is used
     // this help to get a better visual feedback of the harmonics
-    gl_FragColor = vec4(l, r, l * 64., 0.);
+    gl_FragColor = vec4(l, r, l * 64., 1.);
+    // if WebGL 2.0 is enabled in your browser
+    synthOutput = vec4(l, r * 64., 0., 0.);
   }
 )
 $ifhtml($center($ogg(audio/fsynth_midi.ogg)))
@@ -1053,7 +1069,8 @@ $glslcode(
       }
     }
     
-    gl_FragColor = vec4(l, r, l + r, 0.);
+    gl_FragColor = vec4(l, r, l + r, 1.);
+    synthOutput = vec4(l, r, (l + r) / 2, 0.); // WebGL 2.0 only
   }
 )
 $ifhtml($center($ogg(audio/fsynth_ar.ogg)))
@@ -1104,7 +1121,8 @@ $glslcode(
       }
     }
     
-    gl_FragColor = vec4(l, r, l + r, 0.);
+    gl_FragColor = vec4(l, r, l + r, 1.);
+    synthOutput = vec4(l, r, (l + r) / 2., 0.); // WebGL 2.0 only
   }
 )
 $ifhtml($center($ogg(audio/fsynth_ar2.ogg)))
@@ -1164,7 +1182,8 @@ $glslcode(
       }
     }
     
-    gl_FragColor = vec4(l, r, l + r, 0.);
+    gl_FragColor = vec4(l, r, l + r, 1.);
+    synthOutput = vec4(l, r, (l + r) / 2., 0.); // WebGL 2.0 only
   }
 )
 $ifhtml($center($ogg(audio/fsynth_morph.ogg)))
@@ -1235,7 +1254,8 @@ $glslcode(
       }
     }
     
-    gl_FragColor = vec4(l, r, l + r, 0.);
+    gl_FragColor = vec4(l, r, l + r, 1.);
+    synthOutput = vec4(l, r, (l + r) / 2., 0.); // WebGL 2.0 only
   }
 )
 $ifhtml($center($ogg(audio/fsynth_adsr.ogg)))
@@ -1312,7 +1332,8 @@ $glslcode(
       }
     }
     
-    gl_FragColor = vec4(l, r, 0., 0.);
+    gl_FragColor = vec4(l, r, 0., 1.);
+    synthOutput = vec4(l, r, (l + r) / 2., 0.); // WebGL 2.0 only
   }
 )
 $ifhtml($center($ogg(audio/fsynth_lpf.ogg)))
@@ -1370,7 +1391,8 @@ $glslcode(
       }
     }
     
-    gl_FragColor = vec4(l, r, 0., 0.);
+    gl_FragColor = vec4(l, r, 0., 1.);
+    synthOutput = vec4(l, r, (l + r) / 2., 0.); // WebGL 2.0 only
   }
 )
 $ifhtml($center($ogg(audio/fsynth_lpf_mod.ogg)))
@@ -1466,7 +1488,8 @@ $glslcode(
       }
     }
     
-    gl_FragColor = vec4(l, r, 0., 0.);
+    gl_FragColor = vec4(l, r, 0., 1.);
+    synthOutput = vec4(l, r, (l + r) / 2., 0.); // WebGL 2.0 only
   }
 )
 $ifhtml($center($ogg(audio/fsynth_filters.ogg)))
@@ -1530,7 +1553,8 @@ $glslcode(
       }
     }
 
-    gl_FragColor = vec4(l, r, 0., 0.);
+    gl_FragColor = vec4(l, r, 0., 1.);
+    synthOutput = vec4(l, r, (l + r) / 2., 0.); // WebGL 2.0 only
   }
 )
 $tlink($center($image(522)(images/possibilities.png)))(images/possibilities.png)
@@ -1636,7 +1660,8 @@ void main () {
       }
     }
     
-    gl_FragColor = vec4(l, r, 0., 0.);
+    gl_FragColor = vec4(l, r, 0., 1.);
+    synthOutput = vec4(l, r, (l + r) / 2., 0.); // WebGL 2.0 only
   }
 )
 $ifhtml($center($ogg(audio/fsynth_sequence.ogg)))

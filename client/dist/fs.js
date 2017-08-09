@@ -20334,37 +20334,41 @@ var _audioInit = function () {
     Functions.
 ************************************************************/
 
-var _imageProcessingDone = function (mdata) {
-    var tmp_canvas = document.createElement('canvas'),
-        tmp_canvas_context = tmp_canvas.getContext('2d'),
-        
-        image_data = tmp_canvas_context.createImageData(mdata.img_width, mdata.img_height),
-        
-        image_element;
-    
-    image_data.data.set(new Uint8ClampedArray(mdata.data));
+var _imageProcessingDone = function (image_ready_cb) {
+    return function (mdata) {
+        var tmp_canvas = document.createElement('canvas'),
+            tmp_canvas_context = tmp_canvas.getContext('2d'),
 
-    tmp_canvas.width  = image_data.width;
-    tmp_canvas.height = image_data.height;
+            image_data = tmp_canvas_context.createImageData(mdata.img_width, mdata.img_height),
 
-    tmp_canvas_context.putImageData(image_data, 0, 0);
+            image_element;
 
-    image_element = document.createElement("img");
-    image_element.src = tmp_canvas.toDataURL();
-    image_element.width = image_data.width;
-    image_element.height = image_data.height;
+        image_data.data.set(new Uint8ClampedArray(mdata.data));
 
-    image_element.onload = function () {
-        image_element.onload = null;
-        
-        _addFragmentInput("image", image_element);
-    };
+        tmp_canvas.width  = image_data.width;
+        tmp_canvas.height = image_data.height;
+
+        tmp_canvas_context.putImageData(image_data, 0, 0);
+
+        image_element = document.createElement("img");
+        image_element.src = tmp_canvas.toDataURL();
+        image_element.width = image_data.width;
+        image_element.height = image_data.height;
+
+        image_element.onload = function () {
+            image_element.onload = null;
+            
+            image_ready_cb(image_element);
+        };
+    }
 };
 
 var _imageDataToInput = function (data) {
     _notification("image processing in progress...");
         
-    _imageProcessor(data, _imageProcessingDone);
+    _imageProcessor(data, _imageProcessingDone(function (image_element) {
+            _addFragmentInput("image", image_element);
+        }));
 };
 
 var _loadImageFromFile = function (file) {
@@ -20393,6 +20397,32 @@ var _loadImageFromFile = function (file) {
         img = null;
     };
     img.src = window.URL.createObjectURL(file);
+};
+
+var _loadImageFromURL = function (url, done_cb) {
+    var img = new Image(),
+        
+        tmp_canvas = document.createElement('canvas'),
+        tmp_canvas_context = tmp_canvas.getContext('2d'),
+        
+        tmp_image_data;
+    
+    img.onload = function () {
+        tmp_canvas.width  = img.naturalWidth;
+        tmp_canvas.height = img.naturalHeight;
+
+        tmp_canvas_context.translate(0, tmp_canvas.height);
+        tmp_canvas_context.scale(1, -1);
+        tmp_canvas_context.drawImage(img, 0, 0, tmp_canvas.width, tmp_canvas.height);
+
+        tmp_image_data = tmp_canvas_context.getImageData(0, 0, tmp_canvas.width, tmp_canvas.height);
+
+        _imageProcessor(tmp_image_data, _imageProcessingDone(done_cb));
+        
+        img.onload = null;
+        img = null;
+    };
+    img.src = url;
 };/* jslint browser: true */
 
 /***********************************************************
@@ -20549,7 +20579,8 @@ _audio_to_image_worker.addEventListener('message', function (m) {
             };
 
         // now image processing step...
-        _imageProcessor(image_data, _imageProcessingDone);
+        //_imageProcessor(image_data, _imageProcessingDone);
+        _imageDataToInput(image_data);
     
         _notification("Audio file converted to " + image_data.width + "x" + image_data.height + "px image.")
     }, false);/* jslint browser: true */
@@ -22215,9 +22246,15 @@ var _shareCodeEditorChanges = function (changes) {
     };
     
     // we must do it in order (this avoid issue with same-time op)
-    changes.reverse();
+    //changes.reverse();
 
     for (i = 0; i < changes.length; i += 1) {
+        op = {
+            p: [],
+            t: "text0",
+            o: []
+        };
+        
         change = changes[i];
         start_pos = 0;
         j = 0;
@@ -22256,10 +22293,10 @@ var _shareCodeEditorChanges = function (changes) {
                 i: change.text.join('\n')
             });
         }
-    }
-
-    if (op.o.length > 0) {
-        _sharedb_doc.submitOp(op);
+        
+        if (op.o.length > 0) {
+            _sharedb_doc.submitOp(op);
+        }
     }
 };
 
@@ -22734,7 +22771,8 @@ var _addPreloaded = function () {
     var i= 0;
     
     for (i = 1; i < 20; i += 1) {
-        _addBrush({ src: "data/brushes/" + i + ".png" });
+        //_addBrush({ src: "data/brushes/" + i + ".png" });
+        _loadImageFromURL("data/brushes/" + i + ".png", _addBrush);
     }
 };
 
@@ -23180,9 +23218,11 @@ var _createInputThumb = function (input_id, image, thumb_title, src) {
 var _canvasInputUpdate = function (input_obj) {
     clearTimeout(input_obj.update_timeout);
     input_obj.update_timeout = setTimeout(function () {
-            var image_data = input_obj.canvas_ctx.getImageData(0, 0, input_obj.canvas.width, input_obj.canvas.height);
+            var image_data = input_obj.canvas_ctx.getImageData(0, 0, input_obj.canvas.width, input_obj.canvas.height),
+                m = { img_width: image_data.width, img_height: image_data.height, data: image_data.data };
 
-            _imageProcessor(image_data, function (m) {
+            // not needed because all images should be already processed
+            //_imageProcessor(image_data, function (m) {
                 _gl.bindTexture(_gl.TEXTURE_2D, input_obj.texture);
                 _gl.pixelStorei(_gl.UNPACK_FLIP_Y_WEBGL, true);
                 _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, m.img_width, m.img_height, 0, _gl.RGBA, _gl.UNSIGNED_BYTE, new Uint8Array(m.data));
@@ -23193,7 +23233,7 @@ var _canvasInputUpdate = function (input_obj) {
                 var input_id = _parseInt10(input_obj.elem.dataset.inputId);
                 
                 _dbUpdateInput(input_id, input_obj.db_obj);
-            });
+            //});
         }, 250);
 };
 

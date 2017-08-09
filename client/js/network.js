@@ -387,9 +387,15 @@ var _shareCodeEditorChanges = function (changes) {
     };
     
     // we must do it in order (this avoid issue with same-time op)
-    changes.reverse();
+    //changes.reverse();
 
     for (i = 0; i < changes.length; i += 1) {
+        op = {
+            p: [],
+            t: "text0",
+            o: []
+        };
+        
         change = changes[i];
         start_pos = 0;
         j = 0;
@@ -428,10 +434,10 @@ var _shareCodeEditorChanges = function (changes) {
                 i: change.text.join('\n')
             });
         }
-    }
-
-    if (op.o.length > 0) {
-        _sharedb_doc.submitOp(op);
+        
+        if (op.o.length > 0) {
+            _sharedb_doc.submitOp(op);
+        }
     }
 };
 

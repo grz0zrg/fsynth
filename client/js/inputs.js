@@ -432,9 +432,11 @@ var _createInputThumb = function (input_id, image, thumb_title, src) {
 var _canvasInputUpdate = function (input_obj) {
     clearTimeout(input_obj.update_timeout);
     input_obj.update_timeout = setTimeout(function () {
-            var image_data = input_obj.canvas_ctx.getImageData(0, 0, input_obj.canvas.width, input_obj.canvas.height);
+            var image_data = input_obj.canvas_ctx.getImageData(0, 0, input_obj.canvas.width, input_obj.canvas.height),
+                m = { img_width: image_data.width, img_height: image_data.height, data: image_data.data };
 
-            _imageProcessor(image_data, function (m) {
+            // not needed because all images should be already processed
+            //_imageProcessor(image_data, function (m) {
                 _gl.bindTexture(_gl.TEXTURE_2D, input_obj.texture);
                 _gl.pixelStorei(_gl.UNPACK_FLIP_Y_WEBGL, true);
                 _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, m.img_width, m.img_height, 0, _gl.RGBA, _gl.UNSIGNED_BYTE, new Uint8Array(m.data));
@@ -445,7 +447,7 @@ var _canvasInputUpdate = function (input_obj) {
                 var input_id = _parseInt10(input_obj.elem.dataset.inputId);
                 
                 _dbUpdateInput(input_id, input_obj.db_obj);
-            });
+            //});
         }, 250);
 };
 

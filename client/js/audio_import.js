@@ -123,7 +123,8 @@ _audio_to_image_worker.addEventListener('message', function (m) {
             };
 
         // now image processing step...
-        _imageProcessor(image_data, _imageProcessingDone);
+        //_imageProcessor(image_data, _imageProcessingDone);
+        _imageDataToInput(image_data);
     
         _notification("Audio file converted to " + image_data.width + "x" + image_data.height + "px image.")
     }, false);

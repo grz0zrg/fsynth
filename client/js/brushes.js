@@ -108,7 +108,8 @@ var _addPreloaded = function () {
     var i= 0;
     
     for (i = 1; i < 20; i += 1) {
-        _addBrush({ src: "data/brushes/" + i + ".png" });
+        //_addBrush({ src: "data/brushes/" + i + ".png" });
+        _loadImageFromURL("data/brushes/" + i + ".png", _addBrush);
     }
 };
 
