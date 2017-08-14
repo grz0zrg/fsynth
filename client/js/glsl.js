@@ -167,7 +167,7 @@ var _glsl_compilation = function () {
         glsl_code += "precision mediump float;";
         editor_value = editor_value.replace(/texture/g, "texture2D");
         editor_value = editor_value.replace(/fragColor/g, "gl_FragColor");
-        editor_value = editor_value.replace(/synthOuput.*;/g, "");
+        editor_value = editor_value.replace(/synthOutput.*;/g, "");
         
         vertex_shader_code = document.getElementById("vertex-shader").text;
     }

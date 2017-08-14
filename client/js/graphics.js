@@ -451,6 +451,90 @@ var _allocateFramesData = function () {
     }
 };
 
+var _canvasRecord = function (ndata) {
+    var nr = 0,
+        ng = 0,
+        nb = 0,
+    
+        ro = 0,
+        go = 1,
+        bo = 2,
+        
+        i = 0, j = 0, o = 0, m = 1,
+        
+        data, temp_data;
+    
+    if (_record) {
+        _record_position += 1;
+        if (_record_position > _canvas_width) {
+            _record_position = 0;
+        }
+
+        // merge all
+        temp_data = new Uint8Array(_canvas_height_mul4);
+
+        if (_read_pixels_format === _gl.FLOAT) {
+            m = 255;
+        }
+        
+        for (i = 0; i < _output_channels; i += 1) {
+            for (j = 0; j <= _canvas_height_mul4; j += 1) {
+                temp_data[j] += ndata[i][j] * m;
+                
+                temp_data[j] = Math.min(temp_data[j], 255);
+            }
+        }
+        
+        if (_record_opts.f !== _record_opts.default)  {
+            data = _record_canvas_ctx.getImageData(_record_position, 0, 1, _record_canvas.height).data;
+        } else {
+            data = new Uint8Array(_canvas_height_mul4);
+        }
+
+        if (_audio_infos.monophonic) {
+            ro = go = bo = 3;
+        }
+
+        for (i = 0; i < _canvas_height_mul4; i += 4) {
+            o = _canvas_height_mul4 - i;
+
+            data[o] = _record_opts.f(data[o], temp_data[i + ro]);
+            data[o + 1] = _record_opts.f(data[o + 1], temp_data[i + go]);
+            data[o + 2] = _record_opts.f(data[o + 2], temp_data[i + bo]);
+            data[o + 3] = 255;
+/*
+            nr = Math.max(nr, data[i]);
+            ng = Math.max(ng, data[i + 1]);
+            nb = Math.max(nb, data[i + 2]);
+*/
+        }
+/*
+        nr = nr > 0 ? 255 / nr : 1;
+        ng = ng > 0 ? 255 / ng : 1;
+        nb = nb > 0 ? 255 / nb : 1;
+
+        for (i = 0; i < _canvas_height_mul4; i += 4) {
+            data[i] *= nr;
+            data[i + 1] *= ng;
+            data[i + 2] *= nb;
+        }
+*/
+        _record_slice_image.data.set(data);
+
+        _record_canvas_ctx.putImageData(_record_slice_image, _record_position, 0);
+/*
+        for (i = 0; i < _fragment_input_data.length; i += 1) {
+            fragment_input = _fragment_input_data[i];
+
+            if (fragment_input.type === 2) {
+                _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
+                _gl.texSubImage2D(_gl.TEXTURE_2D, 0, 0, 0, _gl.RGBA, _gl.UNSIGNED_BYTE, _record_canvas);
+            }
+        }
+*/
+    }    
+};
+
 var _frame = function (raf_time) {
     var i = 0, j = 0, o = 0,
 
@@ -479,7 +563,7 @@ var _frame = function (raf_time) {
         
         f, v, key,
         
-        data, data2, temp_data,
+        data,
         
         buffer = [];
 
@@ -687,69 +771,7 @@ var _frame = function (raf_time) {
             _osc_infos.innerHTML = arr_infos.join(" ");
         }
         
-        if (_record) {
-            _record_position += 1;
-            if (_record_position > _canvas_width) {
-                _record_position = 0;
-            }
-            
-            // merge all
-            temp_data = new Uint8Array(_canvas_height_mul4);
-            
-            if (_read_pixels_format === _gl.FLOAT) {
-                for (i = 0; i < _output_channels; i += 1) {
-                    for (j = 0; j <= _canvas_height_mul4; j += 1) {
-                        temp_data[j] += _data[i][j] * 255;
-                    }
-                }
-            } else {
-                for (i = 0; i < _output_channels; i += 1) {
-                    for (j = 0; j <= _canvas_height_mul4; j += 1) {
-                        temp_data[j] += _data[i][j];
-                    }
-                }
-            }
-            
-            if (_record_opts.f !== _record_opts.default)  {
-                data = _record_canvas_ctx.getImageData(_record_position, 0, 1, _record_canvas.height).data;
-            } else {
-                data = new Uint8Array(_canvas_height_mul4);
-            }
-            
-            if (_audio_infos.monophonic) {
-                for (i = 0; i <= _canvas_height_mul4; i += 4) {
-                    o = _canvas_height_mul4 - i;
-
-                    data[o] = _record_opts.f(data[o], temp_data[i + 3]);
-                    data[o + 1] = _record_opts.f(data[o + 1], temp_data[i + 3]);
-                    data[o + 2] = _record_opts.f(data[o + 2], temp_data[i + 3]);
-                    data[o + 3] = 255;
-                }
-            } else {
-                for (i = 0; i <= _canvas_height_mul4; i += 4) {
-                    o = _canvas_height_mul4 - i;
-
-                    data[o] = _record_opts.f(data[o], temp_data[i]);
-                    data[o + 1] = _record_opts.f(data[o + 1], temp_data[i + 1]);
-                    data[o + 2] = _record_opts.f(data[o + 2], temp_data[i + 2]);
-                    data[o + 3] = 255;
-                }
-            }
-            
-            _record_slice_image.data.set(data);
-            
-            _record_canvas_ctx.putImageData(_record_slice_image, _record_position, 0);
-/*
-            for (i = 0; i < _fragment_input_data.length; i += 1) {
-                fragment_input = _fragment_input_data[i];
-
-                if (fragment_input.type === 2) {
-                    _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
-                    _gl.texSubImage2D(_gl.TEXTURE_2D, 0, 0, 0, _gl.RGBA, _gl.UNSIGNED_BYTE, _record_canvas);
-                }
-            }
-*/
-        }
+        _canvasRecord(_data);
         
         if (fas_enabled) {
             _fasNotifyFast(_FAS_FRAME, _data);
