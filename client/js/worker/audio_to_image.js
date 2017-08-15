@@ -71,7 +71,7 @@ var _convert = function (params, data) {
         start = stft_result_length + lid,
         end = stft_result_length + lid + hid,
         
-        n, adiff, amax = 0,
+        n, adiff, amax = 0, amin = 255,
         
         progress_step = note_samples / data_buffer.length * 100,
     
@@ -162,20 +162,24 @@ var _convert = function (params, data) {
     }
     
     // mag. normalization
-/*
     for (i = 0; i < image_data.length; i += 4) {
         n = image_data[i];
         amax = n > amax ? n : amax;
+        amin = n < amin ? n : amin;
     }
 
-    adiff = 255 / amax;
+    adiff = 255 / (amax - amin);
 
     for (i = 0; i < image_data.length; i += 4) {
+        image_data[i] -= amin;
+        image_data[i + 1] -= amin;
+        image_data[i + 2] -= amin;
+        
         image_data[i] *= adiff;
         image_data[i + 1] *= adiff;
         image_data[i + 2] *= adiff;
     }
-*/
+
 
     return { width: image_width, height: image_height, data: image_data };
 };

@@ -21140,9 +21140,9 @@ var _allocateFramesData = function () {
 };
 
 var _canvasRecord = function (ndata) {
-    var nr = 0,
-        ng = 0,
-        nb = 0,
+    var min_r = 255, max_r = 0, 
+        min_g = 255, max_g = 0,
+        min_b = 255, max_b = 0,
     
         ro = 0,
         go = 1,
@@ -21190,23 +21190,30 @@ var _canvasRecord = function (ndata) {
             data[o + 1] = _record_opts.f(data[o + 1], temp_data[i + go]);
             data[o + 2] = _record_opts.f(data[o + 2], temp_data[i + bo]);
             data[o + 3] = 255;
-/*
-            nr = Math.max(nr, data[i]);
-            ng = Math.max(ng, data[i + 1]);
-            nb = Math.max(nb, data[i + 2]);
-*/
+            
+            min_r = Math.min(min_r, data[i]);
+            min_g = Math.min(min_g, data[i + 1]);
+            min_b = Math.min(min_b, data[i + 2]);
+
+            max_r = Math.max(max_r, data[i]);
+            max_g = Math.max(max_g, data[i + 1]);
+            max_b = Math.max(max_b, data[i + 2]);
         }
-/*
-        nr = nr > 0 ? 255 / nr : 1;
-        ng = ng > 0 ? 255 / ng : 1;
-        nb = nb > 0 ? 255 / nb : 1;
+
+        max_r = 255 / (max_r - min_r);
+        max_g = 255 / (max_g - min_g);
+        max_b = 255 / (max_b - min_b);
 
         for (i = 0; i < _canvas_height_mul4; i += 4) {
-            data[i] *= nr;
-            data[i + 1] *= ng;
-            data[i + 2] *= nb;
+            data[i] -= min_r;
+            data[i + 1] -= min_g;
+            data[i + 2] -= min_b;
+            
+            data[i] *= max_r;
+            data[i + 1] *= max_g;
+            data[i + 2] *= max_b;
         }
-*/
+
         _record_slice_image.data.set(data);
 
         _record_canvas_ctx.putImageData(_record_slice_image, _record_position, 0);
@@ -22787,7 +22794,6 @@ var _addPreloaded = function () {
     var i= 0;
     
     for (i = 1; i < 20; i += 1) {
-        //_addBrush({ src: "data/brushes/" + i + ".png" });
         _loadImageFromURL("data/brushes/" + i + ".png", _addBrush);
     }
 };
