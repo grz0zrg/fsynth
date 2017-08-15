@@ -502,7 +502,7 @@ var _canvasRecord = function (ndata) {
             data[o + 1] = _record_opts.f(data[o + 1], temp_data[i + go]);
             data[o + 2] = _record_opts.f(data[o + 2], temp_data[i + bo]);
             data[o + 3] = 255;
-            
+/*
             min_r = Math.min(min_r, data[i]);
             min_g = Math.min(min_g, data[i + 1]);
             min_b = Math.min(min_b, data[i + 2]);
@@ -510,8 +510,9 @@ var _canvasRecord = function (ndata) {
             max_r = Math.max(max_r, data[i]);
             max_g = Math.max(max_g, data[i + 1]);
             max_b = Math.max(max_b, data[i + 2]);
+*/
         }
-
+/*
         max_r = 255 / (max_r - min_r);
         max_g = 255 / (max_g - min_g);
         max_b = 255 / (max_b - min_b);
@@ -525,7 +526,7 @@ var _canvasRecord = function (ndata) {
             data[i + 1] *= max_g;
             data[i + 2] *= max_b;
         }
-
+*/
         _record_slice_image.data.set(data);
 
         _record_canvas_ctx.putImageData(_record_slice_image, _record_position, 0);
@@ -562,7 +563,7 @@ var _frame = function (raf_time) {
         iglobal_time,
 
         date = new Date(),
-
+        
         channel = 0,
         channel_data,
         

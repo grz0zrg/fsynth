@@ -19608,7 +19608,7 @@ _utter_fail_element.innerHTML = "";
         _midi_out = true,
 
         _quad_vertex_buffer,
-
+        
         _program,
 
         //_controls = {},
@@ -21190,7 +21190,7 @@ var _canvasRecord = function (ndata) {
             data[o + 1] = _record_opts.f(data[o + 1], temp_data[i + go]);
             data[o + 2] = _record_opts.f(data[o + 2], temp_data[i + bo]);
             data[o + 3] = 255;
-            
+/*
             min_r = Math.min(min_r, data[i]);
             min_g = Math.min(min_g, data[i + 1]);
             min_b = Math.min(min_b, data[i + 2]);
@@ -21198,8 +21198,9 @@ var _canvasRecord = function (ndata) {
             max_r = Math.max(max_r, data[i]);
             max_g = Math.max(max_g, data[i + 1]);
             max_b = Math.max(max_b, data[i + 2]);
+*/
         }
-
+/*
         max_r = 255 / (max_r - min_r);
         max_g = 255 / (max_g - min_g);
         max_b = 255 / (max_b - min_b);
@@ -21213,7 +21214,7 @@ var _canvasRecord = function (ndata) {
             data[i + 1] *= max_g;
             data[i + 2] *= max_b;
         }
-
+*/
         _record_slice_image.data.set(data);
 
         _record_canvas_ctx.putImageData(_record_slice_image, _record_position, 0);
@@ -21250,7 +21251,7 @@ var _frame = function (raf_time) {
         iglobal_time,
 
         date = new Date(),
-
+        
         channel = 0,
         channel_data,
         
@@ -22113,7 +22114,7 @@ var _fssConnect = function () {
                 } else if (msg.type === "msg") {
                     _addMessage(msg.userid, msg.data);
                 } else if (msg.type === "addSlice") {
-                    _addPlayPositionMarker(msg.data.x, msg.data.shift, msg.data.mute, msg.data.output_channel);
+                    _addPlayPositionMarker(msg.data.x, msg.data.shift, msg.data.mute, msg.data.output_channel, msg.data.synthesis_type);
                 } else if (msg.type === "delSlice") {
                     _removePlayPositionMarker(msg.data.id);
                 } else if (msg.type === "updSlice") {
@@ -22122,7 +22123,7 @@ var _fssConnect = function () {
                     _removeAllSlices();
                     
                     for (i = 0; i < msg.data.length; i += 1) {
-                        _addPlayPositionMarker(msg.data[i].x, msg.data[i].shift, msg.data[i].mute, msg.data[i].output_channel);
+                        _addPlayPositionMarker(msg.data[i].x, msg.data[i].shift, msg.data[i].mute, msg.data[i].output_channel, msg.data[i].synthesis_type);
                     }
                 }
             } catch (e) {
@@ -27094,6 +27095,18 @@ var _updatePlayMarker = function (id, obj) {
         
         WUI_RangeSlider.setValue("fs_slice_settings_shift_input_" + slice.id, slice.shift);
     }
+    
+    if (obj.output_channel) {
+        slice.output_channel = _parseInt10(obj.output_channel);
+        
+        WUI_RangeSlider.setValue("fs_slice_settings_channel_input_" + slice.id, slice.output_channel);
+    }
+    /*
+    if (obj.synthesis_type) {
+        slice.synthesis_type = _parseInt10(obj.synthesis_type);
+        
+        document.getElementById("fs_slice_settings_synthesis_select" + slice.id).options[slice.synthesis_type].selected = "selected";
+    }*/
 };
 
 var _removePlayPositionMarker = function (marker_id, force, submit) {
@@ -27112,6 +27125,7 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
     WUI_RangeSlider.destroy("fs_slice_settings_x_input_" + marker_id);
     WUI_RangeSlider.destroy("fs_slice_settings_shift_input_" + marker_id);
     WUI_RangeSlider.destroy("fs_slice_settings_channel_input_" + marker_id);
+    WUI_RangeSlider.destroy("fs_slice_settings_bpm_" + marker_id);
 
     _play_position_markers.splice(marker_id, 1);
 
@@ -27142,11 +27156,14 @@ var _createMarkerSettings = function (marker_obj) {
         fs_slice_settings_x_input = document.createElement("div"),
         fs_slice_settings_shift_input = document.createElement("div"),
         fs_slice_settings_channel_input = document.createElement("div"),
-        fs_slice_settings_bpm = document.createElement("div");
+        fs_slice_settings_synthesis_select = document.createElement("select"),
+        fs_slice_settings_bpm = document.createElement("div"),
+        synthesis_option;
     
     fs_slice_settings_x_input.id = "fs_slice_settings_x_input_" + marker_obj.id;
     fs_slice_settings_shift_input.id = "fs_slice_settings_shift_input_" + marker_obj.id;
     fs_slice_settings_channel_input.id = "fs_slice_settings_channel_input_" + marker_obj.id;
+    fs_slice_settings_synthesis_select.id = "fs_slice_settings_synthesis_select" + marker_obj.id;
     fs_slice_settings_bpm.id = "fs_slice_settings_bpm_" + marker_obj.id;
     
     WUI_RangeSlider.create(fs_slice_settings_x_input, {
@@ -27173,8 +27190,6 @@ var _createMarkerSettings = function (marker_obj) {
 
             on_change: function (value) {
                 _setPlayPosition(marker_obj.element.dataset.slice, _parseInt10(value), 0, true);
-                
-                //_submitSliceSettings(); 
             }
         });
 
@@ -27199,13 +27214,6 @@ var _createMarkerSettings = function (marker_obj) {
             value_min_width: 88,
 
             on_change: function (value) {
-                /*
-                if (_selected_slice) {
-                    _selected_slice.shift = _parseInt10(value);
-                    
-                    _submitSliceUpdate(1, marker_obj.element.dataset.slice, { shift : value });
-                }*/
-                
                 var slice = _getSlice(marker_obj.element.dataset.slice);
                 
                 slice.shift = _parseInt10(value);
@@ -27277,11 +27285,52 @@ var _createMarkerSettings = function (marker_obj) {
                 slice.frame_increment = parseFloat(value);
             }
         });
-    
+/*
+    synthesis_option = document.createElement("option");
+    synthesis_option.text = "Additive";
+    fs_slice_settings_synthesis_select.add(synthesis_option);
+    synthesis_option = document.createElement("option");
+    synthesis_option.text = "Granular";
+    fs_slice_settings_synthesis_select.add(synthesis_option);
+    fs_slice_settings_synthesis_select.classList.add("fs-btn");
+*/  
     fs_slice_settings_container.appendChild(fs_slice_settings_x_input);
     fs_slice_settings_container.appendChild(fs_slice_settings_shift_input);
     fs_slice_settings_container.appendChild(fs_slice_settings_bpm);
     fs_slice_settings_container.appendChild(fs_slice_settings_channel_input);
+    
+    // synthesis select
+/*
+    var div = document.createElement("div"),
+        label = document.createElement("label");
+    
+    div.style.textAlign = "center";
+    label.classList.add("fs-input-label");
+    label.htmlFor = fs_slice_settings_synthesis_select.id;
+    
+    label.innerHTML = "FAS Synthesis: &nbsp;";
+    
+    div.appendChild(label);
+    div.appendChild(fs_slice_settings_synthesis_select);
+    fs_slice_settings_container.appendChild(div);
+    
+    fs_slice_settings_synthesis_select.addEventListener('change', function (e) {
+        var synthesis = e.target.value,
+            slice;
+
+        if (synthesis === "Additive") {
+            synthesis = 0;
+        } else if (synthesis === "Granular") {
+            synthesis = 1;
+        }
+        
+        slice = _getSlice(marker_obj.element.dataset.slice);
+        slice.synthesis_type = synthesis;
+        
+        _submitSliceUpdate(4, marker_obj.element.dataset.slice, { synthesis_type : value });
+    });
+    //
+*/
     
     fs_slice_settings_container.id = "slice_settings_container_" + marker_obj.id;
     fs_slice_settings_container.style = "display: none";
@@ -27321,6 +27370,7 @@ var _submitSliceSettingsFn = function () {
                 shift: play_position_marker.shift,
                 mute: play_position_marker.mute,
                 output_channel: play_position_marker.output_channel,
+                //synthesis_type: play_position_marker.synthesis_type
             });
     }
 
@@ -27370,7 +27420,7 @@ var _unmuteSlice = function (slice_obj, submit) {
     }
 };
 
-var _addPlayPositionMarker = function (x, shift, mute, output_channel, submit) {
+var _addPlayPositionMarker = function (x, shift, mute, output_channel, synthesis_type, submit) {
     var play_position_marker_element = _domCreatePlayPositionMarker(_canvas, _canvas_height),
         play_position_marker_id = _play_position_markers.length,
         
@@ -27406,6 +27456,7 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, submit) {
             shift: 0,
             frame_increment: 0,
             output_channel: 1,
+            synthesis_type: 0,
             y: 0,
             height: _canvas_height,
             id: play_position_marker_id
@@ -27416,6 +27467,10 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, submit) {
     if (output_channel !== undefined) {
         play_position_marker.output_channel = output_channel;
     }
+    /*
+    if (synthesis_type !== undefined) {
+        play_position_marker.synthesis_type = synthesis_type;
+    }*/
     
     _computeOutputChannels();
     
@@ -28429,7 +28484,7 @@ _canvas.addEventListener('contextmenu', function(ev) {
             },
             [
                 { icon: "fs-plus-icon", tooltip: "Slice!",  on_click: function () {
-                        _addPlayPositionMarker(_cx, 0, false, 1, true);
+                        _addPlayPositionMarker(_cx, 0, false, 1, 0, true);
                     } }
             ]);
 

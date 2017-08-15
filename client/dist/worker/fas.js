@@ -124,7 +124,7 @@ var _sendFrame = function (frame, mono, float, synthesis_type) {
 
     if (float) {
         for (i = 0; i < frame.length; i += 1) {
-            uint8_view = new Float32Array(fas_data, 24 + frame_data.length * i, frame_data.length);
+            uint8_view = new Float32Array(fas_data, 24 + frame_data.length * 4 * i, frame_data.length);
 
             uint8_view.set(new Float32Array(frame[i]));
         }

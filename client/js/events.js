@@ -34,7 +34,7 @@ _canvas.addEventListener('contextmenu', function(ev) {
             },
             [
                 { icon: "fs-plus-icon", tooltip: "Slice!",  on_click: function () {
-                        _addPlayPositionMarker(_cx, 0, false, 1, true);
+                        _addPlayPositionMarker(_cx, 0, false, 1, 0, true);
                     } }
             ]);
 

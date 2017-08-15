@@ -225,7 +225,7 @@ var _fssConnect = function () {
                 } else if (msg.type === "msg") {
                     _addMessage(msg.userid, msg.data);
                 } else if (msg.type === "addSlice") {
-                    _addPlayPositionMarker(msg.data.x, msg.data.shift, msg.data.mute, msg.data.output_channel);
+                    _addPlayPositionMarker(msg.data.x, msg.data.shift, msg.data.mute, msg.data.output_channel, msg.data.synthesis_type);
                 } else if (msg.type === "delSlice") {
                     _removePlayPositionMarker(msg.data.id);
                 } else if (msg.type === "updSlice") {
@@ -234,7 +234,7 @@ var _fssConnect = function () {
                     _removeAllSlices();
                     
                     for (i = 0; i < msg.data.length; i += 1) {
-                        _addPlayPositionMarker(msg.data[i].x, msg.data[i].shift, msg.data[i].mute, msg.data[i].output_channel);
+                        _addPlayPositionMarker(msg.data[i].x, msg.data[i].shift, msg.data[i].mute, msg.data[i].output_channel, msg.data[i].synthesis_type);
                     }
                 }
             } catch (e) {

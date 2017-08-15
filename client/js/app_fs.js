@@ -355,7 +355,7 @@ var FragmentSynth = function (params) {
         _midi_out = true,
 
         _quad_vertex_buffer,
-
+        
         _program,
 
         //_controls = {},

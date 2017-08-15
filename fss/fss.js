@@ -289,7 +289,7 @@ redisClient.on('connect', function() {
                             if (reply !== null) {
                                 var slices = JSON.parse(reply);
                                 
-                                slices.push({ x: msg.data.x, shift: msg.data.shift, mute: msg.data.mute, output_channel: msg.data.output_channel });
+                                slices.push({ x: msg.data.x, shift: msg.data.shift, mute: msg.data.mute, output_channel: msg.data.output_channel, synthesis_type: msg.data.synthesis_type });
                                 
                                 clusterWideBroadcast(ws, prepareMessage("addSlice", { data: msg.data }), client.session);
                                 
@@ -349,7 +349,11 @@ redisClient.on('connect', function() {
                                 if (msg.data.obj['output_channel'] !== undefined) {
                                     slice.output_channel = msg.data.obj.output_channel;
                                 }
-
+                                
+                                if (msg.data.obj['synthesis_type'] !== undefined) {
+                                    slice.synthesis_type = msg.data.obj.synthesis_type;
+                                }
+                                
                                 clusterWideBroadcast(ws, prepareMessage("updSlice", { data: msg.data }), client.session);
                                 
                                 redisSettingsClient.set(client.session, JSON.stringify(slices));
