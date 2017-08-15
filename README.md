@@ -53,6 +53,8 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
 
  ***Note**: WebAudio oscillators and Wavetable mode can only have two output channels (L/R) due to performances issues (this may change in the future!)*
 
+ ***Note**: One of the main limitation of Fragment may be the events granularity caused by the monitor refresh rate (60 or 120 FPS), this can be solved by running the browser without VSYNC, example for Chrome with the command-line parameter "--disable-gpu-vsync"
+
 ## MIDI Features (Integrated MIDI support with the WebMIDI API):
 
  * Integrated note-on/note-off messages, note frequency, velocity, MIDI channel and elapsed time are accessible in the fragment shader (this is not shared between users)
