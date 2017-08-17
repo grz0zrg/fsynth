@@ -287,7 +287,11 @@ var _getControlsChangeFn = function (value_fn, name, index, count, comps) {
             _shareCtrlsUpd(name, index, ctrl_obj.values[index], value);
         
             ctrl_obj.values[index] = value;
-
+        
+            if (!_program) {
+                return;
+            }
+        
             _useProgram(_program);
 
             _setUniforms(_gl, ctrl_obj.type, _program, name, ctrl_obj.values, comps);

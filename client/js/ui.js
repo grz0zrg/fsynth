@@ -830,7 +830,7 @@ var _uiInit = function () {
             title: "Fragment - Help",
 
             width: "380px",
-            height: "685px",
+            height: "735px",
 
             halign: "center",
             valign: "center",

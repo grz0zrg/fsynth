@@ -90,7 +90,7 @@ var _getUniformLocation = function (name, program) {
 };
 
 var _setUniform = function (gl_ctx, type_str, program, name, value) {
-    var uniform_location = _getUniformLocation(name, program);//gl_ctx.getUniformLocation(program, name);
+    var uniform_location = _getUniformLocation(name, program);
     
     if (type_str === "bool" || type_str === "int" || type_str === "uint") {
         gl_ctx.uniform1i(uniform_location, value);
@@ -270,7 +270,8 @@ var _glsl_compilation = function () {
         if (_gl2) {
 /*
             var vao = gl.createVertexArray();
-            _gl.bindVertexArray(vao);*/
+            _gl.bindVertexArray(vao);
+*/
             _gl.bindBuffer(_gl.ARRAY_BUFFER, _quad_vertex_buffer);
         } else {
             position = _gl.getAttribLocation(_program, "position");
@@ -301,10 +302,10 @@ var _compile = function () {
 
 var setCursorCb = function (position) {
     return function () {
-        _code_editor.setCursor({ line: position.start.line - 1, ch: position.start.column });
+        _code_editor.setCursor({ line: position.start.line - 2, ch: position.start.column });
         
         if (_detached_code_editor_window) {
-            _detached_code_editor_window.cm.setCursor({ line: position.start.line - 1, ch: position.start.column });
+            _detached_code_editor_window.cm.setCursor({ line: position.start.line - 2, ch: position.start.column });
         }
     };
 };

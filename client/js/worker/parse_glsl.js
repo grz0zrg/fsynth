@@ -22,7 +22,10 @@ var parse_statements = function (statements, root) {
             keyboard: true,
             pFrame: true,
             frame: true,
-            fragColor: true
+            fragColor: true,
+            pKey: true,
+            pFrameSynth: true,
+            synthOutput: true
         },
         
         i, j;
