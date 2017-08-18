@@ -19928,9 +19928,10 @@ var _generateOscillatorSet = function (n, base_frequency, octaves) {
     }
 
     _oscillators = [];
-
-    for (y = n; y >= 0; y -= 1) {
+    
+    for (y = n - 1; y >= 0; y -= 1) {
         frequency = base_frequency * Math.pow(2, y / octave_length);
+
         phase_step = frequency / _audio_context.sampleRate * _wavetable_size;
         
         merger_node = _createMergerNode(_mst_gain_node);
@@ -21704,7 +21705,7 @@ var _glsl_compilation = function () {
     }
     
     // add htoy
-    glsl_code += "float htoy(float frequency) {return resolution.y - (resolution.y - (log(frequency / baseFrequency) / log(2.)) * (resolution.y / octave));}";
+    glsl_code += "float htoy(float frequency) {return resolution.y - (resolution.y - (log(frequency / baseFrequency) / log(2.)) * round(resolution.y / octave));}";
     
     // add htox
     //glsl_code += "float htoy(float frequency) {return resolution.x - (resolution.x - (log(frequency / baseFrequency) / log(2.)) * (resolution.x / octave));}";
