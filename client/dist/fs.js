@@ -23912,6 +23912,7 @@ var _showMIDIOutDialog = function () {
 
 var _createFasSettingsContent = function () {
     var dialog_div = document.getElementById(_fas_dialog).lastElementChild,
+        detached_dialog = WUI_Dialog.getDetachedDialog(_fas_dialog),
         main_chn_settings_div = document.createElement("div"),
         chn_settings_div,
         chn_div,
@@ -23925,6 +23926,10 @@ var _createFasSettingsContent = function () {
         chn_genv_options = ["sine", "hann", "hamming", "tukey", "gaussian", "confined gaussian", "trapezoidal", "blackman", "blackman harris"],
         chn_settings,
         j = 0, i = 0;
+    
+    if (detached_dialog) {
+        dialog_div = detached_dialog.document.body;
+    }
     
     dialog_div.style = "overflow: auto";
     dialog_div.innerHTML = "";
@@ -24042,6 +24047,7 @@ var _createFasSettingsContent = function () {
 };
 
 var _showFasDialog = function (toggle_ev) {
+    _createFasSettingsContent();
     WUI_Dialog.open(_fas_dialog);
 };
 
@@ -24683,6 +24689,10 @@ var _uiInit = function () {
             status_bar: false,
             detachable: true,
             draggable: true,
+        
+            on_detach: function (new_window) {
+                _createFasSettingsContent();
+            },
         
             header_btn: [
                 {
