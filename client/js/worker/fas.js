@@ -110,12 +110,21 @@ var _sendChnInfos = function (chn_infos) {
 
     uint8_view[0] = 3;
     uint32_view[0] = chn_infos.length;
-    
+
     // for all channels
     for (i = 0; i < chn_infos.length; i += 1) {
-        uint8_view = new Uint32Array(buffer, 16 + i * 4, 1);
+        uint8_view = new Uint32Array(buffer, 16 + i * 8, 2);
         
-        uint8_view[0] = chn_infos[i];
+        uint8_view[0] = 0;
+        uint8_view[1] = 0;
+            
+        if (chn_infos[i][0]) {
+            uint8_view[0] = chn_infos[i][0];
+        }
+    
+        if (chn_infos[i][1]) {
+            uint8_view[1] = chn_infos[i][1];
+        }
     }
     
     try {

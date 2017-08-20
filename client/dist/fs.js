@@ -23919,8 +23919,12 @@ var _createFasSettingsContent = function () {
         chn_synthesis_select,
         granular_option,
         additive_option,
+        chn_genv_type_label,
+        chn_genv_type_select,
+        chn_genv_option,
+        chn_genv_options = ["sine", "hann", "hamming", "tukey", "gaussian", "confined gaussian", "trapezoidal", "blackman", "blackman harris"],
         chn_settings,
-        j = 0;
+        j = 0, i = 0;
     
     dialog_div.style = "overflow: auto";
     dialog_div.innerHTML = "";
@@ -23938,17 +23942,37 @@ var _createFasSettingsContent = function () {
         granular_option.innerHTML = "granular";
         additive_option.innerHTML = "additive";
         
-        chn_synthesis_select.classList.add("fs-btn");
-        chn_synthesis_select.style = "margin-top: 4px";
-        chn_synthesis_select.dataset.chnId = j;
+        chn_genv_type_label = document.createElement("label");
+        chn_genv_type_select = document.createElement("select");
+        
+        for (i = 0; i < chn_genv_options.length; i += 1) {
+            chn_genv_option = document.createElement("option");
+            chn_genv_option.innerHTML = chn_genv_options[i];
+            
+            chn_genv_type_select.appendChild(chn_genv_option);
+        }
+        
+        chn_genv_type_label.classList.add("fs-input-label");
+        chn_genv_type_label.innerHTML = "Granular env: &nbsp;";
+        chn_genv_type_label.htmlFor = "fs_chn_" + j + "_genv_type_settings";
+        
+        chn_genv_type_select.classList.add("fs-btn");
+        chn_genv_type_select.style = "margin-top: 4px";
+        chn_genv_type_select.dataset.chnId = j;
+        chn_genv_type_select.id = chn_genv_type_label.htmlFor;
         
         chn_synthesis_label.classList.add("fs-input-label");
         chn_synthesis_label.innerHTML = "Synthesis: &nbsp;";
         chn_synthesis_label.htmlFor = "fs_chn_" + j + "_synthesis_settings";
         
+        chn_synthesis_select.classList.add("fs-btn");
+        chn_synthesis_select.style = "margin-top: 4px";
+        chn_synthesis_select.dataset.chnId = j;
+        chn_synthesis_select.id = chn_synthesis_label.htmlFor;
+        
         chn_settings_div.classList.add("fs-chn-settings");
         chn_div.classList.add("fs-chn-settings-content");
-        chn_settings_div.innerHTML = "Chn " + j;
+        chn_settings_div.innerHTML = "Chn " + (j + 1);
         
         chn_synthesis_select.appendChild(additive_option);
         chn_synthesis_select.appendChild(granular_option);
@@ -23956,12 +23980,16 @@ var _createFasSettingsContent = function () {
         chn_settings = _chn_settings[j];
         
         if (!chn_settings) {
-            _chn_settings[j] = [];
+            _chn_settings[j] = [0, 0];
         } else {
             if (chn_settings[0] === 0) {
                 additive_option.selected = true;
             } else if (chn_settings[0] === 1) {
                 granular_option.selected = true;
+            }
+            
+            if (chn_settings[1] !== undefined) {
+                chn_genv_type_select.childNodes[chn_settings[1]].selected = true;
             }
         }
         
@@ -23976,8 +24004,20 @@ var _createFasSettingsContent = function () {
                 } else {
                     value = 0;
                 }
-            
+
                 _chn_settings[j][0] = value;
+
+                _local_session_settings.chn_settings[j] = _chn_settings[j];
+                _saveLocalSessionSettings();
+            
+                _fasNotify(_FAS_CHN_INFOS, _chn_settings);
+            });
+        
+        chn_genv_type_select.addEventListener("change", function() {
+                var j = parseInt(this.dataset.chnId, 10),
+                    value = parseInt(this.selectedIndex, 10);
+
+                _chn_settings[j][1] = value;
 
                 _local_session_settings.chn_settings[j] = _chn_settings[j];
                 _saveLocalSessionSettings();
@@ -23986,9 +24026,13 @@ var _createFasSettingsContent = function () {
             });
 
         chn_synthesis_select.dispatchEvent(new UIEvent('change'));
+        chn_genv_type_select.dispatchEvent(new UIEvent('change'));
         
         chn_div.appendChild(chn_synthesis_label);
         chn_div.appendChild(chn_synthesis_select);
+        chn_div.appendChild(document.createElement("br"));
+        chn_div.appendChild(chn_genv_type_label);
+        chn_div.appendChild(chn_genv_type_select);
         
         chn_settings_div.appendChild(chn_div);
         main_chn_settings_div.appendChild(chn_settings_div);
@@ -23998,8 +24042,6 @@ var _createFasSettingsContent = function () {
 };
 
 var _showFasDialog = function (toggle_ev) {
-    _createFasSettingsContent();
-    
     WUI_Dialog.open(_fas_dialog);
 };
 
