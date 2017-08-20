@@ -44,6 +44,9 @@ var _icon_class = {
     _import_dialog_id = "fs_import_dialog",
     _import_dialog,
     
+    _fas_dialog_id = "fs_fas_dialog",
+    _fas_dialog,
+    
     _wui_main_toolbar,
     
     _send_slices_settings_timeout,
@@ -92,6 +95,99 @@ var _showMIDISettingsDialog = function () {
 
 var _showMIDIOutDialog = function () {
     WUI_Dialog.open(_midi_out_dialog);
+};
+
+var _createFasSettingsContent = function () {
+    var dialog_div = document.getElementById(_fas_dialog).lastElementChild,
+        main_chn_settings_div = document.createElement("div"),
+        chn_settings_div,
+        chn_div,
+        chn_synthesis_label,
+        chn_synthesis_select,
+        granular_option,
+        additive_option,
+        chn_settings,
+        j = 0;
+    
+    dialog_div.style = "overflow: auto";
+    dialog_div.innerHTML = "";
+    
+    main_chn_settings_div.classList.add("fs-chn-settings-main");
+    main_chn_settings_div.innerHTML = "Channels";
+
+    for (j = 0; j < _output_channels; j += 1) {
+        chn_settings_div = document.createElement("div");
+        chn_div = document.createElement("div");
+        chn_synthesis_label = document.createElement("label");
+        chn_synthesis_select = document.createElement("select");
+        granular_option = document.createElement("option");
+        additive_option = document.createElement("option");
+        granular_option.innerHTML = "granular";
+        additive_option.innerHTML = "additive";
+        
+        chn_synthesis_select.classList.add("fs-btn");
+        chn_synthesis_select.style = "margin-top: 4px";
+        chn_synthesis_select.dataset.chnId = j;
+        
+        chn_synthesis_label.classList.add("fs-input-label");
+        chn_synthesis_label.innerHTML = "Synthesis: &nbsp;";
+        chn_synthesis_label.htmlFor = "fs_chn_" + j + "_synthesis_settings";
+        
+        chn_settings_div.classList.add("fs-chn-settings");
+        chn_div.classList.add("fs-chn-settings-content");
+        chn_settings_div.innerHTML = "Chn " + j;
+        
+        chn_synthesis_select.appendChild(additive_option);
+        chn_synthesis_select.appendChild(granular_option);
+        
+        chn_settings = _chn_settings[j];
+        
+        if (!chn_settings) {
+            _chn_settings[j] = [];
+        } else {
+            if (chn_settings[0] === 0) {
+                additive_option.selected = true;
+            } else if (chn_settings[0] === 1) {
+                granular_option.selected = true;
+            }
+        }
+        
+        chn_synthesis_select.addEventListener("change", function() {
+                var j = parseInt(this.dataset.chnId, 10),
+                    value;
+
+                if (this.value === "additive") {
+                    value = 0;
+                } else if (this.value === "granular") {
+                    value = 1;
+                } else {
+                    value = 0;
+                }
+            
+                _chn_settings[j][0] = value;
+
+                _local_session_settings.chn_settings[j] = _chn_settings[j];
+                _saveLocalSessionSettings();
+            
+                _fasNotify(_FAS_CHN_INFOS, _chn_settings);
+            });
+
+        chn_synthesis_select.dispatchEvent(new UIEvent('change'));
+        
+        chn_div.appendChild(chn_synthesis_label);
+        chn_div.appendChild(chn_synthesis_select);
+        
+        chn_settings_div.appendChild(chn_div);
+        main_chn_settings_div.appendChild(chn_settings_div);
+    }
+    
+    dialog_div.appendChild(main_chn_settings_div);  
+};
+
+var _showFasDialog = function (toggle_ev) {
+    _createFasSettingsContent();
+    
+    WUI_Dialog.open(_fas_dialog);
 };
 
 var _toggleFas = function (toggle_ev) {
@@ -652,10 +748,10 @@ var _uiInit = function () {
     settings_ck_slices_elem.dispatchEvent(new UIEvent('change'));
     
     _midi_settings_dialog = WUI_Dialog.create(_midi_settings_dialog_id, {
-            title: "MIDI settings",
+            title: "MIDI",
 
             width: "320px",
-            height: "390px",
+            height: "520px",
 
             halign: "center",
             valign: "center",
@@ -716,6 +812,32 @@ var _uiInit = function () {
 
                 _record_canvas_ctx.drawImage(previous_canvas, 0, 0);
             }
+        });
+    
+    _fas_dialog = WUI_Dialog.create(_fas_dialog_id, {
+            title: "FAS Settings",
+
+            width: "340px",
+            height: "480px",
+
+            halign: "center",
+            valign: "center",
+
+            open: false,
+
+            status_bar: false,
+            detachable: true,
+            draggable: true,
+        
+            header_btn: [
+                {
+                    title: "Help",
+                    on_click: function () {
+                        window.open(_documentation_link + "#subsec5_5"); 
+                    },
+                    class_name: "fs-help-icon"
+                }
+            ]
         });
     
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
@@ -1243,6 +1365,7 @@ var _uiInit = function () {
                     type: "toggle",
                     toggle_state: _fasEnabled(),
                     on_click: _toggleFas,
+                    on_rclick: _showFasDialog,
                     tooltip: "Enable/Disable Native audio (native application available on the homepage)"
                 }
             ],

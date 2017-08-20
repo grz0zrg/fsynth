@@ -17,7 +17,8 @@ var _fas = {
     _FAS_DISABLE = 1,
     _FAS_AUDIO_INFOS = 2,
     _FAS_GAIN_INFOS = 3,
-    _FAS_FRAME = 4;
+    _FAS_FRAME = 4,
+    _FAS_CHN_INFOS = 5;
 
 /***********************************************************
     Functions.
@@ -42,18 +43,16 @@ var _fasNotifyFast = function (cmd, data) {
             cmd: cmd,
             arg: output_data_buffer,
             mono: _audio_infos.monophonic,
-            float: _audio_infos.float_data,
-            synthesis_type: _synthesis_type
+            float: _audio_infos.float_data
         }, output_data_buffer);
 };
 
 var _fasEnable = function () {
     _fasNotify(_FAS_ENABLE, {
             address: _fas.address,
-            audio_infos: _audio_infos
+            //audio_infos: _audio_infos,
+            //chn_settings: _chn_settings
         });
-    
-    //_fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
     
     _fas.enabled = true;
 };
@@ -101,6 +100,10 @@ var _fasInit = function () {
 
             if (data.status === "open") {
                 _fasStatus(true);
+
+                _fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
+                _fasNotify(_FAS_GAIN_INFOS, _audio_infos);
+                _fasNotify(_FAS_CHN_INFOS, _chn_settings);
             } else if (data.status === "error") {
                 _fasStatus(false);
             } else if (data.status === "close") {

@@ -120,7 +120,9 @@ var _addMIDIDevice = function (midi, io_type) {
         tmp_element = null,
         
         detached_dialog = WUI_Dialog.getDetachedDialog(_midi_settings_dialog),
-        detached_dialog_midi_settings_element = null;
+        detached_dialog_midi_settings_element = null,
+        
+        io_type_html ='<span style="color: ' + ((io_type === "input") ? "lightgreen" : "orange") + '">' + io_type + '</span>';
     
     // settings were loaded previously
     if (midi.id in _midi_devices[io_type]) {
@@ -140,7 +142,7 @@ var _addMIDIDevice = function (midi, io_type) {
                 midi.name,
                 '<div>',
                 '    <label class="fs-ck-label">',
-                '        <div>(' + io_type + ') Enable</div>&nbsp;',
+                '        <div>(' + io_type_html + ') Enable</div>&nbsp;',
                 '        <input id="' + midi_enabled_ck_id + '" type="checkbox" data-type="' + io_type + '" data-did="' + midi.id + '" ' + midi_device_enabled_ck + '>',
                 '    </label>',
                 '</div>'].join('');
@@ -395,7 +397,7 @@ var _midiAccessSuccess = function (midi_access) {
     
     _midi_access = midi_access;
     
-    midi_settings_element.innerHTML = '<div class="fs-midi-settings-section">MIDI Inputs</div>';
+    midi_settings_element.innerHTML = '<div class="fs-midi-settings-section">I/O</div>';
     
     _midi_access.inputs.forEach(
         function (midi_in) {

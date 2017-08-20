@@ -3294,12 +3294,12 @@ var WUI_ToolBar = new (function() {
 
     /***********************************************************
         Private section.
-        
+
         Fields.
     ************************************************************/
-    
+
     var _widget_list = {},
-        
+
         _class_name = {
             minimize_icon:  "wui-toolbar-minimize-icon",
             maximize_icon:  "wui-toolbar-maximize-icon",
@@ -3318,28 +3318,28 @@ var WUI_ToolBar = new (function() {
             dd_item:        "wui-toolbar-dropdown-item",
             dd_open:        "wui-toolbar-dropdown-open"
         },
-        
+
         _known_options = {
             item_hmargin: null,
             item_vmargin: null,
 
             item_width: 32,
             item_height: 32,
-            
+
             icon_width: 32,
             icon_height: 32,
-            
+
             allow_groups_minimize: false,
-            
+
             vertical: false
         };
 
     /***********************************************************
         Private section.
-        
+
         Functions.
     ************************************************************/
-    
+
     var _getWidget = function (toolbar_id) {
         var widget = _widget_list[toolbar_id];
 
@@ -3388,7 +3388,7 @@ var WUI_ToolBar = new (function() {
             return _widget_list[element.parentElement.parentElement.id];
         }
     };
-    
+
     var _propagate = function (tool, type, state) {
         if (tool.on_click !== undefined &&
             tool.on_click !== null) {
@@ -3396,15 +3396,15 @@ var WUI_ToolBar = new (function() {
                 id: tool.id,
                 type: type
             };
-            
+
             if (state !== undefined) {
                 o.state = state;
             }
-            
+
             tool.on_click(o);
         }
     };
-    
+
     var _createDdFloatingContent = function (doc, tool, widget) {
         var dropdown_floating_content = doc.createElement("div"), j;
 
@@ -3446,19 +3446,19 @@ var WUI_ToolBar = new (function() {
 
     var _toggle = function (element, toolbar_id, propagate) {
         var widget = null,
-            
+
             state = false,
-            
+
             toggle_group,
-            
+
             tb,
 
             tools,
 
             i = 0;
-        
+
         widget = _getWidgetFromElement(element, toolbar_id);
-        
+
         tb = widget.element;
 
         if (element.parentElement) {
@@ -3468,11 +3468,11 @@ var WUI_ToolBar = new (function() {
         }
 
         var my_tool = widget.tools[parseInt(element.dataset.tool_id, 10)];
-        
+
         if (my_tool.element.dataset.on === "1") {
             my_tool.element.dataset.on = 0;
             element.dataset.on = 0;
-            
+
             my_tool.element.title = my_tool.tooltip;
 
             element.title = my_tool.tooltip;
@@ -3487,12 +3487,12 @@ var WUI_ToolBar = new (function() {
         } else {
             my_tool.element.dataset.on = 1;
             element.dataset.on = 1;
-            
+
             if (my_tool.tooltip_toggled !== undefined) {
                 my_tool.element.title = my_tool.tooltip_toggled;
                 element.title = my_tool.tooltip_toggled;
             }
-            
+
             if (my_tool.toggled_icon !== undefined) {
                 my_tool.element.classList.add(my_tool.toggled_icon);
                 my_tool.element.classList.remove(my_tool.icon);
@@ -3500,10 +3500,10 @@ var WUI_ToolBar = new (function() {
                 element.classList.add(my_tool.toggled_icon);
                 element.classList.remove(my_tool.icon);
             }
-            
+
             state = true;
         }
-        
+
         if (my_tool.toggled_style !== "none") {
             if (element.classList.contains(_class_name.toggle_on)) {
                 my_tool.element.classList.remove(_class_name.toggle_on);
@@ -3513,7 +3513,7 @@ var WUI_ToolBar = new (function() {
                 element.classList.add(_class_name.toggle_on);
             }
         }
-        
+
         toggle_group = element.dataset.toggle_group;
 
         if (toggle_group !== undefined) {
@@ -3530,7 +3530,7 @@ var WUI_ToolBar = new (function() {
                     if (tool_element.dataset.on === "0") {
                         continue;
                     }
-                    
+
                     tool_element.dataset.on = "0";
                     tool.element.dataset.on = "0";
 
@@ -3558,7 +3558,7 @@ var WUI_ToolBar = new (function() {
             _propagate(my_tool, "toggle", state);
         }
     };
-    
+
     var _ddItemClick = function (ev) {
         ev.preventDefault();
         ev.stopPropagation();
@@ -3713,46 +3713,46 @@ var WUI_ToolBar = new (function() {
             if(ev.stopPropagation) {
                 ev.stopPropagation();
             }
-        
+
             owner_win.addEventListener("click", _removeDdFloatingContentHandler(my_tool, element), false);
         } else {
             _propagate(my_tool, "click");
         }
     };
-    
+
     var _minimizeGroup = function (minimize_element) {
         var group = minimize_element.nextSibling;
-        
+
         if (minimize_element.classList.contains(_class_name.minimize_icon)) {
             minimize_element.classList.add(_class_name.maximize_icon);
             minimize_element.classList.remove(_class_name.minimize_icon);
-            
+
             minimize_element.title = "Maximize group";
-            
+
             group.style.display = "none";
         } else {
             minimize_element.classList.add(_class_name.minimize_icon);
             minimize_element.classList.remove(_class_name.maximize_icon);
-            
+
             minimize_element.title = "Minimize group";
-            
+
             group.style.display = "";
         }
     };
-    
+
     var _createFailed = function () {
         console.log("WUI_RangeSlider 'create' failed, first argument not an id nor a DOM element.");
     };
-    
+
     /***********************************************************
         Public section.
-        
+
         Functions.
     ************************************************************/
-    
+
     /**
      * Create a toolbar widget from an element.
-     * 
+     *
      * @param   {String} id      DOM Element id
      * @param   {Object}   options [[Description]]
      * @param   {Array}    tools   [[Description]]
@@ -3760,48 +3760,48 @@ var WUI_ToolBar = new (function() {
      */
     this.create = function (id, options, tools) {
         var toolbar,
-            
+
             group = null,
             elem = null,
-            
+
             index = null,
-            
+
             previous_group = null,
-            
+
             opts = {},
-            
+
             key;
-        
+
         if ((typeof id) === "string") {
             toolbar = document.getElementById(id);
         } else if ((typeof id) === "object") {
             if ((typeof id.innerHTML) !== "string") {
                 _createFailed();
-                
+
                 return;
             }
-            
+
             toolbar = id;
 
             id = toolbar.id;
         } else {
             _createFailed();
-            
+
             return;
         }
-        
+
         if (_widget_list[id] !== undefined) {
             console.log("WUI_Toolbar id '" + id + "' already created, aborting.");
-            
+
             return;
         }
-        
+
         for (key in _known_options) {
             if (_known_options.hasOwnProperty(key)) {
                 opts[key] = _known_options[key];
             }
         }
-        
+
         if (options !== undefined) {
             for (key in options) {
                 if (options.hasOwnProperty(key)) {
@@ -3811,7 +3811,7 @@ var WUI_ToolBar = new (function() {
                 }
             }
         }
-        
+
         // build up the toolbar widget internal data structure
         _widget_list[id] = {
             element: toolbar,
@@ -3819,18 +3819,18 @@ var WUI_ToolBar = new (function() {
             tools: [],
             opts: opts
         };
-        
+
         // build the toolbar and its items
         toolbar.classList.add(_class_name.tb);
-        
+
         var group_class = _class_name.group,
             item_class = _class_name.item,
             spacer_class = "wui-toolbar-spacer",
             group_minimize_class = _class_name.minimize_group;
-        
+
         if (opts.vertical) {
             toolbar.classList.add("wui-toolbar-vertical");
-            
+
             group_class = _class_name.vertical_group;
             item_class += " wui-toolbar-item-vertical";
             spacer_class = "wui-toolbar-spacer-vertical";
@@ -3856,33 +3856,33 @@ var WUI_ToolBar = new (function() {
                 opts.item_vmargin = 0;
             }
         }
-        
+
         group_minimize_class = _class_name.button + " " + _class_name.minimize_icon + " " + group_minimize_class;
-        
+
         toolbar.addEventListener("click", _onClick, false);
 
         var i;
 
-        for(index in tools) { 
+        for(index in tools) {
             if (tools.hasOwnProperty(index)) {
                 if (previous_group !== null) {
                     elem = document.createElement("div");
                     elem.className = spacer_class;
-                    
+
                     toolbar.appendChild(elem);
                 }
-                
+
                 if (opts.allow_groups_minimize) {
                     elem = document.createElement("div");
                     elem.className = group_minimize_class;
-                    
+
                     elem.title = "Minimize group";
-                    
+
                     toolbar.appendChild(elem);
                 }
 
                 group = tools[index];
-               
+
                 var group_element = document.createElement("div");
                 group_element.className = group_class;
 
@@ -3895,12 +3895,13 @@ var WUI_ToolBar = new (function() {
                 for (i = 0; i < group.length; i += 1) {
                     var tool = group[i],
                         tool_element = document.createElement("div"),
-                        
+
                         tool_id = _widget_list[id].tools.length,
 
                         widget = {
                             element: tool_element,
                             on_click: tool.on_click,
+                            on_rclick: tool.on_rclick,
                             icon: tool.icon,
                             items: [],
                             tooltip: "",
@@ -3912,8 +3913,19 @@ var WUI_ToolBar = new (function() {
 
                         j;
 
+                    if (widget.on_rclick) {
+                        tool_element.addEventListener("contextmenu", function (e) {
+                                var widget = _getWidgetFromElement(e.target),
+                                    my_tool = widget.tools[e.target.dataset.tool_id];
+
+                                e.preventDefault();
+
+                                my_tool.on_rclick();
+                            });
+                    }
+
                     tool_element.className = item_class;
-                    
+
                     tool_element.style.minWidth     = opts.item_width   + "px";
                     tool_element.style.minHeight    = opts.item_height  + "px";
                     tool_element.style.marginLeft   = opts.item_hmargin + "px";
@@ -3922,24 +3934,24 @@ var WUI_ToolBar = new (function() {
                     tool_element.style.marginBottom = opts.item_vmargin + "px";
 
                     tool_element.style.backgroundSize = (opts.icon_width - 4) + "px " + (opts.icon_height - 4) + "px";
-                    
+
                     group_element.appendChild(tool_element);
-                    
+
                     _widget_list[id].tools.push(widget);
-                    
+
                     tool_element.dataset.tool_id = tool_id;
-                    
+
                     widget.tooltip = tool.tooltip;
-                    
+
                     if (tool.tooltip !== undefined) {
-                        tool_element.title = tool.tooltip; 
+                        tool_element.title = tool.tooltip;
                     }
-                    
+
                     if (tool.text !== undefined) {
                         tool_element.innerHTML = tool.text;
-                        
+
                         tool_element.style.lineHeight = opts.item_height + "px";
-                        
+
                         tool_element.classList.add("wui-toolbar-text");
 
                         if (tool.icon !== undefined) {
@@ -3951,19 +3963,19 @@ var WUI_ToolBar = new (function() {
                     if (tool.icon !== undefined) {
                         tool_element.classList.add(tool.icon);
                     }
-                    
+
                     // handle button type
                     if (tool.type === "toggle") {
                         tool_element.classList.add(_class_name.toggle);
-                        
+
                         widget.toggled_icon = tool.toggled_icon;
                         widget.tooltip_toggled = tool.tooltip_toggled;
                         widget.toggled_style = tool.toggled_style;
-                        
+
                         if (tool.toggle_group !== undefined) {
                             tool_element.dataset.toggle_group = tool.toggle_group;
                         }
-                        
+
                         if (tool.toggle_state) {
                             tool_element.dataset.on = "1";
                         }
@@ -3980,13 +3992,13 @@ var WUI_ToolBar = new (function() {
                         tool_element.classList.add(_class_name.button);
                     }
                 }
-                
+
                 toolbar.appendChild(group_element);
-                
+
                 previous_group = group;
            }
         }
-        
+
         // now setup tools state, this could have been done before,
         // but to work with the detachable dialog widget we need them added to the toolbar before calling _toggle etc.
         var tools_elems = toolbar.getElementsByClassName(_class_name.item);

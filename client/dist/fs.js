@@ -3299,12 +3299,12 @@ var WUI_ToolBar = new (function() {
 
     /***********************************************************
         Private section.
-        
+
         Fields.
     ************************************************************/
-    
+
     var _widget_list = {},
-        
+
         _class_name = {
             minimize_icon:  "wui-toolbar-minimize-icon",
             maximize_icon:  "wui-toolbar-maximize-icon",
@@ -3323,28 +3323,28 @@ var WUI_ToolBar = new (function() {
             dd_item:        "wui-toolbar-dropdown-item",
             dd_open:        "wui-toolbar-dropdown-open"
         },
-        
+
         _known_options = {
             item_hmargin: null,
             item_vmargin: null,
 
             item_width: 32,
             item_height: 32,
-            
+
             icon_width: 32,
             icon_height: 32,
-            
+
             allow_groups_minimize: false,
-            
+
             vertical: false
         };
 
     /***********************************************************
         Private section.
-        
+
         Functions.
     ************************************************************/
-    
+
     var _getWidget = function (toolbar_id) {
         var widget = _widget_list[toolbar_id];
 
@@ -3393,7 +3393,7 @@ var WUI_ToolBar = new (function() {
             return _widget_list[element.parentElement.parentElement.id];
         }
     };
-    
+
     var _propagate = function (tool, type, state) {
         if (tool.on_click !== undefined &&
             tool.on_click !== null) {
@@ -3401,15 +3401,15 @@ var WUI_ToolBar = new (function() {
                 id: tool.id,
                 type: type
             };
-            
+
             if (state !== undefined) {
                 o.state = state;
             }
-            
+
             tool.on_click(o);
         }
     };
-    
+
     var _createDdFloatingContent = function (doc, tool, widget) {
         var dropdown_floating_content = doc.createElement("div"), j;
 
@@ -3451,19 +3451,19 @@ var WUI_ToolBar = new (function() {
 
     var _toggle = function (element, toolbar_id, propagate) {
         var widget = null,
-            
+
             state = false,
-            
+
             toggle_group,
-            
+
             tb,
 
             tools,
 
             i = 0;
-        
+
         widget = _getWidgetFromElement(element, toolbar_id);
-        
+
         tb = widget.element;
 
         if (element.parentElement) {
@@ -3473,11 +3473,11 @@ var WUI_ToolBar = new (function() {
         }
 
         var my_tool = widget.tools[parseInt(element.dataset.tool_id, 10)];
-        
+
         if (my_tool.element.dataset.on === "1") {
             my_tool.element.dataset.on = 0;
             element.dataset.on = 0;
-            
+
             my_tool.element.title = my_tool.tooltip;
 
             element.title = my_tool.tooltip;
@@ -3492,12 +3492,12 @@ var WUI_ToolBar = new (function() {
         } else {
             my_tool.element.dataset.on = 1;
             element.dataset.on = 1;
-            
+
             if (my_tool.tooltip_toggled !== undefined) {
                 my_tool.element.title = my_tool.tooltip_toggled;
                 element.title = my_tool.tooltip_toggled;
             }
-            
+
             if (my_tool.toggled_icon !== undefined) {
                 my_tool.element.classList.add(my_tool.toggled_icon);
                 my_tool.element.classList.remove(my_tool.icon);
@@ -3505,10 +3505,10 @@ var WUI_ToolBar = new (function() {
                 element.classList.add(my_tool.toggled_icon);
                 element.classList.remove(my_tool.icon);
             }
-            
+
             state = true;
         }
-        
+
         if (my_tool.toggled_style !== "none") {
             if (element.classList.contains(_class_name.toggle_on)) {
                 my_tool.element.classList.remove(_class_name.toggle_on);
@@ -3518,7 +3518,7 @@ var WUI_ToolBar = new (function() {
                 element.classList.add(_class_name.toggle_on);
             }
         }
-        
+
         toggle_group = element.dataset.toggle_group;
 
         if (toggle_group !== undefined) {
@@ -3535,7 +3535,7 @@ var WUI_ToolBar = new (function() {
                     if (tool_element.dataset.on === "0") {
                         continue;
                     }
-                    
+
                     tool_element.dataset.on = "0";
                     tool.element.dataset.on = "0";
 
@@ -3563,7 +3563,7 @@ var WUI_ToolBar = new (function() {
             _propagate(my_tool, "toggle", state);
         }
     };
-    
+
     var _ddItemClick = function (ev) {
         ev.preventDefault();
         ev.stopPropagation();
@@ -3718,46 +3718,46 @@ var WUI_ToolBar = new (function() {
             if(ev.stopPropagation) {
                 ev.stopPropagation();
             }
-        
+
             owner_win.addEventListener("click", _removeDdFloatingContentHandler(my_tool, element), false);
         } else {
             _propagate(my_tool, "click");
         }
     };
-    
+
     var _minimizeGroup = function (minimize_element) {
         var group = minimize_element.nextSibling;
-        
+
         if (minimize_element.classList.contains(_class_name.minimize_icon)) {
             minimize_element.classList.add(_class_name.maximize_icon);
             minimize_element.classList.remove(_class_name.minimize_icon);
-            
+
             minimize_element.title = "Maximize group";
-            
+
             group.style.display = "none";
         } else {
             minimize_element.classList.add(_class_name.minimize_icon);
             minimize_element.classList.remove(_class_name.maximize_icon);
-            
+
             minimize_element.title = "Minimize group";
-            
+
             group.style.display = "";
         }
     };
-    
+
     var _createFailed = function () {
         console.log("WUI_RangeSlider 'create' failed, first argument not an id nor a DOM element.");
     };
-    
+
     /***********************************************************
         Public section.
-        
+
         Functions.
     ************************************************************/
-    
+
     /**
      * Create a toolbar widget from an element.
-     * 
+     *
      * @param   {String} id      DOM Element id
      * @param   {Object}   options [[Description]]
      * @param   {Array}    tools   [[Description]]
@@ -3765,48 +3765,48 @@ var WUI_ToolBar = new (function() {
      */
     this.create = function (id, options, tools) {
         var toolbar,
-            
+
             group = null,
             elem = null,
-            
+
             index = null,
-            
+
             previous_group = null,
-            
+
             opts = {},
-            
+
             key;
-        
+
         if ((typeof id) === "string") {
             toolbar = document.getElementById(id);
         } else if ((typeof id) === "object") {
             if ((typeof id.innerHTML) !== "string") {
                 _createFailed();
-                
+
                 return;
             }
-            
+
             toolbar = id;
 
             id = toolbar.id;
         } else {
             _createFailed();
-            
+
             return;
         }
-        
+
         if (_widget_list[id] !== undefined) {
             console.log("WUI_Toolbar id '" + id + "' already created, aborting.");
-            
+
             return;
         }
-        
+
         for (key in _known_options) {
             if (_known_options.hasOwnProperty(key)) {
                 opts[key] = _known_options[key];
             }
         }
-        
+
         if (options !== undefined) {
             for (key in options) {
                 if (options.hasOwnProperty(key)) {
@@ -3816,7 +3816,7 @@ var WUI_ToolBar = new (function() {
                 }
             }
         }
-        
+
         // build up the toolbar widget internal data structure
         _widget_list[id] = {
             element: toolbar,
@@ -3824,18 +3824,18 @@ var WUI_ToolBar = new (function() {
             tools: [],
             opts: opts
         };
-        
+
         // build the toolbar and its items
         toolbar.classList.add(_class_name.tb);
-        
+
         var group_class = _class_name.group,
             item_class = _class_name.item,
             spacer_class = "wui-toolbar-spacer",
             group_minimize_class = _class_name.minimize_group;
-        
+
         if (opts.vertical) {
             toolbar.classList.add("wui-toolbar-vertical");
-            
+
             group_class = _class_name.vertical_group;
             item_class += " wui-toolbar-item-vertical";
             spacer_class = "wui-toolbar-spacer-vertical";
@@ -3861,33 +3861,33 @@ var WUI_ToolBar = new (function() {
                 opts.item_vmargin = 0;
             }
         }
-        
+
         group_minimize_class = _class_name.button + " " + _class_name.minimize_icon + " " + group_minimize_class;
-        
+
         toolbar.addEventListener("click", _onClick, false);
 
         var i;
 
-        for(index in tools) { 
+        for(index in tools) {
             if (tools.hasOwnProperty(index)) {
                 if (previous_group !== null) {
                     elem = document.createElement("div");
                     elem.className = spacer_class;
-                    
+
                     toolbar.appendChild(elem);
                 }
-                
+
                 if (opts.allow_groups_minimize) {
                     elem = document.createElement("div");
                     elem.className = group_minimize_class;
-                    
+
                     elem.title = "Minimize group";
-                    
+
                     toolbar.appendChild(elem);
                 }
 
                 group = tools[index];
-               
+
                 var group_element = document.createElement("div");
                 group_element.className = group_class;
 
@@ -3900,12 +3900,13 @@ var WUI_ToolBar = new (function() {
                 for (i = 0; i < group.length; i += 1) {
                     var tool = group[i],
                         tool_element = document.createElement("div"),
-                        
+
                         tool_id = _widget_list[id].tools.length,
 
                         widget = {
                             element: tool_element,
                             on_click: tool.on_click,
+                            on_rclick: tool.on_rclick,
                             icon: tool.icon,
                             items: [],
                             tooltip: "",
@@ -3917,8 +3918,19 @@ var WUI_ToolBar = new (function() {
 
                         j;
 
+                    if (widget.on_rclick) {
+                        tool_element.addEventListener("contextmenu", function (e) {
+                                var widget = _getWidgetFromElement(e.target),
+                                    my_tool = widget.tools[e.target.dataset.tool_id];
+
+                                e.preventDefault();
+
+                                my_tool.on_rclick();
+                            });
+                    }
+
                     tool_element.className = item_class;
-                    
+
                     tool_element.style.minWidth     = opts.item_width   + "px";
                     tool_element.style.minHeight    = opts.item_height  + "px";
                     tool_element.style.marginLeft   = opts.item_hmargin + "px";
@@ -3927,24 +3939,24 @@ var WUI_ToolBar = new (function() {
                     tool_element.style.marginBottom = opts.item_vmargin + "px";
 
                     tool_element.style.backgroundSize = (opts.icon_width - 4) + "px " + (opts.icon_height - 4) + "px";
-                    
+
                     group_element.appendChild(tool_element);
-                    
+
                     _widget_list[id].tools.push(widget);
-                    
+
                     tool_element.dataset.tool_id = tool_id;
-                    
+
                     widget.tooltip = tool.tooltip;
-                    
+
                     if (tool.tooltip !== undefined) {
-                        tool_element.title = tool.tooltip; 
+                        tool_element.title = tool.tooltip;
                     }
-                    
+
                     if (tool.text !== undefined) {
                         tool_element.innerHTML = tool.text;
-                        
+
                         tool_element.style.lineHeight = opts.item_height + "px";
-                        
+
                         tool_element.classList.add("wui-toolbar-text");
 
                         if (tool.icon !== undefined) {
@@ -3956,19 +3968,19 @@ var WUI_ToolBar = new (function() {
                     if (tool.icon !== undefined) {
                         tool_element.classList.add(tool.icon);
                     }
-                    
+
                     // handle button type
                     if (tool.type === "toggle") {
                         tool_element.classList.add(_class_name.toggle);
-                        
+
                         widget.toggled_icon = tool.toggled_icon;
                         widget.tooltip_toggled = tool.tooltip_toggled;
                         widget.toggled_style = tool.toggled_style;
-                        
+
                         if (tool.toggle_group !== undefined) {
                             tool_element.dataset.toggle_group = tool.toggle_group;
                         }
-                        
+
                         if (tool.toggle_state) {
                             tool_element.dataset.on = "1";
                         }
@@ -3985,13 +3997,13 @@ var WUI_ToolBar = new (function() {
                         tool_element.classList.add(_class_name.button);
                     }
                 }
-                
+
                 toolbar.appendChild(group_element);
-                
+
                 previous_group = group;
            }
         }
-        
+
         // now setup tools state, this could have been done before,
         // but to work with the detachable dialog widget we need them added to the toolbar before calling _toggle etc.
         var tools_elems = toolbar.getElementsByClassName(_class_name.item);
@@ -19527,6 +19539,8 @@ _utter_fail_element.innerHTML = "";
             data_components: 3,
         },
         
+        _chn_settings = [],
+        
         _webgl = {
             max_fragment_uniform_vector: -1
         },
@@ -19820,9 +19834,6 @@ var _FS_WAVETABLE = 0,
     _next_notes_data = [],
     
     _amp_divisor = 255.0,
-    
-    // 0 = additive, 1 = granular : this is only used with FAS otherwise only additive synthesis is supported
-    _synthesis_type = 0,
 
     _curr_sample = 0,
         
@@ -20261,6 +20272,7 @@ var _computeOutputChannels = function () {
     
     _output_channels = max;
     _allocateFramesData();
+    _createFasSettingsContent();
 };
 
 var _decodeAudioData = function (audio_data, done_cb) {
@@ -23845,6 +23857,9 @@ var _icon_class = {
     _import_dialog_id = "fs_import_dialog",
     _import_dialog,
     
+    _fas_dialog_id = "fs_fas_dialog",
+    _fas_dialog,
+    
     _wui_main_toolbar,
     
     _send_slices_settings_timeout,
@@ -23893,6 +23908,99 @@ var _showMIDISettingsDialog = function () {
 
 var _showMIDIOutDialog = function () {
     WUI_Dialog.open(_midi_out_dialog);
+};
+
+var _createFasSettingsContent = function () {
+    var dialog_div = document.getElementById(_fas_dialog).lastElementChild,
+        main_chn_settings_div = document.createElement("div"),
+        chn_settings_div,
+        chn_div,
+        chn_synthesis_label,
+        chn_synthesis_select,
+        granular_option,
+        additive_option,
+        chn_settings,
+        j = 0;
+    
+    dialog_div.style = "overflow: auto";
+    dialog_div.innerHTML = "";
+    
+    main_chn_settings_div.classList.add("fs-chn-settings-main");
+    main_chn_settings_div.innerHTML = "Channels";
+
+    for (j = 0; j < _output_channels; j += 1) {
+        chn_settings_div = document.createElement("div");
+        chn_div = document.createElement("div");
+        chn_synthesis_label = document.createElement("label");
+        chn_synthesis_select = document.createElement("select");
+        granular_option = document.createElement("option");
+        additive_option = document.createElement("option");
+        granular_option.innerHTML = "granular";
+        additive_option.innerHTML = "additive";
+        
+        chn_synthesis_select.classList.add("fs-btn");
+        chn_synthesis_select.style = "margin-top: 4px";
+        chn_synthesis_select.dataset.chnId = j;
+        
+        chn_synthesis_label.classList.add("fs-input-label");
+        chn_synthesis_label.innerHTML = "Synthesis: &nbsp;";
+        chn_synthesis_label.htmlFor = "fs_chn_" + j + "_synthesis_settings";
+        
+        chn_settings_div.classList.add("fs-chn-settings");
+        chn_div.classList.add("fs-chn-settings-content");
+        chn_settings_div.innerHTML = "Chn " + j;
+        
+        chn_synthesis_select.appendChild(additive_option);
+        chn_synthesis_select.appendChild(granular_option);
+        
+        chn_settings = _chn_settings[j];
+        
+        if (!chn_settings) {
+            _chn_settings[j] = [];
+        } else {
+            if (chn_settings[0] === 0) {
+                additive_option.selected = true;
+            } else if (chn_settings[0] === 1) {
+                granular_option.selected = true;
+            }
+        }
+        
+        chn_synthesis_select.addEventListener("change", function() {
+                var j = parseInt(this.dataset.chnId, 10),
+                    value;
+
+                if (this.value === "additive") {
+                    value = 0;
+                } else if (this.value === "granular") {
+                    value = 1;
+                } else {
+                    value = 0;
+                }
+            
+                _chn_settings[j][0] = value;
+
+                _local_session_settings.chn_settings[j] = _chn_settings[j];
+                _saveLocalSessionSettings();
+            
+                _fasNotify(_FAS_CHN_INFOS, _chn_settings);
+            });
+
+        chn_synthesis_select.dispatchEvent(new UIEvent('change'));
+        
+        chn_div.appendChild(chn_synthesis_label);
+        chn_div.appendChild(chn_synthesis_select);
+        
+        chn_settings_div.appendChild(chn_div);
+        main_chn_settings_div.appendChild(chn_settings_div);
+    }
+    
+    dialog_div.appendChild(main_chn_settings_div);  
+};
+
+var _showFasDialog = function (toggle_ev) {
+    _createFasSettingsContent();
+    
+    WUI_Dialog.open(_fas_dialog);
 };
 
 var _toggleFas = function (toggle_ev) {
@@ -24453,10 +24561,10 @@ var _uiInit = function () {
     settings_ck_slices_elem.dispatchEvent(new UIEvent('change'));
     
     _midi_settings_dialog = WUI_Dialog.create(_midi_settings_dialog_id, {
-            title: "MIDI settings",
+            title: "MIDI",
 
             width: "320px",
-            height: "390px",
+            height: "520px",
 
             halign: "center",
             valign: "center",
@@ -24517,6 +24625,32 @@ var _uiInit = function () {
 
                 _record_canvas_ctx.drawImage(previous_canvas, 0, 0);
             }
+        });
+    
+    _fas_dialog = WUI_Dialog.create(_fas_dialog_id, {
+            title: "FAS Settings",
+
+            width: "340px",
+            height: "480px",
+
+            halign: "center",
+            valign: "center",
+
+            open: false,
+
+            status_bar: false,
+            detachable: true,
+            draggable: true,
+        
+            header_btn: [
+                {
+                    title: "Help",
+                    on_click: function () {
+                        window.open(_documentation_link + "#subsec5_5"); 
+                    },
+                    class_name: "fs-help-icon"
+                }
+            ]
         });
     
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
@@ -25044,6 +25178,7 @@ var _uiInit = function () {
                     type: "toggle",
                     toggle_state: _fasEnabled(),
                     on_click: _toggleFas,
+                    on_rclick: _showFasDialog,
                     tooltip: "Enable/Disable Native audio (native application available on the homepage)"
                 }
             ],
@@ -27694,7 +27829,9 @@ var _addMIDIDevice = function (midi, io_type) {
         tmp_element = null,
         
         detached_dialog = WUI_Dialog.getDetachedDialog(_midi_settings_dialog),
-        detached_dialog_midi_settings_element = null;
+        detached_dialog_midi_settings_element = null,
+        
+        io_type_html ='<span style="color: ' + ((io_type === "input") ? "lightgreen" : "orange") + '">' + io_type + '</span>';
     
     // settings were loaded previously
     if (midi.id in _midi_devices[io_type]) {
@@ -27714,7 +27851,7 @@ var _addMIDIDevice = function (midi, io_type) {
                 midi.name,
                 '<div>',
                 '    <label class="fs-ck-label">',
-                '        <div>(' + io_type + ') Enable</div>&nbsp;',
+                '        <div>(' + io_type_html + ') Enable</div>&nbsp;',
                 '        <input id="' + midi_enabled_ck_id + '" type="checkbox" data-type="' + io_type + '" data-did="' + midi.id + '" ' + midi_device_enabled_ck + '>',
                 '    </label>',
                 '</div>'].join('');
@@ -27969,7 +28106,7 @@ var _midiAccessSuccess = function (midi_access) {
     
     _midi_access = midi_access;
     
-    midi_settings_element.innerHTML = '<div class="fs-midi-settings-section">MIDI Inputs</div>';
+    midi_settings_element.innerHTML = '<div class="fs-midi-settings-section">I/O</div>';
     
     _midi_access.inputs.forEach(
         function (midi_in) {
@@ -28028,7 +28165,8 @@ var _fas = {
     _FAS_DISABLE = 1,
     _FAS_AUDIO_INFOS = 2,
     _FAS_GAIN_INFOS = 3,
-    _FAS_FRAME = 4;
+    _FAS_FRAME = 4,
+    _FAS_CHN_INFOS = 5;
 
 /***********************************************************
     Functions.
@@ -28053,18 +28191,16 @@ var _fasNotifyFast = function (cmd, data) {
             cmd: cmd,
             arg: output_data_buffer,
             mono: _audio_infos.monophonic,
-            float: _audio_infos.float_data,
-            synthesis_type: _synthesis_type
+            float: _audio_infos.float_data
         }, output_data_buffer);
 };
 
 var _fasEnable = function () {
     _fasNotify(_FAS_ENABLE, {
             address: _fas.address,
-            audio_infos: _audio_infos
+            //audio_infos: _audio_infos,
+            //chn_settings: _chn_settings
         });
-    
-    //_fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
     
     _fas.enabled = true;
 };
@@ -28112,6 +28248,10 @@ var _fasInit = function () {
 
             if (data.status === "open") {
                 _fasStatus(true);
+
+                _fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
+                _fasNotify(_FAS_GAIN_INFOS, _audio_infos);
+                _fasNotify(_FAS_CHN_INFOS, _chn_settings);
             } else if (data.status === "error") {
                 _fasStatus(false);
             } else if (data.status === "close") {
@@ -28156,6 +28296,31 @@ var _fasInit = function () {
             }
         };
     }();
+    
+    var _loadLocalSessionSettings = function () {
+        // setup user last settings for this session if any
+        if (_local_session_settings) {
+            _local_session_settings = JSON.parse(_local_session_settings);
+            if ('gain' in _local_session_settings) {
+                _volume = _local_session_settings.gain;
+
+                WUI_RangeSlider.setValue("mst_slider", _volume, true);
+            }
+
+            if ('midi_settings' in _local_session_settings) {
+                _loadMIDISettings(_local_session_settings.midi_settings);
+            }
+            
+            if ('chn_settings' in _local_session_settings) {
+                _chn_settings = _local_session_settings.chn_settings;
+            }
+        } else {
+            _local_session_settings = {
+                gain: _volume,
+                chn_settings: []
+            };
+        }
+    };
     
     var _updateScore = function (update_obj, update) {
         var prev_base_freq = _audio_infos.base_freq,
@@ -28421,23 +28586,7 @@ var _fasInit = function () {
 
     _compile();
 
-    // setup user last settings for this session if any
-    if (_local_session_settings) {
-        _local_session_settings = JSON.parse(_local_session_settings);
-        if ('gain' in _local_session_settings) {
-            _volume = _local_session_settings.gain;
-
-            WUI_RangeSlider.setValue("mst_slider", _volume, true);
-        }
-        
-        if ('midi_settings' in _local_session_settings) {
-            _loadMIDISettings(_local_session_settings.midi_settings);
-        }
-    } else {
-        _local_session_settings = {
-            gain: _volume,
-        };
-    }
+    _loadLocalSessionSettings();
 
     //_addPlayPositionMarker(_canvas_width / 4);
     //_addPlayPositionMarker(_canvas_width - _canvas_width / 4);
@@ -28588,7 +28737,7 @@ document.addEventListener('mousemove', function (e) {
         var e = e || window.event,
             
             canvas_offset;
-
+    
         if (e.target === _canvas || e.target.dataset.group === "canvas") {
             canvas_offset = _getElementOffset(_canvas);
 

@@ -19,7 +19,8 @@ var _fas = false,
     _FAS_DISABLE = 1,
     _FAS_AUDIO_INFOS = 2,
     _FAS_GAIN_INFOS = 3,
-    _FAS_FRAME = 4;
+    _FAS_FRAME = 4,
+    _FAS_CHN_INFOS = 5;
 
 /***********************************************************
     Functions.
@@ -92,6 +93,38 @@ var _sendGain = function (audio_infos) {
     }
 };
 
+var _sendChnInfos = function (chn_infos) {
+    if (!_fas) {
+        return;
+    }
+
+    if (_fas_ws.readyState !== 1) {
+        setTimeout(_sendChnInfos, 1000, chn_infos);
+        return;
+    }
+
+    var buffer = new ArrayBuffer(8 + 8 + (8 * chn_infos.length)),
+        uint8_view = new Uint8Array(buffer, 0, 1),
+        uint32_view = new Uint32Array(buffer, 8, 1),
+        i = 0;
+
+    uint8_view[0] = 3;
+    uint32_view[0] = chn_infos.length;
+    
+    // for all channels
+    for (i = 0; i < chn_infos.length; i += 1) {
+        uint8_view = new Uint32Array(buffer, 16 + i * 4, 1);
+        
+        uint8_view[0] = chn_infos[i];
+    }
+    
+    try {
+        _fas_ws.send(buffer);
+    } finally {
+
+    }
+};
+
 var _sendFrame = function (frame, mono, float, synthesis_type) {
     if (_fas_ws.readyState !== 1) {
         return;
@@ -106,31 +139,30 @@ var _sendFrame = function (frame, mono, float, synthesis_type) {
     
     if (float) {
         frame_data = new Float32Array(frame[0]);
-        data_length = 8 + 4 + 4 + 4 + 4 + (frame_data.length * 4 * frame.length);
+        data_length = 8 + 4 + 4 + (frame_data.length * 4 * frame.length);
     } else {
         frame_data = new Uint8Array(frame[0]);
-        data_length = 8 + 4 + 4 + 4 + 4 + (frame_data.length * frame.length);
+        data_length = 8 + 4 + 4 + (frame_data.length * frame.length);
     }
     
     fas_data = new ArrayBuffer(data_length);
     uint8_view = new Uint8Array(fas_data, 0, 1);
-    uint32_view = new Uint32Array(fas_data, 8, 3);
+    uint32_view = new Uint32Array(fas_data, 8, 2);
     i = 0;
     
     uint8_view[0] = 1; // packet id
     uint32_view[0] = frame.length;
     uint32_view[1] = mono === true ? 1 : 0;
-    uint32_view[2] = synthesis_type;
 
     if (float) {
         for (i = 0; i < frame.length; i += 1) {
-            uint8_view = new Float32Array(fas_data, 24 + frame_data.length * 4 * i, frame_data.length);
+            uint8_view = new Float32Array(fas_data, 16 + frame_data.length * 4 * i, frame_data.length);
 
             uint8_view.set(new Float32Array(frame[i]));
         }
     } else {
         for (i = 0; i < frame.length; i += 1) {
-            uint8_view = new Uint8Array(fas_data, 24 + frame_data.length * i, frame_data.length);
+            uint8_view = new Uint8Array(fas_data, 16 + frame_data.length * i, frame_data.length);
 
             uint8_view.set(new Uint8Array(frame[i]));
         }
@@ -159,9 +191,6 @@ var _connect = function (opts) {
         postMessage({
                 status: "open"
             });
-
-        _sendAudioInfos(opts.audio_infos);
-        _sendGain(opts.audio_infos);
     };
 
     _fas_ws.onerror = function (event) {
@@ -203,6 +232,8 @@ self.onmessage = function (m) {
     } else if (cmd === _FAS_GAIN_INFOS) {
         _sendGain(arg);
     } else if (cmd === _FAS_FRAME) {
-        _sendFrame(arg, data.mono, data.float, data.synthesis_type);
+        _sendFrame(arg, data.mono, data.float);
+    } else if (cmd === _FAS_CHN_INFOS) {
+        _sendChnInfos(arg);
     }
 };

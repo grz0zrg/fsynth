@@ -58,9 +58,6 @@ var _FS_WAVETABLE = 0,
     _next_notes_data = [],
     
     _amp_divisor = 255.0,
-    
-    // 0 = additive, 1 = granular : this is only used with FAS otherwise only additive synthesis is supported
-    _synthesis_type = 0,
 
     _curr_sample = 0,
         
@@ -499,6 +496,7 @@ var _computeOutputChannels = function () {
     
     _output_channels = max;
     _allocateFramesData();
+    _createFasSettingsContent();
 };
 
 var _decodeAudioData = function (audio_data, done_cb) {

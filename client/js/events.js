@@ -132,7 +132,7 @@ document.addEventListener('mousemove', function (e) {
         var e = e || window.event,
             
             canvas_offset;
-
+    
         if (e.target === _canvas || e.target.dataset.group === "canvas") {
             canvas_offset = _getElementOffset(_canvas);
 

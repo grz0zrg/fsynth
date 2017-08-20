@@ -274,6 +274,8 @@ var FragmentSynth = function (params) {
             data_components: 3,
         },
         
+        _chn_settings = [],
+        
         _webgl = {
             max_fragment_uniform_vector: -1
         },
@@ -436,6 +438,31 @@ var FragmentSynth = function (params) {
             }
         };
     }();
+    
+    var _loadLocalSessionSettings = function () {
+        // setup user last settings for this session if any
+        if (_local_session_settings) {
+            _local_session_settings = JSON.parse(_local_session_settings);
+            if ('gain' in _local_session_settings) {
+                _volume = _local_session_settings.gain;
+
+                WUI_RangeSlider.setValue("mst_slider", _volume, true);
+            }
+
+            if ('midi_settings' in _local_session_settings) {
+                _loadMIDISettings(_local_session_settings.midi_settings);
+            }
+            
+            if ('chn_settings' in _local_session_settings) {
+                _chn_settings = _local_session_settings.chn_settings;
+            }
+        } else {
+            _local_session_settings = {
+                gain: _volume,
+                chn_settings: []
+            };
+        }
+    };
     
     var _updateScore = function (update_obj, update) {
         var prev_base_freq = _audio_infos.base_freq,
@@ -701,23 +728,7 @@ var FragmentSynth = function (params) {
 
     _compile();
 
-    // setup user last settings for this session if any
-    if (_local_session_settings) {
-        _local_session_settings = JSON.parse(_local_session_settings);
-        if ('gain' in _local_session_settings) {
-            _volume = _local_session_settings.gain;
-
-            WUI_RangeSlider.setValue("mst_slider", _volume, true);
-        }
-        
-        if ('midi_settings' in _local_session_settings) {
-            _loadMIDISettings(_local_session_settings.midi_settings);
-        }
-    } else {
-        _local_session_settings = {
-            gain: _volume,
-        };
-    }
+    _loadLocalSessionSettings();
 
     //_addPlayPositionMarker(_canvas_width / 4);
     //_addPlayPositionMarker(_canvas_width - _canvas_width / 4);
