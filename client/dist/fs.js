@@ -20987,12 +20987,12 @@ var _buildFeedback = function () {
             _feedback.pframe[1].data[0] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true });
             _feedback.pframe[1].buffer = _createFramebuffer(_feedback.pframe[1].data[0].texture);
         } else {
-            _feedback.pframe[0].data[0] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true });
-            _feedback.pframe[0].data[1] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true });
+            _feedback.pframe[0].data[0] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true, float: true });
+            _feedback.pframe[0].data[1] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true, float: true });
             _feedback.pframe[0].buffer = _createFramebuffer([_feedback.pframe[0].data[0].texture, _feedback.pframe[0].data[1].texture], 2);
 
-            _feedback.pframe[1].data[0] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true });
-            _feedback.pframe[1].data[1] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true });
+            _feedback.pframe[1].data[0] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true, float: true });
+            _feedback.pframe[1].data[1] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true, float: true });
             _feedback.pframe[1].buffer = _createFramebuffer([_feedback.pframe[1].data[0].texture, _feedback.pframe[1].data[1].texture], 2);
         }
     }
@@ -21201,7 +21201,7 @@ var _canvasRecord = function (ndata) {
 
             data[o] = _record_opts.f(data[o], temp_data[i + ro]);
             data[o + 1] = _record_opts.f(data[o + 1], temp_data[i + go]);
-            data[o + 2] = _record_opts.f(data[o + 2], temp_data[i + bo]);
+            //data[o + 2] = _record_opts.f(data[o + 2], temp_data[i + bo]);
             data[o + 3] = 255;
 /*
             min_r = Math.min(min_r, data[i]);
@@ -21481,7 +21481,7 @@ var _frame = function (raf_time) {
         }
         
         _canvasRecord(_data);
-        
+
         if (fas_enabled) {
             _fasNotifyFast(_FAS_FRAME, _data);
         } else {
@@ -23920,6 +23920,7 @@ var _createFasSettingsContent = function () {
         chn_synthesis_select,
         granular_option,
         additive_option,
+        exp_option,
         chn_genv_type_label,
         chn_genv_type_select,
         chn_genv_option,
@@ -23944,8 +23945,10 @@ var _createFasSettingsContent = function () {
         chn_synthesis_select = document.createElement("select");
         granular_option = document.createElement("option");
         additive_option = document.createElement("option");
+        exp_option = document.createElement("option");
         granular_option.innerHTML = "granular";
         additive_option.innerHTML = "additive";
+        exp_option.innerHTML = "exp";
         
         chn_genv_type_label = document.createElement("label");
         chn_genv_type_select = document.createElement("select");
@@ -23981,6 +23984,7 @@ var _createFasSettingsContent = function () {
         
         chn_synthesis_select.appendChild(additive_option);
         chn_synthesis_select.appendChild(granular_option);
+        chn_synthesis_select.appendChild(exp_option);
         
         chn_settings = _chn_settings[j];
         
@@ -23991,6 +23995,8 @@ var _createFasSettingsContent = function () {
                 additive_option.selected = true;
             } else if (chn_settings[0] === 1) {
                 granular_option.selected = true;
+            } else if (chn_settings[0] === 2) {
+                exp_option.selected = true;
             }
             
             if (chn_settings[1] !== undefined) {
@@ -24006,6 +24012,8 @@ var _createFasSettingsContent = function () {
                     value = 0;
                 } else if (this.value === "granular") {
                     value = 1;
+                } else if (this.value === "exp") {
+                    value = 2;
                 } else {
                     value = 0;
                 }

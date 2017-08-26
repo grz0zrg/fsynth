@@ -286,12 +286,12 @@ var _buildFeedback = function () {
             _feedback.pframe[1].data[0] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true });
             _feedback.pframe[1].buffer = _createFramebuffer(_feedback.pframe[1].data[0].texture);
         } else {
-            _feedback.pframe[0].data[0] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true });
-            _feedback.pframe[0].data[1] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true });
+            _feedback.pframe[0].data[0] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true, float: true });
+            _feedback.pframe[0].data[1] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true, float: true });
             _feedback.pframe[0].buffer = _createFramebuffer([_feedback.pframe[0].data[0].texture, _feedback.pframe[0].data[1].texture], 2);
 
-            _feedback.pframe[1].data[0] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true });
-            _feedback.pframe[1].data[1] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true });
+            _feedback.pframe[1].data[0] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true, float: true });
+            _feedback.pframe[1].data[1] = _create2DTexture({ width: _canvas.width, height: _canvas.height, empty: true, float: true });
             _feedback.pframe[1].buffer = _createFramebuffer([_feedback.pframe[1].data[0].texture, _feedback.pframe[1].data[1].texture], 2);
         }
     }
@@ -500,7 +500,7 @@ var _canvasRecord = function (ndata) {
 
             data[o] = _record_opts.f(data[o], temp_data[i + ro]);
             data[o + 1] = _record_opts.f(data[o + 1], temp_data[i + go]);
-            data[o + 2] = _record_opts.f(data[o + 2], temp_data[i + bo]);
+            //data[o + 2] = _record_opts.f(data[o + 2], temp_data[i + bo]);
             data[o + 3] = 255;
 /*
             min_r = Math.min(min_r, data[i]);
@@ -780,7 +780,7 @@ var _frame = function (raf_time) {
         }
         
         _canvasRecord(_data);
-        
+
         if (fas_enabled) {
             _fasNotifyFast(_FAS_FRAME, _data);
         } else {
