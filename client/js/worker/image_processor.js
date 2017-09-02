@@ -20,7 +20,7 @@ self.onmessage = function (m) {
         ip3        = 0,
         avg        = 0,
         alpha      = 0;
-        
+
     for (y = 0; y < img_height; y += 1) {
         line_index = (y * 4) * img_width;
         

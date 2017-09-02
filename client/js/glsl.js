@@ -230,10 +230,10 @@ var _glsl_compilation = function () {
             _createShader(_gl.VERTEX_SHADER, vertex_shader_code),
             _createShader(_gl.FRAGMENT_SHADER, glsl_code)
         );
-    
-    _parseGLSL(glsl_code);
 
     if (temp_program) {
+        _parseGLSL(glsl_code);
+        
         _gl.deleteProgram(_program);
         
         _program = temp_program;
@@ -268,10 +268,6 @@ var _glsl_compilation = function () {
 */
         
         if (_gl2) {
-/*
-            var vao = gl.createVertexArray();
-            _gl.bindVertexArray(vao);
-*/
             _gl.bindBuffer(_gl.ARRAY_BUFFER, _quad_vertex_buffer);
         } else {
             position = _gl.getAttribLocation(_program, "position");

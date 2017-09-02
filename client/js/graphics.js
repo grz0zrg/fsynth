@@ -692,7 +692,9 @@ var _frame = function (raf_time) {
     
     if ((_notesWorkerAvailable() || fas_enabled) && _play_position_markers.length > 0) {
         if (!fas_enabled) {
-            _prev_data[0] = new _synth_data_array(_data[0]);
+            for (i = 0; i < _output_channels; i += 1) {
+                _prev_data[i] = new _synth_data_array(_data[i]);
+            }
         }
         
         if (_gl2) {
@@ -756,8 +758,9 @@ var _frame = function (raf_time) {
             }
         }
     
+        // make a copy all channels data because we might need them later on
         for (i = 0; i < _output_channels; i += 1) {
-            buffer.push(new _synth_data_array(_canvas_height_mul4));
+            buffer.push(new _synth_data_array(_data[i]));
         }
         
         if (_show_oscinfos) {
@@ -780,16 +783,28 @@ var _frame = function (raf_time) {
         }
         
         _canvasRecord(_data);
-
+        
+        //_midiDataOut(_data, _prev_data);
+        
         if (fas_enabled) {
             _fasNotifyFast(_FAS_FRAME, _data);
         } else {
             _notesProcessing(_data, _prev_data);
+            
+            if (_osc_mode === _FS_WAVETABLE) {
+                _data = buffer;
+            }
         }
         
-        //_midiDataOut(_data, _prev_data);
-        
-        _data = buffer;
+        // OSC
+        if (_osc.enabled) {
+            // pack prev_data
+            for (i = 0; i < _output_channels; i += 1) {
+                buffer.push(_prev_data[i]);
+            }
+
+            _oscNotifyFast(_OSC_FRAME_DATA, buffer);
+        }
         
         // detached canvas (by a double click) TODO : Optimizations
 /*

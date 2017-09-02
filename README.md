@@ -6,7 +6,7 @@ Source code repository for the Fragment app. which can be found at : https://www
 
 This is a web. additive/spectral/granular synthesizer/sequencer powered by live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)
 
-Fragment basically capture slices of a WebGL canvas at the display refresh rate and translate RGBA pixels value to notes, the notes are then interpreted and played by one of the synthesis engine method, with the additive synthesis engine, this is actually like generating the sound spectrum by code.
+Fragment basically capture slices of a WebGL canvas at the display refresh rate and translate RGBA pixels value to notes, the notes are then interpreted and played by one of the synthesis engine method, with the additive synthesis engine, this is actually like generating the sound spectrum by code. The frame data can also be sent via OSC bundles. 
 
 The content of the WebGL canvas is produced on the GPU by a collaborative GLSL script, this make it extremely fast and easy to do any kinds of pixels manipulations.
 
@@ -18,7 +18,7 @@ This is a sort of [Shadertoy](https://www.shadertoy.com) with a special kind of 
 
 Fragment is quite modular and has several external app. such as an external GLSL editor which can directly connect to the sharedb server and a native additive synthesis engine which communicate via the WebSocket API, a WIP IanniX/OSC relay is also available and more is to come!
 
-Fragment can also act as a standalone sequencer but you have to make your own software that interpret the data which is sent via WebSocket.
+Fragment can also act as a standalone sequencer but you have to make your own software that interpret the data sent via WebSocket, this synthesizer can also send its data via OSC.
 
 For any questions, a message board is available [here](https://quiet.fsynth.com/)
 
@@ -37,6 +37,7 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
  * Synthesis data processed in 32-bit precision (WebGL 2.0 & EXT_color_buffer_float extension) or 8-bit precision
  * Slices can be added/deleted anywhere on the canvas, move left or right automatically and have independent pitch offset for convenience
  * Feedback via framebuffer (for fx like reverb, delay, spectral distortion etc)
+ * OSC support (with [SuperCollider](http://supercollider.github.io/) port of the synthesis engine)
  * Shader inputs:
     * Webcam
     * Images
@@ -78,8 +79,9 @@ Fragment has excellent performances with a modern multi-core system and a browse
  * fss - main server (discuss. system, slices)
  * fsdb - sharedb server (collaborative features)
  * fsws - web. server (only used for development or local installation)
- * osc_relay - an OSC relay which use the osc.js library (must be launched to use the IanniX controller)
+ * osc_relay - an OSC relay which use the osc.js library (must be launched to use the IanniX controller or SuperCollider fs.sc file)
  * editor - external GLSL code editor
+ * supercollider - the SuperCollider port of the additive synthesis engine (fed through OSC)
  * documentation - MAML (Minimalist Anubis Markup Language) with the latest HTML and PDF doc.
  * main.js - Electron app. file
  * common.js - Server config. file
@@ -108,7 +110,9 @@ Fragment make use of NodeJS, NPM, MongoDB and Redis database, once those are ins
 
  If you just want to try it out without the collaborative feature and GLSL code save, you don't need MongoDB and Redis, you just need "fsws" then point your browser to http://127.0.0.1:3000
 
- If you want to use it with IanniX or OSC app, please look at the osc_relay directory, this should be launched before you use the IanniX controller.
+ If you want to use it with IanniX or OSC app like the SuperCollider fs.sc file, please look at the osc_relay directory.
+ 
+ To use the OSC relay : cd osc_relay & npm install & node osc_relay
 
 ## Prod. system
 
@@ -120,7 +124,7 @@ Fragment make use of NodeJS, NPM, MongoDB and Redis database, once those are ins
 
 A native app. was developed with [Electron](http://electron.atom.io/) featuring a special login page but it is deprecated as some features does not work with Electron (like dialogs), the advantage of the native app was the built-in [C powered additive synthesis engine](https://github.com/grz0zrg/fas) which made Fragment a bit more accessible (download & play), you can run the native app with Electron by executing `electron .` in the root directory
 
-A launcher for the audio server program is planned.
+A graphical launcher for the audio server program is available [here](https://github.com/grz0zrg/fas_launcher).
 
 ## Tips and tricks
 

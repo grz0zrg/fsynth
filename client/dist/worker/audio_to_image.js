@@ -6615,7 +6615,11 @@ var _convert = function (params, data) {
                 
                 im, r,
                 
-                mag;
+                mag,
+                phase,
+                
+                amp,
+                db;
             
                 // overlap-add
                 for (k = 0; k < imag.length; k += 1) {
@@ -6637,15 +6641,23 @@ var _convert = function (params, data) {
                    
                     im = imag_final[stft_data_index],
                     r  = real_final[stft_data_index],
+                 
+                    amp = (Math.sqrt(r * r + im * im) / hop_divisor);
+                    db = 20 * Math.log10(amp);
+                    
+                    if (db < -40) {
+                        amp = 0.0;
+                    }
                         
-                    mag = Math.round((Math.sqrt(r * r + im * im) / hop_divisor) * 255);
+                    mag = Math.round(amp * 255);
+                    phase = Math.round(Math.atan2(mag,r) * 180 / Math.PI) / hop_divisor * 255;
                     
                     index = Math.round((((k - start) / hid * image_height))) * image_width * 4 + frame;
 
                     image_data[index    ] = mag;
                     image_data[index + 1] = mag;
                     image_data[index + 2] = mag;
-                    image_data[index + 3] = 255;
+                    image_data[index + 3] = phase;
                 }
             
                 frame += 4;
@@ -6698,7 +6710,7 @@ var _mergeChannels = function (l, r) {
     for (i = 0; i < l.length; i += 4) {
         l[i + 1] = r[i + 1];
         l[i + 2] = (l[i] + r[i + 1]) / 2;
-        l[i + 3] = 255;
+        l[i + 3] = (l[i + 3] + r[i + 3]) / 2;
     }
     
     return l;

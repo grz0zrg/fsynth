@@ -95,7 +95,7 @@ var _fasInit = function () {
             localStorage.setItem("fas-address", _fas.address);
         });
     
-    _fas.worker.addEventListener('message', function (m) {
+    _fas.worker.addEventListener("message", function (m) {
             var data = m.data;
 
             if (data.status === "open") {

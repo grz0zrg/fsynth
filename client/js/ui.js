@@ -107,6 +107,7 @@ var _createFasSettingsContent = function () {
         chn_synthesis_select,
         granular_option,
         additive_option,
+        exp_option,
         chn_genv_type_label,
         chn_genv_type_select,
         chn_genv_option,
@@ -131,8 +132,10 @@ var _createFasSettingsContent = function () {
         chn_synthesis_select = document.createElement("select");
         granular_option = document.createElement("option");
         additive_option = document.createElement("option");
+        exp_option = document.createElement("option");
         granular_option.innerHTML = "granular";
         additive_option.innerHTML = "additive";
+        exp_option.innerHTML = "exp";
         
         chn_genv_type_label = document.createElement("label");
         chn_genv_type_select = document.createElement("select");
@@ -168,6 +171,7 @@ var _createFasSettingsContent = function () {
         
         chn_synthesis_select.appendChild(additive_option);
         chn_synthesis_select.appendChild(granular_option);
+        chn_synthesis_select.appendChild(exp_option);
         
         chn_settings = _chn_settings[j];
         
@@ -178,6 +182,8 @@ var _createFasSettingsContent = function () {
                 additive_option.selected = true;
             } else if (chn_settings[0] === 1) {
                 granular_option.selected = true;
+            } else if (chn_settings[0] === 2) {
+                exp_option.selected = true;
             }
             
             if (chn_settings[1] !== undefined) {
@@ -193,6 +199,8 @@ var _createFasSettingsContent = function () {
                     value = 0;
                 } else if (this.value === "granular") {
                     value = 1;
+                } else if (this.value === "exp") {
+                    value = 2;
                 } else {
                     value = 0;
                 }
@@ -478,7 +486,7 @@ var _uiInit = function () {
         settings_ck_wavetable_elem = document.getElementById("fs_settings_ck_wavetable"),
         settings_ck_monophonic_elem = document.getElementById("fs_settings_ck_monophonic"),
         settings_ck_feedback_elem = document.getElementById("fs_settings_ck_feedback"),
-        settings_ck_exted_elem = document.getElementById("fs_settings_ck_exted"),
+        settings_ck_osc_out_elem = document.getElementById("fs_settings_ck_oscout"),
         settings_ck_slicebar_elem = document.getElementById("fs_settings_ck_slicebar"),
         settings_ck_slices_elem = document.getElementById("fs_settings_ck_slices"),
         
@@ -494,7 +502,7 @@ var _uiInit = function () {
         fs_settings_wavetable = localStorage.getItem('fs-use-wavetable'),
         fs_settings_monophonic = localStorage.getItem('fs-monophonic'),
         fs_settings_feedback = localStorage.getItem('fs-feedback'),
-        fs_settings_exted = localStorage.getItem('fs-exted');
+        fs_settings_osc_out = localStorage.getItem('fs-osc-out');
     
     _settings_dialog = WUI_Dialog.create(_settings_dialog_id, {
             title: "Session & global settings",
@@ -530,10 +538,10 @@ var _uiInit = function () {
         settings_ck_monophonic_elem.checked = false;
     }
     
-    if (fs_settings_exted === "true") {
-        settings_ck_exted_elem.checked = true;
+    if (fs_settings_osc_out === "true") {
+        settings_ck_osc_out_elem.checked = true;
     } else {
-        settings_ck_exted_elem.checked = false;
+        settings_ck_osc_out_elem.checked = false;
     }
     
     if (fs_settings_feedback === "true") {
@@ -636,6 +644,20 @@ var _uiInit = function () {
         settings_ck_slicebar_elem.checked = false;
     }
     
+    settings_ck_osc_out_elem.addEventListener("change", function () {
+            if (this.checked) {
+                _osc.enabled = true;
+                
+                _oscEnable();
+            } else {
+                _osc.enabled = false;
+                
+                _oscDisable();
+            }
+        
+            localStorage.setItem('fs-osc-out', this.checked);
+        });
+    
     settings_ck_monophonic_elem.addEventListener("change", function () {
             if (this.checked) {
                 _audio_infos.monophonic = true;
@@ -656,12 +678,6 @@ var _uiInit = function () {
             localStorage.setItem('fs-feedback', this.checked);
         
             _buildFeedback();
-        });
-    
-    settings_ck_exted_elem.addEventListener("change", function () {
-            localStorage.setItem('fs-exted', this.checked);
-        
-            //_notification("Reload the page for the external editor change to take effect", 10000);
         });
     
     settings_ck_wavetable_elem.addEventListener("change", function () {
@@ -791,7 +807,7 @@ var _uiInit = function () {
     settings_ck_xscrollbar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_monophonic_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_feedback_elem.dispatchEvent(new UIEvent('change'));
-    settings_ck_exted_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_osc_out_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_slicebar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_slices_elem.dispatchEvent(new UIEvent('change'));
     
