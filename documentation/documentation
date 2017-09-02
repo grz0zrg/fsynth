@@ -84,6 +84,7 @@ $list(
 		$list($item Multiple audio channels are only supported with $ref(fas)(FAS))
 	$item Shader inputs, webcam, textures, audio files, canvas
 	$item WebGL 2.0 and GLSL 3.0 support when compatibility is detected
+	$item OSC support, a $tlink(SuperCollider)(http://supercollider.github.io/) synth. which use OSC data from Fragment is also available
 	$item MIDI Enabled
 		$list($item Only with WebMIDI API enabled browsers (Google Chrome) $item Hot plugging of MIDI devices is supported)
 	$item Collaborative app.
@@ -528,7 +529,7 @@ It is possible to reset the MIDI control assigned to the widget by clicking on t
 $nl
 $label(globalsettingsdialog)
 $subsection(The session/global settings dialog)
-$tlink($center($image(347)(images/settings.png)))(images/settings.png)
+$tlink($center($image(324)(images/settings.png)))(images/settings.png)
 $nl
 The session & global settings dialog content (in order from top to bottom):
 $list(
@@ -582,6 +583,9 @@ $list(
 	$item Wavetable
 	$list(
 		$item Enable/disable the synthesis engine wavetable feature (uglier audio output but may be the less CPU intensive mode))
+	$item OSC
+	$list(
+		$item Enable/disable OSC I/O, slices data will be sent through OSC bundles via WebSockets, you will need an OSC relay to use this feature)
 	$item Feedback
 	$list(
 		$item Enable/disable the availability of the previous frame in the fragment shader (aka feedback), this is useful for complex effects, may be CPU/GPU intensive)
