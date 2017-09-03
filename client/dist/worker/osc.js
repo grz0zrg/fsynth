@@ -3301,15 +3301,26 @@ var _connect = function (opts) {
 
     _osc_port.on("message", function (m) {
         var address = m.address,
-
             args = m.args,
+
+            data = [],
+            prefix = address.slice(0, 2),
             
-            prefix = address.slice(0, 2);
+            i;
         
         if (prefix === "/i") {
             postMessage({
                     status: "data",
                     osc_input: { name: address.slice(1, address.length), i: args[0].value, v: args[1].value }
+                });
+        } else if (prefix === "/a") {
+            for (i = 0; i < args.length; i += 1) {
+                data.push(args[i].value);
+            }
+            
+            postMessage({
+                    status: "data",
+                    osc_input: { name: address.slice(1, address.length), v: data }
                 });
         }
     });

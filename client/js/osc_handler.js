@@ -120,6 +120,10 @@ var _oscInit = function () {
         
             if (data.status === "data") {
                 if (!_osc.inputs.hasOwnProperty(data.osc_input.name)) {
+                    if (!data.osc_input.i) {
+                        data.osc_input.i = data.osc_input.v.length;
+                    }
+                    
                     _osc.inputs[data.osc_input.name] = {
                         comps: undefined,
                         type: "float",
@@ -130,17 +134,21 @@ var _oscInit = function () {
                     _glsl_compilation();
                 }
                 
-                _osc.inputs[data.osc_input.name].data[data.osc_input.i] = data.osc_input.v;
-                
-                for (i = 0; i < _osc.inputs[data.osc_input.name].data.length; i += 1) {
-                    if (_osc.inputs[data.osc_input.name].data[i] === undefined) {
-                        _osc.inputs[data.osc_input.name].data[i] = 0;
+                if (data.osc_input.hasOwnProperty("i")) {
+                    _osc.inputs[data.osc_input.name].data[data.osc_input.i] = data.osc_input.v;
+
+                    for (i = 0; i < _osc.inputs[data.osc_input.name].data.length; i += 1) {
+                        if (_osc.inputs[data.osc_input.name].data[i] === undefined) {
+                            _osc.inputs[data.osc_input.name].data[i] = 0;
+                        }
                     }
-                }
-                
-                if (_osc.inputs[data.osc_input.name].count != _osc.inputs[data.osc_input.name].data.length) {
-                    _osc.inputs[data.osc_input.name].count = _osc.inputs[data.osc_input.name].data.length;
-                    _glsl_compilation();
+
+                    if (_osc.inputs[data.osc_input.name].count != _osc.inputs[data.osc_input.name].data.length) {
+                        _osc.inputs[data.osc_input.name].count = _osc.inputs[data.osc_input.name].data.length;
+                        _glsl_compilation();
+                    }
+                } else if (data.osc_input.hasOwnProperty("v")) {
+                    _osc.inputs[data.osc_input.name].data = data.osc_input.v;
                 }
 
                 if (!_program) {

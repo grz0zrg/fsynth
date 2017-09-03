@@ -20,7 +20,7 @@ Fragment is quite modular and has several external app. such as an external GLSL
 
 Fragment can also act as a standalone sequencer but you have to make your own software that interpret the data sent via WebSocket, this synthesizer can also send its data via OSC.
 
-Fragment support OSC inputs as well, if you send OSC messages starting with "i" as the address, it will define a shader uniform of that name with the data as a float array, [Open Stage Control](http://osc.ammd.net) can be used to control partials or more parameters through OSC that way. 
+Fragment support OSC inputs as well, if you send OSC messages starting with "i" (a single message which update a specific index of the array) or "a" (a single message with all the array data) as the address, it will define a shader uniform of that name with the data as a float array, [Open Stage Control](http://osc.ammd.net) can be used to control partials or more parameters through OSC that way. 
 
 For any questions, a message board is available [here](https://quiet.fsynth.com/)
 

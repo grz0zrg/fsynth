@@ -260,12 +260,18 @@ var _glsl_compilation = function () {
         _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
         
         // set uniforms to value from controllers
+/*
         for (i = 0; i < _controls.length; i += 1) {
             ctrl_obj_uniform = _controls[i].uniform;
             
             _setUniforms(_gl, ctrl_obj_uniform.type, _program, _controls[i].name, _controls[i].values, ctrl_obj_uniform.comps);
         }
-        
+*/
+        for (ctrl_name in _osc.inputs) { 
+            ctrl_arr = _osc.inputs[ctrl_name];
+
+            _setUniforms(_gl, ctrl_arr.type, _program, ctrl_name, ctrl_arr.data, ctrl_arr.comps);
+        }
 /*
         for(ctrl_name in _controls) { 
             if (_controls.hasOwnProperty(ctrl_name)) {

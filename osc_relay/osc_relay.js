@@ -63,6 +63,7 @@ udpPort.on("bundle", function (oscBundle, timeTag, info) {
 });
 
 udpPort.on("message", function (m) {
+    //console.log("message", m);
     if (websocketPort) {
         websocketPort.send(m);
     }
