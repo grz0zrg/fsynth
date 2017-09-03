@@ -800,12 +800,14 @@ var _frame = function (raf_time) {
         
         // OSC
         if (_osc.enabled) {
-            // pack prev_data
-            for (i = 0; i < _output_channels; i += 1) {
-                buffer.push(_prev_data[i]);
-            }
+            if (_osc.out) {
+                // pack prev_data
+                for (i = 0; i < _output_channels; i += 1) {
+                    buffer.push(_prev_data[i]);
+                }
 
-            _oscNotifyFast(_OSC_FRAME_DATA, buffer);
+                _oscNotifyFast(_OSC_FRAME_DATA, buffer);
+            }
         }
         
         // detached canvas (by a double click) TODO : Optimizations
@@ -841,8 +843,6 @@ var _frame = function (raf_time) {
     if (_show_polyinfos) {
         _poly_infos_element.innerHTML = _keyboard.polyphony;
     }
-    
-    //_drawSpectrum();
     
     _globalFrame += 1;
     

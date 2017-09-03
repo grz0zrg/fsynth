@@ -487,6 +487,7 @@ var _uiInit = function () {
         settings_ck_monophonic_elem = document.getElementById("fs_settings_ck_monophonic"),
         settings_ck_feedback_elem = document.getElementById("fs_settings_ck_feedback"),
         settings_ck_osc_out_elem = document.getElementById("fs_settings_ck_oscout"),
+        settings_ck_osc_in_elem = document.getElementById("fs_settings_ck_oscin"),
         settings_ck_slicebar_elem = document.getElementById("fs_settings_ck_slicebar"),
         settings_ck_slices_elem = document.getElementById("fs_settings_ck_slices"),
         
@@ -502,6 +503,7 @@ var _uiInit = function () {
         fs_settings_wavetable = localStorage.getItem('fs-use-wavetable'),
         fs_settings_monophonic = localStorage.getItem('fs-monophonic'),
         fs_settings_feedback = localStorage.getItem('fs-feedback'),
+        fs_settings_osc_in = localStorage.getItem('fs-osc-in'),
         fs_settings_osc_out = localStorage.getItem('fs-osc-out');
     
     _settings_dialog = WUI_Dialog.create(_settings_dialog_id, {
@@ -536,6 +538,12 @@ var _uiInit = function () {
     } else {
         _audio_infos.monophonic = false;
         settings_ck_monophonic_elem.checked = false;
+    }
+    
+    if (fs_settings_osc_in === "true") {
+        settings_ck_osc_in_elem.checked = true;
+    } else {
+        settings_ck_osc_in_elem.checked = false;
     }
     
     if (fs_settings_osc_out === "true") {
@@ -644,13 +652,27 @@ var _uiInit = function () {
         settings_ck_slicebar_elem.checked = false;
     }
     
-    settings_ck_osc_out_elem.addEventListener("change", function () {
+    settings_ck_osc_in_elem.addEventListener("change", function () {
             if (this.checked) {
-                _osc.enabled = true;
+                _osc.in = true;
                 
                 _oscEnable();
             } else {
-                _osc.enabled = false;
+                _osc.in = false;
+                
+                _oscDisable();
+            }
+        
+            localStorage.setItem('fs-osc-in', this.checked);
+        });
+    
+    settings_ck_osc_out_elem.addEventListener("change", function () {
+            if (this.checked) {
+                _osc.out = true;
+                
+                _oscEnable();
+            } else {
+                _osc.out = false;
                 
                 _oscDisable();
             }
@@ -807,6 +829,7 @@ var _uiInit = function () {
     settings_ck_xscrollbar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_monophonic_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_feedback_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_osc_in_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_osc_out_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_slicebar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_slices_elem.dispatchEvent(new UIEvent('change'));

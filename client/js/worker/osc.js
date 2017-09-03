@@ -48,9 +48,16 @@ var _connect = function (opts) {
     _osc_port.on("message", function (m) {
         var address = m.address,
 
-            args = m.args;
-
-        // osc messages processing here
+            args = m.args,
+            
+            prefix = address.slice(0, 2);
+        
+        if (prefix === "/i") {
+            postMessage({
+                    status: "data",
+                    osc_input: { name: address.slice(1, address.length), i: args[0].value, v: args[1].value }
+                });
+        }
     });
 
     _osc_port.on("close", function () {        
@@ -65,6 +72,8 @@ var _connect = function (opts) {
     });
 
     _osc_port.on("error", function (e) {
+        console.log(e);
+        
         postMessage({
                 status: "error"
             });

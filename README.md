@@ -20,6 +20,8 @@ Fragment is quite modular and has several external app. such as an external GLSL
 
 Fragment can also act as a standalone sequencer but you have to make your own software that interpret the data sent via WebSocket, this synthesizer can also send its data via OSC.
 
+Fragment support OSC inputs as well, if you send OSC messages starting with "i" as the address, it will define a shader uniform of that name with the data as a float array, [Open Stage Control](http://osc.ammd.net) can be used to control partials or more parameters through OSC that way. 
+
 For any questions, a message board is available [here](https://quiet.fsynth.com/)
 
 ## Features
@@ -37,13 +39,13 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
  * Synthesis data processed in 32-bit precision (WebGL 2.0 & EXT_color_buffer_float extension) or 8-bit precision
  * Slices can be added/deleted anywhere on the canvas, move left or right automatically and have independent pitch offset for convenience
  * Feedback via framebuffer (for fx like reverb, delay, spectral distortion etc)
- * OSC support (with [SuperCollider](http://supercollider.github.io/) port of the synthesis engine)
+ * OSC in/out support (a [SuperCollider](http://supercollider.github.io/) port of the synthesis engine which use OSC is also available)
  * Shader inputs:
     * Webcam
     * Images
     * Audio files (translated to images)
     * Drawing canvas with drawing and compositing operations which use images Fragment input as brushes, Fragment is bundled with 20 high-quality brushes, a pack of 969 high-quality brushes is also available as a [separate download](https://www.fsynth.com/data/969_png_brushes_pack.7z)
- * Uniform controllers (WIP : Multislider, XY Pad, [IanniX](https://www.iannix.org/en/) cursors via OSC)
+ * Uniform controllers via OSC [Open Stage Control is recommended](http://osc.ammd.net)
  * Per-sessions discussion system
  * Global and per sessions settings automatic save/load; make use of *localStorage*
  * No authentifications (make use of *localStorage* and is *sessions* based)
@@ -79,7 +81,7 @@ Fragment has excellent performances with a modern multi-core system and a browse
  * fss - main server (discuss. system, slices)
  * fsdb - sharedb server (collaborative features)
  * fsws - web. server (only used for development or local installation)
- * osc_relay - an OSC relay which use the osc.js library (must be launched to use the IanniX controller or SuperCollider fs.sc file)
+ * osc_relay - an OSC relay which use the osc.js library (must be launched to use OSC features)
  * editor - external GLSL code editor
  * supercollider - the SuperCollider port of the additive synthesis engine (fed through OSC)
  * documentation - MAML (Minimalist Anubis Markup Language) with the latest HTML and PDF doc.
@@ -110,7 +112,7 @@ Fragment make use of NodeJS, NPM, MongoDB and Redis database, once those are ins
 
  If you just want to try it out without the collaborative feature and GLSL code save, you don't need MongoDB and Redis, you just need "fsws" then point your browser to http://127.0.0.1:3000
 
- If you want to use it with IanniX or OSC app like the SuperCollider fs.sc file, please look at the osc_relay directory.
+ If you want to use it with an OSC app like the SuperCollider fs.sc file or [Open Stage Control](http://osc.ammd.net), please look at the osc_relay directory.
  
  To use the OSC relay : cd osc_relay & npm install & node osc_relay
 

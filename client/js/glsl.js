@@ -150,6 +150,7 @@ var _glsl_compilation = function () {
         ctrl_name,
         ctrl_obj,
         ctrl_obj_uniform,
+        ctrl_arr,
         
         temp_program,
 
@@ -207,12 +208,20 @@ var _glsl_compilation = function () {
     }
     
     // inputs uniform from controllers
+/*
     for (ctrl_name in _controls) { 
         if (_controls.hasOwnProperty(ctrl_name)) {
            ctrl_obj = _controls[ctrl_name];
 
            glsl_code += "uniform " + ((ctrl_obj.comps !== undefined) ? ctrl_obj.type + ctrl_obj.comps : ctrl_obj.type) + " " + ctrl_name + ((ctrl_obj.count > 1) ? "[" + ctrl_obj.count + "]" : "") + ";";
         }
+    }
+*/  
+    // inputs uniform from OSC
+    for (ctrl_name in _osc.inputs) { 
+        ctrl_arr = _osc.inputs[ctrl_name];
+
+        glsl_code += "uniform " + ((ctrl_arr.comps !== undefined) ? ctrl_arr.type + ctrl_arr.comps : ctrl_arr.type) + " " + ctrl_name + ((ctrl_arr.count > 1) ? "[" + ctrl_arr.count + "]" : "") + ";";
     }
 
 /* // Recent controller

@@ -18244,12 +18244,14 @@ var _frame = function (raf_time) {
         
         // OSC
         if (_osc.enabled) {
-            // pack prev_data
-            for (i = 0; i < _output_channels; i += 1) {
-                buffer.push(_prev_data[i]);
-            }
+            if (_osc.out) {
+                // pack prev_data
+                for (i = 0; i < _output_channels; i += 1) {
+                    buffer.push(_prev_data[i]);
+                }
 
-            _oscNotifyFast(_OSC_FRAME_DATA, buffer);
+                _oscNotifyFast(_OSC_FRAME_DATA, buffer);
+            }
         }
         
         // detached canvas (by a double click) TODO : Optimizations
@@ -18285,8 +18287,6 @@ var _frame = function (raf_time) {
     if (_show_polyinfos) {
         _poly_infos_element.innerHTML = _keyboard.polyphony;
     }
-    
-    //_drawSpectrum();
     
     _globalFrame += 1;
     
@@ -18443,6 +18443,7 @@ var _glsl_compilation = function () {
         ctrl_name,
         ctrl_obj,
         ctrl_obj_uniform,
+        ctrl_arr,
         
         temp_program,
 
@@ -18500,12 +18501,20 @@ var _glsl_compilation = function () {
     }
     
     // inputs uniform from controllers
+/*
     for (ctrl_name in _controls) { 
         if (_controls.hasOwnProperty(ctrl_name)) {
            ctrl_obj = _controls[ctrl_name];
 
            glsl_code += "uniform " + ((ctrl_obj.comps !== undefined) ? ctrl_obj.type + ctrl_obj.comps : ctrl_obj.type) + " " + ctrl_name + ((ctrl_obj.count > 1) ? "[" + ctrl_obj.count + "]" : "") + ";";
         }
+    }
+*/  
+    // inputs uniform from OSC
+    for (ctrl_name in _osc.inputs) { 
+        ctrl_arr = _osc.inputs[ctrl_name];
+
+        glsl_code += "uniform " + ((ctrl_arr.comps !== undefined) ? ctrl_arr.type + ctrl_arr.comps : ctrl_arr.type) + " " + ctrl_name + ((ctrl_arr.count > 1) ? "[" + ctrl_arr.count + "]" : "") + ";";
     }
 
 /* // Recent controller
@@ -21056,6 +21065,7 @@ var _uiInit = function () {
         settings_ck_monophonic_elem = document.getElementById("fs_settings_ck_monophonic"),
         settings_ck_feedback_elem = document.getElementById("fs_settings_ck_feedback"),
         settings_ck_osc_out_elem = document.getElementById("fs_settings_ck_oscout"),
+        settings_ck_osc_in_elem = document.getElementById("fs_settings_ck_oscin"),
         settings_ck_slicebar_elem = document.getElementById("fs_settings_ck_slicebar"),
         settings_ck_slices_elem = document.getElementById("fs_settings_ck_slices"),
         
@@ -21071,6 +21081,7 @@ var _uiInit = function () {
         fs_settings_wavetable = localStorage.getItem('fs-use-wavetable'),
         fs_settings_monophonic = localStorage.getItem('fs-monophonic'),
         fs_settings_feedback = localStorage.getItem('fs-feedback'),
+        fs_settings_osc_in = localStorage.getItem('fs-osc-in'),
         fs_settings_osc_out = localStorage.getItem('fs-osc-out');
     
     _settings_dialog = WUI_Dialog.create(_settings_dialog_id, {
@@ -21105,6 +21116,12 @@ var _uiInit = function () {
     } else {
         _audio_infos.monophonic = false;
         settings_ck_monophonic_elem.checked = false;
+    }
+    
+    if (fs_settings_osc_in === "true") {
+        settings_ck_osc_in_elem.checked = true;
+    } else {
+        settings_ck_osc_in_elem.checked = false;
     }
     
     if (fs_settings_osc_out === "true") {
@@ -21213,13 +21230,27 @@ var _uiInit = function () {
         settings_ck_slicebar_elem.checked = false;
     }
     
-    settings_ck_osc_out_elem.addEventListener("change", function () {
+    settings_ck_osc_in_elem.addEventListener("change", function () {
             if (this.checked) {
-                _osc.enabled = true;
+                _osc.in = true;
                 
                 _oscEnable();
             } else {
-                _osc.enabled = false;
+                _osc.in = false;
+                
+                _oscDisable();
+            }
+        
+            localStorage.setItem('fs-osc-in', this.checked);
+        });
+    
+    settings_ck_osc_out_elem.addEventListener("change", function () {
+            if (this.checked) {
+                _osc.out = true;
+                
+                _oscEnable();
+            } else {
+                _osc.out = false;
                 
                 _oscDisable();
             }
@@ -21376,6 +21407,7 @@ var _uiInit = function () {
     settings_ck_xscrollbar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_monophonic_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_feedback_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_osc_in_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_osc_out_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_slicebar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_slices_elem.dispatchEvent(new UIEvent('change'));
@@ -25093,9 +25125,14 @@ var _fasInit = function () {
 
 var _osc = {
         address: "127.0.0.1:8081",
+        in: false,
+        out: false,
         enabled: false,
         status: null,
-        worker: new Worker("dist/worker/osc.min.js")
+        worker: new Worker("dist/worker/osc.min.js"),
+        inputs: [],
+        queue: [],
+        queue_timeout: null
     },
 
     //_osc_address_input = document.getElementById("fs_osc_address"),
@@ -25135,21 +25172,47 @@ var _oscNotifyFast = function (cmd, data) {
 };
 
 var _oscEnable = function () {
-    _oscNotify(_OSC_ENABLE, {
-            address: _osc.address,
-        });
-    
-    _osc.enabled = true;
+    if (!_osc.enabled) {
+        _oscNotify(_OSC_ENABLE, {
+                address: _osc.address,
+            });
+
+        _osc.enabled = true;
+    }
 };
 
 var _oscDisable = function () {
-    _oscNotify(_OSC_DISABLE);
-    
-    _osc.enabled = false;
+    if (!_osc.in && !_osc.out) {
+        _oscNotify(_OSC_DISABLE);
+
+        _osc.enabled = false;
+    }
 };
 
 var _oscEnabled = function () {
     return _osc.enabled;
+};
+
+var _processOSCInputsQueue = function () {
+    var i = 0,
+        
+        name;
+    
+    if (!_program) {
+        clearTimeout(_osc.queue_timeout);
+        _osc.queue_timeout = setTimeout(_processOSCInputsQueue, 2000);
+        
+        return;
+    }
+    
+    _useProgram(_program);
+    for (i = 0; i < _osc.queue.length; i += 1) {
+        name = _osc.queue[i];
+        
+        _setUniforms(_gl, _osc.inputs[name].type, _program, name, _osc.inputs[name].data);
+    }
+    
+    _osc.queue = [];
 };
 
 /***********************************************************
@@ -25172,9 +25235,43 @@ var _oscInit = function () {
         });
 */
     _osc.worker.addEventListener("message", function (m) {
-            var data = m.data;
+            var data = m.data, i;
+        
+            if (data.status === "data") {
+                if (!_osc.inputs.hasOwnProperty(data.osc_input.name)) {
+                    _osc.inputs[data.osc_input.name] = {
+                        comps: undefined,
+                        type: "float",
+                        count: data.osc_input.i,
+                        data: []
+                    };
+                    
+                    _glsl_compilation();
+                }
+                
+                _osc.inputs[data.osc_input.name].data[data.osc_input.i] = data.osc_input.v;
+                
+                for (i = 0; i < _osc.inputs[data.osc_input.name].data.length; i += 1) {
+                    if (_osc.inputs[data.osc_input.name].data[i] === undefined) {
+                        _osc.inputs[data.osc_input.name].data[i] = 0;
+                    }
+                }
+                
+                if (_osc.inputs[data.osc_input.name].count != _osc.inputs[data.osc_input.name].data.length) {
+                    _osc.inputs[data.osc_input.name].count = _osc.inputs[data.osc_input.name].data.length;
+                    _glsl_compilation();
+                }
 
-            if (data.status === "ready") {
+                if (!_program) {
+                    _osc.queue.push(data.osc_input.name);
+                    
+                    clearTimeout(_osc.queue_timeout);
+                    _osc.queue_timeout = setTimeout(_processOSCInputsQueue, 2000);
+                } else {
+                    _useProgram(_program);
+                    _setUniforms(_gl, _osc.inputs[data.osc_input.name].type, _program, data.osc_input.name, _osc.inputs[data.osc_input.name].data);
+                }
+            } else if (data.status === "ready") {
                 _notification("OSC: Connected to " + _osc.address, 2500);
             } else if (data.status === "error") {
                 _notification("OSC: Connection error!", 2500);
