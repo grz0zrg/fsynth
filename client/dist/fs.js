@@ -17185,6 +17185,37 @@ var _loadImageFromURL = function (url, done_cb) {
     Fields.
 ************************************************************/
 
+var _image_to_audio_worker = new Worker("dist/worker/image_to_audio.min.js");
+
+/***********************************************************
+    Functions.
+************************************************************/
+
+var _exportImage = function (image_data) {
+    var data = new Uint8ClampedArray(image_data.data),
+        
+        params = {
+            image_width: image_data.width,
+            image_height: image_data.height,
+            max_freq: _oscillators[0].freq,
+            note_time: _getNoteTime(120, 16),
+            sample_rate: _sample_rate,
+            data: data
+        };
+    
+    _notification("Export in progress...", 2000);
+
+    _image_to_audio_worker.postMessage(params, [params.data.buffer]);
+};
+
+_image_to_audio_worker.addEventListener('message', function (m) {
+        console.log(m);
+    }, false);/* jslint browser: true */
+
+/***********************************************************
+    Fields.
+************************************************************/
+
 var _audio_to_image_worker = new Worker("dist/worker/audio_to_image.min.js"),
     
     _audio_import_settings = {
@@ -18173,7 +18204,7 @@ var _frame = function (raf_time) {
     
         // make a copy all channels data because we might need them later on
         for (i = 0; i < _output_channels; i += 1) {
-            buffer.push(new _synth_data_array(_data[i]));
+            buffer.push(new _synth_data_array(_canvas_height_mul4/*_data[i]*/));
         }
         
         if (_show_oscinfos) {
@@ -18197,17 +18228,19 @@ var _frame = function (raf_time) {
         
         _canvasRecord(_data);
         
-        //_midiDataOut(_data, _prev_data);
-        
         if (fas_enabled) {
             _fasNotifyFast(_FAS_FRAME, _data);
         } else {
             _notesProcessing(_data, _prev_data);
-            
+            /*
             if (_osc_mode === _FS_WAVETABLE) {
                 _data = buffer;
-            }
+            }*/
         }
+        
+        _data = buffer;
+        
+        //_midiDataOut(_data, _prev_data);
         
         // OSC
         if (_osc.enabled) {

@@ -760,7 +760,7 @@ var _frame = function (raf_time) {
     
         // make a copy all channels data because we might need them later on
         for (i = 0; i < _output_channels; i += 1) {
-            buffer.push(new _synth_data_array(_data[i]));
+            buffer.push(new _synth_data_array(_canvas_height_mul4/*_data[i]*/));
         }
         
         if (_show_oscinfos) {
@@ -784,17 +784,19 @@ var _frame = function (raf_time) {
         
         _canvasRecord(_data);
         
-        //_midiDataOut(_data, _prev_data);
-        
         if (fas_enabled) {
             _fasNotifyFast(_FAS_FRAME, _data);
         } else {
             _notesProcessing(_data, _prev_data);
-            
+            /*
             if (_osc_mode === _FS_WAVETABLE) {
                 _data = buffer;
-            }
+            }*/
         }
+        
+        _data = buffer;
+        
+        //_midiDataOut(_data, _prev_data);
         
         // OSC
         if (_osc.enabled) {
