@@ -758,9 +758,8 @@ var _frame = function (raf_time) {
             }
         }
     
-        // make a copy all channels data because we might need them later on
         for (i = 0; i < _output_channels; i += 1) {
-            buffer.push(new _synth_data_array(_canvas_height_mul4/*_data[i]*/));
+            buffer.push(new _synth_data_array(_data[i]));
         }
         
         if (_show_oscinfos) {
@@ -784,6 +783,24 @@ var _frame = function (raf_time) {
         
         _canvasRecord(_data);
         
+        // OSC
+        if (_osc.enabled) {
+            if (_osc.out) {
+                // make a copy all channels again
+                var buffer_osc = [];
+                for (i = 0; i < _output_channels; i += 1) {
+                    buffer_osc.push(new _synth_data_array(_data[i]));
+                }
+                
+                // and prev_data
+                for (i = 0; i < _output_channels; i += 1) {
+                    buffer_osc.push(_prev_data[i]);
+                }
+
+                _oscNotifyFast(_OSC_FRAME_DATA, buffer_osc);
+            }
+        }
+        
         if (fas_enabled) {
             _fasNotifyFast(_FAS_FRAME, _data);
         } else {
@@ -797,18 +814,6 @@ var _frame = function (raf_time) {
         _data = buffer;
         
         //_midiDataOut(_data, _prev_data);
-        
-        // OSC
-        if (_osc.enabled) {
-            if (_osc.out) {
-                // pack prev_data
-                for (i = 0; i < _output_channels; i += 1) {
-                    buffer.push(_prev_data[i]);
-                }
-
-                _oscNotifyFast(_OSC_FRAME_DATA, buffer);
-            }
-        }
         
         // detached canvas (by a double click) TODO : Optimizations
 /*

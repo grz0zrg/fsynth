@@ -3258,6 +3258,8 @@ var osc = osc || require("../osc.js");
 var _osc = false,
     _osc_timeout = null,
     _osc_port,
+    
+    _osc_ready = false,
 
     _OSC_ENABLE = 0,
     _OSC_DISABLE = 1,
@@ -3281,6 +3283,8 @@ var _connect = function (opts) {
         postMessage({
                 status: "ready"
             });
+        
+        _osc_ready = true;
     });
 
     _osc_port.on("bundle", function (bundle) {
@@ -3334,14 +3338,21 @@ var _connect = function (opts) {
             clearTimeout(_osc_timeout);
             _osc_timeout = setTimeout(_connect, 5000, opts);
         }
+        
+        _osc_ready = false;
     });
 
     _osc_port.on("error", function (e) {
-        console.log(e);
-        
         postMessage({
                 status: "error"
             });
+        
+        if (_osc) {
+            clearTimeout(_osc_timeout);
+            _osc_timeout = setTimeout(_connect, 5000, opts);
+        }
+        
+        _osc_ready = false;
     });
 
     _osc_port.open();
@@ -3391,6 +3402,10 @@ var _getNoteBundle = function (i, j, c, l, r, b, a, base_freq, octave_len) {
 };
 
 var _sendFrameBundle = function (data) {
+    if (!_osc_ready) {
+        return;
+    }
+    
     var i = 0,
         j = 0,
         c = 0,
@@ -3437,7 +3452,10 @@ var _sendFrameBundle = function (data) {
                     
                     bundle.packets.push(_getNoteBundle(j, h - j - 1, c, r, g, b, a, data.base_frequency, data.octave_length));
                 } else {
-                    if (cdata[c + data.channels][i] > 0 || cdata[c + data.channels][i + 1] > 0) {
+                    var pr = cdata[c + data.channels][i],
+                        pg = cdata[c + data.channels][i + 1];
+
+                    if (pr > 0 || pg > 0) {
                         r *= inv_full_brightness;
                         g *= inv_full_brightness;
                         b *= inv_full_brightness;
