@@ -94,11 +94,13 @@ Fragment has excellent performances with a modern multi-core system and a browse
 
 Fragment is built with a custom build system called Nut scanning for changes in real-time and which include files when it read /\*#include file\*/, it execute several programs on the output files such as code minifier for production ready usage, the build system was made with the functional *Anubis* programming language based on cartesian closed category theory.
 
+Since the *Anubis* language is relatively unknown, a simplified (without live check & build) Python port of the build system is available, check out [pyNut](https://github.com/grz0zrg/pynut)
+
 _app_fs.\*_ and _app_cm.\*_ are the entry point files used by the build system to produce a single file and a production ready file in the *dist* directory.
 
-If you want to build it by yourself, you will have to find a way to run a pre-processor over _app_fs.\*_ and _app_cm.\*_ or implement other systems like requireJS! This was made like this for build system simplicity and independence.
+If you want to build it by yourself, install [pyNut](https://github.com/grz0zrg/pynut) script somewhere in your PATH then call `pynutbuild` shell script in the `client` root directory.
 
-The build system can be found [here](https://github.com/grz0zrg/nut) and the build system is called by the shell script named `nutbuild` (root folder)
+The Anubis build system can be found [here](https://github.com/grz0zrg/nut) and this build system is called by the shell script named `nutbuild` (root folder)
 
 ## How to setup your own
 

@@ -794,7 +794,7 @@ var _frame = function (raf_time) {
                 
                 // and prev_data
                 for (i = 0; i < _output_channels; i += 1) {
-                    buffer_osc.push(_prev_data[i]);
+                    buffer_osc.push(new _synth_data_array(_prev_data[i]));
                 }
 
                 _oscNotifyFast(_OSC_FRAME_DATA, buffer_osc);
