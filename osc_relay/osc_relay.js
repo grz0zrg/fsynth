@@ -24,8 +24,6 @@ var udpPort = new osc.UDPPort({
     metadata: true
 });
 
-udpPort.open();
-
 function websocketConnect() {
     wss = new WebSocket.Server({
         server: server
@@ -63,7 +61,6 @@ udpPort.on("bundle", function (oscBundle, timeTag, info) {
 });
 
 udpPort.on("message", function (m) {
-    //console.log("message", m);
     if (websocketPort) {
         websocketPort.send(m);
     }
@@ -72,3 +69,5 @@ udpPort.on("message", function (m) {
 udpPort.on("error", function (e) {
     console.log("UDP Error: ", e);
 });
+
+udpPort.open();

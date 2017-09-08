@@ -157,7 +157,7 @@ Client :
 
 Papers :
  * [The Scientist and Engineer's Guide to Digital Signal Processing](http://www.dspguide.com)
- * [Welsh's Synthesizer Cookbook](http://www.synthesizer-cookbook.com)
+ * [L'audionumérique 3°ed by Curtis Road](http://www.audionumerique.com/)
  * [Fabrice Neyret Desmos page](http://www-evasion.imag.fr/Membres/Fabrice.Neyret/demos/DesmosGraph/indexImages.html)
 
 Servers :

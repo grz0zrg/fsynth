@@ -107,6 +107,7 @@ var _createFasSettingsContent = function () {
         chn_synthesis_select,
         granular_option,
         additive_option,
+        spectral_option,
         exp_option,
         chn_genv_type_label,
         chn_genv_type_select,
@@ -132,9 +133,11 @@ var _createFasSettingsContent = function () {
         chn_synthesis_select = document.createElement("select");
         granular_option = document.createElement("option");
         additive_option = document.createElement("option");
+        spectral_option = document.createElement("option");
         exp_option = document.createElement("option");
         granular_option.innerHTML = "granular";
         additive_option.innerHTML = "additive";
+        spectral_option.innerHTML = "spectral";
         exp_option.innerHTML = "exp";
         
         chn_genv_type_label = document.createElement("label");
@@ -170,6 +173,7 @@ var _createFasSettingsContent = function () {
         chn_settings_div.innerHTML = "Chn " + (j + 1);
         
         chn_synthesis_select.appendChild(additive_option);
+        chn_synthesis_select.appendChild(spectral_option);
         chn_synthesis_select.appendChild(granular_option);
         chn_synthesis_select.appendChild(exp_option);
         
@@ -181,8 +185,10 @@ var _createFasSettingsContent = function () {
             if (chn_settings[0] === 0) {
                 additive_option.selected = true;
             } else if (chn_settings[0] === 1) {
-                granular_option.selected = true;
+                spectral_option.selected = true;
             } else if (chn_settings[0] === 2) {
+                granular_option.selected = true;
+            } else if (chn_settings[0] === 3) {
                 exp_option.selected = true;
             }
             
@@ -197,10 +203,12 @@ var _createFasSettingsContent = function () {
 
                 if (this.value === "additive") {
                     value = 0;
-                } else if (this.value === "granular") {
+                } else if (this.value === "spectral") {
                     value = 1;
-                } else if (this.value === "exp") {
+                } else if (this.value === "granular") {
                     value = 2;
+                } else if (this.value === "exp") {
+                    value = 3;
                 } else {
                     value = 0;
                 }
