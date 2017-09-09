@@ -18135,12 +18135,6 @@ var _frame = function (raf_time) {
     }
     
     if ((_notesWorkerAvailable() || fas_enabled) && _play_position_markers.length > 0) {
-        if (!fas_enabled) {
-            for (i = 0; i < _output_channels; i += 1) {
-                _prev_data[i] = new _synth_data_array(_data[i]);
-            }
-        }
-        
         if (_gl2) {
             _gl.bindBuffer(_gl.PIXEL_PACK_BUFFER, _pbo);
             _gl.bufferData(_gl.PIXEL_PACK_BUFFER, _pbo_size, _gl.STATIC_READ);
@@ -18203,7 +18197,7 @@ var _frame = function (raf_time) {
         }
     
         for (i = 0; i < _output_channels; i += 1) {
-            buffer.push(new _synth_data_array(_data[i]));
+            buffer.push(new _synth_data_array(_canvas_height_mul4));
         }
         
         if (_show_oscinfos) {
@@ -18253,6 +18247,10 @@ var _frame = function (raf_time) {
             if (_osc_mode === _FS_WAVETABLE) {
                 _data = buffer;
             }*/
+        }
+        
+        for (i = 0; i < _output_channels; i += 1) {
+            _prev_data[i] = new _synth_data_array(_data[i]);
         }
         
         _data = buffer;
