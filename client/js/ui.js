@@ -499,6 +499,7 @@ var _uiInit = function () {
         settings_ck_slicebar_elem = document.getElementById("fs_settings_ck_slicebar"),
         settings_ck_slices_elem = document.getElementById("fs_settings_ck_slices"),
         
+        fs_settings_note_lifetime = localStorage.getItem('fs-note-lifetime'),
         fs_settings_max_polyphony = localStorage.getItem('fs-max-polyphony'),
         fs_settings_osc_fadeout = localStorage.getItem('fs-osc-fadeout'),
         fs_settings_show_globaltime = localStorage.getItem('fs-show-globaltime'),
@@ -518,7 +519,7 @@ var _uiInit = function () {
             title: "Session & global settings",
 
             width: "320px",
-            height: "418px",
+            height: "450px",
 
             halign: "center",
             valign: "center",
@@ -580,6 +581,10 @@ var _uiInit = function () {
     
     if (fs_settings_max_polyphony) {
         _keyboard.polyphony_max = _parseInt10(fs_settings_max_polyphony);
+    }
+    
+    if (fs_settings_note_lifetime) {
+        _keyboard.note_lifetime = _parseInt10(fs_settings_note_lifetime);
     }
     
     if (fs_settings_wavetable === "true") {
@@ -1854,6 +1859,36 @@ var _uiInit = function () {
                 }
                 
                 _compile();
+            }
+        });
+    
+    WUI_RangeSlider.create("fs_settings_note_lifetime", {
+            width: 120,
+            height: 8,
+
+            min: 0,
+        
+            bar: false,
+
+            step: 10,
+            scroll_step: 10,
+
+            default_value: _keyboard.note_lifetime,
+            value: _keyboard.note_lifetime,
+
+            title: "Note lifetime (ms)",
+
+            title_min_width: 140,
+            value_min_width: 88,
+
+            on_change: function (note_lifetime) {
+                if (note_lifetime <= 0) {
+                    return;
+                }
+                
+                _keyboard.note_lifetime = note_lifetime;
+                
+                localStorage.setItem('fs-note-lifetime', _keyboard.note_lifetime);
             }
         });
     

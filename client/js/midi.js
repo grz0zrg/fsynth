@@ -300,6 +300,36 @@ var _midiDataOut = function (pixels_data, prev_pixels_data) {
     }
 };
 
+var _MIDInotesUpdate = function (update_uniform) {
+    var i = 0, key, value;
+    
+    _keyboard.data = new Float32Array(_keyboard.data_length);
+    _keyboard.data.fill(0);
+
+    for (key in _keyboard.pressed) { 
+        value = _keyboard.pressed[key];
+
+        _keyboard.data[i] = value.frq;
+        _keyboard.data[i + 1] = value.vel;
+        _keyboard.data[i + 2] = value.time;//Date.now();
+        _keyboard.data[i + 3] = value.channel;
+        
+        i += _keyboard.data_components;
+
+        if (i > _keyboard.data_length) {
+            break;
+        }
+    }
+
+    _keyboard.polyphony = i / _keyboard.data_components;
+
+    if (update_uniform) {
+        _useProgram(_program);
+        _gl.uniform4fv(_getUniformLocation("keyboard", _program), new Float32Array(_keyboard.data));
+        //_setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
+    }
+}
+
 var _onMIDIMessage = function (midi_message) {
     var i = 0, midi_device = _midi_devices.input[this.id],
         key, value, channel = midi_message.data[0] & 0x0f;
@@ -308,84 +338,46 @@ var _onMIDIMessage = function (midi_message) {
         return;
     }
 
-    _useProgram(_program);
-    
     switch (midi_message.data[0] & 0xf0) {
         case 0x90:
             if (midi_message.data[2] !== 0) { // note-on
                 key = channel + "_" + midi_message.data[1];
 
-                _keyboard.data = new Array(_keyboard.data_length);
-                _keyboard.data.fill(0);
-
                 _keyboard.pressed[key] = {
                         frq: _frequencyFromNoteNumber(midi_message.data[1]),
                         vel: midi_message.data[2] / 127,
                         time: Date.now(),
-                        channel: channel
+                        channel: channel,
+                        noteoff: false,
+                        noteoff_time: 0
                     };
                 
-                i = 0;
-
-                for (key in _keyboard.pressed) { 
-                    value = _keyboard.pressed[key];
-
-                    _keyboard.data[i] = value.frq;
-                    _keyboard.data[i + 1] = value.vel;
-                    _keyboard.data[i + 2] = Date.now();
-                    _keyboard.data[i + 3] = value.channel;
-
-                    i += _keyboard.data_components;
-
-                    if (i > _keyboard.data_length) {
-                        break;
-                    }
-                }
-
-                _keyboard.polyphony = i / _keyboard.data_components;
-
-                _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
+                _MIDInotesUpdate(true);
             }
             break;
 
-        case 0x80:            
+        case 0x80: // note-off
             key = channel + "_" + midi_message.data[1];
             
             value = _keyboard.pressed[key];
             
+            // keep previous key
             if (value) { 
                 _pkeyboard.data[value.channel * 3]     = value.frq;
                 _pkeyboard.data[value.channel * 3 + 1] = value.vel;
                 _pkeyboard.data[value.channel * 3 + 2] = value.time;
             }
             
+            _useProgram(_program);
             _setUniforms(_gl, "vec", _program, "pKey", _pkeyboard.data, _pkeyboard.data_components);
+            
+            value.noteoff_time = Date.now();
+            value.noteoff = true;
 
-            delete _keyboard.pressed[key];
+            // we will delete it later on for release time (in graphics callback)
+            //delete _keyboard.pressed[key];
 
-            _keyboard.data = new Array(_keyboard.data_length);
-            _keyboard.data.fill(0);
-
-            i = 0;
-
-            for (key in _keyboard.pressed) { 
-                value = _keyboard.pressed[key];
-
-                _keyboard.data[i] = value.frq;
-                _keyboard.data[i + 1] = value.vel;
-                _keyboard.data[i + 2] = value.time;
-                _keyboard.data[i + 3] = value.channel;
-
-                i += _keyboard.data_components;
-
-                if (i > _keyboard.data_length) {
-                    break;
-                }
-            }
-
-            _keyboard.polyphony = i / _keyboard.data_components;
-
-            _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
+            //_MIDInotesUpdate(true);
             break;
     }
 

@@ -62,7 +62,7 @@ a software emulation of the Russian photoelectronic synthesizer $tlink(ANS)(http
 
 I was blown away by the remarquable possibilities offered by the Virtual ANS which let you draw the sound spectrum over time, i then discovered programs such as MetaSynth or $tlink(HighC)(https://highc.org), this is how i started to experiment with the "drawn sound" method.
 
-Fragment started in 2015, when i was making the first prototype of a web-based ANS-like synthesizer software, a prototype of Fragment was made in a single week, 
+Fragment started in 2015, when i was making the first prototype of a web-based ANS-like synthesizer software, a prototype of Fragment was made in a single week,
 the prototype was quite mature but lacked in features, i considered Fragment as a pretty failed experiment at the time.
 
 In the summer 2016 while i was releasing the prototype source code, i played with it again and after tweaking the GLSL code, i was able to make some nice sounds, so i started to think about that prototype again and come up with many ideas that would make Fragment more functional and easier to use, the real work begun.
@@ -178,7 +178,7 @@ $list(
 	$item $bold(y) the vertical position
 	$item $bold(n) the number of oscillators (which is the height of the canvas)
 	$item $bold(o) the octave count)
-	
+
 $section(Sessions)
 Fragment sessions are isolated spaces which are open to all peoples who has access to the session name, they can be joined by going to the Fragment $tlink(homepage)(https://www.fsynth.com) or by typing the session name directly into the address bar as demonstrated below.
 
@@ -416,7 +416,7 @@ $list(
 		$item Webcam
 		$item Canvas)
 	$item Dropzone: You can use this to import many files at the same time)
-	
+
 Once added, by left clicking on a complex input thumbnail the following actions appear:
 $list(
 	$item complex input settings dialog
@@ -552,6 +552,9 @@ $list(
 	$item Polyphony
 	$list(
 		$item Maximum polyphony)
+  $item Note lifetime
+	$list(
+		$item The lifetime of a note, this is usefull to handle MIDI keys note-off & release sections part of envelopes)
 	$item Show globalTime
 	$list(
 		$item Hide/Show the globalTime in the informations bar)
@@ -583,9 +586,12 @@ $list(
 	$item Wavetable
 	$list(
 		$item Enable/disable the synthesis engine wavetable feature (uglier audio output but may be the less CPU intensive mode))
-	$item OSC
+	$item OSC IN
 	$list(
-		$item Enable/disable OSC I/O, slices data will be sent through OSC bundles via WebSockets, you will need an OSC relay to use this feature)
+		$item Enable/disable OSC input, you can add and controls uniform variables through OSC, you will need an $tlink(OSC relay)(https://github.com/grz0zrg/fsynth/tree/master/osc_relay) to use this feature)
+  $item OSC OUT
+	$list(
+		$item Enable/disable OSC output, slices data will be sent through OSC bundles via WebSockets, you will need an $tlink(OSC relay)(https://github.com/grz0zrg/fsynth/tree/master/osc_relay) to use this feature)
 	$item Feedback
 	$list(
 		$item Enable/disable the availability of the previous frame in the fragment shader (aka feedback), this is useful for complex effects, may be CPU/GPU intensive)
@@ -668,7 +674,7 @@ $list(
 If count is higher than 1, Fragment will add the scalar uniforms as an array.
 
 
-	
+
 You can also add vector uniforms of the following types (note: the components field determine the number of components for the following uniform type):
 $list(
 	$item bvec2
@@ -804,7 +810,7 @@ $glslcode(
     float frequency = 440.;
     float l = 0.;
     float r = 0.;
-    
+
     // because this code is executed for each fragments
     // the horizontal line is defined mathematically
     // by a simple pre-defined function called fline:
@@ -813,7 +819,7 @@ $glslcode(
     // for the left and right channel aka red and green output color
     l += fline(frequency);
     r += fline(frequency);
-    
+
     // plot the line
     // Fragment use the RED and GREEN component
     // for the LEFT and RIGHT audio channel in stereophonic mode
@@ -844,7 +850,7 @@ $glslcode(
     // we define it as "const" because the current GLSL spec.
     // does not allow dynamic variables for loops index
     const float harmonics = 8.;
-    
+
     // draw a horizontal line for each harmonics
     // including the fundamental
     for (float i = 1.; i < harmonics; i += 1.) {
@@ -852,7 +858,7 @@ $glslcode(
       l += fline(base_frequency * i);
       r += fline(base_frequency * i);
     }
-    
+
     gl_FragColor = vec4(l, r, 0., 1.);
     synthOutput = vec4(l, r, 0., 0.); // WebGL 2.0 only
   }
@@ -868,17 +874,17 @@ $glslcode(
     float base_frequency = 440.;
 
     float attenuation_constant = 1.95;
-    
+
     const float harmonics = 8.;
-    
+
     for (float i = 1.; i < harmonics; i += 1.) {
       // exponentially attenuate higher frequencies
       float a = 1. / pow(i, attenuation_constant);
-      
+
       l += fline(base_frequency * i) * a;
       r += fline(base_frequency * i) * a;
     }
-    
+
     gl_FragColor = vec4(l, r, 0., 1.);
     synthOutput = vec4(l, r, 0., 0.); // WebGL 2.0 only
   }
@@ -897,17 +903,17 @@ $glslcode(
 
     // try with a value of 0.25 to produce a waveform close to a square wave
     float attenuation_constant = 1.95;
-    
+
     const float harmonics = 8.;
-    
+
     // notice how we are stepping through odd harmonics
     for (float i = 1.; i < harmonics; i += 2.) {
       float a = 1. / pow(i, attenuation_constant);
-      
+
       l += fline(base_frequency * i) * a;
       r += fline(base_frequency * i) * a;
     }
-    
+
     gl_FragColor = vec4(l, r, 0., 1.);
     synthOutput = vec4(l, r, 0., 0.); // WebGL 2.0 only
   }
@@ -930,18 +936,18 @@ $glslcode(
     // will produce a waveform akin to a square wave
     // try with 0.1 for a waveform akin to a sawtooth wave
     float pulse_width = 0.5;
-    
+
     const float harmonics = 16.;
-    
+
     for (float i = 1.; i < harmonics; i += 1.) {
       // plot this function with a graph ploting software
       // for details
       float pm = abs(cos((i * pi - pi) * pulse_width));
-      
+
       l += fline(base_frequency * i) * pm;
       r += fline(base_frequency * i) * pm;
     }
-    
+
     gl_FragColor = vec4(l, r, 0., 1.);
     synthOutput = vec4(l, r, 0., 0.); // WebGL 2.0 only
   }
@@ -972,28 +978,28 @@ $glslcode(
     float r = 0.;
 
     float attenuation_constant = 1.95;
-    
+
     const float harmonics = 8.;
-    
+
     // 8 notes polyphony
     // this can be increased up to the maximal polyphonic capabilities
     // of Fragment for your platform
     for (int k = 0; k < 8; k += 1) {
       // we get the note-on data
       vec4 data = keyboard[k];
-      
+
       float kfrq = data.x; // frequency
       float kvel = data.y; // velocity
       float ktim = data.z; // elpased time
       float kchn = data.w; // channel
-      
+
       // we quit as soon as there is no more note-on data
       // this is optional but it might help with performances
       // so we don't compute harmonics uselessly
       if (kfrq == 0.) {
-       	break; 
+       	break;
       }
-      
+
       for (float i = 1.; i < harmonics; i += 1.) {
         float a = 1. / pow(i, attenuation_constant);
 
@@ -1002,7 +1008,7 @@ $glslcode(
         r += fline(kfrq * i) * a * kvel;
       }
     }
-    
+
     // notice how the blue channel is used
     // this help to get a better visual feedback of the harmonics
     gl_FragColor = vec4(l, r, l * 64., 1.);
@@ -1030,7 +1036,7 @@ Our timbre is nice but still too simple, we can fix that by applying an envelope
 
 Fragment allow any envelopes to be done by mathematically defining them, one of the simplest envelope is AR (Attack and Release):
 $glslcode(
-  // a simple function which define 
+  // a simple function which define
   // smooth AR-like envelopes, fast attack and slow decays
   // plot it or see the details of this function below
   // it's maximum, which is 1.0, happens at exactly x = 1 / k
@@ -1045,26 +1051,26 @@ $glslcode(
     float r = 0.;
 
     float attenuation_constant = 1.95;
-    
+
     const float harmonics = 8.;
-    
+
     for (int k = 0; k < 8; k += 1) {
       vec4 data = keyboard[k];
-      
+
       float kfrq = data.x;
       float kvel = data.y;
       float ktim = data.z;
       float kchn = data.w;
-      
+
       if (kfrq == 0.) {
-       	break; 
+       	break;
       }
-      
+
       // we apply the envelope, this envelope has a fast attack
       // of 62.5ms and a release of 555ms
       float env_attack = ktim * 16.;
       float env = kvel * impulse(1., env_attack);
-      
+
       for (float i = 1.; i < harmonics; i += 1.) {
         float a = 1. / pow(i, attenuation_constant);
 
@@ -1072,7 +1078,7 @@ $glslcode(
         r += fline(kfrq * i) * a * env;
       }
     }
-    
+
     gl_FragColor = vec4(l, r, l + r, 1.);
     synthOutput = vec4(l, r, (l + r) / 2, 0.); // WebGL 2.0 only
   }
@@ -1095,24 +1101,24 @@ $glslcode(
     float r = 0.;
 
     float attenuation_constant = 1.95;
-    
+
     // we will now increase the amount of harmonics
     const float harmonics = 16.;
-    
+
     for (int k = 0; k < 8; k += 1) {
       vec4 data = keyboard[k];
-      
+
       float kfrq = data.x;
       float kvel = data.y;
       float ktim = data.z;
       float kchn = data.w;
-      
+
       if (kfrq == 0.) {
-       	break; 
+       	break;
       }
 
       float env_attack = ktim * 16.;
-      
+
       for (float i = 1.; i < harmonics; i += 1.) {
         float a = 1. / pow(i, attenuation_constant);
 
@@ -1124,7 +1130,7 @@ $glslcode(
         r += fline(kfrq * i) * a * env;
       }
     }
-    
+
     gl_FragColor = vec4(l, r, l + r, 1.);
     synthOutput = vec4(l, r, (l + r) / 2., 0.); // WebGL 2.0 only
   }
@@ -1144,40 +1150,40 @@ $glslcode(
   void main () {
     float l = 0.;
     float r = 0.;
- 
+
     float attenuation_constant = 1.95;
-    
+
     const float harmonics = 16.;
-    
+
     for (int k = 0; k < 8; k += 1) {
       vec4 data = keyboard[k];
-      
+
       float kfrq = data.x;
       float kvel = data.y;
       float ktim = data.z;
       float kchn = data.w;
-      
+
       if (kfrq == 0.) {
-       	break; 
+       	break;
       }
 
       float env_attack = ktim * 16.;
-      
+
       // we create a mixing function
       float mix_f = 0.5 * (1. + sin(ktim * 20.));
-      
+
       for (float i = 1.; i < harmonics; i += 1.) {
         float a = 1. / pow(i, attenuation_constant);
-        
+
         // we setup another attenuation value which
         // is a bit higher than the previous one
         float a2 = 1. / pow(i, attenuation_constant * 1.3);
-        
+
         float env_stretch = i / harmonics;
         float env = kvel * impulse(env_stretch, env_attack);
 
         // we now mix our attenuations so that
-        // higher harmonics oscillate between both 
+        // higher harmonics oscillate between both
         // kind of attenuations smoothly
         a = mix(a, a2, mix_f);
 
@@ -1185,7 +1191,7 @@ $glslcode(
         r += fline(kfrq * i) * a * env;
       }
     }
-    
+
     gl_FragColor = vec4(l, r, l + r, 1.);
     synthOutput = vec4(l, r, (l + r) / 2., 0.); // WebGL 2.0 only
   }
@@ -1219,28 +1225,28 @@ $glslcode(
     float r = 0.;
 
     float attenuation_constant = 1.95;
-    
+
     const float harmonics = 16.;
-    
+
     for (int k = 0; k < 8; k += 1) {
       vec4 data = keyboard[k];
-      
+
       float kfrq = data.x;
       float kvel = data.y;
       float ktim = data.z;
       float kchn = data.w;
-      
+
       if (kfrq == 0.) {
-       	break; 
+       	break;
       }
 
       float mix_f = 0.5 * (1. + sin(ktim * 2.));
-      
+
       for (float i = 1.; i < harmonics; i += 1.) {
         float a = 1. / pow(i, attenuation_constant * 1.1);
-        
+
         float a2 = 1. / pow(i, attenuation_constant * 1.3);
-        
+
         // we now replace our old impulse function by the adsr function
         // which take three arguments
         // time, a vec4 with ADSR parameters and the value to decay to
@@ -1257,7 +1263,7 @@ $glslcode(
         r += fline(kfrq * i) * a * env;
       }
     }
-    
+
     gl_FragColor = vec4(l, r, l + r, 1.);
     synthOutput = vec4(l, r, (l + r) / 2., 0.); // WebGL 2.0 only
   }
@@ -1284,7 +1290,7 @@ $glslcode(
     float tr = (1.0 - max(0.0,t-(v.x+v.y+v.z))/v.w);
     return max(0.0, min(ta, tr*td));
   }
-  
+
   // low-pass filter
   // x is the current normalized position
   // c is the cutoff position
@@ -1296,22 +1302,22 @@ $glslcode(
   void main () {
     // we will need the current normalized coordinates
     vec2 uv = gl_FragCoord.xy / resolution.xy;
-  
+
     float l = 0.;
     float r = 0.;
 
     const float harmonics = 16.;
-    
+
     for (int k = 0; k < 8; k += 1) {
       vec4 data = keyboard[k];
-      
+
       float kfrq = data.x;
       float kvel = data.y;
       float ktim = data.z;
       float kchn = data.w;
-      
+
       if (kfrq == 0.) {
-       	break; 
+       	break;
       }
 
       // the htoy function take a frequency as argument
@@ -1323,7 +1329,7 @@ $glslcode(
         // our slope factor, high frequencies will be attenuated better
         float slope = 3.;
         float f = lpf(uv.y, cutoff, slope);
-      
+
         float attack = 0.05;
         float decay = 0.6;
         float sustain = 0.;
@@ -1335,7 +1341,7 @@ $glslcode(
         r += fline(kfrq * i) * f * env;
       }
     }
-    
+
     gl_FragColor = vec4(l, r, 0., 1.);
     synthOutput = vec4(l, r, (l + r) / 2., 0.); // WebGL 2.0 only
   }
@@ -1350,39 +1356,39 @@ $glslcode(
     float tr = (1.0 - max(0.0,t-(v.x+v.y+v.z))/v.w);
     return max(0.0, min(ta, tr*td));
   }
-  
+
   float lpf(float x, float c, float s) {
     return .5 + .5 *(atan(s*cos(3.141592653 * min(max((x-c) * s,0.),1.)))/atan(s));
   }
 
   void main () {
     vec2 uv = gl_FragCoord.xy / resolution.xy;
-  
+
     float l = 0.;
     float r = 0.;
 
     const float harmonics = 16.;
-    
+
     for (int k = 0; k < 8; k += 1) {
       vec4 data = keyboard[k];
-      
+
       float kfrq = data.x;
       float kvel = data.y;
       float ktim = data.z;
       float kchn = data.w;
-      
+
       if (kfrq == 0.) {
-       	break; 
+       	break;
       }
-      
+
       float cutoff = htoy(kfrq) / resolution.y;
-      
+
       // we vary the slope a bit
       float slope = 3. + sin(ktim * 4.);
-      
+
       for (float i = 1.; i < harmonics; i += 1.) {
         float f = lpf(uv.y, cutoff, slope);
-      
+
         float attack = 0.05;
         float decay = 0.6;
         float sustain = 0.;
@@ -1394,7 +1400,7 @@ $glslcode(
         r += fline(kfrq * i) * f * env;
       }
     }
-    
+
     gl_FragColor = vec4(l, r, 0., 1.);
     synthOutput = vec4(l, r, (l + r) / 2., 0.); // WebGL 2.0 only
   }
@@ -1412,14 +1418,14 @@ $glslcode(
     float tr = (1.0 - max(0.0,t-(v.x+v.y+v.z))/v.w);
     return max(0.0, min(ta, tr*td));
   }
-  
+
   float lpf(float x, float c, float s) {
     return .5 + .5 *(atan(s*cos(3.141592653 * min(max((x-c) * s,0.),1.)))/atan(s));
   }
-  
+
   // the high pass filter is just an inversed LPF
   float hpf(float x, float c, float s) {
-   	return lpf(1. - x, 1. - c, s); 
+   	return lpf(1. - x, 1. - c, s);
   }
 
   // a bpf is obtained by combining a lpf and hpf
@@ -1434,64 +1440,64 @@ $glslcode(
 
   void main () {
     vec2 uv = gl_FragCoord.xy / resolution.xy;
-  
+
     float l = 0.;
     float r = 0.;
 
     const float harmonics = 16.;
-    
+
     for (int k = 0; k < 8; k += 1) {
       vec4 data = keyboard[k];
-      
+
       float kfrq = data.x;
       float kvel = data.y;
       float ktim = data.z;
       float kchn = data.w;
-      
+
       if (kfrq == 0.) {
-       	break; 
+       	break;
       }
-      
+
       float cutoff = htoy(kfrq) / resolution.y;
-      
+
       float slope = 3. + sin(ktim * 4.);
-      
+
       // we compute our filters
       // note that we modulate the cutoff parameter
       // to show how the filters behave
       float fhp = hpf(uv.y, cutoff + sin(ktim * 1.25) / 2., slope);
       float fbp = bpf(uv.y, cutoff + sin((ktim - 1.) * 1.25) / 2., slope * 1.25);
       float fbr = brf(uv.y, cutoff + sin((ktim - 2.) * 1.25) / 2., slope * 1.5);
-      
+
       float attack = 0.5;
       float decay = 0.5;
       float sustain = 0.;
       float release = 0.25;
       float dec_amp = 0.;
-        
+
       // note how we offset the keyboard time
       // of the total amount of time the envelope will take
       // so that our sounds start when the previous end
       float env1 = kvel * adsr(ktim, vec4(attack, decay, sustain, release), dec_amp);
       float env2 = kvel * adsr(ktim - 1., vec4(attack, decay, sustain, release), dec_amp);
       float env3 = kvel * adsr(ktim - 2., vec4(attack, decay, sustain, release), dec_amp);
-      
+
       for (float i = 1.; i < harmonics; i += 1.) {
         float f = kfrq * i;
-      
+
         // we build three sounds offseted by the envelope
         // with each filters assigned
         l += fline(f) * fhp * env1;
         r += fline(f) * fhp * env1;
-  
+
         l += fline(f) * fbp * env2;
         r += fline(f) * fbp * env2;
-       
+
         l += fline(f) * fbr * env3;
         r += fline(f) * fbr * env3;
       }
     }
-    
+
     gl_FragColor = vec4(l, r, 0., 1.);
     synthOutput = vec4(l, r, (l + r) / 2., 0.); // WebGL 2.0 only
   }
@@ -1535,12 +1541,12 @@ $glslcode(
       float kchn = data.w;
 
       if (kfrq == 0.) {
-       	break; 
+       	break;
       }
 
       float cutoff = htoy(kfrq) / resolution.y;
       float slope = 3. + sin(ktim * 16.) / 4.;
-      
+
       for (float i = 1.; i < harmonics; i += 1.) {
         // notice how we multiply the cutoff by the horizontal position
         float f = lpf(uv.y, cutoff * uv.x, slope);
@@ -1594,13 +1600,13 @@ void main () {
     float l = 0.;
     float r = 0.;
     float base_frequency = 440.;
-  
+
     // we just redefine globalTime for convenience
     // globalTime is a pre-defined Fragment uniform
     // which hold the time since Fragment started to play
     // you can "rewind" it by clicking on the corresponding toolbar button
     float time = globalTime;
-    
+
     // increase the number of harmonics so we get a richer sound
     const float harmonics = 16.;
 
@@ -1608,10 +1614,10 @@ void main () {
     // does not permit us to assign by index dynamically
     // we will have 8 notes polyphony (copied from "keyboard" + the sequence)
     vec4 notes[9];
-  	
+
     // our sequence have 16 steps
     float seq_length = 16.;
-  
+
     // we use the "mod" function with the length of the sequence
     // this play our sequence over and over, 4 notes per seconds
     int seq_index = int(floor(mod(time * 4., seq_length)));
@@ -1642,20 +1648,20 @@ void main () {
     // it goes on, hit its peak and go down
     // before passing to the next
     notes[7] = vec4(seq_frq, 1., 0.5 * (1. + sin((pi * 1.5) + 2. * pi * time)), 0.);
-    
+
     // we loop over our 9 notes
     for (int k = 0; k < 9; k += 1) {
       // notice that we no more use "keyboard"
       // but our overriden "keyboard" array with our sequence within
       vec4 data = notes[k];
-      
+
       float kfrq = data.x;
       float kvel = data.y;
       float ktim = data.z;
       float kchn = data.w;
 
       float env = kvel * impulse(1., ktim);
-      
+
       for (float i = 1.; i < harmonics; i += 1.) {
         float a = 1. / pow(i, 1.95);
 
@@ -1663,7 +1669,7 @@ void main () {
         r += fline(kfrq * i) * a * env;
       }
     }
-    
+
     gl_FragColor = vec4(l, r, 0., 1.);
     synthOutput = vec4(l, r, (l + r) / 2., 0.); // WebGL 2.0 only
   }

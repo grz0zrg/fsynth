@@ -262,7 +262,8 @@ var FragmentSynth = function (params) {
             uniform_vectors: 0,
             pressed: {},
             polyphony_max: 32,
-            polyphony: 0 // current polyphony
+            polyphony: 0, // current polyphony
+            note_lifetime: 1000 // how much time the note is kept after note-off event (for release, in ms)
         },
         
         // last note-on/note-off (MIDI)

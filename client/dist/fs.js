@@ -103,7 +103,18 @@ var WUI_Dialog = new (function() {
     if (!Element.prototype['_addEventListener']) {
         Element.prototype._addEventListener = Element.prototype.addEventListener;
         Element.prototype.addEventListener = function(a, b, c) {
-            this._addEventListener(a, b, c);
+            if (a === "mousewheel" || a === "DOMMouseScroll" ||
+              a === "mousedown" || a === "touchstart" || a === "touchmove") {
+                if (c) {
+                    c.passive = true;
+                } else {
+                    c = { passive: true };
+                }
+                this._addEventListener(a, b, c);
+            } else {
+                this._addEventListener(a, b, c);
+            }
+
             if (!this['eventListenerList']) {
                 this['eventListenerList'] = {};
             }
@@ -672,7 +683,7 @@ var WUI_Dialog = new (function() {
 
             dragged_dialog;
 
-        ev.preventDefault();
+        //ev.preventDefault();
 
         if (_dragged_dialog === null) {
             if (touches) {
@@ -2086,7 +2097,7 @@ var WUI_RangeSlider = new (function() {
     };
 
     var _rsMouseDown = function (ev) {
-        ev.preventDefault();
+        //ev.preventDefault();
         ev.stopPropagation();
 
         var rs_element = null,
@@ -2151,7 +2162,7 @@ var WUI_RangeSlider = new (function() {
     };
 
     var _rsMouseWheel = function (ev) {
-        ev.preventDefault();
+        //ev.preventDefault();
         ev.stopPropagation();
 
         var hook_element,
@@ -16273,7 +16284,8 @@ _utter_fail_element.innerHTML = "";
             uniform_vectors: 0,
             pressed: {},
             polyphony_max: 32,
-            polyphony: 0 // current polyphony
+            polyphony: 0, // current polyphony
+            note_lifetime: 1000 // how much time the note is kept after note-off event (for release, in ms)
         },
         
         // last note-on/note-off (MIDI)
@@ -17988,7 +18000,7 @@ var _canvasRecord = function (ndata) {
 };
 
 var _frame = function (raf_time) {
-    var i = 0, j = 0, o = 0,
+    var i = 0, et = 0, j = 0, o = 0,
 
         play_position_marker,
         play_position_marker_x = 0,
@@ -18017,13 +18029,35 @@ var _frame = function (raf_time) {
         
         data,
         
-        buffer = [];
+        buffer = [],
+        
+        dead_notes_buffer = [];
 
     // update notes time
     for (key in _keyboard.pressed) { 
         v = _keyboard.pressed[key];
+        
+        // check if we need to cleanup notes
+        if (v.noteoff) {
+            et = date - v.noteoff_time;
+            if (et >= _keyboard.note_lifetime) {
+                dead_notes_buffer.push(key);
 
-        _keyboard.data[i + 2] = (date - v.time) / 1000;
+                i += _keyboard.data_components;
+
+                if (i > _keyboard.data_length) {
+                    break;
+                }
+                
+                // dead notes will be cleaned up before the next frame begin
+            
+                continue;
+            }
+        }
+        
+        et = date - v.time;
+
+        _keyboard.data[i + 2] = et / 1000;
 
         i += _keyboard.data_components;
 
@@ -18292,6 +18326,13 @@ var _frame = function (raf_time) {
     }
     
     _globalFrame += 1;
+    
+    // cleanup all dead notes
+    for (i = 0; i < dead_notes_buffer.length; i += 1) {
+        delete _keyboard.pressed[dead_notes_buffer[i]];
+
+        _MIDInotesUpdate();
+    }
     
     _raf = window.requestAnimationFrame(_frame);
 };/* jslint browser: true */
@@ -21086,6 +21127,7 @@ var _uiInit = function () {
         settings_ck_slicebar_elem = document.getElementById("fs_settings_ck_slicebar"),
         settings_ck_slices_elem = document.getElementById("fs_settings_ck_slices"),
         
+        fs_settings_note_lifetime = localStorage.getItem('fs-note-lifetime'),
         fs_settings_max_polyphony = localStorage.getItem('fs-max-polyphony'),
         fs_settings_osc_fadeout = localStorage.getItem('fs-osc-fadeout'),
         fs_settings_show_globaltime = localStorage.getItem('fs-show-globaltime'),
@@ -21105,7 +21147,7 @@ var _uiInit = function () {
             title: "Session & global settings",
 
             width: "320px",
-            height: "418px",
+            height: "450px",
 
             halign: "center",
             valign: "center",
@@ -21167,6 +21209,10 @@ var _uiInit = function () {
     
     if (fs_settings_max_polyphony) {
         _keyboard.polyphony_max = _parseInt10(fs_settings_max_polyphony);
+    }
+    
+    if (fs_settings_note_lifetime) {
+        _keyboard.note_lifetime = _parseInt10(fs_settings_note_lifetime);
     }
     
     if (fs_settings_wavetable === "true") {
@@ -22441,6 +22487,36 @@ var _uiInit = function () {
                 }
                 
                 _compile();
+            }
+        });
+    
+    WUI_RangeSlider.create("fs_settings_note_lifetime", {
+            width: 120,
+            height: 8,
+
+            min: 0,
+        
+            bar: false,
+
+            step: 10,
+            scroll_step: 10,
+
+            default_value: _keyboard.note_lifetime,
+            value: _keyboard.note_lifetime,
+
+            title: "Note lifetime (ms)",
+
+            title_min_width: 140,
+            value_min_width: 88,
+
+            on_change: function (note_lifetime) {
+                if (note_lifetime <= 0) {
+                    return;
+                }
+                
+                _keyboard.note_lifetime = note_lifetime;
+                
+                localStorage.setItem('fs-note-lifetime', _keyboard.note_lifetime);
             }
         });
     
@@ -24882,6 +24958,36 @@ var _midiDataOut = function (pixels_data, prev_pixels_data) {
     }
 };
 
+var _MIDInotesUpdate = function (update_uniform) {
+    var i = 0, key, value;
+    
+    _keyboard.data = new Float32Array(_keyboard.data_length);
+    _keyboard.data.fill(0);
+
+    for (key in _keyboard.pressed) { 
+        value = _keyboard.pressed[key];
+
+        _keyboard.data[i] = value.frq;
+        _keyboard.data[i + 1] = value.vel;
+        _keyboard.data[i + 2] = value.time;//Date.now();
+        _keyboard.data[i + 3] = value.channel;
+        
+        i += _keyboard.data_components;
+
+        if (i > _keyboard.data_length) {
+            break;
+        }
+    }
+
+    _keyboard.polyphony = i / _keyboard.data_components;
+
+    if (update_uniform) {
+        _useProgram(_program);
+        _gl.uniform4fv(_getUniformLocation("keyboard", _program), new Float32Array(_keyboard.data));
+        //_setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
+    }
+}
+
 var _onMIDIMessage = function (midi_message) {
     var i = 0, midi_device = _midi_devices.input[this.id],
         key, value, channel = midi_message.data[0] & 0x0f;
@@ -24890,84 +24996,46 @@ var _onMIDIMessage = function (midi_message) {
         return;
     }
 
-    _useProgram(_program);
-    
     switch (midi_message.data[0] & 0xf0) {
         case 0x90:
             if (midi_message.data[2] !== 0) { // note-on
                 key = channel + "_" + midi_message.data[1];
 
-                _keyboard.data = new Array(_keyboard.data_length);
-                _keyboard.data.fill(0);
-
                 _keyboard.pressed[key] = {
                         frq: _frequencyFromNoteNumber(midi_message.data[1]),
                         vel: midi_message.data[2] / 127,
                         time: Date.now(),
-                        channel: channel
+                        channel: channel,
+                        noteoff: false,
+                        noteoff_time: 0
                     };
                 
-                i = 0;
-
-                for (key in _keyboard.pressed) { 
-                    value = _keyboard.pressed[key];
-
-                    _keyboard.data[i] = value.frq;
-                    _keyboard.data[i + 1] = value.vel;
-                    _keyboard.data[i + 2] = Date.now();
-                    _keyboard.data[i + 3] = value.channel;
-
-                    i += _keyboard.data_components;
-
-                    if (i > _keyboard.data_length) {
-                        break;
-                    }
-                }
-
-                _keyboard.polyphony = i / _keyboard.data_components;
-
-                _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
+                _MIDInotesUpdate(true);
             }
             break;
 
-        case 0x80:            
+        case 0x80: // note-off
             key = channel + "_" + midi_message.data[1];
             
             value = _keyboard.pressed[key];
             
+            // keep previous key
             if (value) { 
                 _pkeyboard.data[value.channel * 3]     = value.frq;
                 _pkeyboard.data[value.channel * 3 + 1] = value.vel;
                 _pkeyboard.data[value.channel * 3 + 2] = value.time;
             }
             
+            _useProgram(_program);
             _setUniforms(_gl, "vec", _program, "pKey", _pkeyboard.data, _pkeyboard.data_components);
+            
+            value.noteoff_time = Date.now();
+            value.noteoff = true;
 
-            delete _keyboard.pressed[key];
+            // we will delete it later on for release time (in graphics callback)
+            //delete _keyboard.pressed[key];
 
-            _keyboard.data = new Array(_keyboard.data_length);
-            _keyboard.data.fill(0);
-
-            i = 0;
-
-            for (key in _keyboard.pressed) { 
-                value = _keyboard.pressed[key];
-
-                _keyboard.data[i] = value.frq;
-                _keyboard.data[i + 1] = value.vel;
-                _keyboard.data[i + 2] = value.time;
-                _keyboard.data[i + 3] = value.channel;
-
-                i += _keyboard.data_components;
-
-                if (i > _keyboard.data_length) {
-                    break;
-                }
-            }
-
-            _keyboard.polyphony = i / _keyboard.data_components;
-
-            _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
+            //_MIDInotesUpdate(true);
             break;
     }
 
