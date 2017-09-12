@@ -93,31 +93,50 @@ var WUI_Dialog = new (function() {
         Initialization.
     ************************************************************/
 
+    var _withinDialog = function (e) {
+        var node = e.parentElement;
+        while (node != null) {
+            if (node.classList.contains(_class_name.dialog)) {
+                return true;
+            }
+
+            node = node.parentElement;
+         }
+
+         return false;
+    };
+
     // this keep track of event listeners... globally
     // a tricky solution but the only one i know of until a standard pop up or someone has a better solution
     if (!Element.prototype['_addEventListener']) {
         Element.prototype._addEventListener = Element.prototype.addEventListener;
         Element.prototype.addEventListener = function(a, b, c) {
-            if (a === "mousewheel" || a === "DOMMouseScroll" ||
-              a === "mousedown" || a === "touchstart" || a === "touchmove") {
-                if (c) {
-                    c.passive = true;
+            this._addEventListener(a, b, c);
+
+            if (_withinDialog(this)) {
+                if (a === "mousewheel" || a === "DOMMouseScroll" ||
+                  a === "mousedown" || a === "touchstart" || a === "touchmove") {
+                    if (c) {
+                        c.passive = true;
+                    } else {
+                        c = { passive: true };
+                    }
+                    this._addEventListener(a, b, c);
                 } else {
-                    c = { passive: true };
+                    this._addEventListener(a, b, c);
                 }
-                this._addEventListener(a, b, c);
+
+                if (!this['eventListenerList']) {
+                    this['eventListenerList'] = {};
+                }
+
+                if(!this.eventListenerList[a]) {
+                    this.eventListenerList[a] = [];
+                }
+                this.eventListenerList[a].push(b);
             } else {
                 this._addEventListener(a, b, c);
             }
-
-            if (!this['eventListenerList']) {
-                this['eventListenerList'] = {};
-            }
-
-            if(!this.eventListenerList[a]) {
-                this.eventListenerList[a] = [];
-            }
-            this.eventListenerList[a].push(b);
         };
         Element.prototype._removeEventListener = Element.prototype.removeEventListener;
         Element.prototype.removeEventListener = function(a, b, c) {
