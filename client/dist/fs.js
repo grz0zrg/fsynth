@@ -119,18 +119,6 @@ var WUI_Dialog = new (function() {
             this._addEventListener(a, b, c);
 
             if (_withinDialog(this)) {
-                if (a === "mousewheel" || a === "DOMMouseScroll" ||
-                  a === "mousedown" || a === "touchstart" || a === "touchmove") {
-                    if (c) {
-                        c.passive = true;
-                    } else {
-                        c = { passive: true };
-                    }
-                    this._addEventListener(a, b, c);
-                } else {
-                    this._addEventListener(a, b, c);
-                }
-
                 if (!this['eventListenerList']) {
                     this['eventListenerList'] = {};
                 }
@@ -139,8 +127,6 @@ var WUI_Dialog = new (function() {
                     this.eventListenerList[a] = [];
                 }
                 this.eventListenerList[a].push(b);
-            } else {
-                this._addEventListener(a, b, c);
             }
         };
         Element.prototype._removeEventListener = Element.prototype.removeEventListener;
@@ -702,7 +688,7 @@ var WUI_Dialog = new (function() {
 
             dragged_dialog;
 
-        //ev.preventDefault();
+        ev.preventDefault();
 
         if (_dragged_dialog === null) {
             if (touches) {
@@ -2181,7 +2167,7 @@ var WUI_RangeSlider = new (function() {
     };
 
     var _rsMouseWheel = function (ev) {
-        //ev.preventDefault();
+        ev.preventDefault();
         ev.stopPropagation();
 
         var hook_element,
@@ -2189,6 +2175,10 @@ var WUI_RangeSlider = new (function() {
             grabbed_widget,
             delta = ev.wheelDelta ? ev.wheelDelta / 40 : ev.detail ? -ev.detail : 0,
             value;
+
+        if (ev.deltaY) {
+            delta = -ev.deltaY;
+        }
 
         hook_element = _getHookElementFromTarget(ev.target);
 
@@ -2531,6 +2521,8 @@ var WUI_RangeSlider = new (function() {
     this.create = function (id, options) {
         var range_slider,
 
+            wheel_evt,
+
             opts = {},
 
             key;
@@ -2771,16 +2763,16 @@ var WUI_RangeSlider = new (function() {
             }
         }
 
+        wheel_evt = "onwheel" in document.createElement("div") ? "wheel" : document.onmousewheel !== undefined ? "mousewheel" : "DOMMouseScroll";
+
         if (opts.bar) {
             bar.addEventListener("mousedown", _rsMouseDown, false);
             bar.addEventListener("touchstart", _rsMouseDown, false);
-            bar.addEventListener("mousewheel", _rsMouseWheel, false);
-            bar.addEventListener("DOMMouseScroll", _rsMouseWheel, false);
+            bar.addEventListener(wheel_evt, _rsMouseWheel, false);
 
             hook.addEventListener("dblclick", _rsDblClick, false);
         } else {
-            value_input.addEventListener("mousewheel", _rsMouseWheel, false);
-            value_input.addEventListener("DOMMouseScroll", _rsMouseWheel, false);
+            value_input.addEventListener(wheel_evt, _rsMouseWheel, false);
         }
 
         value_input.addEventListener("input", _inputChange, false);
