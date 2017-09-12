@@ -1800,6 +1800,8 @@ var _uiInit = function () {
 
             step: "any",
             scroll_step: 0.01,
+        
+            decimals: 2,
 
             default_value: 16.34,
             value: 16.34,
@@ -1916,6 +1918,8 @@ var _uiInit = function () {
 
             step: 0.01,
             scroll_step: 0.01,
+        
+            decimals: 2,
 
             default_value: _osc_fadeout,
             value: _osc_fadeout,
@@ -1947,6 +1951,8 @@ var _uiInit = function () {
 
             step: "any",
             scroll_step: 0.01,
+        
+            decimals: 2,
 
             midi: true,
 

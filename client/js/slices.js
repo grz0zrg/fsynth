@@ -337,6 +337,8 @@ var _createMarkerSettings = function (marker_obj) {
             value: marker_obj.frame_increment,
 
             title: "Increment per frame",
+        
+            decimals: 2,
 
             title_min_width: 140,
             value_min_width: 88,
