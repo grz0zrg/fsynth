@@ -101,6 +101,7 @@ var _createFasSettingsContent = function () {
     var dialog_div = document.getElementById(_fas_dialog).lastElementChild,
         detached_dialog = WUI_Dialog.getDetachedDialog(_fas_dialog),
         main_chn_settings_div = document.createElement("div"),
+        synth_chn_br,
         chn_settings_div,
         chn_div,
         chn_synthesis_label,
@@ -127,6 +128,9 @@ var _createFasSettingsContent = function () {
     main_chn_settings_div.innerHTML = "Channels";
 
     for (j = 0; j < _output_channels; j += 1) {
+        synth_chn_br = document.createElement("br");
+        synth_chn_br.style.display = "none";
+        
         chn_settings_div = document.createElement("div");
         chn_div = document.createElement("div");
         chn_synthesis_label = document.createElement("label");
@@ -151,11 +155,13 @@ var _createFasSettingsContent = function () {
         }
         
         chn_genv_type_label.classList.add("fs-input-label");
+        chn_genv_type_label.style.display = "none";
         chn_genv_type_label.innerHTML = "Granular env: &nbsp;";
         chn_genv_type_label.htmlFor = "fs_chn_" + j + "_genv_type_settings";
         
         chn_genv_type_select.classList.add("fs-btn");
         chn_genv_type_select.style = "margin-top: 4px";
+        chn_genv_type_select.style.display = "none";
         chn_genv_type_select.dataset.chnId = j;
         chn_genv_type_select.id = chn_genv_type_label.htmlFor;
         
@@ -200,6 +206,10 @@ var _createFasSettingsContent = function () {
         chn_synthesis_select.addEventListener("change", function() {
                 var j = parseInt(this.dataset.chnId, 10),
                     value;
+            
+                this.nextElementSibling.style.display = "none";
+                this.nextElementSibling.nextElementSibling.style.display = "none";
+                this.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "none";
 
                 if (this.value === "additive") {
                     value = 0;
@@ -207,6 +217,10 @@ var _createFasSettingsContent = function () {
                     value = 1;
                 } else if (this.value === "granular") {
                     value = 2;
+                    
+                    this.nextElementSibling.style.display = "";
+                    this.nextElementSibling.nextElementSibling.style.display = "";
+                    this.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "";
                 } else if (this.value === "exp") {
                     value = 3;
                 } else {
@@ -232,18 +246,18 @@ var _createFasSettingsContent = function () {
             
                 _fasNotify(_FAS_CHN_INFOS, _chn_settings);
             });
-
-        chn_synthesis_select.dispatchEvent(new UIEvent('change'));
-        chn_genv_type_select.dispatchEvent(new UIEvent('change'));
         
         chn_div.appendChild(chn_synthesis_label);
         chn_div.appendChild(chn_synthesis_select);
-        chn_div.appendChild(document.createElement("br"));
+        chn_div.appendChild(synth_chn_br);
         chn_div.appendChild(chn_genv_type_label);
         chn_div.appendChild(chn_genv_type_select);
         
         chn_settings_div.appendChild(chn_div);
         main_chn_settings_div.appendChild(chn_settings_div);
+        
+        chn_synthesis_select.dispatchEvent(new UIEvent('change'));
+        chn_genv_type_select.dispatchEvent(new UIEvent('change'));
     }
     
     dialog_div.appendChild(main_chn_settings_div);  
