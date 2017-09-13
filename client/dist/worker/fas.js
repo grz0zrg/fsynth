@@ -103,9 +103,10 @@ var _sendChnInfos = function (chn_infos) {
         return;
     }
 
-    var buffer = new ArrayBuffer(8 + 8 + (8 * chn_infos.length)),
+    var buffer = new ArrayBuffer(8 + 8 + (24 * chn_infos.length)),
         uint8_view = new Uint8Array(buffer, 0, 1),
         uint32_view = new Uint32Array(buffer, 8, 1),
+        float64_view,
         i = 0;
 
     uint8_view[0] = 3;
@@ -113,10 +114,14 @@ var _sendChnInfos = function (chn_infos) {
 
     // for all channels
     for (i = 0; i < chn_infos.length; i += 1) {
-        uint8_view = new Uint32Array(buffer, 16 + i * 8, 2);
+        uint8_view = new Uint32Array(buffer, 16 + i * 24, 2);
+        float64_view = new Float64Array(buffer, 16 + 8 + i * 24);
         
         uint8_view[0] = 0;
         uint8_view[1] = 0;
+        
+        float64_view[0] = 0;
+        float64_view[1] = 0;
             
         if (chn_infos[i][0]) {
             uint8_view[0] = chn_infos[i][0];
@@ -124,6 +129,14 @@ var _sendChnInfos = function (chn_infos) {
     
         if (chn_infos[i][1]) {
             uint8_view[1] = chn_infos[i][1];
+        }
+        
+        if (chn_infos[i][2]) {
+            float64_view[0] = chn_infos[i][2];
+        }
+    
+        if (chn_infos[i][3]) {
+            float64_view[1] = chn_infos[i][3];
         }
     }
     

@@ -55,6 +55,8 @@ var _icon_class = {
     _slice_update_timeout = [{}, {}, {}, {}],
     _slice_update_queue = [],
     
+    _fas_content_list = [],
+    
     _controls_dialog_id = "fs_controls_dialog",
     _controls_dialog,
     _controls_dialog_element = document.getElementById(_controls_dialog_id);
@@ -97,6 +99,17 @@ var _showMIDIOutDialog = function () {
     WUI_Dialog.open(_midi_out_dialog);
 };
 
+var _onChangeGrainSize = function (channel, channel_data_index) {
+    return function (value) {
+        _chn_settings[channel][channel_data_index] = value;
+
+        _local_session_settings.chn_settings[channel] = _chn_settings[channel];
+        _saveLocalSessionSettings();
+
+        _fasNotify(_FAS_CHN_INFOS, _chn_settings);
+    };
+};
+
 var _createFasSettingsContent = function () {
     var dialog_div = document.getElementById(_fas_dialog).lastElementChild,
         detached_dialog = WUI_Dialog.getDetachedDialog(_fas_dialog),
@@ -110,6 +123,10 @@ var _createFasSettingsContent = function () {
         additive_option,
         spectral_option,
         exp_option,
+        chn_gmin_size_input,
+        chn_gmax_size_input,
+        gmin = 0.01,
+        gmax = 0.1,
         chn_genv_type_label,
         chn_genv_type_select,
         chn_genv_option,
@@ -117,8 +134,15 @@ var _createFasSettingsContent = function () {
         chn_settings,
         j = 0, i = 0;
     
+    // update chn. settings
+    _chn_settings.length = _output_channels;
+    
     if (detached_dialog) {
         dialog_div = detached_dialog.document.body;
+    }
+    
+    for (i = 0; i < _fas_content_list.length; i += 1) {
+        WUI_RangeSlider.destroy(_fas_content_list[i]);
     }
     
     dialog_div.style = "overflow: auto";
@@ -135,6 +159,12 @@ var _createFasSettingsContent = function () {
         chn_div = document.createElement("div");
         chn_synthesis_label = document.createElement("label");
         chn_synthesis_select = document.createElement("select");
+        
+        chn_gmin_size_input = document.createElement("div");
+        chn_gmin_size_input.id = "fs_chn_" + j + "_gmin";
+        chn_gmax_size_input = document.createElement("div");
+        chn_gmax_size_input.id = "fs_chn_" + j + "_gmax";
+        
         granular_option = document.createElement("option");
         additive_option = document.createElement("option");
         spectral_option = document.createElement("option");
@@ -186,7 +216,7 @@ var _createFasSettingsContent = function () {
         chn_settings = _chn_settings[j];
         
         if (!chn_settings) {
-            _chn_settings[j] = [0, 0];
+            _chn_settings[j] = [0, 0, 0, 0];
         } else {
             if (chn_settings[0] === 0) {
                 additive_option.selected = true;
@@ -201,15 +231,28 @@ var _createFasSettingsContent = function () {
             if (chn_settings[1] !== undefined) {
                 chn_genv_type_select.childNodes[chn_settings[1]].selected = true;
             }
+            
+            if (chn_settings[2] !== undefined) {
+                gmin = chn_settings[2];
+            }
+            
+            if (chn_settings[3] !== undefined) {
+                gmax = chn_settings[3];
+            }
         }
         
         chn_synthesis_select.addEventListener("change", function() {
                 var j = parseInt(this.dataset.chnId, 10),
+                    i = 0,
                     value;
             
+                // F U N
                 this.nextElementSibling.style.display = "none";
                 this.nextElementSibling.nextElementSibling.style.display = "none";
                 this.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "none";
+                this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "none";
+                this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "none";
+                // abrupt end
 
                 if (this.value === "additive") {
                     value = 0;
@@ -221,6 +264,8 @@ var _createFasSettingsContent = function () {
                     this.nextElementSibling.style.display = "";
                     this.nextElementSibling.nextElementSibling.style.display = "";
                     this.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "";
+                    this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "";
+                    this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "";
                 } else if (this.value === "exp") {
                     value = 3;
                 } else {
@@ -252,9 +297,64 @@ var _createFasSettingsContent = function () {
         chn_div.appendChild(synth_chn_br);
         chn_div.appendChild(chn_genv_type_label);
         chn_div.appendChild(chn_genv_type_select);
+        chn_div.appendChild(chn_gmin_size_input);
+        chn_div.appendChild(chn_gmax_size_input);
         
         chn_settings_div.appendChild(chn_div);
         main_chn_settings_div.appendChild(chn_settings_div);
+        
+        _fas_content_list.push(WUI_RangeSlider.create(chn_gmin_size_input, {
+            width: 120,
+            height: 8,
+
+            min: 0.0,
+            max: 1.0,
+
+            bar: false,
+
+            step: 0.01,
+            scroll_step: 0.01,
+
+            default_value: gmin,
+            value: gmin,
+
+            decimals: 2,
+            
+            title: "Min. grain length",
+
+            title_min_width: 140,
+            value_min_width: 88,
+
+            on_change: _onChangeGrainSize(j, 2)
+        }));
+        
+        _fas_content_list.push(WUI_RangeSlider.create(chn_gmax_size_input, {
+            width: 120,
+            height: 8,
+
+            min: 0.0,
+            max: 1.0,
+
+            bar: false,
+
+            step: 0.01,
+            scroll_step: 0.01,
+
+            default_value: gmax,
+            value: gmax,
+            
+            decimals: 2,
+
+            title: "Max. grain length",
+
+            title_min_width: 140,
+            value_min_width: 88,
+
+            on_change: _onChangeGrainSize(j, 3)
+        }));
+        
+        chn_gmin_size_input.style.display = "hidden";
+        chn_gmax_size_input.style.display = "hidden";
         
         chn_synthesis_select.dispatchEvent(new UIEvent('change'));
         chn_genv_type_select.dispatchEvent(new UIEvent('change'));
