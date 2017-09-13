@@ -160,6 +160,11 @@ var _oscInit = function () {
                     _useProgram(_program);
                     _setUniforms(_gl, _osc.inputs[data.osc_input.name].type, _program, data.osc_input.name, _osc.inputs[data.osc_input.name].data);
                 }
+            } else if (data.status === "clear") { // clear up OSC set uniforms
+                _osc.inputs = [];
+                _osc.queue = [];
+                
+                _glsl_compilation();
             } else if (data.status === "ready") {
                 _notification("OSC: Connected to " + _osc.address, 2500);
             } else if (data.status === "error") {

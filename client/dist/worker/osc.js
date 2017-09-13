@@ -3312,7 +3312,11 @@ var _connect = function (opts) {
             
             i;
         
-        if (prefix === "/i") {
+        if (address === "/clear") {
+            postMessage({
+                    status: "clear"
+                });
+        } else if (prefix === "/i") {
             postMessage({
                     status: "data",
                     osc_input: { name: address.slice(1, address.length), i: args[0].value, v: args[1].value }

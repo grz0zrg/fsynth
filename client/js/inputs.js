@@ -33,7 +33,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     dialog_element.id = "fs_channel_settings_dialog";
     
     if (!_gl2) { // WebGL 2 does not have those limitations
-        if (!_isPowerOf2(fragment_input_channel.image.width) || !_isPowerOf2(fragment_input_channel.image.height) || fragment_input_channel.type === 1) {
+        if (!_isPowerOf2(fragment_input_channel.image.width) || !_isPowerOf2(fragment_input_channel.image.height) || fragment_input_channel.type === 1 || fragment_input_channel.type === 3) {
             power_of_two_wrap_options = "";
         }
     }
@@ -210,6 +210,12 @@ var _inputThumbMenu = function (e) {
                 window.open(dom_image.src);
             } });
     }
+    
+    if (input.type === 3) {
+        items.push({ icon: "fs-play-icon", tooltip: "Play",  on_click: function () {
+                input.video_elem.play();
+            } });
+    }
 
     WUI_CircularMenu.create(
             {
@@ -285,13 +291,16 @@ var _removeInputChannel = function (input_id) {
 
     _gl.deleteTexture(_fragment_input_data.texture);
 
-    if (_fragment_input_data.type === 1) {
+    if (_fragment_input_data.type === 1 || _fragment_input_data.type === 3) {
         _fragment_input_data.video_elem.pause();
+        window.URL.revokeObjectURL(_fragment_input_data.video_elem.src);
         _fragment_input_data.video_elem.src = "";
 
-        tracks = _fragment_input_data.media_stream.getVideoTracks();
-        if (tracks) {
-            tracks[0].stop();
+        if (_fragment_input_data.media_stream) {
+            tracks = _fragment_input_data.media_stream.getVideoTracks();
+            if (tracks) {
+                tracks[0].stop();
+            }
         }
         _fragment_input_data.video_elem = null;
     }
@@ -604,62 +613,97 @@ var _addFragmentInput = function (type, input, settings) {
         _fragment_input_data[input_id].elem = _createInputThumb(input_id, input_thumb, _input_channel_prefix + input_id);
 
         _compile();
-    } else if (type === "camera") {
+    } else if (type === "camera" || type === "video") {
         video_element = document.createElement('video');
-        video_element.width = 320;
-        video_element.height = 240;
         video_element.autoplay = true;
         video_element.loop = true;
         video_element.stream = null;
+        
+        if (type === "camera") {
+            video_element.width = 320;
+            video_element.height = 240;
+            
+            navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia  || navigator.msGetUserMedia || navigator.oGetUserMedia;
+            
+            if (navigator.getUserMedia) {
+                navigator.getUserMedia({ video: { mandatory: { /*minWidth: 640, maxWidth: 1280, minHeight: 320, maxHeight: 720, minFrameRate: 30*/ }, optional: [ { minFrameRate: 60 } ] },
+                    audio: false }, function (media_stream) {
+                        video_element.src = window.URL.createObjectURL(media_stream);
 
-        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia  || navigator.msGetUserMedia || navigator.oGetUserMedia;
+                        data = _create2DTexture(video_element, false, false);
 
-        if (navigator.getUserMedia) {
-            navigator.getUserMedia({ video: { mandatory: { /*minWidth: 640, maxWidth: 1280, minHeight: 320, maxHeight: 720, minFrameRate: 30*/ }, optional: [ { minFrameRate: 60 } ] },
-                audio: false }, function (media_stream) {
-                    video_element.src = window.URL.createObjectURL(media_stream);
+                        _setTextureWrapS(data.texture, "clamp");
+                        _setTextureWrapT(data.texture, "clamp");
 
-                    data = _create2DTexture(video_element, false, false);
+                        db_obj.settings.wrap.s = data.wrap.ws;
+                        db_obj.settings.wrap.t = data.wrap.wt;
+                        db_obj.settings.flip = false;
 
-                    _setTextureWrapS(data.texture, "clamp");
-                    _setTextureWrapT(data.texture, "clamp");
-                
-                    db_obj.settings.wrap.s = data.wrap.ws;
-                    db_obj.settings.wrap.t = data.wrap.wt;
-                    db_obj.settings.flip = false;
-                
-                    _dbStoreInput(input_id, db_obj);
-                
-                    if (settings !== undefined) {
-                        _flipYTexture(data.texture, settings.flip);
-                        _setTextureFilter(data.texture, settings.f);
-                        _setTextureWrapS(data.texture, settings.wrap.s);
-                        _setTextureWrapT(data.texture, settings.wrap.t);
-                        
-                        db_obj.settings.f = settings.f;
-                        db_obj.settings.wrap.s = settings.wrap.s;
-                        db_obj.settings.wrap.t = settings.wrap.t;
-                        db_obj.settings.flip = settings.flip;
-                    }
+                        _dbStoreInput(input_id, db_obj);
 
-                    _fragment_input_data.push({
-                            type: 1,
-                            image: data.image,
-                            texture: data.texture,
-                            video_elem: video_element,
-                            elem: null,
-                            media_stream: media_stream,
-                            db_obj: db_obj
-                        });
+                        if (settings !== undefined) {
+                            _flipYTexture(data.texture, settings.flip);
+                            _setTextureFilter(data.texture, settings.f);
+                            _setTextureWrapS(data.texture, settings.wrap.s);
+                            _setTextureWrapT(data.texture, settings.wrap.t);
 
-                    _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/camera.png" );
+                            db_obj.settings.f = settings.f;
+                            db_obj.settings.wrap.s = settings.wrap.s;
+                            db_obj.settings.wrap.t = settings.wrap.t;
+                            db_obj.settings.flip = settings.flip;
+                        }
 
-                    _compile();
-                }, function (e) {
-                    _notification("Unable to capture WebCam.");
+                        _fragment_input_data.push({
+                                type: 1,
+                                image: data.image,
+                                texture: data.texture,
+                                video_elem: video_element,
+                                elem: null,
+                                media_stream: media_stream,
+                                db_obj: db_obj
+                            });
+
+                        _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/camera.png" );
+
+                        _compile();
+                    }, function (e) {
+                        _notification("Unable to capture video/camera.");
+                    });
+            } else {
+                _notification("Cannot capture video/camera, getUserMedia function is not supported by your browser.");
+            }
+        } else { // TODO : factor out inputs stuff
+            video_element.src = window.URL.createObjectURL(input);
+            video_element.autoplay = true;
+            video_element.loop = true;
+            video_element.muted = true;
+            
+            data = _create2DTexture(video_element, false, false);
+
+            _setTextureWrapS(data.texture, "clamp");
+            _setTextureWrapT(data.texture, "clamp");
+
+            db_obj.settings.wrap.s = data.wrap.ws;
+            db_obj.settings.wrap.t = data.wrap.wt;
+            db_obj.settings.flip = false;
+
+            _fragment_input_data.push({
+                    type: 3,
+                    image: data.image,
+                    texture: data.texture,
+                    video_elem: video_element,
+                    elem: null,
+                    db_obj: db_obj
                 });
-        } else {
-            _notification("Cannot capture audio/video, getUserMedia function is not supported by your browser.");
+
+            _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/video.png" );
+
+            _compile();
+            
+            video_element.play().then(() => {  console.log("ok");
+}).catch((error) => {
+console.log(error);
+});
         }
     } else if (type === "canvas") {
         data = _create2DTexture({

@@ -45,6 +45,8 @@ var _loadFile = function (type) {
                     _loadImageFromFile(file);
                 } else if (type === "audio") {
                     _loadAudioFromFile(file);
+                } else if (type === "video") {
+                    _addFragmentInput("video", file);
                 } else {
                     _notification("Could not load the file '" + file.name + "', the filetype is unknown.");
                 }
@@ -77,6 +79,8 @@ _import_dropzone_elem.addEventListener("drop", function (e) {
             _loadImageFromFile(file);
         } else if (file.type.match('audio.*')) {
             _loadAudioFromFile(file);
+        } else if (file.type.match('video.*')) {
+            _addFragmentInput("video", file);
         } else {
             _notification("Could not load the file '" + file.name + "', the filetype is unknown.");
         }

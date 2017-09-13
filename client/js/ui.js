@@ -318,7 +318,7 @@ var _createFasSettingsContent = function () {
             default_value: gmin,
             value: gmin,
 
-            decimals: 2,
+            //decimals: 2,
             
             title: "Min. grain length",
 
@@ -343,7 +343,7 @@ var _createFasSettingsContent = function () {
             default_value: gmax,
             value: gmax,
             
-            decimals: 2,
+            //decimals: 2,
 
             title: "Max. grain length",
 
@@ -1095,25 +1095,31 @@ var _uiInit = function () {
                         icon: "fs-image-file-icon",
                         on_click: (function () { _loadFile("image")(); }),
                         tooltip: "Image",
-                        text: "Image"
+                        text: "Img"
                     },
                     {
                         icon: "fs-audio-file-icon",
                         on_click: (function () { _loadFile("audio")(); }),
                         tooltip: "Audio",
-                        text: "Audio"
+                        text: "Snd"
+                    },
+                    {
+                        icon: "fs-video-icon",
+                        on_click: (function () { _loadFile("video")(); }),
+                        tooltip: "Video",
+                        text: "Mov"
                     },
                     {
                         icon: "fs-camera-icon",
                         on_click: (function () { _addFragmentInput("camera"); }),
                         tooltip: "Webcam",
-                        text: "Webcam"
+                        text: "Cam"
                     },
                     {
                         icon: "fs-canvas-icon",
                         on_click: (function () { _addFragmentInput("canvas"); }),
-                        tooltip: "Canvas",
-                        text: "Canvas"
+                        tooltip: "Cvs",
+                        text: "Cvs"
                     }
                 ]
             });
@@ -1901,7 +1907,7 @@ var _uiInit = function () {
             step: "any",
             scroll_step: 0.01,
         
-            decimals: 2,
+            //decimals: 2,
 
             default_value: 16.34,
             value: 16.34,
@@ -2019,7 +2025,7 @@ var _uiInit = function () {
             step: 0.01,
             scroll_step: 0.01,
         
-            decimals: 2,
+            //decimals: 2,
 
             default_value: _osc_fadeout,
             value: _osc_fadeout,
@@ -2052,7 +2058,7 @@ var _uiInit = function () {
             step: "any",
             scroll_step: 0.01,
         
-            decimals: 2,
+            //decimals: 2,
 
             midi: true,
 

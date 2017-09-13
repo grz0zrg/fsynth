@@ -48,7 +48,7 @@ var FragmentSynth = function (params) {
             return params.session_name;
         } else {
             url_parts = window.location.pathname.split('/');
-
+            
             return url_parts[url_parts.length - 1];
         }
     };
@@ -753,8 +753,10 @@ var FragmentSynth = function (params) {
     window.gb_code_editor_theme = _code_editor_theme;
     
     document.body.style.overflow = "visible";
-    
-    if (params.fas) {
+
+    if (params.fas || window.location.search.indexOf("?fas=1") !== -1) {
+        WUI_ToolBar.toggle(_wui_main_toolbar, 8, false);
+        
         _fasEnable();
     }
     

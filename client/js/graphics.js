@@ -661,7 +661,7 @@ var _frame = function (raf_time) {
                 _gl.activeTexture(_gl.TEXTURE0 + i);
                 _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
                 _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
-        } else if (fragment_input.type === 1) { // camera
+        } else if (fragment_input.type === 1 || fragment_input.type === 3) { // video/camera
             if (fragment_input.video_elem.readyState === fragment_input.video_elem.HAVE_ENOUGH_DATA) {
                 _gl.activeTexture(_gl.TEXTURE0 + i);
                 _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);

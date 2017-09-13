@@ -6,7 +6,7 @@ Source code repository for the Fragment app. which can be found at : https://www
 
 This is a web. additive/spectral/granular synthesizer/sequencer powered by live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)
 
-Fragment basically capture slices of a WebGL canvas at the display refresh rate and translate RGBA pixels value to notes, the notes are then interpreted and played by one of the synthesis engine method, with the additive synthesis engine, this is actually like generating the sound spectrum by code. The frame data can also be sent via OSC bundles. 
+Fragment basically capture slices of a WebGL canvas at the display refresh rate and translate RGBA pixels value to notes, the notes are then interpreted and played by one of the synthesis engine method, with the additive synthesis engine, this is actually like generating the sound spectrum by code. The frame data can also be sent via OSC bundles.
 
 The content of the WebGL canvas is produced on the GPU by a collaborative GLSL script, this make it extremely fast and easy to do any kinds of pixels manipulations.
 
@@ -20,13 +20,15 @@ Fragment is quite modular and has several external app. such as an external GLSL
 
 Fragment can also act as a standalone sequencer but you have to make your own software that interpret the data sent via WebSocket, this synthesizer can also send its data via OSC.
 
-Fragment support OSC inputs as well, if you send OSC messages starting with "i" (a single message which update a specific index of the array) or "a" (a single message with all the array data) as the address, it will define a shader uniform of that name with the data as a float array, [Open Stage Control](http://osc.ammd.net) can be used to control partials or more parameters through OSC that way. 
+Fragment support OSC inputs as well, if you send OSC messages starting with "i" (a single message which update a specific index of the array) or "a" (a single message with all the array data) as the address, it will define a shader uniform of that name with the data as a float array, you can send an OSC message with the address "/clear" to clear all OSC defined uniforms.
+
+[Open Stage Control](http://osc.ammd.net) can be used to control partials or more parameters through OSC.
 
 For any questions, a message board is available [here](https://quiet.fsynth.com/)
 
 ## Features
 
- * Complete additive and granular (WIP) synthesizer powered by WebAudio oscillators (work best in Chrome), a Wavetable (slow) OR a C native audio server (fastest)
+ * Complete additive and granular synthesizer powered by WebAudio oscillators (work best in Chrome), a Wavetable (slow) OR a C native audio server (fastest)
  * Live coding/JIT compilation of shader code
  * Real-time, collaborative app.
  * Stereophonic or monaural
@@ -41,8 +43,9 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
  * Feedback via framebuffer (for fx like reverb, delay, spectral distortion etc)
  * OSC in/out support (a [SuperCollider](http://supercollider.github.io/) port of the synthesis engine which use OSC is also available)
  * Shader inputs:
-    * Webcam
+    * Webcam (do not import audio)
     * Images
+    * Videos (do not import audio)
     * Audio files (translated to images)
     * Drawing canvas with drawing and compositing operations which use images Fragment input as brushes, Fragment is bundled with 20 high-quality brushes, a pack of 969 high-quality brushes is also available as a [separate download](https://www.fsynth.com/data/969_png_brushes_pack.7z)
  * Uniform controllers via OSC [Open Stage Control is recommended](http://osc.ammd.net)
@@ -115,7 +118,7 @@ Fragment make use of NodeJS, NPM, MongoDB and Redis database, once those are ins
  If you just want to try it out without the collaborative feature and GLSL code save, you don't need MongoDB and Redis, you just need "fsws" then point your browser to http://127.0.0.1:3000
 
  If you want to use it with an OSC app like the SuperCollider fs.sc file or [Open Stage Control](http://osc.ammd.net), please look at the osc_relay directory.
- 
+
  To use the OSC relay : cd osc_relay & npm install & node osc_relay
 
 ## Prod. system

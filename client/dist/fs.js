@@ -16081,7 +16081,7 @@ _utter_fail_element.innerHTML = "";
             return params.session_name;
         } else {
             url_parts = window.location.pathname.split('/');
-
+            
             return url_parts[url_parts.length - 1];
         }
     };
@@ -16507,6 +16507,10 @@ var _initDb = function () {
 
             _dbGetInputs(function (name, value) {
                 var image_element = null;
+                
+                if (!value) {
+                    return;
+                }
 
                 if (value.type === "image" ||
                    value.type === "canvas") {
@@ -16526,6 +16530,7 @@ var _initDb = function () {
 
                         _addFragmentInput(value.type, image_element, value.settings);
                     };
+                } else if (value.type === "video") {
                 } else {
                     _addFragmentInput(value.type);
                 }
@@ -17409,6 +17414,8 @@ var _loadFile = function (type) {
                     _loadImageFromFile(file);
                 } else if (type === "audio") {
                     _loadAudioFromFile(file);
+                } else if (type === "video") {
+                    _addFragmentInput("video", file);
                 } else {
                     _notification("Could not load the file '" + file.name + "', the filetype is unknown.");
                 }
@@ -17441,6 +17448,8 @@ _import_dropzone_elem.addEventListener("drop", function (e) {
             _loadImageFromFile(file);
         } else if (file.type.match('audio.*')) {
             _loadAudioFromFile(file);
+        } else if (file.type.match('video.*')) {
+            _addFragmentInput("video", file);
         } else {
             _notification("Could not load the file '" + file.name + "', the filetype is unknown.");
         }
@@ -18128,7 +18137,7 @@ var _frame = function (raf_time) {
                 _gl.activeTexture(_gl.TEXTURE0 + i);
                 _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
                 _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
-        } else if (fragment_input.type === 1) { // camera
+        } else if (fragment_input.type === 1 || fragment_input.type === 3) { // video/camera
             if (fragment_input.video_elem.readyState === fragment_input.video_elem.HAVE_ENOUGH_DATA) {
                 _gl.activeTexture(_gl.TEXTURE0 + i);
                 _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
@@ -18550,7 +18559,8 @@ var _glsl_compilation = function () {
 
         if (fragment_input.type === 0 ||
            fragment_input.type === 1 ||
-           fragment_input.type === 2) { // 2D texture from either image, webcam, canvas type
+           fragment_input.type === 2 ||
+           fragment_input.type === 3) { // 2D texture from either image, webcam, canvas, video type
             glsl_code += "uniform sampler2D iInput" + i + ";";
         }
     }
@@ -19682,7 +19692,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     dialog_element.id = "fs_channel_settings_dialog";
     
     if (!_gl2) { // WebGL 2 does not have those limitations
-        if (!_isPowerOf2(fragment_input_channel.image.width) || !_isPowerOf2(fragment_input_channel.image.height) || fragment_input_channel.type === 1) {
+        if (!_isPowerOf2(fragment_input_channel.image.width) || !_isPowerOf2(fragment_input_channel.image.height) || fragment_input_channel.type === 1 || fragment_input_channel.type === 3) {
             power_of_two_wrap_options = "";
         }
     }
@@ -19859,6 +19869,12 @@ var _inputThumbMenu = function (e) {
                 window.open(dom_image.src);
             } });
     }
+    
+    if (input.type === 3) {
+        items.push({ icon: "fs-play-icon", tooltip: "Play",  on_click: function () {
+                input.video_elem.play();
+            } });
+    }
 
     WUI_CircularMenu.create(
             {
@@ -19934,13 +19950,16 @@ var _removeInputChannel = function (input_id) {
 
     _gl.deleteTexture(_fragment_input_data.texture);
 
-    if (_fragment_input_data.type === 1) {
+    if (_fragment_input_data.type === 1 || _fragment_input_data.type === 3) {
         _fragment_input_data.video_elem.pause();
+        window.URL.revokeObjectURL(_fragment_input_data.video_elem.src);
         _fragment_input_data.video_elem.src = "";
 
-        tracks = _fragment_input_data.media_stream.getVideoTracks();
-        if (tracks) {
-            tracks[0].stop();
+        if (_fragment_input_data.media_stream) {
+            tracks = _fragment_input_data.media_stream.getVideoTracks();
+            if (tracks) {
+                tracks[0].stop();
+            }
         }
         _fragment_input_data.video_elem = null;
     }
@@ -20253,62 +20272,97 @@ var _addFragmentInput = function (type, input, settings) {
         _fragment_input_data[input_id].elem = _createInputThumb(input_id, input_thumb, _input_channel_prefix + input_id);
 
         _compile();
-    } else if (type === "camera") {
+    } else if (type === "camera" || type === "video") {
         video_element = document.createElement('video');
-        video_element.width = 320;
-        video_element.height = 240;
         video_element.autoplay = true;
         video_element.loop = true;
         video_element.stream = null;
+        
+        if (type === "camera") {
+            video_element.width = 320;
+            video_element.height = 240;
+            
+            navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia  || navigator.msGetUserMedia || navigator.oGetUserMedia;
+            
+            if (navigator.getUserMedia) {
+                navigator.getUserMedia({ video: { mandatory: { /*minWidth: 640, maxWidth: 1280, minHeight: 320, maxHeight: 720, minFrameRate: 30*/ }, optional: [ { minFrameRate: 60 } ] },
+                    audio: false }, function (media_stream) {
+                        video_element.src = window.URL.createObjectURL(media_stream);
 
-        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia  || navigator.msGetUserMedia || navigator.oGetUserMedia;
+                        data = _create2DTexture(video_element, false, false);
 
-        if (navigator.getUserMedia) {
-            navigator.getUserMedia({ video: { mandatory: { /*minWidth: 640, maxWidth: 1280, minHeight: 320, maxHeight: 720, minFrameRate: 30*/ }, optional: [ { minFrameRate: 60 } ] },
-                audio: false }, function (media_stream) {
-                    video_element.src = window.URL.createObjectURL(media_stream);
+                        _setTextureWrapS(data.texture, "clamp");
+                        _setTextureWrapT(data.texture, "clamp");
 
-                    data = _create2DTexture(video_element, false, false);
+                        db_obj.settings.wrap.s = data.wrap.ws;
+                        db_obj.settings.wrap.t = data.wrap.wt;
+                        db_obj.settings.flip = false;
 
-                    _setTextureWrapS(data.texture, "clamp");
-                    _setTextureWrapT(data.texture, "clamp");
-                
-                    db_obj.settings.wrap.s = data.wrap.ws;
-                    db_obj.settings.wrap.t = data.wrap.wt;
-                    db_obj.settings.flip = false;
-                
-                    _dbStoreInput(input_id, db_obj);
-                
-                    if (settings !== undefined) {
-                        _flipYTexture(data.texture, settings.flip);
-                        _setTextureFilter(data.texture, settings.f);
-                        _setTextureWrapS(data.texture, settings.wrap.s);
-                        _setTextureWrapT(data.texture, settings.wrap.t);
-                        
-                        db_obj.settings.f = settings.f;
-                        db_obj.settings.wrap.s = settings.wrap.s;
-                        db_obj.settings.wrap.t = settings.wrap.t;
-                        db_obj.settings.flip = settings.flip;
-                    }
+                        _dbStoreInput(input_id, db_obj);
 
-                    _fragment_input_data.push({
-                            type: 1,
-                            image: data.image,
-                            texture: data.texture,
-                            video_elem: video_element,
-                            elem: null,
-                            media_stream: media_stream,
-                            db_obj: db_obj
-                        });
+                        if (settings !== undefined) {
+                            _flipYTexture(data.texture, settings.flip);
+                            _setTextureFilter(data.texture, settings.f);
+                            _setTextureWrapS(data.texture, settings.wrap.s);
+                            _setTextureWrapT(data.texture, settings.wrap.t);
 
-                    _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/camera.png" );
+                            db_obj.settings.f = settings.f;
+                            db_obj.settings.wrap.s = settings.wrap.s;
+                            db_obj.settings.wrap.t = settings.wrap.t;
+                            db_obj.settings.flip = settings.flip;
+                        }
 
-                    _compile();
-                }, function (e) {
-                    _notification("Unable to capture WebCam.");
+                        _fragment_input_data.push({
+                                type: 1,
+                                image: data.image,
+                                texture: data.texture,
+                                video_elem: video_element,
+                                elem: null,
+                                media_stream: media_stream,
+                                db_obj: db_obj
+                            });
+
+                        _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/camera.png" );
+
+                        _compile();
+                    }, function (e) {
+                        _notification("Unable to capture video/camera.");
+                    });
+            } else {
+                _notification("Cannot capture video/camera, getUserMedia function is not supported by your browser.");
+            }
+        } else { // TODO : factor out inputs stuff
+            video_element.src = window.URL.createObjectURL(input);
+            video_element.autoplay = true;
+            video_element.loop = true;
+            video_element.muted = true;
+            
+            data = _create2DTexture(video_element, false, false);
+
+            _setTextureWrapS(data.texture, "clamp");
+            _setTextureWrapT(data.texture, "clamp");
+
+            db_obj.settings.wrap.s = data.wrap.ws;
+            db_obj.settings.wrap.t = data.wrap.wt;
+            db_obj.settings.flip = false;
+
+            _fragment_input_data.push({
+                    type: 3,
+                    image: data.image,
+                    texture: data.texture,
+                    video_elem: video_element,
+                    elem: null,
+                    db_obj: db_obj
                 });
-        } else {
-            _notification("Cannot capture audio/video, getUserMedia function is not supported by your browser.");
+
+            _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/video.png" );
+
+            _compile();
+            
+            video_element.play().then(() => {  console.log("ok");
+}).catch((error) => {
+console.log(error);
+});
         }
     } else if (type === "canvas") {
         data = _create2DTexture({
@@ -20957,7 +21011,7 @@ var _createFasSettingsContent = function () {
             default_value: gmin,
             value: gmin,
 
-            decimals: 2,
+            //decimals: 2,
             
             title: "Min. grain length",
 
@@ -20982,7 +21036,7 @@ var _createFasSettingsContent = function () {
             default_value: gmax,
             value: gmax,
             
-            decimals: 2,
+            //decimals: 2,
 
             title: "Max. grain length",
 
@@ -21734,25 +21788,31 @@ var _uiInit = function () {
                         icon: "fs-image-file-icon",
                         on_click: (function () { _loadFile("image")(); }),
                         tooltip: "Image",
-                        text: "Image"
+                        text: "Img"
                     },
                     {
                         icon: "fs-audio-file-icon",
                         on_click: (function () { _loadFile("audio")(); }),
                         tooltip: "Audio",
-                        text: "Audio"
+                        text: "Snd"
+                    },
+                    {
+                        icon: "fs-video-icon",
+                        on_click: (function () { _loadFile("video")(); }),
+                        tooltip: "Video",
+                        text: "Mov"
                     },
                     {
                         icon: "fs-camera-icon",
                         on_click: (function () { _addFragmentInput("camera"); }),
                         tooltip: "Webcam",
-                        text: "Webcam"
+                        text: "Cam"
                     },
                     {
                         icon: "fs-canvas-icon",
                         on_click: (function () { _addFragmentInput("canvas"); }),
-                        tooltip: "Canvas",
-                        text: "Canvas"
+                        tooltip: "Cvs",
+                        text: "Cvs"
                     }
                 ]
             });
@@ -22540,7 +22600,7 @@ var _uiInit = function () {
             step: "any",
             scroll_step: 0.01,
         
-            decimals: 2,
+            //decimals: 2,
 
             default_value: 16.34,
             value: 16.34,
@@ -22658,7 +22718,7 @@ var _uiInit = function () {
             step: 0.01,
             scroll_step: 0.01,
         
-            decimals: 2,
+            //decimals: 2,
 
             default_value: _osc_fadeout,
             value: _osc_fadeout,
@@ -22691,7 +22751,7 @@ var _uiInit = function () {
             step: "any",
             scroll_step: 0.01,
         
-            decimals: 2,
+            //decimals: 2,
 
             midi: true,
 
@@ -25497,6 +25557,11 @@ var _oscInit = function () {
                     _useProgram(_program);
                     _setUniforms(_gl, _osc.inputs[data.osc_input.name].type, _program, data.osc_input.name, _osc.inputs[data.osc_input.name].data);
                 }
+            } else if (data.status === "clear") { // clear up OSC set uniforms
+                _osc.inputs = [];
+                _osc.queue = [];
+                
+                _glsl_compilation();
             } else if (data.status === "ready") {
                 _notification("OSC: Connected to " + _osc.address, 2500);
             } else if (data.status === "error") {
@@ -26083,8 +26148,10 @@ _red_curtain_element.addEventListener("transitionend", function () {
     window.gb_code_editor_theme = _code_editor_theme;
     
     document.body.style.overflow = "visible";
-    
-    if (params.fas) {
+
+    if (params.fas || window.location.search.indexOf("?fas=1") !== -1) {
+        WUI_ToolBar.toggle(_wui_main_toolbar, 8, false);
+        
         _fasEnable();
     }
     

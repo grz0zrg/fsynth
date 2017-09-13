@@ -85,6 +85,10 @@ var _initDb = function () {
 
             _dbGetInputs(function (name, value) {
                 var image_element = null;
+                
+                if (!value) {
+                    return;
+                }
 
                 if (value.type === "image" ||
                    value.type === "canvas") {
@@ -104,6 +108,7 @@ var _initDb = function () {
 
                         _addFragmentInput(value.type, image_element, value.settings);
                     };
+                } else if (value.type === "video") {
                 } else {
                     _addFragmentInput(value.type);
                 }

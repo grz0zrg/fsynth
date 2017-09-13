@@ -411,10 +411,11 @@ $list(
 		$item Max. freq.: A value of 0 will automatically assign a max. frequency related to the score settings)
 	$item Import toolbar
 	$list(
-		$item Image: This will open a file selection window to import images
-		$item Audio: This will open a file selection window to import audio files
-		$item Webcam
-		$item Canvas)
+		$item Img: This will open a file selection window to import images
+		$item Snd: This will open a file selection window to import audio files
+		$item Mov: This will open a file selection window to import video files
+		$item Cam; WebCam
+		$item Cvs: Drawing canvas)
 	$item Dropzone: You can use this to import many files at the same time)
 
 Once added, by left clicking on a complex input thumbnail the following actions appear:

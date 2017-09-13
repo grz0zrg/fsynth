@@ -92,7 +92,7 @@ p                                 {  width: 600px; }
 The <strong><a href="https://www.fsynth.com">Fragment synthesizer</a></strong> is a collaborative web-based musical instrument which allow direct manipulation of the sound spectrum by the use of on-the-fly GPU (Graphics Processing Unit) coding.<br><br>Fragment is stereophonic, polyphonic, multitimbral and support live coding of audio and visuals at the same time.<br><br>Fragment main synthesis method is additive, granular synthesis was successfully implemented as well but not yet available.<br><br>Fragment has many features making it a bliss to produce any kind of sounds or visuals, it is aimed at artists seeking a real-time creative environment with direct visual feedback and few limitations to experiment with, a programmable noise-of-all-kinds software.<br><br>Many videos of Fragment live sessions were recorded and are available on YouTube as a <a href="https://www.youtube.com/playlist?list=PLYhyS2OKJmqe_PEimydWZN1KbvCzkjgeI">playlist</a>.<br><br><br>
 <a id="subsec1_1"></a><span style="font-size: 120%;"><strong>1.1. History</strong></span><br><br>
 In 2009, i discovered the <a href="http://www.warmplace.ru/soft/ans/">Virtual ANS</a> synthesizer by <a href="http://www.warmplace.ru">Alexander Zolotov</a>,
-a software emulation of the Russian photoelectronic synthesizer <a href="http://en.wikipedia.org/wiki/ANS_synthesizer">ANS</a> which was created by the Russian engineer <a href="http://en.wikipedia.org/wiki/Evgeny_Murzin">Evgeny Murzin</a> from 1938 to 1958.<br><br>I was blown away by the remarquable possibilities offered by the Virtual ANS which let you draw the sound spectrum over time, i then discovered programs such as MetaSynth or <a href="https://highc.org">HighC</a>, this is how i started to experiment with the "drawn sound" method.<br><br>Fragment started in 2015, when i was making the first prototype of a web-based ANS-like synthesizer software, a prototype of Fragment was made in a single week, 
+a software emulation of the Russian photoelectronic synthesizer <a href="http://en.wikipedia.org/wiki/ANS_synthesizer">ANS</a> which was created by the Russian engineer <a href="http://en.wikipedia.org/wiki/Evgeny_Murzin">Evgeny Murzin</a> from 1938 to 1958.<br><br>I was blown away by the remarquable possibilities offered by the Virtual ANS which let you draw the sound spectrum over time, i then discovered programs such as MetaSynth or <a href="https://highc.org">HighC</a>, this is how i started to experiment with the "drawn sound" method.<br><br>Fragment started in 2015, when i was making the first prototype of a web-based ANS-like synthesizer software, a prototype of Fragment was made in a single week,
 the prototype was quite mature but lacked in features, i considered Fragment as a pretty failed experiment at the time.<br><br>In the summer 2016 while i was releasing the prototype source code, i played with it again and after tweaking the GLSL code, i was able to make some nice sounds, so i started to think about that prototype again and come up with many ideas that would make Fragment more functional and easier to use, the real work begun.<br><br>After many hours spent crafting the software, the first version of Fragment was released in January 2017, it was quite limited at that time, Fragment has now improved alot.<br><br><br>
 <a id="subsec1_2"></a><span style="font-size: 120%;"><strong>1.2. Capabilities</strong></span><br><br>
 <span><ul>
@@ -108,6 +108,7 @@ the prototype was quite mature but lacked in features, i considered Fragment as 
 		<span><ul><li> Multiple audio channels are only supported with <a rel="tag" href="#fas">FAS</a></ul></span>
 	<li> Shader inputs, webcam, textures, audio files, canvas
 	<li> WebGL 2.0 and GLSL 3.0 support when compatibility is detected
+	<li> OSC support, a <a href="http://supercollider.github.io/">SuperCollider</a> synth. which use OSC data from Fragment is also available
 	<li> MIDI Enabled
 		<span><ul><li> Only with WebMIDI API enabled browsers (Google Chrome) <li> Hot plugging of MIDI devices is supported</ul></span>
 	<li> Collaborative app.
@@ -150,9 +151,7 @@ Where:
 	<li> <strong>a</strong> is is the starting frequency
 	<li> <strong>y</strong> the vertical position
 	<li> <strong>n</strong> the number of oscillators (which is the height of the canvas)
-	<li> <strong>o</strong> the octave count</ul></span>
-	
-<a id="sec3"></a><br><br><span style="font-size: 120%;"><span style="font-size: 120%;"><strong>3. Sessions</strong></span></span><br><br>
+	<li> <strong>o</strong> the octave count</ul></span><br><br><a id="sec3"></a><br><br><span style="font-size: 120%;"><span style="font-size: 120%;"><strong>3. Sessions</strong></span></span><br><br>
 Fragment sessions are isolated spaces which are open to all peoples who has access to the session name, they can be joined by going to the Fragment <a href="https://www.fsynth.com">homepage</a> or by typing the session name directly into the address bar as demonstrated below.<br><br>You can join any sessions directly from your browser address bar by replacing "yoursessionname" for the URL shown below by the session name you want to join or create, session names are limited to a maximum of 100 characters and cannot use the "$" character:<br><br><div style="text-align: center; color: inherit; font-size: inherit;"><p>https://www.fsynth.com/app/<strong>yoursessionname</strong></p></div>
 Fragment store sessions content and settings on a server which mean that any of the synchronizable actions in the session such as the code editor content, canvas settings, slices and <a rel="tag" href="#uniformsdialog">uniform inputs</a> are automatically saved <strong>if</strong> Fragment is connected.<br><br>Fragment synchronize the code editor content, slices, canvas settings and <a rel="tag" href="#uniformsdialog">uniform inputs</a> across all the users in the session in real-time which mean that you can jam with your friends if you share the session URL.<br><br>Note that MIDI note messages are not synchronized between users due to technical constraints but you can still add <a rel="tag" href="#uniformsdialog">uniform inputs</a> and assign MIDI devices to control them, their values are synchronized between users.<br><br>Some settings are saved locally on your browser, some of them are global (like the username and settings related to the editor) and some of them are saved per sessions such as the MIDI settings, gain and inputs.<br><br>Fragment is respectful of the user and does not store any informations related to the user outside the boundary defined by the application focus.<br><br><br>
 <a id="subsec3_1"></a><span style="font-size: 120%;"><strong>3.1. Homepage and sessions history</strong></span><br><br>
@@ -322,13 +321,12 @@ Fragment inputs are complex inputs which can be used in the fragment program as 
 		<li> Max. freq.: A value of 0 will automatically assign a max. frequency related to the score settings</ul></span>
 	<li> Import toolbar
 	<span><ul>
-		<li> Image: This will open a file selection window to import images
-		<li> Audio: This will open a file selection window to import audio files
-		<li> Webcam
-		<li> Canvas</ul></span>
-	<li> Dropzone: You can use this to import many files at the same time</ul></span>
-	
-Once added, by left clicking on a complex input thumbnail the following actions appear:
+		<li> Img: This will open a file selection window to import images
+		<li> Snd: This will open a file selection window to import audio files
+		<li> Mov: This will open a file selection window to import video files
+		<li> Cam; WebCam
+		<li> Cvs: Drawing canvas</ul></span>
+	<li> Dropzone: You can use this to import many files at the same time</ul></span><br><br>Once added, by left clicking on a complex input thumbnail the following actions appear:
 <span><ul>
 	<li> complex input settings dialog
 	<li> delete
@@ -396,7 +394,7 @@ MIDI learn is a neat feature of Fragment which enable any MIDI learn enabled wid
 The red square appearing on an UI interface widget indicate that the MIDI learn functionality is supported for the widget, it only appear on WebMIDI enabled browsers such as Chrome and Opera and on widgets which are allowed to be controlled by MIDI.<br><br>By left clicking on the red square, it turn green and any inputs from the <a rel="tag" href="#midisettingsdialog">enabled MIDI devices</a> will be captured by the widget.<br><br>Once the MIDI input is captured, the green square become red again (which is a locked state) and the MIDI control will be assigned to the widget.<br><br>It is possible to reset the MIDI control assigned to the widget by clicking on the red square and clicking again on the green square aka double clicking.<br><br><br>
 <a id="globalsettingsdialog"></a>
 <a id="subsec5_9"></a><span style="font-size: 120%;"><strong>5.9. The session/global settings dialog</strong></span><br><br>
-<a href="images/settings.png"><div style="text-align: center; color: inherit; font-size: inherit;"><p><img src="images/settings.png" width="347"></p></div></a>
+<a href="images/settings.png"><div style="text-align: center; color: inherit; font-size: inherit;"><p><img src="images/settings.png" width="324"></p></div></a>
 <br>
 The session &amp; global settings dialog content (in order from top to bottom):
 <span><ul>
@@ -419,6 +417,9 @@ The session &amp; global settings dialog content (in order from top to bottom):
 	<li> Polyphony
 	<span><ul>
 		<li> Maximum polyphony</ul></span>
+  <li> Note lifetime
+	<span><ul>
+		<li> The lifetime of a note, this is usefull to handle MIDI keys note-off &amp; release sections part of envelopes</ul></span>
 	<li> Show globalTime
 	<span><ul>
 		<li> Hide/Show the globalTime in the informations bar</ul></span>
@@ -450,6 +451,12 @@ The session &amp; global settings dialog content (in order from top to bottom):
 	<li> Wavetable
 	<span><ul>
 		<li> Enable/disable the synthesis engine wavetable feature (uglier audio output but may be the less CPU intensive mode)</ul></span>
+	<li> OSC IN
+	<span><ul>
+		<li> Enable/disable OSC input, you can add and controls uniform variables through OSC, you will need an <a href="https://github.com/grz0zrg/fsynth/tree/master/osc_relay">OSC relay</a> to use this feature</ul></span>
+  <li> OSC OUT
+	<span><ul>
+		<li> Enable/disable OSC output, slices data will be sent through OSC bundles via WebSockets, you will need an <a href="https://github.com/grz0zrg/fsynth/tree/master/osc_relay">OSC relay</a> to use this feature</ul></span>
 	<li> Feedback
 	<span><ul>
 		<li> Enable/disable the availability of the previous frame in the fragment shader (aka feedback), this is useful for complex effects, may be CPU/GPU intensive</ul></span>
@@ -491,8 +498,7 @@ The uniforms dialog is a very powerful functionality.<br><br>It enable you to de
 	<li> bool
 	<li> int
 	<li> float</ul></span>
-If count is higher than 1, Fragment will add the scalar uniforms as an array.<br><br>	
-You can also add vector uniforms of the following types (note: the components field determine the number of components for the following uniform type):
+If count is higher than 1, Fragment will add the scalar uniforms as an array.<br><br>You can also add vector uniforms of the following types (note: the components field determine the number of components for the following uniform type):
 <span><ul>
 	<li> bvec2
 	<li> bvec3
@@ -732,7 +738,7 @@ Important note: There is no notions of "note-off" in Fragment, a note-off is sim
       <span style="display: inline; color: rgb(60,20,20)">// this is optional but it might help with performances</span>
       <span style="display: inline; color: rgb(60,20,20)">// so we don't compute harmonics uselessly</span>
       <span style="display: inline; color: rgb(10,0,130)">if</span> (kfrq <span style="display: inline; color: rgb(10,100,80)">==</span> <span style="display: inline; color: rgb(130,0,0)">0.</span>) {
-       	break; 
+       	break;
       }<br><br>      <span style="display: inline; color: rgb(10,0,130)">for</span> (<span style="display: inline; color: rgb(10,0,130)">float</span> i <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(130,0,0)">1.</span>; i <span style="display: inline; color: rgb(10,100,80)">&lt;</span> harmonics; i <span style="display: inline; color: rgb(10,100,80)">+=</span> <span style="display: inline; color: rgb(130,0,0)">1.</span>) {
         <span style="display: inline; color: rgb(10,0,130)">float</span> a <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(130,0,0)">1.</span> <span style="display: inline; color: rgb(10,100,80)">/</span> <span style="display: inline; color: rgb(0,100,0)">pow</span>(i, attenuation_<span style="display: inline; color: rgb(10,0,130)">const</span>ant);<br><br>        <span style="display: inline; color: rgb(60,20,20)">// we apply the velocity</span>
         l <span style="display: inline; color: rgb(10,100,80)">+=</span> fline(kfrq <span style="display: inline; color: rgb(10,100,80)">*</span> i) <span style="display: inline; color: rgb(10,100,80)">*</span> a <span style="display: inline; color: rgb(10,100,80)">*</span> kvel;
@@ -761,7 +767,7 @@ by this line :
 <a id="subsec6_9"></a><span style="font-size: 120%;"><strong>6.9. Simple AR-like envelope</strong></span><br><br>
 Our timbre is nice but still too simple, we can fix that by applying an envelope, a mathematical function which will determine the timbre behavior by taking into account the elapsed time when we hit the keys of our MIDI keyboard.<br><br>Fragment allow any envelopes to be done by mathematically defining them, one of the simplest envelope is AR (Attack and Release):
 <pre style="color: inherit; font-size: inherit; background-color: rgb(230,235,220); width: 600px;">
-  <span style="display: inline; color: rgb(60,20,20)">// a simple function which define </span>
+  <span style="display: inline; color: rgb(60,20,20)">// a simple function which define</span>
   <span style="display: inline; color: rgb(60,20,20)">// smooth AR-like envelopes, fast attack and slow decays</span>
   <span style="display: inline; color: rgb(60,20,20)">// plot it or see the details of this function below</span>
   <span style="display: inline; color: rgb(60,20,20)">// it's maximum, which is 1.0, happens at exactly x = 1 / k</span>
@@ -776,7 +782,7 @@ Our timbre is nice but still too simple, we can fix that by applying an envelope
       <span style="display: inline; color: rgb(10,0,130)">float</span> kvel <span style="display: inline; color: rgb(10,100,80)">=</span> data.y;
       <span style="display: inline; color: rgb(10,0,130)">float</span> ktim <span style="display: inline; color: rgb(10,100,80)">=</span> data.z;
       <span style="display: inline; color: rgb(10,0,130)">float</span> kchn <span style="display: inline; color: rgb(10,100,80)">=</span> data.w;<br><br>      <span style="display: inline; color: rgb(10,0,130)">if</span> (kfrq <span style="display: inline; color: rgb(10,100,80)">==</span> <span style="display: inline; color: rgb(130,0,0)">0.</span>) {
-       	break; 
+       	break;
       }<br><br>      <span style="display: inline; color: rgb(60,20,20)">// we apply the envelope, this envelope has a fast attack</span>
       <span style="display: inline; color: rgb(60,20,20)">// of 62.5ms and a release of 555ms</span>
       <span style="display: inline; color: rgb(10,0,130)">float</span> env_attack <span style="display: inline; color: rgb(10,100,80)">=</span> ktim <span style="display: inline; color: rgb(10,100,80)">*</span> <span style="display: inline; color: rgb(130,0,0)">16.</span>;
@@ -809,7 +815,7 @@ The sound is still not very interesting yet but now that we know how to generate
       <span style="display: inline; color: rgb(10,0,130)">float</span> kvel <span style="display: inline; color: rgb(10,100,80)">=</span> data.y;
       <span style="display: inline; color: rgb(10,0,130)">float</span> ktim <span style="display: inline; color: rgb(10,100,80)">=</span> data.z;
       <span style="display: inline; color: rgb(10,0,130)">float</span> kchn <span style="display: inline; color: rgb(10,100,80)">=</span> data.w;<br><br>      <span style="display: inline; color: rgb(10,0,130)">if</span> (kfrq <span style="display: inline; color: rgb(10,100,80)">==</span> <span style="display: inline; color: rgb(130,0,0)">0.</span>) {
-       	break; 
+       	break;
       }<br><br>      <span style="display: inline; color: rgb(10,0,130)">float</span> env_attack <span style="display: inline; color: rgb(10,100,80)">=</span> ktim <span style="display: inline; color: rgb(10,100,80)">*</span> <span style="display: inline; color: rgb(130,0,0)">16.</span>;<br><br>      <span style="display: inline; color: rgb(10,0,130)">for</span> (<span style="display: inline; color: rgb(10,0,130)">float</span> i <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(130,0,0)">1.</span>; i <span style="display: inline; color: rgb(10,100,80)">&lt;</span> harmonics; i <span style="display: inline; color: rgb(10,100,80)">+=</span> <span style="display: inline; color: rgb(130,0,0)">1.</span>) {
         <span style="display: inline; color: rgb(10,0,130)">float</span> a <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(130,0,0)">1.</span> <span style="display: inline; color: rgb(10,100,80)">/</span> <span style="display: inline; color: rgb(0,100,0)">pow</span>(i, attenuation_<span style="display: inline; color: rgb(10,0,130)">const</span>ant);<br><br>        <span style="display: inline; color: rgb(60,20,20)">// we stretch the envelope per harmonics</span>
         <span style="display: inline; color: rgb(10,0,130)">float</span> env_stretch <span style="display: inline; color: rgb(10,100,80)">=</span> i <span style="display: inline; color: rgb(10,100,80)">/</span> harmonics;
@@ -839,14 +845,14 @@ We will now look into getting a better timbre by morphing parameters such as the
       <span style="display: inline; color: rgb(10,0,130)">float</span> kvel <span style="display: inline; color: rgb(10,100,80)">=</span> data.y;
       <span style="display: inline; color: rgb(10,0,130)">float</span> ktim <span style="display: inline; color: rgb(10,100,80)">=</span> data.z;
       <span style="display: inline; color: rgb(10,0,130)">float</span> kchn <span style="display: inline; color: rgb(10,100,80)">=</span> data.w;<br><br>      <span style="display: inline; color: rgb(10,0,130)">if</span> (kfrq <span style="display: inline; color: rgb(10,100,80)">==</span> <span style="display: inline; color: rgb(130,0,0)">0.</span>) {
-       	break; 
+       	break;
       }<br><br>      <span style="display: inline; color: rgb(10,0,130)">float</span> env_attack <span style="display: inline; color: rgb(10,100,80)">=</span> ktim <span style="display: inline; color: rgb(10,100,80)">*</span> <span style="display: inline; color: rgb(130,0,0)">16.</span>;<br><br>      <span style="display: inline; color: rgb(60,20,20)">// we create a mixing function</span>
       <span style="display: inline; color: rgb(10,0,130)">float</span> mix_f <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(130,0,0)">0.5</span> <span style="display: inline; color: rgb(10,100,80)">*</span> (<span style="display: inline; color: rgb(130,0,0)">1.</span> <span style="display: inline; color: rgb(10,100,80)">+</span> <span style="display: inline; color: rgb(0,100,0)">sin</span>(ktim <span style="display: inline; color: rgb(10,100,80)">*</span> <span style="display: inline; color: rgb(130,0,0)">20.</span>));<br><br>      <span style="display: inline; color: rgb(10,0,130)">for</span> (<span style="display: inline; color: rgb(10,0,130)">float</span> i <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(130,0,0)">1.</span>; i <span style="display: inline; color: rgb(10,100,80)">&lt;</span> harmonics; i <span style="display: inline; color: rgb(10,100,80)">+=</span> <span style="display: inline; color: rgb(130,0,0)">1.</span>) {
         <span style="display: inline; color: rgb(10,0,130)">float</span> a <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(130,0,0)">1.</span> <span style="display: inline; color: rgb(10,100,80)">/</span> <span style="display: inline; color: rgb(0,100,0)">pow</span>(i, attenuation_<span style="display: inline; color: rgb(10,0,130)">const</span>ant);<br><br>        <span style="display: inline; color: rgb(60,20,20)">// we setup another attenuation value which</span>
         <span style="display: inline; color: rgb(60,20,20)">// is a bit higher than the previous one</span>
         <span style="display: inline; color: rgb(10,0,130)">float</span> a<span style="display: inline; color: rgb(130,0,130)">2</span> <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(130,0,0)">1.</span> <span style="display: inline; color: rgb(10,100,80)">/</span> <span style="display: inline; color: rgb(0,100,0)">pow</span>(i, attenuation_<span style="display: inline; color: rgb(10,0,130)">const</span>ant <span style="display: inline; color: rgb(10,100,80)">*</span> <span style="display: inline; color: rgb(130,0,0)">1.3</span>);<br><br>        <span style="display: inline; color: rgb(10,0,130)">float</span> env_stretch <span style="display: inline; color: rgb(10,100,80)">=</span> i <span style="display: inline; color: rgb(10,100,80)">/</span> harmonics;
         <span style="display: inline; color: rgb(10,0,130)">float</span> env <span style="display: inline; color: rgb(10,100,80)">=</span> kvel <span style="display: inline; color: rgb(10,100,80)">*</span> impulse(env_stretch, env_attack);<br><br>        <span style="display: inline; color: rgb(60,20,20)">// we now mix our attenuations so that</span>
-        <span style="display: inline; color: rgb(60,20,20)">// higher harmonics oscillate between both </span>
+        <span style="display: inline; color: rgb(60,20,20)">// higher harmonics oscillate between both</span>
         <span style="display: inline; color: rgb(60,20,20)">// kind of attenuations smoothly</span>
         a <span style="display: inline; color: rgb(10,100,80)">=</span> mix(a, a<span style="display: inline; color: rgb(130,0,130)">2</span>, mix_f);<br><br>        l <span style="display: inline; color: rgb(10,100,80)">+=</span> fline(kfrq <span style="display: inline; color: rgb(10,100,80)">*</span> i) <span style="display: inline; color: rgb(10,100,80)">*</span> a <span style="display: inline; color: rgb(10,100,80)">*</span> env;
         r <span style="display: inline; color: rgb(10,100,80)">+=</span> fline(kfrq <span style="display: inline; color: rgb(10,100,80)">*</span> i) <span style="display: inline; color: rgb(10,100,80)">*</span> a <span style="display: inline; color: rgb(10,100,80)">*</span> env;
@@ -880,7 +886,7 @@ We will now replace our AR envelope by the more complex ADSR envelope, ADSR mean
       <span style="display: inline; color: rgb(10,0,130)">float</span> kvel <span style="display: inline; color: rgb(10,100,80)">=</span> data.y;
       <span style="display: inline; color: rgb(10,0,130)">float</span> ktim <span style="display: inline; color: rgb(10,100,80)">=</span> data.z;
       <span style="display: inline; color: rgb(10,0,130)">float</span> kchn <span style="display: inline; color: rgb(10,100,80)">=</span> data.w;<br><br>      <span style="display: inline; color: rgb(10,0,130)">if</span> (kfrq <span style="display: inline; color: rgb(10,100,80)">==</span> <span style="display: inline; color: rgb(130,0,0)">0.</span>) {
-       	break; 
+       	break;
       }<br><br>      <span style="display: inline; color: rgb(10,0,130)">float</span> mix_f <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(130,0,0)">0.5</span> <span style="display: inline; color: rgb(10,100,80)">*</span> (<span style="display: inline; color: rgb(130,0,0)">1.</span> <span style="display: inline; color: rgb(10,100,80)">+</span> <span style="display: inline; color: rgb(0,100,0)">sin</span>(ktim <span style="display: inline; color: rgb(10,100,80)">*</span> <span style="display: inline; color: rgb(130,0,0)">2.</span>));<br><br>      <span style="display: inline; color: rgb(10,0,130)">for</span> (<span style="display: inline; color: rgb(10,0,130)">float</span> i <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(130,0,0)">1.</span>; i <span style="display: inline; color: rgb(10,100,80)">&lt;</span> harmonics; i <span style="display: inline; color: rgb(10,100,80)">+=</span> <span style="display: inline; color: rgb(130,0,0)">1.</span>) {
         <span style="display: inline; color: rgb(10,0,130)">float</span> a <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(130,0,0)">1.</span> <span style="display: inline; color: rgb(10,100,80)">/</span> <span style="display: inline; color: rgb(0,100,0)">pow</span>(i, attenuation_<span style="display: inline; color: rgb(10,0,130)">const</span>ant <span style="display: inline; color: rgb(10,100,80)">*</span> <span style="display: inline; color: rgb(130,0,0)">1.1</span>);<br><br>        <span style="display: inline; color: rgb(10,0,130)">float</span> a<span style="display: inline; color: rgb(130,0,130)">2</span> <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(130,0,0)">1.</span> <span style="display: inline; color: rgb(10,100,80)">/</span> <span style="display: inline; color: rgb(0,100,0)">pow</span>(i, attenuation_<span style="display: inline; color: rgb(10,0,130)">const</span>ant <span style="display: inline; color: rgb(10,100,80)">*</span> <span style="display: inline; color: rgb(130,0,0)">1.3</span>);<br><br>        <span style="display: inline; color: rgb(60,20,20)">// we now replace our old impulse function by the adsr function</span>
         <span style="display: inline; color: rgb(60,20,20)">// which take three arguments</span>
@@ -930,7 +936,7 @@ A low-pass filter is a filter that passes signals with a frequency lower than a 
       <span style="display: inline; color: rgb(10,0,130)">float</span> kvel <span style="display: inline; color: rgb(10,100,80)">=</span> data.y;
       <span style="display: inline; color: rgb(10,0,130)">float</span> ktim <span style="display: inline; color: rgb(10,100,80)">=</span> data.z;
       <span style="display: inline; color: rgb(10,0,130)">float</span> kchn <span style="display: inline; color: rgb(10,100,80)">=</span> data.w;<br><br>      <span style="display: inline; color: rgb(10,0,130)">if</span> (kfrq <span style="display: inline; color: rgb(10,100,80)">==</span> <span style="display: inline; color: rgb(130,0,0)">0.</span>) {
-       	break; 
+       	break;
       }<br><br>      <span style="display: inline; color: rgb(60,20,20)">// the htoy function take a frequency as argument</span>
       <span style="display: inline; color: rgb(60,20,20)">// and return its position on the canvas</span>
       <span style="display: inline; color: rgb(60,20,20)">// we then normalize the position</span>
@@ -973,7 +979,7 @@ We can now modulate the filter parameters to change the timbre, we will vary the
       <span style="display: inline; color: rgb(10,0,130)">float</span> kvel <span style="display: inline; color: rgb(10,100,80)">=</span> data.y;
       <span style="display: inline; color: rgb(10,0,130)">float</span> ktim <span style="display: inline; color: rgb(10,100,80)">=</span> data.z;
       <span style="display: inline; color: rgb(10,0,130)">float</span> kchn <span style="display: inline; color: rgb(10,100,80)">=</span> data.w;<br><br>      <span style="display: inline; color: rgb(10,0,130)">if</span> (kfrq <span style="display: inline; color: rgb(10,100,80)">==</span> <span style="display: inline; color: rgb(130,0,0)">0.</span>) {
-       	break; 
+       	break;
       }<br><br>      <span style="display: inline; color: rgb(10,0,130)">float</span> cutoff <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(0,100,100)">htoy</span>(kfrq) <span style="display: inline; color: rgb(10,100,80)">/</span> <span style="display: inline; color: rgb(0,100,100)">resolution</span>.y;<br><br>      <span style="display: inline; color: rgb(60,20,20)">// we vary the slope a bit</span>
       <span style="display: inline; color: rgb(10,0,130)">float</span> slope <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(130,0,0)">3.</span> <span style="display: inline; color: rgb(10,100,80)">+</span> <span style="display: inline; color: rgb(0,100,0)">sin</span>(ktim <span style="display: inline; color: rgb(10,100,80)">*</span> <span style="display: inline; color: rgb(130,0,0)">4.</span>);<br><br>      <span style="display: inline; color: rgb(10,0,130)">for</span> (<span style="display: inline; color: rgb(10,0,130)">float</span> i <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(130,0,0)">1.</span>; i <span style="display: inline; color: rgb(10,100,80)">&lt;</span> harmonics; i <span style="display: inline; color: rgb(10,100,80)">+=</span> <span style="display: inline; color: rgb(130,0,0)">1.</span>) {
         <span style="display: inline; color: rgb(10,0,130)">float</span> f <span style="display: inline; color: rgb(10,100,80)">=</span> lpf(uv.y, cutoff, slope);<br><br>        <span style="display: inline; color: rgb(10,0,130)">float</span> attack <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(130,0,0)">0.05</span>;
@@ -1008,7 +1014,7 @@ Now that we have made a low-pass filter, we can build all the other filters easi
     <span style="display: inline; color: rgb(10,0,130)">return</span> .<span style="display: inline; color: rgb(130,0,130)">5</span> <span style="display: inline; color: rgb(10,100,80)">+</span> .<span style="display: inline; color: rgb(130,0,130)">5</span> <span style="display: inline; color: rgb(10,100,80)">*</span>(<span style="display: inline; color: rgb(0,100,0)">atan</span>(s<span style="display: inline; color: rgb(10,100,80)">*</span><span style="display: inline; color: rgb(0,100,0)">cos</span>(<span style="display: inline; color: rgb(130,0,0)">3.141592653</span> <span style="display: inline; color: rgb(10,100,80)">*</span> min(max((x<span style="display: inline; color: rgb(10,100,80)">-</span>c) <span style="display: inline; color: rgb(10,100,80)">*</span> s,<span style="display: inline; color: rgb(130,0,0)">0.</span>),<span style="display: inline; color: rgb(130,0,0)">1.</span>)))<span style="display: inline; color: rgb(10,100,80)">/</span><span style="display: inline; color: rgb(0,100,0)">atan</span>(s));
   }<br><br>  <span style="display: inline; color: rgb(60,20,20)">// the high pass filter is just an inversed LPF</span>
   <span style="display: inline; color: rgb(10,0,130)">float</span> hpf(<span style="display: inline; color: rgb(10,0,130)">float</span> x, <span style="display: inline; color: rgb(10,0,130)">float</span> c, <span style="display: inline; color: rgb(10,0,130)">float</span> s) {
-   	<span style="display: inline; color: rgb(10,0,130)">return</span> lpf(<span style="display: inline; color: rgb(130,0,0)">1.</span> <span style="display: inline; color: rgb(10,100,80)">-</span> x, <span style="display: inline; color: rgb(130,0,0)">1.</span> <span style="display: inline; color: rgb(10,100,80)">-</span> c, s); 
+   	<span style="display: inline; color: rgb(10,0,130)">return</span> lpf(<span style="display: inline; color: rgb(130,0,0)">1.</span> <span style="display: inline; color: rgb(10,100,80)">-</span> x, <span style="display: inline; color: rgb(130,0,0)">1.</span> <span style="display: inline; color: rgb(10,100,80)">-</span> c, s);
   }<br><br>  <span style="display: inline; color: rgb(60,20,20)">// a bpf is obtained by combining a lpf and hpf</span>
   <span style="display: inline; color: rgb(10,0,130)">float</span> bpf(<span style="display: inline; color: rgb(10,0,130)">float</span> x, <span style="display: inline; color: rgb(10,0,130)">float</span> c, <span style="display: inline; color: rgb(10,0,130)">float</span> s) {
     <span style="display: inline; color: rgb(10,0,130)">return</span> lpf(x, c, s) <span style="display: inline; color: rgb(10,100,80)">*</span> hpf(x, c, s);
@@ -1022,7 +1028,7 @@ Now that we have made a low-pass filter, we can build all the other filters easi
       <span style="display: inline; color: rgb(10,0,130)">float</span> kvel <span style="display: inline; color: rgb(10,100,80)">=</span> data.y;
       <span style="display: inline; color: rgb(10,0,130)">float</span> ktim <span style="display: inline; color: rgb(10,100,80)">=</span> data.z;
       <span style="display: inline; color: rgb(10,0,130)">float</span> kchn <span style="display: inline; color: rgb(10,100,80)">=</span> data.w;<br><br>      <span style="display: inline; color: rgb(10,0,130)">if</span> (kfrq <span style="display: inline; color: rgb(10,100,80)">==</span> <span style="display: inline; color: rgb(130,0,0)">0.</span>) {
-       	break; 
+       	break;
       }<br><br>      <span style="display: inline; color: rgb(10,0,130)">float</span> cutoff <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(0,100,100)">htoy</span>(kfrq) <span style="display: inline; color: rgb(10,100,80)">/</span> <span style="display: inline; color: rgb(0,100,100)">resolution</span>.y;<br><br>      <span style="display: inline; color: rgb(10,0,130)">float</span> slope <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(130,0,0)">3.</span> <span style="display: inline; color: rgb(10,100,80)">+</span> <span style="display: inline; color: rgb(0,100,0)">sin</span>(ktim <span style="display: inline; color: rgb(10,100,80)">*</span> <span style="display: inline; color: rgb(130,0,0)">4.</span>);<br><br>      <span style="display: inline; color: rgb(60,20,20)">// we compute our filters</span>
       <span style="display: inline; color: rgb(60,20,20)">// note that we modulate the cutoff parameter</span>
       <span style="display: inline; color: rgb(60,20,20)">// to show how the filters behave</span>
@@ -1072,7 +1078,7 @@ A neat thing that can be done with Fragment is modulating the parameters you wan
       <span style="display: inline; color: rgb(10,0,130)">float</span> kvel <span style="display: inline; color: rgb(10,100,80)">=</span> data.y;
       <span style="display: inline; color: rgb(10,0,130)">float</span> ktim <span style="display: inline; color: rgb(10,100,80)">=</span> data.z;
       <span style="display: inline; color: rgb(10,0,130)">float</span> kchn <span style="display: inline; color: rgb(10,100,80)">=</span> data.w;<br><br>      <span style="display: inline; color: rgb(10,0,130)">if</span> (kfrq <span style="display: inline; color: rgb(10,100,80)">==</span> <span style="display: inline; color: rgb(130,0,0)">0.</span>) {
-       	break; 
+       	break;
       }<br><br>      <span style="display: inline; color: rgb(10,0,130)">float</span> cutoff <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(0,100,100)">htoy</span>(kfrq) <span style="display: inline; color: rgb(10,100,80)">/</span> <span style="display: inline; color: rgb(0,100,100)">resolution</span>.y;
       <span style="display: inline; color: rgb(10,0,130)">float</span> slope <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(130,0,0)">3.</span> <span style="display: inline; color: rgb(10,100,80)">+</span> <span style="display: inline; color: rgb(0,100,0)">sin</span>(ktim <span style="display: inline; color: rgb(10,100,80)">*</span> <span style="display: inline; color: rgb(130,0,0)">16.</span>) <span style="display: inline; color: rgb(10,100,80)">/</span> <span style="display: inline; color: rgb(130,0,0)">4.</span>;<br><br>      <span style="display: inline; color: rgb(10,0,130)">for</span> (<span style="display: inline; color: rgb(10,0,130)">float</span> i <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(130,0,0)">1.</span>; i <span style="display: inline; color: rgb(10,100,80)">&lt;</span> harmonics; i <span style="display: inline; color: rgb(10,100,80)">+=</span> <span style="display: inline; color: rgb(130,0,0)">1.</span>) {
         <span style="display: inline; color: rgb(60,20,20)">// notice how we multiply the cutoff by the horizontal position</span>
@@ -1118,9 +1124,7 @@ Many values should appear now in the uniforms dialog, you can change the frequen
     <span style="display: inline; color: rgb(10,0,130)">const</span> <span style="display: inline; color: rgb(10,0,130)">float</span> harmonics <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(130,0,0)">16.</span>;<br><br>    <span style="display: inline; color: rgb(60,20,20)">// we will override "keyboard" because GLSL</span>
     <span style="display: inline; color: rgb(60,20,20)">// does not permit us to assign by index dynamically</span>
     <span style="display: inline; color: rgb(60,20,20)">// we will have 8 notes polyphony (copied from "keyboard" + the sequence)</span>
-    <span style="display: inline; color: rgb(10,0,130)">vec4</span> notes[<span style="display: inline; color: rgb(130,0,130)">9</span>];
-  	
-    <span style="display: inline; color: rgb(60,20,20)">// our sequence have 16 steps</span>
+    <span style="display: inline; color: rgb(10,0,130)">vec4</span> notes[<span style="display: inline; color: rgb(130,0,130)">9</span>];<br><br>    <span style="display: inline; color: rgb(60,20,20)">// our sequence have 16 steps</span>
     <span style="display: inline; color: rgb(10,0,130)">float</span> seq_length <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(130,0,0)">16.</span>;<br><br>    <span style="display: inline; color: rgb(60,20,20)">// we use the "mod" function with the length of the sequence</span>
     <span style="display: inline; color: rgb(60,20,20)">// this play our sequence over and over, 4 notes per seconds</span>
     <span style="display: inline; color: rgb(10,0,130)">int</span> seq_index <span style="display: inline; color: rgb(10,100,80)">=</span> <span style="display: inline; color: rgb(10,0,130)">int</span>(<span style="display: inline; color: rgb(0,100,0)">floor</span>(<span style="display: inline; color: rgb(0,100,0)">mod</span>(time <span style="display: inline; color: rgb(10,100,80)">*</span> <span style="display: inline; color: rgb(130,0,0)">4.</span>, seq_length)));<br><br>    <span style="display: inline; color: rgb(60,20,20)">// this is a GLSL trick to get the current step frequency</span>
@@ -1226,5 +1230,5 @@ Fragment is a free and open source software released under the term of the BSDv2
 		<li> <a href="http://www.texturemate.com">Bundled brushes</a>
 		</ul></span></ul></span><br><br><br>
 <div style="text-align: center; color: inherit; font-size: inherit;"><p><span style="font-size: 120%;"><span style="font-size: 120%;"><span style="font-size: 120%;"><span style="font-size: 120%;">T<span style="display: inline; color: rgb(150,0,0)"><em>h</em></span><span style="display: inline; color: rgb(10,0,130)"><sup>a</sup></span><span style="display: inline; color: rgb(100,100,0)"><span style="font-size: 120%;">n</span></span><span style="display: inline; color: rgb(150,0,0)"><em>k</em></span> <span style="display: inline; color: rgb(0,100,100)"><sub><span style="font-size: 120%;">y</span></sub></span><span style="display: inline; color: rgb(100,100,0)"><span style="font-size: 120%;">o</span></span><span style="display: inline; color: rgb(0,100,100)"><sub><span style="font-size: 120%;">u</span></sub></span>!</span></span></span></span></p></div>
-<div style="text-align: center; color: inherit; font-size: inherit;"><p>last update: 2017-8-9</p></div>
+<div style="text-align: center; color: inherit; font-size: inherit;"><p>last update: 2017-9-14</p></div>
 </div></td></tr></table></center></body></html>
