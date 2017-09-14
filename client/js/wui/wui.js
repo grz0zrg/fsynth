@@ -1853,15 +1853,9 @@ var WUI_RangeSlider = new (function() {
         }
     };
 
-    // thank to Nick Knowlson - http://stackoverflow.com/questions/4912788/truncate-not-round-off-decimal-numbers-in-javascript
     var _truncateDecimals = function (num, digits) {
-        var numS = num.toString(),
-            decPos = numS.indexOf('.'),
-            substrLength = decPos == -1 ? numS.length : 1 + decPos + digits,
-            trimmedResult = numS.substr(0, substrLength),
-            finalResult = isNaN(trimmedResult) ? 0 : trimmedResult;
-
-        return parseFloat(finalResult);
+        var n = (+num).toFixed(digits + 1);
+        return +(n.slice(0, n.length - 1));
     };
 
     var _getHookElementFromTarget = function (ev_target) {

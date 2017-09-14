@@ -16,6 +16,9 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     var dialog_element = document.createElement("div"),
         content_element = document.createElement("div"),
         
+        video_start_element = "fs_channel_settings_videostart",
+        video_end_element = "fs_channel_settings_videoend",
+        
         fragment_input_channel = _fragment_input_data[input_channel_id],
         
         channel_filter_select,
@@ -25,10 +28,15 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     
         channel_settings_dialog,
         
+        dialog_height = "230px",
+        
         tex_parameter,
         
         power_of_two_wrap_options = '<option value="repeat">repeat</option>' +
                                     '<option value="mirror">mirrored repeat</option>';
+    
+    WUI_RangeSlider.destroy(video_start_element);
+    WUI_RangeSlider.destroy(video_end_element);
     
     dialog_element.id = "fs_channel_settings_dialog";
     
@@ -41,7 +49,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     dialog_element.style.fontSize = "13px";
     
     // create setting widgets
-    content_element.innerHTML = '&nbsp;&nbsp;<div><div class="fs-input-settings-label">Filter:</div>&nbsp;<select id="fs_channel_filter" class="fs-btn">' +
+    content_element.innerHTML = '<div><div class="fs-input-settings-label">Filter:</div>&nbsp;<select id="fs_channel_filter" class="fs-btn">' +
                                 '<option value="nearest">nearest</option>' +
                                 '<option value="linear">linear</option>' +
                                 '</select></div>' +
@@ -53,11 +61,71 @@ var _createChannelSettingsDialog = function (input_channel_id) {
                                 '<option value="clamp">clamp</option>' +
                                     power_of_two_wrap_options +
                                 '</select></div>' +
-                                '&nbsp;&nbsp;<div><label><div class="fs-input-settings-label">VFlip:</div>&nbsp;<input id="fs_channel_vflip" value="No" type="checkbox"></label></div>';
+                                '&nbsp;<div><label><div class="fs-input-settings-label">VFlip:</div>&nbsp;<input id="fs_channel_vflip" value="No" type="checkbox"></label></div>';
     
     dialog_element.appendChild(content_element);
     
     document.body.appendChild(dialog_element);
+    
+    if (fragment_input_channel.type === 3) {
+        dialog_height = "260px";
+        
+        content_element.innerHTML += '&nbsp;<div id="' + video_start_element + '"></div><div id="' + video_end_element + '"></div>';
+        
+        WUI_RangeSlider.create(video_start_element, {
+                    width: 120,
+                    height: 8,
+
+                    min: 0.0,
+                    max: 1.0,
+
+                    bar: false,
+
+                    step: "any",
+                    scroll_step: 0.0001,
+
+                    default_value: fragment_input_channel.videostart,
+                    value: fragment_input_channel.videostart,
+
+                    decimals: 4,
+
+                    title: "Video start",
+
+                    title_min_width: 140,
+                    value_min_width: 88,
+
+                    on_change: function (v) {
+                        fragment_input_channel.videostart = v;
+                    }
+                });
+        
+        WUI_RangeSlider.create(video_end_element, {
+                    width: 120,
+                    height: 8,
+
+                    min: 0.0,
+                    max: 1.0,
+
+                    bar: false,
+
+                    step: "any",
+                    scroll_step: 0.0001,
+
+                    default_value: fragment_input_channel.videoend,
+                    value: fragment_input_channel.videoend,
+
+                    decimals: 4,
+
+                    title: "Video end",
+
+                    title_min_width: 140,
+                    value_min_width: 88,
+
+                    on_change: function (v) {
+                        fragment_input_channel.videoend = v;
+                    }
+                });
+    }
     
     channel_filter_select = document.getElementById("fs_channel_filter");
     channel_wrap_s_select = document.getElementById("fs_channel_wrap_s");
@@ -97,7 +165,24 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     } else {
         channel_vflip.checked = false;
     }
-    
+
+    channel_vflip.addEventListener("change", function () {
+            var new_texture;
+
+            fragment_input_channel.db_obj.settings.flip = this.checked;
+
+            if (fragment_input_channel.db_obj.settings.flip) {
+                _flipTexture(fragment_input_channel.texture, fragment_input_channel.image, function (texture) {
+                        fragment_input_channel.texture = texture;
+                    });
+            } else {
+                new_texture = _replace2DTexture(fragment_input_channel.image, fragment_input_channel.texture);
+                fragment_input_channel.texture = new_texture;
+            }
+
+            _dbUpdateInput(input_channel_id, fragment_input_channel.db_obj);
+        });
+
     channel_filter_select.addEventListener("change", function () {
             _setTextureFilter(fragment_input_channel.texture, this.value);
         
@@ -119,28 +204,11 @@ var _createChannelSettingsDialog = function (input_channel_id) {
             _dbUpdateInput(input_channel_id, fragment_input_channel.db_obj);
         });
     
-    channel_vflip.addEventListener("change", function () {
-            var new_texture;
-        
-            fragment_input_channel.db_obj.settings.flip = this.checked;
-
-            if (fragment_input_channel.db_obj.settings.flip) {
-                _flipTexture(fragment_input_channel.texture, fragment_input_channel.image, function (texture) {
-                        fragment_input_channel.texture = texture;
-                    });
-            } else {
-                new_texture = _replace2DTexture(fragment_input_channel.image, fragment_input_channel.texture);
-                fragment_input_channel.texture = new_texture;
-            }
-
-            _dbUpdateInput(input_channel_id, fragment_input_channel.db_obj);
-        });
-    
     channel_settings_dialog = WUI_Dialog.create(dialog_element.id, {
         title: _input_channel_prefix + input_channel_id + " settings",
 
         width: "250px",
-        height: "230px",
+        height: dialog_height,
 
         halign: "center",
         valign: "center",
@@ -212,8 +280,12 @@ var _inputThumbMenu = function (e) {
     }
     
     if (input.type === 3) {
-        items.push({ icon: "fs-play-icon", tooltip: "Play",  on_click: function () {
-                input.video_elem.play();
+        items.push({ icon: "fs-reset-icon", tooltip: "Rewind",  on_click: function () {
+                if (input.video_elem.duration === NaN) {
+                    input.video_elem.currentTime = 0;
+                } else {
+                    input.video_elem.currentTime = input.video_elem.duration * input.videostart;
+                }
             } });
     }
 
@@ -693,17 +765,27 @@ var _addFragmentInput = function (type, input, settings) {
                     texture: data.texture,
                     video_elem: video_element,
                     elem: null,
-                    db_obj: db_obj
+                    db_obj: db_obj,
+                    videostart: 0.0,
+                    videoend: 1.0
                 });
 
             _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/video.png" );
 
             _compile();
             
-            video_element.play().then(() => {  console.log("ok");
-}).catch((error) => {
-console.log(error);
-});
+            video_element.addEventListener("timeupdate", function () {
+                var inpt = _fragment_input_data[input_id];
+                
+                if (video_element.duration !== NaN) {
+                    if (video_element.currentTime >= (video_element.duration * inpt.videoend)) {
+                        video_element.currentTime = inpt.videostart;
+                        video_element.play();
+                    }
+                }
+            }, false);
+            
+            video_element.play();
         }
     } else if (type === "canvas") {
         data = _create2DTexture({

@@ -119,6 +119,12 @@ document.getElementById("fs_import_audio_window_settings").addEventListener('cha
     _audio_import_settings.window_type = window_type;
 });
 
+document.getElementById("fs_import_audio_ck_videotrack").addEventListener('change', function (e) {
+    var videotrack_import = this.checked;
+    
+    _audio_import_settings.videotrack_import = videotrack_import;
+});
+
 document.addEventListener('mouseup', function (e) {
     _mouse_btn = 0;
     

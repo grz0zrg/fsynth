@@ -47,6 +47,9 @@ var _loadFile = function (type) {
                     _loadAudioFromFile(file);
                 } else if (type === "video") {
                     _addFragmentInput("video", file);
+                    if (_audio_import_settings.videotrack_import) {
+                        _loadAudioFromFile(file);
+                    }
                 } else {
                     _notification("Could not load the file '" + file.name + "', the filetype is unknown.");
                 }
@@ -81,6 +84,9 @@ _import_dropzone_elem.addEventListener("drop", function (e) {
             _loadAudioFromFile(file);
         } else if (file.type.match('video.*')) {
             _addFragmentInput("video", file);
+            if (_audio_import_settings.videotrack_import) {
+                _loadAudioFromFile(file);
+            }
         } else {
             _notification("Could not load the file '" + file.name + "', the filetype is unknown.");
         }

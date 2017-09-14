@@ -4,80 +4,197 @@
 
 Source code repository for the Fragment app. which can be found at : https://www.fsynth.com
 
-This is a web. additive/spectral/granular synthesizer/sequencer powered by live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)
+Table of Contents
+=================
 
-Fragment basically capture slices of a WebGL canvas at the display refresh rate and translate RGBA pixels value to notes, the notes are then interpreted and played by one of the synthesis engine method, with the additive synthesis engine, this is actually like generating the sound spectrum by code. The frame data can also be sent via OSC bundles.
+   * [<a href="https://www.fsynth.com">Fragment - The Collaborative Spectral Synthesizer</a>](#fragment---the-collaborative-spectral-synthesizer)
+      * [About Fragment](#about-fragment)
+      * [Requirement](#requirement)
+      * [Features](#features)
+         * [Sound Synthesis](#sound-synthesis)
+            * [Additive Synthesis](#additive-synthesis)
+            * [Granular Synthesis (<a href="https://github.com/grz0zrg/fas">FAS</a> only)](#granular-synthesis-fas-only)
+            * [Sampler (<a href="https://github.com/grz0zrg/fas">FAS</a> only)](#sampler-fas-only)
+      * [MIDI Features](#midi)
+      * [OSC](#osc)
+      * [Tools](#tools)
+      * [Notes](#notes)
+      * [Tips and tricks](#tips-and-tricks)
+      * [Project organization](#project-organization)
+      * [Build system](#build-system)
+      * [How to setup your own server](#how-to-setup-your-own-server)
+      * [Prod. system](#prod-system)
+      * [The future](#the-future)
+      * [Stuff used to make this](#stuff-used-to-make-this)
+      * [Fragment on social medias](#fragment-on-social-medias)
+      * [License](#license)
+      * [Credits](#credits)
 
-The content of the WebGL canvas is produced on the GPU by a collaborative GLSL script, this make it extremely fast and easy to do any kinds of pixels manipulations.
+## About Fragment
+
+Fragment is a collaborative audiovisual live coding web. environment with pixels based (image-synth) live additive/spectral/granular synthesis/sequencing, the **sound synthesis** is **powered by pixels data** generated from live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)
+
+Many videos of most features are available on [YouTube](https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ)
+
+Fragment has only one fragment shader which has the particularity to be shared between the users of an online session, it update and compile on-the-fly as you or other peoples type, some settings are also synchronized between users such as slices, some global settings and uniform controllers.
 
 Fragment has many features making it a bliss to produce any kind of sounds associated (or not) with visuals, it is aimed at artists seeking a creative environment with few limitations to experiment with, a programmable noise-of-all-kinds software.
 
-Fragment can be used for live coding visuals, either exclusively like ShaderToy or with sounds, the visual can be synchronized to any audio using the MIDI capabilities AND also synchronized to the synthesized sound, canvas inputs can be quite fun to use with generated visuals!
-
-This is a sort of [Shadertoy](https://www.shadertoy.com) with a special kind of audio data source, it is compatible with most shaders written for it.
-
-Fragment is quite modular and has several external app. such as an external GLSL editor which can directly connect to the sharedb server and a native additive synthesis engine which communicate via the WebSocket API, a WIP IanniX/OSC relay is also available and more is to come!
-
-Fragment can also act as a standalone sequencer but you have to make your own software that interpret the data sent via WebSocket, this synthesizer can also send its data via OSC.
-
-Fragment support OSC inputs as well, if you send OSC messages starting with "i" (a single message which update a specific index of the array) or "a" (a single message with all the array data) as the address, it will define a shader uniform of that name with the data as a float array, you can send an OSC message with the address "/clear" to clear all OSC defined uniforms.
-
-[Open Stage Control](http://osc.ammd.net) can be used to control partials or more parameters through OSC.
+With WebGL 2 capable web browser, audio can be produced independently from the visuals with the *synthOutput* **vec4** uniform, with WebGL 1 you can use the default pixels output (**gl_FragColor** or **fragColor**) to produce sounds and visuals, use the monophonic mode if you want independent audio & visuals with WebGL 1.
 
 For any questions, a message board is available [here](https://quiet.fsynth.com/)
 
+## Requirement
+
+- Recent web browser such as Chrome, Opera, Safari or Firefox (MIDI is not supported by Firefox at the moment)
+- Recent medium GPU, this app. was made and tested with a GeForce GTX 970
+- Recent medium multi-core CPU (a dual core should be ok with the FAS, a beefy CPU is needed if you use more than one output channel)
+- Not necessary but a MIDI device such as a MIDI keyboard is recommended
+
+**Note on performances :** Fragment has excellent performances with a modern multi-core system and a browser such as Chrome, if you experience crackles or need advanced audio features, it is recommended that you use the external synthesis program (FAS) and the independent code editor, the things that may cause poor performances is generally due to the browser reflow (UI side)
+
 ## Features
 
- * Complete additive and granular synthesizer powered by WebAudio oscillators (work best in Chrome), a Wavetable (slow) OR a C native audio server (fastest)
- * Live coding/JIT compilation of shader code
- * Real-time, collaborative app.
- * Stereophonic or monaural
- * Polyphonic
- * Multitimbral
- * Adjustable audio output channel per slices
- * Real-time frames by frames recording with export as image or Fragment input (export back into itself, this can be used to build complex brushes for drawing canvas inputs)
- * WebGL 2.0 and GLSL 3.0 support when compatibility is detected
- * RGBA Live visuals with stereophonic sound generation (WebGL 2.0) or monophonic sound generation (WebGL 1)
- * Synthesis data processed in 32-bit precision (WebGL 2.0 & EXT_color_buffer_float extension) or 8-bit precision
- * Slices can be added/deleted anywhere on the canvas, move left or right automatically and have independent pitch offset for convenience
- * Feedback via framebuffer (for fx like reverb, delay, spectral distortion etc)
- * OSC in/out support (a [SuperCollider](http://supercollider.github.io/) port of the synthesis engine which use OSC is also available)
- * Shader inputs:
-    * Webcam (do not import audio)
-    * Images
-    * Videos (do not import audio)
-    * Audio files (translated to images)
-    * Drawing canvas with drawing and compositing operations which use images Fragment input as brushes, Fragment is bundled with 20 high-quality brushes, a pack of 969 high-quality brushes is also available as a [separate download](https://www.fsynth.com/data/969_png_brushes_pack.7z)
- * Uniform controllers via OSC [Open Stage Control is recommended](http://osc.ammd.net)
- * Per-sessions discussion system
- * Global and per sessions settings automatic save/load; make use of *localStorage*
- * No authentifications (make use of *localStorage* and is *sessions* based)
+- Complete additive, spectral, granular synthesizer powered by WebAudio oscillators (work best in Chrome), a Wavetable (slow) OR a [C native audio server](https://github.com/grz0zrg/fas) (fastest)
+- Live coding/JIT compilation of shader code
+- Real-time, collaborative app.
+- Stereophonic or monaural
+- Polyphonic
+- Multitimbral
+- MIDI inputs support with compatible web browsers
+- Adjustable audio output channel per slices
+- Real-time frames by frames recording with export as an image or Fragment input (export back into itself, this can be used to build complex brushes for drawing canvas inputs)
+- WebGL 2.0 and GLSL 3.0 support when compatibility is detected
+- RGBA Live visuals with stereophonic sound generation (WebGL 2.0) or monophonic sound generation (WebGL 1)
+- Synthesis data processed in 32-bit precision (WebGL 2.0 & EXT_color_buffer_float extension) or 8-bit precision
+- Slices can be added/deleted anywhere on the canvas without limits, move left or right automatically and have independent pitch offset
+- Feedback via framebuffer (for fx like reverb, delay, spectral distortion etc)
+- OSC in/out support (a [SuperCollider](http://supercollider.github.io/) port of the additive synthesis engine use this)
+- Shader inputs:
+  - Webcam (no audio support)
+  - Images
+  - Videos with rewind & loop settings (can import the audio track as an image)
+  - Audio files (translated to images)
+  - Drawing canvas with drawing and compositing operations which use images Fragment input as brushes, Fragment is bundled with 20 high-quality brushes, a pack of 969 high-quality brushes is also available as a [separate download](https://www.fsynth.com/data/969_png_brushes_pack.7z)
+- Uniform controllers via OSC [Open Stage Control is recommended](http://osc.ammd.net)
+- Per-sessions discussion system
+- Global and per sessions settings smart save/load; make use of *localStorage*
+- No authentifications needed, anonymous (make use of *localStorage* and is *sessions* based)
 
- ***Note**: With WebGL 2 compatible browser, Fragment make use of two separate output by default, "synthOutput" can be used to feed the synthesizer (with R=L, G=R, see note below) while "fragColor" or "gl_FragColor" can be used to do visuals.
+### Sound Synthesis
 
- ***Note**: Without WebGL 2 compatible browser, Fragment interpret the Red and Green shader output (gl_FragColor or fragColor) when stereophonic mode is enabled, the blue component output is left unused and can be used for real-time sounds/visuals sync or direct visual feedback (debug, aesthetic ...) of functions/textures etc... when in monophonic mode the full RGB output is available for visuals and the synthesizer use the alpha channel*
+Fragment capture pixels data (1px wide slices) from a WebGL drawing surface at the browser display refresh rate and translate the RGBA pixels value to notes, the notes are then interpreted and played by one or more synthesis method in real-time.
 
- ***Note**: WebAudio oscillators and Wavetable mode can only have two output channels (L/R) due to performances issues (this may change in the future!)*
+Common to all synthesis methods, the canvas represent frequencies (exponential mapping) on the vertical axis and time on the horizontal axis.
 
- ***Note**: One of the main limitation of Fragment may be the events granularity caused by the monitor refresh rate (60 or 120 FPS), this can be solved by running the browser without VSYNC, example for Chrome with the command-line parameter "--disable-gpu-vsync"
+The [Fragment audio server](https://github.com/grz0zrg/fas) is necessary for very fast sound synthesis and other features such as different output channels per slices.
 
-## MIDI Features (Integrated MIDI support with the WebMIDI API):
+With the web browser, Fragment is limited to additive synthesis and two output channels.
 
- * Integrated note-on/note-off messages, note frequency, velocity, MIDI channel and elapsed time are accessible in the fragment shader (this is not shared between users)
- * Polyphony is automatically detected from the GPU capabilities (704 notes with a GeForce GTX 970 GPU, 16 notes is the minimum, maximum notes depend on the GPU capability/shader complexity)
- * Hot plugging of MIDI devices are supported
- * MIDI enabled shader inputs
+Slices data can be sent via OSC bundles to extend the possibilities of this synthesizer.
 
-## Requirement:
+#### Additive Synthesis
 
- * Recent browser such as Chrome, Opera, Safari or Firefox (WebMIDI is still not supported by Firefox)
- * Recent medium GPU (Graphics Processing Unit), this app. was made and is used with a GeForce GTX 970
- * Recent medium multi-core CPU (a dual core should be ok with the native program, a beefy CPU is needed if you use more than one output channel), this is required for the audio synthesis part
- * Not necessary but a MIDI device such as a MIDI keyboard and a MIDI controller is recommended
+Fragment default sound synthesis is additive, with additive synthesis, Fragment become a fully capable spectral synthesizer able to do re-synthesis based on imported videos or audio files, an image-synth where any number of partials can be played, there is no limits except the canvas height and the computing resources available.
 
-Fragment has excellent performances with a modern multi-core system and a browser such as Chrome, if you experience crackles or need advanced audio features, it is recommended that you use the external synthesis program (FAS) and the external code editor, the things that may cause poor performances is generally due to the browser reflow (UI side), also, although a great feature, detached dialog have quite poor performances sometimes due to them being tied to the parent window thread... this may change with the future of browsers.
+With additive synthesis and stereo mode, the Red channel is the left oscillator amplitude and the Green channel is the right oscillator amplitude.
 
-## The project
+With FAS (Fragment Audio Server), the Blue channel value is used to add bandwidth noise to the oscillator which may enhance the sound by adding a noise component to the oscillator.
+
+In monophonic mode, the alpha value is used for both L&R oscillator amplitude.
+
+#### Granular Synthesis ([FAS](https://github.com/grz0zrg/fas) only)
+
+FAS load all samples in a "grains" folder and try to guess their pitch to map it on the canvas so that it match the canvas freq. mapping.
+
+Fragment let you manipulate granular synthesis parameters, there is two type of parameters, channels based and dynamic parameters from the fragment shader output.
+
+Channels based parameters :
+
+- Granular envelope
+  - sine
+  - hann
+  - hamming
+  - tukey
+  - gaussian
+  - confined gaussian
+  - trapezoidal
+  - blackman
+  - blackman harris
+- Minimum grain length
+- Maximum grain length
+
+Dynamics parameters
+
+- Red = Left amplitude
+- Green = Right amplitude
+- Blue = Grain sample (index), between [0,1]
+- Alpha = Grain index, play grain backward if negative
+
+#### Sampler ([FAS](https://github.com/grz0zrg/fas) only)
+
+Just like granular synthesis except that there is no grains.
+
+Dynamics parameters
+
+- Red = Left amplitude
+- Green = Right amplitude
+- Blue = Sample (index), between [0,1]
+- Alpha = Sample position
+
+## MIDI
+
+Fragment support MIDI inputs.
+
+##### Features
+
+- MIDI keyboard support, note-on/note-off messages, note frequency, velocity, MIDI channel and elapsed time are accessible in the fragment shader
+- Polyphony is automatically detected from the GPU capabilities (704 notes with a GeForce GTX 970 GPU, 16 notes is the minimum, maximum notes depend on the GPU capability/shader complexity)
+- Hot plugging of MIDI devices are supported,
+- MIDI enabled shader inputs
+
+## OSC
+
+Fragment support OSC input and output, an OSC relay which translate WebSockets data to UDP packets should be used for this feature to work.
+
+Fragment uniforms can be defined through OSC with two methods :
+
+- Message with an address starting with **i **such as */iarr*
+  - This will create/update a **float **array uniform, the message should contain an array with index to update at index 0 and the value at index 1
+  - If the array does not exist, it will create it and grow the array as needed
+- Update whole float array with message starting with **a** address such as **/aarr**
+  - This will create/update a whole **float **array uniform, the message should just contain all the array values
+
+You can send a message to the **/clear** address to clear all OSC defined uniforms
+
+[Open Stage Control](http://osc.ammd.net) can be used to control partials or more parameters through OSC via faders etc.
+
+## Tools
+
+Many tools are available to enhance Fragment.
+
+- A graphical launcher for Fragment and the audio server program is available [here](https://github.com/grz0zrg/fas_launcher).
+- [Independent GLSL editor which can directly connect to the sharedb server](https://github.com/grz0zrg/fsynth/tree/master/editor) 
+- [Audio server which communicate via the WebSocket API](https://github.com/grz0zrg/fas)
+- [OSC relay](https://github.com/grz0zrg/fsynth/tree/master/osc_relay)
+
+
+- [SuperCollider port of the additive synthesis engine (use OSC)](https://github.com/grz0zrg/fsynth/tree/master/supercollider)
+
+## Notes
+
+- WebAudio oscillators and the Wavetable mode can only have two output channels (L/R) due to performances issues (this may change in the future!)
+
+
+- One of the main limitation of Fragment may be the events granularity caused by the monitor refresh rate (60 or 120 FPS), this can be solved by running the browser without VSYNC, example for Chrome with the command-line parameter **--disable-gpu-vsync**
+
+## Tips and tricks
+
+- If you enable the *monophonic* setting, you have the RGB output for live coding visuals which can be fully synchronized with the synthesized sounds, sounds will be synthesized by using the alpha channel
+- Pressing F11 in the GLSL code editor make the editor fullscreen (as an overlay)
+- You can feed the display content of any apps on your desktop (such as GIMP or Krita) by streaming your desktop as a camera (**v4l2loopback** and **ffmpeg** is useful to pull of this on Linux)
+
+## Project organization
 
  * client - main application
  * www - landing page
@@ -93,19 +210,19 @@ Fragment has excellent performances with a modern multi-core system and a browse
 
  All servers are clustered for scalability and smooth updates.
 
-## Build
+## Build system
 
-Fragment is built with a custom build system called Nut scanning for changes in real-time and which include files when it read /\*#include file\*/, it execute several programs on the output files such as code minifier for production ready usage, the build system was made with the functional *Anubis* programming language based on cartesian closed category theory.
+Fragment is built with a custom build system scanning for changes in real-time and which include files when it read /\*#include file\*/, it execute several programs on the output files such as code minifier, the build system was made with the functional *Anubis* programming language, a programming language based on cartesian closed category theory.
 
 Since the *Anubis* language is relatively unknown, a simplified (without live check & build) Python port of the build system is available, check out [pyNut](https://github.com/grz0zrg/pynut)
 
-_app_fs.\*_ and _app_cm.\*_ are the entry point files used by the build system to produce a single file and a production ready file in the *dist* directory.
-
 If you want to build it by yourself, install [pyNut](https://github.com/grz0zrg/pynut) script somewhere in your PATH then call `pynutbuild` shell script in the `client` root directory.
+
+**_app_fs\_** and **_app_cm\_** are the entry point files used by the build system to produce a single file and a production ready file in the *dist* directory.
 
 The Anubis build system can be found [here](https://github.com/grz0zrg/nut) and this build system is called by the shell script named `nutbuild` (root folder)
 
-## How to setup your own
+## How to setup your own server
 
 Fragment make use of NodeJS, NPM, MongoDB and Redis database, once those are installed, it is easy to run it locally:
 
@@ -119,25 +236,15 @@ Fragment make use of NodeJS, NPM, MongoDB and Redis database, once those are ins
 
  If you want to use it with an OSC app like the SuperCollider fs.sc file or [Open Stage Control](http://osc.ammd.net), please look at the osc_relay directory.
 
- To use the OSC relay : cd osc_relay & npm install & node osc_relay
+ To use the OSC relay :
+
+- cd osc_relay & npm install & node osc_relay
 
 ## Prod. system
 
  * *prod_files* contain a list of files and directories that will be copied to the production system
  * *prod* is a shell script which produce an archive from *prod_files* list, perform additional cleanup and unarchive over SSH
  * *setup* is a script which is executed on the server after everything has been uploaded, this configure Fragment for the production system
-
-## Native app.
-
-A native app. was developed with [Electron](http://electron.atom.io/) featuring a special login page but it is deprecated as some features does not work with Electron (like dialogs), the advantage of the native app was the built-in [C powered additive synthesis engine](https://github.com/grz0zrg/fas) which made Fragment a bit more accessible (download & play), you can run the native app with Electron by executing `electron .` in the root directory
-
-A graphical launcher for the audio server program is available [here](https://github.com/grz0zrg/fas_launcher).
-
-## Tips and tricks
-
- * If you enable the *monophonic* setting, you have the RGB output for live coding visuals which can be fully synchronized with the synthesized sounds which will be synthesized by using the alpha channel
- * Pressing F11 in the GLSL code editor make the editor fullscreen (as an overlay)
- * You can feed the display content of any apps on your desktop (such as GIMP or Krita) by streaming your desktop as a camera (v4l2loopback and ffmpeg is useful to pull of this on Linux)
 
 ## The future
 

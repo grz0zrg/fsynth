@@ -338,7 +338,7 @@ var _createMarkerSettings = function (marker_obj) {
 
             title: "Increment per frame",
         
-            decimals: 2,
+            //decimals: 2,
 
             title_min_width: 140,
             value_min_width: 88,
@@ -349,52 +349,11 @@ var _createMarkerSettings = function (marker_obj) {
                 slice.frame_increment = parseFloat(value);
             }
         });
-/*
-    synthesis_option = document.createElement("option");
-    synthesis_option.text = "Additive";
-    fs_slice_settings_synthesis_select.add(synthesis_option);
-    synthesis_option = document.createElement("option");
-    synthesis_option.text = "Granular";
-    fs_slice_settings_synthesis_select.add(synthesis_option);
-    fs_slice_settings_synthesis_select.classList.add("fs-btn");
-*/  
+
     fs_slice_settings_container.appendChild(fs_slice_settings_x_input);
     fs_slice_settings_container.appendChild(fs_slice_settings_shift_input);
     fs_slice_settings_container.appendChild(fs_slice_settings_bpm);
     fs_slice_settings_container.appendChild(fs_slice_settings_channel_input);
-    
-    // synthesis select
-/*
-    var div = document.createElement("div"),
-        label = document.createElement("label");
-    
-    div.style.textAlign = "center";
-    label.classList.add("fs-input-label");
-    label.htmlFor = fs_slice_settings_synthesis_select.id;
-    
-    label.innerHTML = "FAS Synthesis: &nbsp;";
-    
-    div.appendChild(label);
-    div.appendChild(fs_slice_settings_synthesis_select);
-    fs_slice_settings_container.appendChild(div);
-    
-    fs_slice_settings_synthesis_select.addEventListener('change', function (e) {
-        var synthesis = e.target.value,
-            slice;
-
-        if (synthesis === "Additive") {
-            synthesis = 0;
-        } else if (synthesis === "Granular") {
-            synthesis = 1;
-        }
-        
-        slice = _getSlice(marker_obj.element.dataset.slice);
-        slice.synthesis_type = synthesis;
-        
-        _submitSliceUpdate(4, marker_obj.element.dataset.slice, { synthesis_type : value });
-    });
-    //
-*/
     
     fs_slice_settings_container.id = "slice_settings_container_" + marker_obj.id;
     fs_slice_settings_container.style = "display: none";

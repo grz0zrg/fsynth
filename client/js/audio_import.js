@@ -14,7 +14,8 @@ var _audio_to_image_worker = new Worker("dist/worker/audio_to_image.min.js"),
         ppb: 12,
         height: 0,
         minfreq: 0,
-        maxfreq: 0
+        maxfreq: 0,
+        videotrack_import: false
     };
 
 /***********************************************************

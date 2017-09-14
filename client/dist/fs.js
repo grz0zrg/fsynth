@@ -1858,15 +1858,9 @@ var WUI_RangeSlider = new (function() {
         }
     };
 
-    // thank to Nick Knowlson - http://stackoverflow.com/questions/4912788/truncate-not-round-off-decimal-numbers-in-javascript
     var _truncateDecimals = function (num, digits) {
-        var numS = num.toString(),
-            decPos = numS.indexOf('.'),
-            substrLength = decPos == -1 ? numS.length : 1 + decPos + digits,
-            trimmedResult = numS.substr(0, substrLength),
-            finalResult = isNaN(trimmedResult) ? 0 : trimmedResult;
-
-        return parseFloat(finalResult);
+        var n = (+num).toFixed(digits + 1);
+        return +(n.slice(0, n.length - 1));
     };
 
     var _getHookElementFromTarget = function (ev_target) {
@@ -17254,7 +17248,8 @@ var _audio_to_image_worker = new Worker("dist/worker/audio_to_image.min.js"),
         ppb: 12,
         height: 0,
         minfreq: 0,
-        maxfreq: 0
+        maxfreq: 0,
+        videotrack_import: false
     };
 
 /***********************************************************
@@ -17416,6 +17411,9 @@ var _loadFile = function (type) {
                     _loadAudioFromFile(file);
                 } else if (type === "video") {
                     _addFragmentInput("video", file);
+                    if (_audio_import_settings.videotrack_import) {
+                        _loadAudioFromFile(file);
+                    }
                 } else {
                     _notification("Could not load the file '" + file.name + "', the filetype is unknown.");
                 }
@@ -17450,6 +17448,9 @@ _import_dropzone_elem.addEventListener("drop", function (e) {
             _loadAudioFromFile(file);
         } else if (file.type.match('video.*')) {
             _addFragmentInput("video", file);
+            if (_audio_import_settings.videotrack_import) {
+                _loadAudioFromFile(file);
+            }
         } else {
             _notification("Could not load the file '" + file.name + "', the filetype is unknown.");
         }
@@ -19675,6 +19676,9 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     var dialog_element = document.createElement("div"),
         content_element = document.createElement("div"),
         
+        video_start_element = "fs_channel_settings_videostart",
+        video_end_element = "fs_channel_settings_videoend",
+        
         fragment_input_channel = _fragment_input_data[input_channel_id],
         
         channel_filter_select,
@@ -19684,10 +19688,15 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     
         channel_settings_dialog,
         
+        dialog_height = "230px",
+        
         tex_parameter,
         
         power_of_two_wrap_options = '<option value="repeat">repeat</option>' +
                                     '<option value="mirror">mirrored repeat</option>';
+    
+    WUI_RangeSlider.destroy(video_start_element);
+    WUI_RangeSlider.destroy(video_end_element);
     
     dialog_element.id = "fs_channel_settings_dialog";
     
@@ -19700,7 +19709,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     dialog_element.style.fontSize = "13px";
     
     // create setting widgets
-    content_element.innerHTML = '&nbsp;&nbsp;<div><div class="fs-input-settings-label">Filter:</div>&nbsp;<select id="fs_channel_filter" class="fs-btn">' +
+    content_element.innerHTML = '<div><div class="fs-input-settings-label">Filter:</div>&nbsp;<select id="fs_channel_filter" class="fs-btn">' +
                                 '<option value="nearest">nearest</option>' +
                                 '<option value="linear">linear</option>' +
                                 '</select></div>' +
@@ -19712,11 +19721,71 @@ var _createChannelSettingsDialog = function (input_channel_id) {
                                 '<option value="clamp">clamp</option>' +
                                     power_of_two_wrap_options +
                                 '</select></div>' +
-                                '&nbsp;&nbsp;<div><label><div class="fs-input-settings-label">VFlip:</div>&nbsp;<input id="fs_channel_vflip" value="No" type="checkbox"></label></div>';
+                                '&nbsp;<div><label><div class="fs-input-settings-label">VFlip:</div>&nbsp;<input id="fs_channel_vflip" value="No" type="checkbox"></label></div>';
     
     dialog_element.appendChild(content_element);
     
     document.body.appendChild(dialog_element);
+    
+    if (fragment_input_channel.type === 3) {
+        dialog_height = "260px";
+        
+        content_element.innerHTML += '&nbsp;<div id="' + video_start_element + '"></div><div id="' + video_end_element + '"></div>';
+        
+        WUI_RangeSlider.create(video_start_element, {
+                    width: 120,
+                    height: 8,
+
+                    min: 0.0,
+                    max: 1.0,
+
+                    bar: false,
+
+                    step: "any",
+                    scroll_step: 0.0001,
+
+                    default_value: fragment_input_channel.videostart,
+                    value: fragment_input_channel.videostart,
+
+                    decimals: 4,
+
+                    title: "Video start",
+
+                    title_min_width: 140,
+                    value_min_width: 88,
+
+                    on_change: function (v) {
+                        fragment_input_channel.videostart = v;
+                    }
+                });
+        
+        WUI_RangeSlider.create(video_end_element, {
+                    width: 120,
+                    height: 8,
+
+                    min: 0.0,
+                    max: 1.0,
+
+                    bar: false,
+
+                    step: "any",
+                    scroll_step: 0.0001,
+
+                    default_value: fragment_input_channel.videoend,
+                    value: fragment_input_channel.videoend,
+
+                    decimals: 4,
+
+                    title: "Video end",
+
+                    title_min_width: 140,
+                    value_min_width: 88,
+
+                    on_change: function (v) {
+                        fragment_input_channel.videoend = v;
+                    }
+                });
+    }
     
     channel_filter_select = document.getElementById("fs_channel_filter");
     channel_wrap_s_select = document.getElementById("fs_channel_wrap_s");
@@ -19756,7 +19825,24 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     } else {
         channel_vflip.checked = false;
     }
-    
+
+    channel_vflip.addEventListener("change", function () {
+            var new_texture;
+
+            fragment_input_channel.db_obj.settings.flip = this.checked;
+
+            if (fragment_input_channel.db_obj.settings.flip) {
+                _flipTexture(fragment_input_channel.texture, fragment_input_channel.image, function (texture) {
+                        fragment_input_channel.texture = texture;
+                    });
+            } else {
+                new_texture = _replace2DTexture(fragment_input_channel.image, fragment_input_channel.texture);
+                fragment_input_channel.texture = new_texture;
+            }
+
+            _dbUpdateInput(input_channel_id, fragment_input_channel.db_obj);
+        });
+
     channel_filter_select.addEventListener("change", function () {
             _setTextureFilter(fragment_input_channel.texture, this.value);
         
@@ -19778,28 +19864,11 @@ var _createChannelSettingsDialog = function (input_channel_id) {
             _dbUpdateInput(input_channel_id, fragment_input_channel.db_obj);
         });
     
-    channel_vflip.addEventListener("change", function () {
-            var new_texture;
-        
-            fragment_input_channel.db_obj.settings.flip = this.checked;
-
-            if (fragment_input_channel.db_obj.settings.flip) {
-                _flipTexture(fragment_input_channel.texture, fragment_input_channel.image, function (texture) {
-                        fragment_input_channel.texture = texture;
-                    });
-            } else {
-                new_texture = _replace2DTexture(fragment_input_channel.image, fragment_input_channel.texture);
-                fragment_input_channel.texture = new_texture;
-            }
-
-            _dbUpdateInput(input_channel_id, fragment_input_channel.db_obj);
-        });
-    
     channel_settings_dialog = WUI_Dialog.create(dialog_element.id, {
         title: _input_channel_prefix + input_channel_id + " settings",
 
         width: "250px",
-        height: "230px",
+        height: dialog_height,
 
         halign: "center",
         valign: "center",
@@ -19871,8 +19940,12 @@ var _inputThumbMenu = function (e) {
     }
     
     if (input.type === 3) {
-        items.push({ icon: "fs-play-icon", tooltip: "Play",  on_click: function () {
-                input.video_elem.play();
+        items.push({ icon: "fs-reset-icon", tooltip: "Rewind",  on_click: function () {
+                if (input.video_elem.duration === NaN) {
+                    input.video_elem.currentTime = 0;
+                } else {
+                    input.video_elem.currentTime = input.video_elem.duration * input.videostart;
+                }
             } });
     }
 
@@ -20352,17 +20425,27 @@ var _addFragmentInput = function (type, input, settings) {
                     texture: data.texture,
                     video_elem: video_element,
                     elem: null,
-                    db_obj: db_obj
+                    db_obj: db_obj,
+                    videostart: 0.0,
+                    videoend: 1.0
                 });
 
             _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/video.png" );
 
             _compile();
             
-            video_element.play().then(() => {  console.log("ok");
-}).catch((error) => {
-console.log(error);
-});
+            video_element.addEventListener("timeupdate", function () {
+                var inpt = _fragment_input_data[input_id];
+                
+                if (video_element.duration !== NaN) {
+                    if (video_element.currentTime >= (video_element.duration * inpt.videoend)) {
+                        video_element.currentTime = inpt.videostart;
+                        video_element.play();
+                    }
+                }
+            }, false);
+            
+            video_element.play();
         }
     } else if (type === "canvas") {
         data = _create2DTexture({
@@ -20815,7 +20898,7 @@ var _createFasSettingsContent = function () {
         granular_option,
         additive_option,
         spectral_option,
-        exp_option,
+        sampler,
         chn_gmin_size_input,
         chn_gmax_size_input,
         gmin = 0.01,
@@ -20861,11 +20944,11 @@ var _createFasSettingsContent = function () {
         granular_option = document.createElement("option");
         additive_option = document.createElement("option");
         spectral_option = document.createElement("option");
-        exp_option = document.createElement("option");
+        sampler = document.createElement("option");
         granular_option.innerHTML = "granular";
         additive_option.innerHTML = "additive";
         spectral_option.innerHTML = "spectral";
-        exp_option.innerHTML = "exp";
+        sampler_option.innerHTML = "sampler";
         
         chn_genv_type_label = document.createElement("label");
         chn_genv_type_select = document.createElement("select");
@@ -20904,7 +20987,7 @@ var _createFasSettingsContent = function () {
         chn_synthesis_select.appendChild(additive_option);
         chn_synthesis_select.appendChild(spectral_option);
         chn_synthesis_select.appendChild(granular_option);
-        chn_synthesis_select.appendChild(exp_option);
+        chn_synthesis_select.appendChild(sampler);
         
         chn_settings = _chn_settings[j];
         
@@ -20918,7 +21001,7 @@ var _createFasSettingsContent = function () {
             } else if (chn_settings[0] === 2) {
                 granular_option.selected = true;
             } else if (chn_settings[0] === 3) {
-                exp_option.selected = true;
+                sampler.selected = true;
             }
             
             if (chn_settings[1] !== undefined) {
@@ -20959,7 +21042,7 @@ var _createFasSettingsContent = function () {
                     this.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "";
                     this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "";
                     this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "";
-                } else if (this.value === "exp") {
+                } else if (this.value === "sampler") {
                     value = 3;
                 } else {
                     value = 0;
@@ -21011,7 +21094,7 @@ var _createFasSettingsContent = function () {
             default_value: gmin,
             value: gmin,
 
-            //decimals: 2,
+            decimals: 2,
             
             title: "Min. grain length",
 
@@ -21036,7 +21119,7 @@ var _createFasSettingsContent = function () {
             default_value: gmax,
             value: gmax,
             
-            //decimals: 2,
+            decimals: 2,
 
             title: "Max. grain length",
 
@@ -21755,7 +21838,7 @@ var _uiInit = function () {
             title: "Import image, audio, webcam, canvas",
 
             width: "380px",
-            height: "480px",
+            height: "494px",
 
             halign: "center",
             valign: "center",
@@ -22600,7 +22683,7 @@ var _uiInit = function () {
             step: "any",
             scroll_step: 0.01,
         
-            //decimals: 2,
+            decimals: 2,
 
             default_value: 16.34,
             value: 16.34,
@@ -22718,7 +22801,7 @@ var _uiInit = function () {
             step: 0.01,
             scroll_step: 0.01,
         
-            //decimals: 2,
+            decimals: 2,
 
             default_value: _osc_fadeout,
             value: _osc_fadeout,
@@ -22751,7 +22834,7 @@ var _uiInit = function () {
             step: "any",
             scroll_step: 0.01,
         
-            //decimals: 2,
+            decimals: 2,
 
             midi: true,
 
@@ -24557,7 +24640,7 @@ var _createMarkerSettings = function (marker_obj) {
 
             title: "Increment per frame",
         
-            decimals: 2,
+            //decimals: 2,
 
             title_min_width: 140,
             value_min_width: 88,
@@ -24568,52 +24651,11 @@ var _createMarkerSettings = function (marker_obj) {
                 slice.frame_increment = parseFloat(value);
             }
         });
-/*
-    synthesis_option = document.createElement("option");
-    synthesis_option.text = "Additive";
-    fs_slice_settings_synthesis_select.add(synthesis_option);
-    synthesis_option = document.createElement("option");
-    synthesis_option.text = "Granular";
-    fs_slice_settings_synthesis_select.add(synthesis_option);
-    fs_slice_settings_synthesis_select.classList.add("fs-btn");
-*/  
+
     fs_slice_settings_container.appendChild(fs_slice_settings_x_input);
     fs_slice_settings_container.appendChild(fs_slice_settings_shift_input);
     fs_slice_settings_container.appendChild(fs_slice_settings_bpm);
     fs_slice_settings_container.appendChild(fs_slice_settings_channel_input);
-    
-    // synthesis select
-/*
-    var div = document.createElement("div"),
-        label = document.createElement("label");
-    
-    div.style.textAlign = "center";
-    label.classList.add("fs-input-label");
-    label.htmlFor = fs_slice_settings_synthesis_select.id;
-    
-    label.innerHTML = "FAS Synthesis: &nbsp;";
-    
-    div.appendChild(label);
-    div.appendChild(fs_slice_settings_synthesis_select);
-    fs_slice_settings_container.appendChild(div);
-    
-    fs_slice_settings_synthesis_select.addEventListener('change', function (e) {
-        var synthesis = e.target.value,
-            slice;
-
-        if (synthesis === "Additive") {
-            synthesis = 0;
-        } else if (synthesis === "Granular") {
-            synthesis = 1;
-        }
-        
-        slice = _getSlice(marker_obj.element.dataset.slice);
-        slice.synthesis_type = synthesis;
-        
-        _submitSliceUpdate(4, marker_obj.element.dataset.slice, { synthesis_type : value });
-    });
-    //
-*/
     
     fs_slice_settings_container.id = "slice_settings_container_" + marker_obj.id;
     fs_slice_settings_container.style = "display: none";
@@ -26034,6 +26076,12 @@ document.getElementById("fs_import_audio_window_settings").addEventListener('cha
     var window_type = e.target.value;
     
     _audio_import_settings.window_type = window_type;
+});
+
+document.getElementById("fs_import_audio_ck_videotrack").addEventListener('change', function (e) {
+    var videotrack_import = this.checked;
+    
+    _audio_import_settings.videotrack_import = videotrack_import;
 });
 
 document.addEventListener('mouseup', function (e) {

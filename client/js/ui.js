@@ -122,7 +122,7 @@ var _createFasSettingsContent = function () {
         granular_option,
         additive_option,
         spectral_option,
-        exp_option,
+        sampler,
         chn_gmin_size_input,
         chn_gmax_size_input,
         gmin = 0.01,
@@ -168,11 +168,11 @@ var _createFasSettingsContent = function () {
         granular_option = document.createElement("option");
         additive_option = document.createElement("option");
         spectral_option = document.createElement("option");
-        exp_option = document.createElement("option");
+        sampler = document.createElement("option");
         granular_option.innerHTML = "granular";
         additive_option.innerHTML = "additive";
         spectral_option.innerHTML = "spectral";
-        exp_option.innerHTML = "exp";
+        sampler_option.innerHTML = "sampler";
         
         chn_genv_type_label = document.createElement("label");
         chn_genv_type_select = document.createElement("select");
@@ -211,7 +211,7 @@ var _createFasSettingsContent = function () {
         chn_synthesis_select.appendChild(additive_option);
         chn_synthesis_select.appendChild(spectral_option);
         chn_synthesis_select.appendChild(granular_option);
-        chn_synthesis_select.appendChild(exp_option);
+        chn_synthesis_select.appendChild(sampler);
         
         chn_settings = _chn_settings[j];
         
@@ -225,7 +225,7 @@ var _createFasSettingsContent = function () {
             } else if (chn_settings[0] === 2) {
                 granular_option.selected = true;
             } else if (chn_settings[0] === 3) {
-                exp_option.selected = true;
+                sampler.selected = true;
             }
             
             if (chn_settings[1] !== undefined) {
@@ -266,7 +266,7 @@ var _createFasSettingsContent = function () {
                     this.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "";
                     this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "";
                     this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "";
-                } else if (this.value === "exp") {
+                } else if (this.value === "sampler") {
                     value = 3;
                 } else {
                     value = 0;
@@ -318,7 +318,7 @@ var _createFasSettingsContent = function () {
             default_value: gmin,
             value: gmin,
 
-            //decimals: 2,
+            decimals: 2,
             
             title: "Min. grain length",
 
@@ -343,7 +343,7 @@ var _createFasSettingsContent = function () {
             default_value: gmax,
             value: gmax,
             
-            //decimals: 2,
+            decimals: 2,
 
             title: "Max. grain length",
 
@@ -1062,7 +1062,7 @@ var _uiInit = function () {
             title: "Import image, audio, webcam, canvas",
 
             width: "380px",
-            height: "480px",
+            height: "494px",
 
             halign: "center",
             valign: "center",
@@ -1907,7 +1907,7 @@ var _uiInit = function () {
             step: "any",
             scroll_step: 0.01,
         
-            //decimals: 2,
+            decimals: 2,
 
             default_value: 16.34,
             value: 16.34,
@@ -2025,7 +2025,7 @@ var _uiInit = function () {
             step: 0.01,
             scroll_step: 0.01,
         
-            //decimals: 2,
+            decimals: 2,
 
             default_value: _osc_fadeout,
             value: _osc_fadeout,
@@ -2058,7 +2058,7 @@ var _uiInit = function () {
             step: "any",
             scroll_step: 0.01,
         
-            //decimals: 2,
+            decimals: 2,
 
             midi: true,
 
