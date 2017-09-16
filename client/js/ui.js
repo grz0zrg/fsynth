@@ -122,7 +122,7 @@ var _createFasSettingsContent = function () {
         granular_option,
         additive_option,
         spectral_option,
-        sampler,
+        sampler_option,
         chn_gmin_size_input,
         chn_gmax_size_input,
         gmin = 0.01,
@@ -168,7 +168,7 @@ var _createFasSettingsContent = function () {
         granular_option = document.createElement("option");
         additive_option = document.createElement("option");
         spectral_option = document.createElement("option");
-        sampler = document.createElement("option");
+        sampler_option = document.createElement("option");
         granular_option.innerHTML = "granular";
         additive_option.innerHTML = "additive";
         spectral_option.innerHTML = "spectral";
@@ -211,7 +211,7 @@ var _createFasSettingsContent = function () {
         chn_synthesis_select.appendChild(additive_option);
         chn_synthesis_select.appendChild(spectral_option);
         chn_synthesis_select.appendChild(granular_option);
-        chn_synthesis_select.appendChild(sampler);
+        chn_synthesis_select.appendChild(sampler_option);
         
         chn_settings = _chn_settings[j];
         
@@ -225,7 +225,7 @@ var _createFasSettingsContent = function () {
             } else if (chn_settings[0] === 2) {
                 granular_option.selected = true;
             } else if (chn_settings[0] === 3) {
-                sampler.selected = true;
+                sampler_option.selected = true;
             }
             
             if (chn_settings[1] !== undefined) {

@@ -19676,6 +19676,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     var dialog_element = document.createElement("div"),
         content_element = document.createElement("div"),
         
+        video_playrate_element = "fs_channel_settings_playrate",
         video_start_element = "fs_channel_settings_videostart",
         video_end_element = "fs_channel_settings_videoend",
         
@@ -19695,6 +19696,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
         power_of_two_wrap_options = '<option value="repeat">repeat</option>' +
                                     '<option value="mirror">mirrored repeat</option>';
     
+    WUI_RangeSlider.destroy(video_playrate_element);
     WUI_RangeSlider.destroy(video_start_element);
     WUI_RangeSlider.destroy(video_end_element);
     
@@ -19728,9 +19730,37 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     document.body.appendChild(dialog_element);
     
     if (fragment_input_channel.type === 3) {
-        dialog_height = "260px";
+        dialog_height = "290px";
         
-        content_element.innerHTML += '&nbsp;<div id="' + video_start_element + '"></div><div id="' + video_end_element + '"></div>';
+        content_element.innerHTML += '&nbsp;<div id="' + video_playrate_element + '"></div><div id="' + video_start_element + '"></div><div id="' + video_end_element + '"></div>';
+        
+        WUI_RangeSlider.create(video_playrate_element, {
+                    width: 120,
+                    height: 8,
+
+                    min: -100.0,
+                    max: 100.0,
+
+                    bar: false,
+
+                    step: "any",
+                    scroll_step: 0.01,
+
+                    default_value: fragment_input_channel.playrate,
+                    value: fragment_input_channel.playrate,
+
+                    decimals: 3,
+
+                    title: "Playback rate",
+
+                    title_min_width: 140,
+                    value_min_width: 88,
+
+                    on_change: function (v) {
+                        fragment_input_channel.video_elem.playbackRate = v;
+                        fragment_input_channel.playrate = v;
+                    }
+                });
         
         WUI_RangeSlider.create(video_start_element, {
                     width: 120,
@@ -20407,7 +20437,7 @@ var _addFragmentInput = function (type, input, settings) {
         } else { // TODO : factor out inputs stuff
             video_element.src = window.URL.createObjectURL(input);
             video_element.autoplay = true;
-            video_element.loop = true;
+            video_element.loop = false;
             video_element.muted = true;
             
             data = _create2DTexture(video_element, false, false);
@@ -20418,8 +20448,8 @@ var _addFragmentInput = function (type, input, settings) {
             db_obj.settings.wrap.s = data.wrap.ws;
             db_obj.settings.wrap.t = data.wrap.wt;
             db_obj.settings.flip = false;
-
-            _fragment_input_data.push({
+            
+            input_obj = {
                     type: 3,
                     image: data.image,
                     texture: data.texture,
@@ -20427,19 +20457,29 @@ var _addFragmentInput = function (type, input, settings) {
                     elem: null,
                     db_obj: db_obj,
                     videostart: 0.0,
-                    videoend: 1.0
-                });
+                    videoend: 1.0,
+                    playrate: 1.0
+            };
+
+            _fragment_input_data.push(input_obj);
 
             _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/video.png" );
 
             _compile();
             
+            video_element.addEventListener("ended", function () {
+                var inpt = _fragment_input_data[input_id];
+
+                video_element.play();
+                video_element.currentTime = inpt.videostart * video_element.duration;
+            });
+            
             video_element.addEventListener("timeupdate", function () {
                 var inpt = _fragment_input_data[input_id];
-                
+
                 if (video_element.duration !== NaN) {
                     if (video_element.currentTime >= (video_element.duration * inpt.videoend)) {
-                        video_element.currentTime = inpt.videostart;
+                        video_element.currentTime = inpt.videostart * video_element.duration;
                         video_element.play();
                     }
                 }
@@ -20898,7 +20938,7 @@ var _createFasSettingsContent = function () {
         granular_option,
         additive_option,
         spectral_option,
-        sampler,
+        sampler_option,
         chn_gmin_size_input,
         chn_gmax_size_input,
         gmin = 0.01,
@@ -20944,7 +20984,7 @@ var _createFasSettingsContent = function () {
         granular_option = document.createElement("option");
         additive_option = document.createElement("option");
         spectral_option = document.createElement("option");
-        sampler = document.createElement("option");
+        sampler_option = document.createElement("option");
         granular_option.innerHTML = "granular";
         additive_option.innerHTML = "additive";
         spectral_option.innerHTML = "spectral";
@@ -20987,7 +21027,7 @@ var _createFasSettingsContent = function () {
         chn_synthesis_select.appendChild(additive_option);
         chn_synthesis_select.appendChild(spectral_option);
         chn_synthesis_select.appendChild(granular_option);
-        chn_synthesis_select.appendChild(sampler);
+        chn_synthesis_select.appendChild(sampler_option);
         
         chn_settings = _chn_settings[j];
         
@@ -21001,7 +21041,7 @@ var _createFasSettingsContent = function () {
             } else if (chn_settings[0] === 2) {
                 granular_option.selected = true;
             } else if (chn_settings[0] === 3) {
-                sampler.selected = true;
+                sampler_option.selected = true;
             }
             
             if (chn_settings[1] !== undefined) {

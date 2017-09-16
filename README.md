@@ -73,7 +73,7 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
 - Shader inputs:
   - Webcam (no audio support)
   - Images
-  - Videos with rewind & loop settings (can import the audio track as an image)
+  - Videos with rate & rewind & loop settings (can import the audio track as an image)
   - Audio files (translated to images)
   - Drawing canvas with drawing and compositing operations which use images Fragment input as brushes, Fragment is bundled with 20 high-quality brushes, a pack of 969 high-quality brushes is also available as a [separate download](https://www.fsynth.com/data/969_png_brushes_pack.7z)
 - Uniform controllers via OSC [Open Stage Control is recommended](http://osc.ammd.net)
@@ -128,12 +128,12 @@ Dynamics parameters
 
 - Red = Left amplitude
 - Green = Right amplitude
-- Blue = Grain sample (index), between [0,1]
+- Blue = Grain sample (index), between [0,1], grain density if >= 2
 - Alpha = Grain index, play grain backward if negative
 
 #### Sampler ([FAS](https://github.com/grz0zrg/fas) only)
 
-Just like granular synthesis except that there is no grains.
+Just like granular synthesis except that there is no grains. WIP.
 
 Dynamics parameters
 
