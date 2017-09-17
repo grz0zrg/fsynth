@@ -101,7 +101,8 @@ var _processOSCInputsQueue = function () {
 ************************************************************/
 
 var _oscInit = function () {
-    var address = localStorage.getItem("osc-address");
+    var address = localStorage.getItem("osc-address"),
+        input;
     if (address !== null) {
         _osc.address = address;
     }
@@ -159,6 +160,20 @@ var _oscInit = function () {
                 } else {
                     _useProgram(_program);
                     _setUniforms(_gl, _osc.inputs[data.osc_input.name].type, _program, data.osc_input.name, _osc.inputs[data.osc_input.name].data);
+                }
+            } else if (data.status === "videoData") {
+                input = _fragment_input_data[Math.round(data.videoData[0])];
+                if (input.type === 3) {
+                    if (data.videoData[1]) {
+                        input.playrate = data.videoData[1];
+                        input.video_elem.playbackRate = data.videoData[1];
+                    } else if (data.videoData[2]) {
+                        input.videostart = data.videoData[2];
+                    } else if (data.videoData[3]) {
+                        input.videoend = data.videoData[3];
+                    } else if (data.videoData[4]) {
+                        input.video_elem.currentTime = input.video_elem.duration * data.videoData[4];
+                    }
                 }
             } else if (data.status === "clear") { // clear up OSC set uniforms
                 _osc.inputs = [];

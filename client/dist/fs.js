@@ -16448,7 +16448,7 @@ var _dbRemoveInput = function (name) {
     if (!_db) {
         return;
     }
-    
+
     var object_store = _db.transaction(["inputs"], "readwrite").objectStore("inputs");
     
     object_store.delete(name);
@@ -19686,6 +19686,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
         channel_wrap_s_select,
         channel_wrap_t_select,
         channel_vflip,
+        channel_sloop,
     
         channel_settings_dialog,
         
@@ -19703,7 +19704,10 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     dialog_element.id = "fs_channel_settings_dialog";
     
     if (!_gl2) { // WebGL 2 does not have those limitations
-        if (!_isPowerOf2(fragment_input_channel.image.width) || !_isPowerOf2(fragment_input_channel.image.height) || fragment_input_channel.type === 1 || fragment_input_channel.type === 3) {
+        if (!_isPowerOf2(fragment_input_channel.image.width) || 
+            !_isPowerOf2(fragment_input_channel.image.height) || 
+            fragment_input_channel.type === 1 || 
+            fragment_input_channel.type === 3) {
             power_of_two_wrap_options = "";
         }
     }
@@ -19730,16 +19734,17 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     document.body.appendChild(dialog_element);
     
     if (fragment_input_channel.type === 3) {
-        dialog_height = "290px";
+        dialog_height = "340px";
         
+        content_element.innerHTML += '&nbsp;<div><label><div class="fs-input-settings-label">Smooth:</div>&nbsp;<input id="fs_channel_sloop" value="No" type="checkbox"></label></div>';
         content_element.innerHTML += '&nbsp;<div id="' + video_playrate_element + '"></div><div id="' + video_start_element + '"></div><div id="' + video_end_element + '"></div>';
         
         WUI_RangeSlider.create(video_playrate_element, {
                     width: 120,
                     height: 8,
 
-                    min: -100.0,
-                    max: 100.0,
+                    min: -10000.0,
+                    max: 10000.0,
 
                     bar: false,
 
@@ -19786,6 +19791,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
 
                     on_change: function (v) {
                         fragment_input_channel.videostart = v;
+                        fragment_input_channel.video_elem.currentTime = v;
                     }
                 });
         
@@ -19815,6 +19821,18 @@ var _createChannelSettingsDialog = function (input_channel_id) {
                         fragment_input_channel.videoend = v;
                     }
                 });
+        
+        channel_sloop = document.getElementById("fs_channel_sloop");
+        
+        if (fragment_input_channel.db_obj.settings.sloop) {
+            channel_sloop.checked = true;
+        } else {
+            channel_sloop.checked = false;
+        }
+
+        channel_sloop.addEventListener("change", function () {
+            fragment_input_channel.sloop = this.checked;
+        });
     }
     
     channel_filter_select = document.getElementById("fs_channel_filter");
@@ -20318,6 +20336,45 @@ var _updateCanvasInputDimensions = function (new_width, new_height) {
     }
 };
 
+var _addVideoEvents = function (video_element, input) {
+    video_element.addEventListener("ended", function () {
+        console.log("ended");
+        this.play();
+        if (input.sloop) {
+            input.playrate = -input.playrate;
+            video_element.playbackRate = input.playrate;
+        } else {
+            this.currentTime = input.videostart * this.duration;
+        }
+    });
+
+    video_element.addEventListener("timeupdate", function () {
+        if (this.duration !== NaN) {
+            var video_start_pos = this.duration * input.videostart,
+                video_end_pos = this.duration * input.videoend;
+            if (input.sloop) {
+                if (this.currentTime < video_start_pos) {
+                    video_element.playbackRate = input.playrate;
+                    this.currentTime = video_start_pos;
+                    this.play();
+                } else if (this.currentTime > video_end_pos) {
+                    video_element.playbackRate = -input.playrate;
+                    this.currentTime = video_end_pos;
+                    this.play();
+                }
+            } else {
+                if (this.currentTime < video_start_pos) {
+                    this.currentTime = video_end_pos;
+                    this.play();
+                } else if (this.currentTime >= video_end_pos) {
+                    this.currentTime = video_start_pos;
+                    this.play();
+                }
+            }
+        }
+    }, false);
+};
+
 var _addFragmentInput = function (type, input, settings) {
     var input_thumb,
 
@@ -20444,10 +20501,20 @@ var _addFragmentInput = function (type, input, settings) {
 
             _setTextureWrapS(data.texture, "clamp");
             _setTextureWrapT(data.texture, "clamp");
+            
+            _flipYTexture(data.texture, true);
 
-            db_obj.settings.wrap.s = data.wrap.ws;
-            db_obj.settings.wrap.t = data.wrap.wt;
-            db_obj.settings.flip = false;
+            if (settings !== undefined) {
+                _flipYTexture(data.texture, settings.flip);
+                _setTextureFilter(data.texture, settings.f);
+                _setTextureWrapS(data.texture, settings.wrap.s);
+                _setTextureWrapT(data.texture, settings.wrap.t);
+                
+                db_obj.settings.f = settings.f;
+                db_obj.settings.wrap.s = data.wrap.ws;
+                db_obj.settings.wrap.t = data.wrap.wt;
+                db_obj.settings.flip = false;
+            }
             
             input_obj = {
                     type: 3,
@@ -20458,7 +20525,9 @@ var _addFragmentInput = function (type, input, settings) {
                     db_obj: db_obj,
                     videostart: 0.0,
                     videoend: 1.0,
-                    playrate: 1.0
+                    playrate: 1.0,
+                    sloop: false, // smooth video loop
+                    direction: 0
             };
 
             _fragment_input_data.push(input_obj);
@@ -20467,23 +20536,7 @@ var _addFragmentInput = function (type, input, settings) {
 
             _compile();
             
-            video_element.addEventListener("ended", function () {
-                var inpt = _fragment_input_data[input_id];
-
-                video_element.play();
-                video_element.currentTime = inpt.videostart * video_element.duration;
-            });
-            
-            video_element.addEventListener("timeupdate", function () {
-                var inpt = _fragment_input_data[input_id];
-
-                if (video_element.duration !== NaN) {
-                    if (video_element.currentTime >= (video_element.duration * inpt.videoend)) {
-                        video_element.currentTime = inpt.videostart * video_element.duration;
-                        video_element.play();
-                    }
-                }
-            }, false);
+            _addVideoEvents(video_element, _fragment_input_data[input_id]);
             
             video_element.play();
         }
@@ -25580,7 +25633,8 @@ var _processOSCInputsQueue = function () {
 ************************************************************/
 
 var _oscInit = function () {
-    var address = localStorage.getItem("osc-address");
+    var address = localStorage.getItem("osc-address"),
+        input;
     if (address !== null) {
         _osc.address = address;
     }
@@ -25638,6 +25692,20 @@ var _oscInit = function () {
                 } else {
                     _useProgram(_program);
                     _setUniforms(_gl, _osc.inputs[data.osc_input.name].type, _program, data.osc_input.name, _osc.inputs[data.osc_input.name].data);
+                }
+            } else if (data.status === "videoData") {
+                input = _fragment_input_data[Math.round(data.videoData[0])];
+                if (input.type === 3) {
+                    if (data.videoData[1]) {
+                        input.playrate = data.videoData[1];
+                        input.video_elem.playbackRate = data.videoData[1];
+                    } else if (data.videoData[2]) {
+                        input.videostart = data.videoData[2];
+                    } else if (data.videoData[3]) {
+                        input.videoend = data.videoData[3];
+                    } else if (data.videoData[4]) {
+                        input.video_elem.currentTime = input.video_elem.duration * data.videoData[4];
+                    }
                 }
             } else if (data.status === "clear") { // clear up OSC set uniforms
                 _osc.inputs = [];

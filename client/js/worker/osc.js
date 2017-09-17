@@ -62,6 +62,15 @@ var _connect = function (opts) {
             postMessage({
                     status: "clear"
                 });
+        } else if (address === "/video") {
+            for (i = 0; i < args.length; i += 1) {
+                data.push(args[i].value);
+            }
+            
+            postMessage({
+                    status: "videoData",
+                    videoData: data
+                });
         } else if (prefix === "/i") {
             postMessage({
                     status: "data",

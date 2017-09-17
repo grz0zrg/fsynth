@@ -32,7 +32,7 @@ var _dbRemoveInput = function (name) {
     if (!_db) {
         return;
     }
-    
+
     var object_store = _db.transaction(["inputs"], "readwrite").objectStore("inputs");
     
     object_store.delete(name);
