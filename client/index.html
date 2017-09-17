@@ -82,6 +82,8 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
   void main () {
     float l = 0.;
     float r = 0.;
+    
+    vec2 uv = gl_FragCoord.xy / resolution;
 
     float attenuation_constant = 1.95;
 
