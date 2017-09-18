@@ -1,0 +1,36 @@
+site_name: Fragment - The Collaborative Spectral Synthesizer
+copyright: "<a href='https://www.fsynth.com'>© Julien Verneuil</a>"
+pages:
+- Fragment: 'index.md'
+- Concept: 'concept.md'
+- Getting started: 'getting_started.md'
+- User interface: 'ui.md'
+- GLSL: 'glsl.md'
+- Tutorials:
+    - 'Timbre': 'tutorials/timbre.md'
+    - 'Fundamental': 'tutorials/fundamental.md'
+    - 'Partials': 'tutorials/partials.md'
+    - 'Waveforms': 'tutorials/waveforms.md'
+    - 'MIDI': 'tutorials/midi.md'
+    - 'Envelopes': 'tutorials/env.md'
+    - 'Filters': 'tutorials/filters.md'
+    - 'Possibilities': 'tutorials/possibilities.md'
+    - 'Multitimbrality': 'tutorials/multitimbrality.md'
+    - 'Morphing parameters': 'tutorials/morph.md'
+    - 'Synthesis': 'tutorials/synthesis_methods.md'
+    - 'Images import': 'tutorials/images_import.md'
+    - 'Sounds import': 'tutorials/sounds_import.md'
+    - 'Videos import': 'tutorials/videos_import.md'
+    - 'Camera import': 'tutorials/camera_import.md'
+    - 'Canvas import': 'tutorials/camera_import.md'
+    - 'Spectral recording': 'tutorials/spectral_record.md'
+    - 'OSC': 'tutorials/osc.md'
+    - 'Controllers': 'tutorials/ctrls.md'
+    - 'Visuals': 'tutorials/visuals.md'
+- Tips: 'tips.md'
+- Tools: 'tools.md'
+- Credits: 'credits.md'
+theme: readthedocs
+site_favicon: "favicon.ico"
+repo_url: "https://github.com/grz0zrg/fsynth/tree/master/documentation/mk"
+repo_name: "github"

@@ -866,8 +866,7 @@ var _addFragmentInput = function (type, input, settings) {
                     videostart: 0.0,
                     videoend: 1.0,
                     playrate: 1.0,
-                    sloop: false, // smooth video loop
-                    direction: 0
+                    sloop: false // smooth video loop
             };
 
             _fragment_input_data.push(input_obj);
