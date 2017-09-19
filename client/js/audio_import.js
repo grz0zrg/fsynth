@@ -7,9 +7,10 @@
 var _audio_to_image_worker = new Worker("dist/worker/audio_to_image.min.js"),
     
     _audio_import_settings = {
-        window_length: 8192,
-        window_type: "hann",
-        overlap: 4,
+        window_length: 4096,
+        window_alpha: 0.6,
+        window_type: "kaiser",
+        overlap: 8,
         bpm: 60,
         ppb: 12,
         height: 0,

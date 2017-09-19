@@ -49,7 +49,7 @@ The $bold($tlink(Fragment synthesizer)(https://www.fsynth.com)) is a collaborati
 
 Fragment is stereophonic, polyphonic, multitimbral and support live coding of audio and visuals at the same time.
 
-Fragment main synthesis method is additive, granular synthesis was successfully implemented as well but not yet available.
+Fragment main synthesis method is additive but granular synthesis and a simple sampler method is also available.
 
 Fragment has many features making it a bliss to produce any kind of sounds or visuals, it is aimed at artists seeking a real-time creative environment with direct visual feedback and few limitations to experiment with, a programmable noise-of-all-kinds software.
 
@@ -151,7 +151,7 @@ The only limit to the amount of sine waves that can be added by Fragment is the 
 
 For example, on a Raspberry PI 3 (1.2GHz 64-bit quad-core ARMv8 CPU) ~700 oscillators can be played simultaneously using two cores, matching the capability of the ANS synthesizer.
 
-Actually, there is a also a hard limit which is that the frequency capture of slices cannot go beyond the refresh rate of your monitor (and this also depend on the browser implementation, commonly 60 FPS which mean ~16ms time granularity), this could however be bypassed by switching to a different monitor.
+Actually, there is a also a hard limit which is that the frequency capture of slices cannot go beyond the refresh rate of your monitor (and this also depend on the browser implementation, commonly 60 FPS which mean ~16ms time granularity), this could however be bypassed by switching to a different monitor or disabling browser vertical synchronization.
 
 Fragment can also do other types of synthesis like granular synthesis.
 
@@ -211,7 +211,7 @@ FAS (Fragment Audio Server) is the Fragment synthesis engine as a server, it is 
 
 It is recommended to use Fragment with FAS enabled.
 
-The advantage of using FAS is that it provide the best audio performances along with audio devices choice, multiple audio output per slices, sample rate choice, granular synthesis method, realtime scheduling under Linux and more...
+The advantage of using FAS is that it provide the best audio performances along with audio devices choice, multiple audio output per slices, sample rate choice, granular synthesis and sampler method, realtime scheduling under Linux and more...
 
 Fragment communicate with FAS by sending data through the network when the FAS option is enabled, FAS can run on any machines independently of the Fragment application, it gather the pixels data from Fragment in real-time, compute things and deliver the audio through the selected audio device.
 
@@ -402,6 +402,7 @@ $list(
 	$item Audio import settings: This determine how audio files will be analyzed when imported
 	$list(
 		$item Window type: The windowing function to use
+		$item Window alpha: Parameter which control certain type of window (kaiser, gauss, blackman)
 		$item Window length: Analysis window length (tradeoff between time and frequency resolution)
 		$item Overlap
 		$item BPM
@@ -409,6 +410,7 @@ $list(
 		$item Height: A value of 0 will automatically create an input with the height equal to the score height
 		$item Min. freq.: A value of 0 will automatically assign the score min. frequency
 		$item Max. freq.: A value of 0 will automatically assign a max. frequency related to the score settings)
+		$item Import mov. audio: Enabling it allow to import videos audio track
 	$item Import toolbar
 	$list(
 		$item Img: This will open a file selection window to import images
@@ -1014,7 +1016,7 @@ $glslcode(
     // this help to get a better visual feedback of the harmonics
     gl_FragColor = vec4(l, r, l * 64., 1.);
     // if WebGL 2.0 is enabled in your browser
-    synthOutput = vec4(l, r * 64., 0., 0.);
+    synthOutput = vec4(l, r, 0., 0.);
   }
 )
 $ifhtml($center($ogg(audio/fsynth_midi.ogg)))

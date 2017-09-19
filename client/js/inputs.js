@@ -678,7 +678,6 @@ var _updateCanvasInputDimensions = function (new_width, new_height) {
 
 var _addVideoEvents = function (video_element, input) {
     video_element.addEventListener("ended", function () {
-        console.log("ended");
         this.play();
         if (input.sloop) {
             input.playrate = -input.playrate;
@@ -696,19 +695,19 @@ var _addVideoEvents = function (video_element, input) {
                 if (this.currentTime < video_start_pos) {
                     video_element.playbackRate = input.playrate;
                     this.currentTime = video_start_pos;
-                    this.play();
+                    //this.play();
                 } else if (this.currentTime > video_end_pos) {
                     video_element.playbackRate = -input.playrate;
                     this.currentTime = video_end_pos;
-                    this.play();
+                    //this.play();
                 }
             } else {
                 if (this.currentTime < video_start_pos) {
                     this.currentTime = video_end_pos;
-                    this.play();
+                    //this.play();
                 } else if (this.currentTime >= video_end_pos) {
                     this.currentTime = video_start_pos;
-                    this.play();
+                    //this.play();
                 }
             }
         }

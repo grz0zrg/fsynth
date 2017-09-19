@@ -10,7 +10,9 @@ Many videos of most features are available on [the official YouTube channel](htt
 
 For any questions, a message board is available [here](https://quiet.fsynth.com/)
 
-*All software is free of charge, and distributed according to free software/open source principles and licenses.*
+The old single page documentation (still updated to some extent) is available [here](https://www.fsynth.com/maml_documentation.html)
+
+All software is free of charge, and distributed according to free software/open source principles and licenses.*
 
 ## Requirement
 

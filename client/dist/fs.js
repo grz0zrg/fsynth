@@ -17241,9 +17241,10 @@ _image_to_audio_worker.addEventListener('message', function (m) {
 var _audio_to_image_worker = new Worker("dist/worker/audio_to_image.min.js"),
     
     _audio_import_settings = {
-        window_length: 8192,
-        window_type: "hann",
-        overlap: 4,
+        window_length: 4096,
+        window_alpha: 0.6,
+        window_type: "kaiser",
+        overlap: 8,
         bpm: 60,
         ppb: 12,
         height: 0,
@@ -20338,7 +20339,6 @@ var _updateCanvasInputDimensions = function (new_width, new_height) {
 
 var _addVideoEvents = function (video_element, input) {
     video_element.addEventListener("ended", function () {
-        console.log("ended");
         this.play();
         if (input.sloop) {
             input.playrate = -input.playrate;
@@ -20356,19 +20356,19 @@ var _addVideoEvents = function (video_element, input) {
                 if (this.currentTime < video_start_pos) {
                     video_element.playbackRate = input.playrate;
                     this.currentTime = video_start_pos;
-                    this.play();
+                    //this.play();
                 } else if (this.currentTime > video_end_pos) {
                     video_element.playbackRate = -input.playrate;
                     this.currentTime = video_end_pos;
-                    this.play();
+                    //this.play();
                 }
             } else {
                 if (this.currentTime < video_start_pos) {
                     this.currentTime = video_end_pos;
-                    this.play();
+                    //this.play();
                 } else if (this.currentTime >= video_end_pos) {
                     this.currentTime = video_start_pos;
-                    this.play();
+                    //this.play();
                 }
             }
         }
@@ -22945,6 +22945,35 @@ var _uiInit = function () {
                 _setGain(value);
 
                 _fasNotify(_FAS_GAIN_INFOS, _audio_infos);
+            }
+        });
+    
+    WUI_RangeSlider.create("fs_import_audio_winalpha_settings", {
+            width: 100,
+            height: 8,
+
+            min: 0,
+            max: 10,
+
+            bar: false,
+
+            step: "any",
+            scroll_step: 0.001,
+        
+            decimals: 4,
+
+            midi: false,
+
+            default_value: _audio_import_settings.window_alpha,
+            value: _audio_import_settings.window_alpha,
+
+            title: "Window alpha",
+
+            title_min_width: 81,
+            value_min_width: 64,
+
+            on_change: function (value) {
+                _audio_import_settings.window_alpha = value;
             }
         });
 

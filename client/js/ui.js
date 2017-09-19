@@ -2079,6 +2079,35 @@ var _uiInit = function () {
                 _fasNotify(_FAS_GAIN_INFOS, _audio_infos);
             }
         });
+    
+    WUI_RangeSlider.create("fs_import_audio_winalpha_settings", {
+            width: 100,
+            height: 8,
+
+            min: 0,
+            max: 10,
+
+            bar: false,
+
+            step: "any",
+            scroll_step: 0.001,
+        
+            decimals: 4,
+
+            midi: false,
+
+            default_value: _audio_import_settings.window_alpha,
+            value: _audio_import_settings.window_alpha,
+
+            title: "Window alpha",
+
+            title_min_width: 81,
+            value_min_width: 64,
+
+            on_change: function (value) {
+                _audio_import_settings.window_alpha = value;
+            }
+        });
 
     WUI_RangeSlider.create("fs_import_audio_winlength_settings", {
             width: 100,

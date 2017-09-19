@@ -784,7 +784,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                     <div>
                         <label class="fs-input-label" for="fs_import_audio_window_settings">Window type</label>
                         <select id="fs_import_audio_window_settings" class="fs-btn">
-                            <option selected>hann</option>
+                            <option>hann</option>
                             <option>triangular</option>
                             <option>hamming</option>
                             <option>bartlett</option>
@@ -793,9 +793,13 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                             <option>cosine</option>
                             <option>gauss</option>
                             <option>lanczos</option>
+                            <option selected>kaiser</option>
+                            <option>nutall</option>
+                            <option>flattop</option>
                             <option>rectangular</option>
                         </select>
                     </div>
+                    <div id="fs_import_audio_winalpha_settings"></div>
                     <div id="fs_import_audio_winlength_settings"></div>
                     <div id="fs_import_audio_overlap_settings"></div>
                     <div id="fs_import_audio_bpm_settings"></div>

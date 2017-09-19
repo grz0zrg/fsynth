@@ -43,6 +43,8 @@ var _convert = function (params, data) {
         window_size = params.settings.window_length,
         window_type = params.settings.window_type,
         
+        window_alpha = params.settings.window_alpha,
+        
         hop_divisor = params.settings.overlap, // overlap factor
         hop_length = Math.round(window_size / hop_divisor),
         
@@ -87,7 +89,7 @@ var _convert = function (params, data) {
         progress_step /= 2;
     }
     
-    STFT.initializeForwardWindow(window_size, window_type);
+    STFT.initializeForwardWindow(window_size, window_type, window_alpha);
     
     //var bark = _barkScale(end - start, params.sample_rate, window_size);
 

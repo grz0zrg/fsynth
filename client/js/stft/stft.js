@@ -38,6 +38,23 @@
     THE SOFTWARE.
 */
 
+// Extend Math by Richard Meadows - 2013
+// https://github.com/richardeoin/nodejs-fft-windowing/blob/master/windowing.js
+Math.sinc = function(n) { return Math.sin(Math.PI*n)/(Math.PI*n); }
+Math.bessi0 = function(x) {
+	var ax = Math.abs(x);
+
+	if (ax < 3.75) {
+		y = x / 3.75; y = y * y;
+		return 1.0 + y*(3.5156229+y*(3.0899424+y*(1.2067492+y*(0.2659732+y*(0.360768e-1+y*0.45813e-2)))));
+   } else {
+		y = 3.75 / ax;
+		return (Math.exp(ax) / Math.sqrt(ax)) *
+			(0.39894228+y*(0.1328592e-1+y*(0.225319e-2+y*(-0.157565e-2+y*(0.916281e-2+y*
+			(-0.2057706e-1+y*(0.2635537e-1+y*(-0.1647633e-1+y*0.392377e-2))))))));
+   }
+}
+
 var STFT = new (function() {
     /***********************************************************
         Private section.
@@ -104,6 +121,24 @@ var STFT = new (function() {
         return _hannWindowAnalysis(length, index) * 2.0 / 3.0;
     };
     
+    var _kaiser = function (points, n, alpha) {
+        if (!alpha) { alpha = 3; }
+            return Math.bessi0(Math.PI*alpha*Math.sqrt(1-Math.pow((2*n/(points-1))-1, 2))) / Math.bessi0(Math.PI*alpha);
+    };
+    
+    var _nuttall = function (points, n) {
+        return 0.355768 - 0.487396*Math.cos(2*Math.PI*n/(points-1))
+            + 0.144232*Math.cos(4*Math.PI*n/(points-1))
+            - 0.012604*Math.cos(6*Math.PI*n/(points-1));
+    };
+    
+    var _flatTop = function (points, n) {
+        return 1 - 1.93*Math.cos(2*Math.PI*n/(points-1))
+            + 1.29*Math.cos(4*Math.PI*n/(points-1))
+            - 0.388*Math.cos(6*Math.PI*n/(points-1))
+            + 0.032*Math.cos(8*Math.PI*n/(points-1));
+    };
+    
     var _getAnalysisWindowFunction = function (type) {
         if (type === "hann") {
             return _hannWindowAnalysis;
@@ -125,6 +160,12 @@ var STFT = new (function() {
             return _lanczosWindowAnalysis;
         } else if (type === "rectangular") {
             return _rectangularWindowAnalysis;
+        } else if (type === "kaiser") {
+            return _kaiser;
+        } else if (type === "nutall") {
+            return _nuttall;
+        } else if (type === "flattop") {
+            return _flatTop;
         } else {
             return _hannWindowAnalysis;
         }

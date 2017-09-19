@@ -3323,7 +3323,7 @@ var _connect = function (opts) {
             
             postMessage({
                     status: "videoData",
-                    data: data
+                    videoData: data
                 });
         } else if (prefix === "/i") {
             postMessage({
