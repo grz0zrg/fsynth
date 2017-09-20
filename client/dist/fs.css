@@ -1041,6 +1041,10 @@ span.CodeMirror-selectedtext { background: none; }
     line-height: 20px !important;
 }
 
+.wui-tab-content {
+    overflow: hidden;
+}
+
 .fs-input-label {
     font-size: 9pt;
 }.fs-code-icon {
