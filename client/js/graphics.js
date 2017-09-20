@@ -794,7 +794,7 @@ var _frame = function (raf_time) {
                 arr_infos.push(c);
             }
 
-            _osc_infos.innerHTML = arr_infos.join(" ");
+            _osc_infos.textContent = arr_infos.join(" ");
         }
         
         _canvasRecord(_data);
@@ -860,13 +860,13 @@ var _frame = function (raf_time) {
     
     if (_show_globaltime) {
         iglobal_time = parseInt(global_time, 10);
-        if (parseInt(_time_infos.innerHTML, 10) !== iglobal_time) {
-            _time_infos.innerHTML = iglobal_time;
+        if (parseInt(_time_infos.textContent, 10) !== iglobal_time) {
+            _time_infos.textContent = iglobal_time;
         }
     }
     
     if (_show_polyinfos) {
-        _poly_infos_element.innerHTML = _keyboard.polyphony;
+        _poly_infos_element.textContent = _keyboard.polyphony;
     }
     
     _globalFrame += 1;

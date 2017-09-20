@@ -60,6 +60,8 @@ var _fasEnable = function () {
 var _fasDisable = function () {
     _fasNotify(_FAS_DISABLE);
     
+    _fas_stream_load.textContent = "";
+    
     _fas.enabled = false;
 };
 
@@ -104,10 +106,16 @@ var _fasInit = function () {
                 _fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
                 _fasNotify(_FAS_GAIN_INFOS, _audio_infos);
                 _fasNotify(_FAS_CHN_INFOS, _chn_settings);
+            } else if (data.status === "streamload") {
+                _fas_stream_load.textContent = parseInt(data.load * 100, 10) + "%";
             } else if (data.status === "error") {
                 _fasStatus(false);
+                
+                _fas_stream_load.textContent = "";
             } else if (data.status === "close") {
                 _fasStatus(false);
+                
+                _fas_stream_load.textContent = "";
 
                 _notification("Connection to native audio was lost, trying again in ~5s, make sure it is running!", 2500);
             }

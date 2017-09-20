@@ -157,16 +157,16 @@ document.addEventListener('mousemove', function (e) {
                         _vaxis_infos.style.display = "block";
                     }
 
-                    _haxis_infos.firstElementChild.innerHTML = _cy;
+                    _haxis_infos.firstElementChild.textContent = _cy;
                     _haxis_infos.lastElementChild.style.left = e.pageX + "px";
-                    _haxis_infos.lastElementChild.innerHTML = _truncateDecimals(_hover_freq + "", 2) + "Hz";
-                    _vaxis_infos.firstElementChild.innerHTML = _cx;
+                    _haxis_infos.lastElementChild.textContent = _truncateDecimals(_hover_freq + "", 2) + "Hz";
+                    _vaxis_infos.firstElementChild.textContent = _cx;
 
                     _haxis_infos.style.top = _cy + "px";
                     _vaxis_infos.style.left = e.pageX + "px";
                 } else {
-                    _xy_infos.innerHTML = "x " + _cx + " y " + _cy;
-                    _hz_infos.innerHTML = " " + _truncateDecimals(_hover_freq + "", 2) + "Hz";
+                    _xy_infos.textContent = "x " + _cx + " y " + _cy;
+                    _hz_infos.textContent = " " + _truncateDecimals(_hover_freq + "", 2) + "Hz";
                 }
             } else {
                 if (_xyf_grid) {
@@ -176,8 +176,8 @@ document.addEventListener('mousemove', function (e) {
                         _vaxis_infos.style.display = "none";
                     }
                 } else {
-                    _xy_infos.innerHTML = "";
-                    _hz_infos.innerHTML = "";
+                    _xy_infos.textContent = "";
+                    _hz_infos.textContent = "";
                 }
             }
 
@@ -193,8 +193,8 @@ document.addEventListener('mousemove', function (e) {
                     _vaxis_infos.style.display = "none";
                 }
             } else {
-                _xy_infos.innerHTML = "";
-                _hz_infos.innerHTML = "";
+                _xy_infos.textContent = "";
+                _hz_infos.textContent = "";
             }
         }
 
@@ -211,13 +211,14 @@ document.getElementById("fs_ui_doc_btn").addEventListener("click", function () {
 document.getElementById("fs_ui_help_btn").addEventListener("click", function () {
         window.open("data/guide/fs.png", '_blank');
     });
+
 /*
 document.getElementById("fs_glsl_help_btn").addEventListener("click", function () {
         window.open("https://www.khronos.org/registry/gles/specs/2.0/GLSL_ES_Specification_1.0.17.pdf", '_blank');
     });
 */
 
-var _on_window_resize = function () {
+var _onWindowResize = function () {
     _updateAllPlayPosition();
     
     _updateCodeView();
@@ -226,7 +227,7 @@ var _on_window_resize = function () {
     _c_helper.height = window.innerHeight;
 };
 
-ResizeThrottler.initialize([_on_window_resize]);
+ResizeThrottler.initialize([_onWindowResize]);
 
 _red_curtain_element.classList.add("fs-open-red-curtain");
 _red_curtain_element.addEventListener("transitionend", function () {

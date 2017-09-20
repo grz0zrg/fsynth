@@ -12,6 +12,8 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
 
 The old single page documentation (still updated to some extent) is available [here](https://www.fsynth.com/maml_documentation.html)
 
+The PDF documentation can be found [here](https://www.fsynth.com/pdf/fragment_documentation.pdf)
+
 All software is free of charge, and distributed according to free software/open source principles and licenses.*
 
 ## Requirement

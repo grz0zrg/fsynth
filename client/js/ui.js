@@ -1188,6 +1188,10 @@ var _uiInit = function () {
             draggable: true
         });
     
+    WUI_Tabs.create("fs_help_tabs", {
+        height: "calc(100% - 74px)"
+    });
+    
     _paint_dialog = WUI_Dialog.create(_paint_dialog_id, {
             title: "Paint tools",
 

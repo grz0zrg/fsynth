@@ -184,15 +184,15 @@ var _getColorFromPalette = function (value) {
     return "rgb(" + color[0] +", "+color[1] +"," + color[2]+")";
 };
 
-// thank to Nick Knowlson - http://stackoverflow.com/questions/4912788/truncate-not-round-off-decimal-numbers-in-javascript
 var _truncateDecimals = function (num, digits) {
-    var numS = num.toString(),
-        decPos = numS.indexOf('.'),
-        substrLength = decPos == -1 ? numS.length : 1 + decPos + digits,
-        trimmedResult = numS.substr(0, substrLength),
-        finalResult = isNaN(trimmedResult) ? 0 : trimmedResult;
+    var n = (+num).toFixed(digits + 1);
+    return +(n.slice(0, n.length - 1));
+};
 
-    return parseFloat(finalResult);
+var _clipboardCopy = function (e) {
+    console.log(e.target,e.target.dataset.clipboard );
+    var copy_event = new ClipboardEvent("copy", { dataType: "text/plain", data: e.target.dataset.clipboard } );
+    document.dispatchEvent(copy_event);
 };
 
 var _isFireFox = function () {

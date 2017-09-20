@@ -220,6 +220,14 @@ var _connect = function (opts) {
                     status: "error"
                 });
         };
+    
+    _fas_ws.onmessage = function (event) {
+            var stream_load = new Float64Array(event.data);
+            postMessage({
+                    status: "streamload",
+                    load: stream_load
+                });
+        };
 
     _fas_ws.onclose = function (event) {
             if (_fas && event.code !== 4000) {

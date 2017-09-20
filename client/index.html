@@ -343,6 +343,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                 <div id="fs_server_status" class="fs-server-status" title="Chat server link state"></div>
                 <div id="fs_fas_status" class="fs-server-status" title="Native audio link state" style="display: none"></div>
                 <div id="fs_user_name" class="fs-user-name"></div>
+                <span id="fs_fas_stream_load"></span>
                 <span id="fs_polyphony_infos"></span>
                 <span id="fs_osc_infos"></span>
                 <span id="fs_xy_infos"></span>
@@ -533,131 +534,247 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                         <button id="fs_glsl_help_btn" class="fs-btn fs-btn-wide fs-btn-default">OpenGL Shading Language ES</button>
 -->
                     </div>
-                    <div class="fs-documentation">
-                        Pre-defined shader inputs
-                        <ul class="fs-documentation-entries">
-                            <li>
-                                vec2 <span class="fs-documentation-keyword">resolution</span> :
-                                <ul>
+                    <div id="fs_help_tabs">
+                        <div>
+                            <div>Uniforms</div>
+                            <div>Snippets</div>
+                            <div>About</div>
+                        </div>
+                        <div>
+                            <div>
+                                <div class="fs-documentation">
+                                    Pre-defined shader inputs (uniforms)
+                                    <ul class="fs-documentation-entries">
+                                        <li>
+                                            vec2 <span class="fs-documentation-keyword" data-clipboard-text="resolution">resolution</span> :
+                                            <ul>
+                                                <li>
+                                                    viewport resolution (in pixels)
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            float <span class="fs-documentation-keyword" data-clipboard-text="globalTime">globalTime</span> :
+                                            <ul>
+                                                <li>
+                                                    playback time (in seconds)
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            float <span class="fs-documentation-keyword" data-clipboard-text="baseFrequency">baseFrequency</span> :
+                                            <ul>
+                                                <li>
+                                                    score base frequency
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            float <span class="fs-documentation-keyword" data-clipboard-text="octave">octave</span> :
+                                            <ul>
+                                                <li>
+                                                    score octave range
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            vec4 <span class="fs-documentation-keyword" data-clipboard-text="mouse">mouse</span> :
+                                            <ul>
+                                                <li>
+                                                    normalized mouse pixel coords.
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                        vec4 <span class="fs-documentation-keyword" data-clipboard-text="data">date</span> :
+                                        <ul>
+                                            <li>
+                                                year, month, day, time in seconds
+                                            </li>
+                                        </ul>
+                                    </li>
                                     <li>
-                                        viewport resolution (in pixels)
+                                        sampler2D <span class="fs-documentation-keyword" data-clipboard-text="iInput">iInputN</span> :
+                                        <ul>
+                                            <li>
+                                                Click on the [+] icon to add N images
+                                            </li>
+                                            <li>
+                                                Typical usage : texture2D(iInput0, uv);
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        sampler2D <span class="fs-documentation-keyword" data-clipboard-text="pFrame">pFrame</span> :
+                                        <ul>
+                                            <li>
+                                                The previous frame available as a texture
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        sampler2D <span class="fs-documentation-keyword" data-clipboard-text="pFrameSynth">pFrameSynth</span> :
+                                        <ul>
+                                            <li>
+                                                The previous synth frame available as a texture (WebGL 2)
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        int <span class="fs-documentation-keyword" data-clipboard-text="frame">frame</span> :
+                                        <ul>
+                                            <li>
+                                                The current frame
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        float <span class="fs-documentation-keyword" data-clipboard-text="htoy">htoy</span> :
+                                        <ul>
+                                            <li>
+                                                take a frequency as argument and return its vertical position on the canvas (in pixels units)
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        float <span class="fs-documentation-keyword" data-clipboard-text="fline">fline</span> :
+                                        <ul>
+                                            <li>
+                                                take a frequency as argument and return either 1 or 0 (shortcut to draw a horizontal line)
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        vec4[N] <span class="fs-documentation-keyword" data-clipboard-text="keyboard">keyboard</span> :
+                                        <ul>
+                                            <li>
+                                                frequency, velocity, elapsed time since the key was pressed, MIDI channel
+                                            </li>
+                                            <li>
+                                                Note : MIDI note-on/note-off events
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        vec3[N] <span class="fs-documentation-keyword" data-clipboard-text="pKey">pKey</span> :
+                                        <ul>
+                                            <li>
+                                                frequency, velocity, elapsed time since the key was pressed
+                                            </li>
+                                            <li>
+                                                Note : store the previous note-off for each channels
+                                            </li>
+                                        </ul>
                                     </li>
                                 </ul>
-                            </li>
-                            <li>
-                                float <span class="fs-documentation-keyword">globalTime</span> :
-                                <ul>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="fs-documentation">
+                                GLSL snippets
+                                <ul class="fs-documentation-entries">
                                     <li>
-                                        playback time (in seconds)
+                                        <span class="fs-documentation-keyword" data-clipboard-text="const float a[2] = float[2](0., 0.);">float array initializer</span>
+                                    </li>
+                                    <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="const vec4 a[2] = vec4[2](vec4(0., 0., 0., 0.), vec4(0., 0., 0., 0.));">vec4 array initializer</span>
+                                    </li>
+                                    <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="vec4 t = texture(iInput, vec2(uv.x, uv.y));">2D texture</span>
                                     </li>
                                 </ul>
-                            </li>
-                            <li>
-                                float <span class="fs-documentation-keyword">baseFrequency</span> :
-                                <ul>
+                                Fragment snippets
+                                <ul class="fs-documentation-entries">
                                     <li>
-                                        score base frequency
+                                        <span class="fs-documentation-keyword" data-clipboard-text="vec3 pdata = pKey[int(kchn)];&#010;kfrq = mix(pdata.x, kfrq, min(ktim * 28., 1.));">portamento (MIDI keyboard)</span>
                                     </li>
                                 </ul>
-                            </li>
-                            <li>
-                                float <span class="fs-documentation-keyword">octave</span> :
-                                <ul>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="fs-documentation fs-about">
+                                <span class="fs-about-header">Infos</span>
+                                <ul class="fs-documentation-entries">
                                     <li>
-                                        score octave range
+                                        WebGL 2 support
+                                        <ul>
+                                            <li id="fs-wgl-support">
+                                                
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        32-bit float data
+                                        <ul>
+                                            <li id="fs-wgl-float-support">
+                                                
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        32-bit float linear filtering
+                                        <ul>
+                                            <li id="fs-wgl-lfloat-support">
+                                                
+                                            </li>
+                                        </ul>
                                     </li>
                                 </ul>
-                            </li>
-                            <li>
-                                vec4 <span class="fs-documentation-keyword">mouse</span> :
-                                <ul>
+                                <span class="fs-about-header">Social</span>
+                                <ul class="fs-documentation-entries">
                                     <li>
-                                        normalized mouse pixel coords.
+                                        <span class="fs-documentation-keyword" data-clipboard-text="https://quiet.fsynth.com">Community</span>
+                                        <ul>
+                                            <li>
+                                                <a href="https://quiet.fsynth.com">https://quiet.fsynth.com</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="https://github.com/grz0zrg/fsynth">GitHub</span>
+                                        <ul>
+                                            <li>
+                                                <a href="https://github.com/grz0zrg/fsynth">https://github.com/grz0zrg/fsynth</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ">YouTube</span>
+                                        <ul>
+                                            <li>
+                                                <a href="https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ">https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="https://twitter.com/fragmentsynth">Twitter</span>
+                                        <ul>
+                                            <li>
+                                                 <a href="https://twitter.com/fragmentsynth">https://twitter.com/fragmentsynth</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="https://www.facebook.com/fsynth/">Facebook</span>
+                                        <ul>
+                                            <li>
+                                                <a href="https://www.facebook.com/fsynth/">https://www.facebook.com/fsynth/</a>
+                                            </li>
+                                        </ul>
                                     </li>
                                 </ul>
-                            </li>
-                            <li>
-                                vec4 <span class="fs-documentation-keyword">date</span> :
-                                <ul>
-                                    <li>
-                                        year, month, day, time in seconds
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                sampler2D <span class="fs-documentation-keyword">iInputN</span> :
-                                <ul>
-                                    <li>
-                                        Click on the [+] icon to add N images
-                                    </li>
-                                    <li>
-                                        Typical usage : texture2D(iInput0, uv);
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                sampler2D <span class="fs-documentation-keyword">pFrame</span> :
-                                <ul>
-                                    <li>
-                                        The previous frame available as a texture
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                sampler2D <span class="fs-documentation-keyword">pFrameSynth</span> :
-                                <ul>
-                                    <li>
-                                        The previous synth frame available as a texture (WebGL 2)
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                int <span class="fs-documentation-keyword">frame</span> :
-                                <ul>
-                                    <li>
-                                        The current frame
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                float <span class="fs-documentation-keyword">htoy</span> :
-                                <ul>
-                                    <li>
-                                        take a frequency as argument and return its vertical position on the canvas (in pixels units)
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                float <span class="fs-documentation-keyword">fline</span> :
-                                <ul>
-                                    <li>
-                                        take a frequency as argument and return either 1 or 0 (shortcut to draw a horizontal line)
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                vec4[N] <span class="fs-documentation-keyword">keyboard</span> :
-                                <ul>
-                                    <li>
-                                        frequency, velocity, elapsed time since the key was pressed, MIDI channel
-                                    </li>
-                                    <li>
-                                        Note : MIDI note-on/note-off events
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                vec3[N] <span class="fs-documentation-keyword">pKey</span> :
-                                <ul>
-                                    <li>
-                                        frequency, velocity, elapsed time since the key was pressed
-                                    </li>
-                                    <li>
-                                        Note : store the previous note-off for each channels
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
+                                <br/><br/><br/><br/>
+                                <div class="fs-about-footer">
+                                    <a href="https://www.fsynth.com"><img src="data/fsynth2.png" width="297"></a>
+                                    <br/><br/>
+                                    <div>Fragment © 2016 - 2017</div>
+                                    <div>Made with <span style="color: #ff0000">💖</span> by Julien Verneuil</div>
+                                    <div>contact <span style="color: #aaaaaa">at</span> fsynth <span style="color: #aaaaaa">dot</span> com</div>
+                                </div>
+                                <br/><br/>
+                            </div>
+                        </div>
+                    </div>
                     </div>
                 </div>
             </div>

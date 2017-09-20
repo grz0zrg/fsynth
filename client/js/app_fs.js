@@ -18,6 +18,9 @@
 /*#include codemirror/addon/display/fullscreen.js*/
 /*#include codemirror/codemirror_glsl.js*/
 
+// clipboard.js - https://github.com/zenorocha/clipboard.js
+/*#include clipboard/clipboard.min.js*/
+
 // sharedb - https://github.com/share/sharedb
 /*#include sharedb/sharedb.js*/
 /*#include sharedb/ot-text.js*/
@@ -143,6 +146,7 @@ var FragmentSynth = function (params) {
         _xy_infos = document.getElementById("fs_xy_infos"),
         _osc_infos = document.getElementById("fs_osc_infos"),
         _poly_infos_element = document.getElementById("fs_polyphony_infos"),
+        _fas_stream_load = document.getElementById("fs_fas_stream_load"),
 
         _haxis_infos = document.getElementById("fs_haxis_infos"),
         _vaxis_infos = document.getElementById("fs_vaxis_infos"),
@@ -297,6 +301,8 @@ var FragmentSynth = function (params) {
         _cm_highlight_matches = false,
         _cm_show_linenumbers = true,
         _cm_advanced_scrollbar = false,
+        
+        _clipboard,
 
         // mouse cursor over canvas
         _cx,
@@ -365,6 +371,10 @@ var FragmentSynth = function (params) {
         _input_panel_element = document.getElementById("fs_input_panel"),
 
         _codemirror_line_widgets = [],
+        
+        _wgl_support_element = document.getElementById("fs-wgl-support"),
+        _wgl_float_support_element = document.getElementById("fs-wgl-float-support"),
+        _wgl_lfloat_support_element = document.getElementById("fs-wgl-lfloat-support"),
         
         _globalFrame = 0,
 
@@ -673,13 +683,27 @@ var FragmentSynth = function (params) {
         _gl = _canvas.getContext("webgl", _webgl_opts) || _canvas.getContext("experimental-webgl", _webgl_opts);
         
         _read_pixels_format = _gl.UNSIGNED_BYTE;
+        
+        _wgl_support_element.innerHTML = "Not supported";
+        _wgl_support_element.style.color = "#ff0000";
     } else {
         _gl2 = true;
+        
+        _wgl_support_element.innerHTML = "Supported";
+        _wgl_support_element.style.color = "#00ff00";
         
         _OES_texture_float_linear = _gl.getExtension("OES_texture_float_linear");
         _EXT_color_buffer_float = _gl.getExtension("EXT_color_buffer_float");
         
         _initializePBO();
+        
+        if (_OES_texture_float_linear) {
+            _wgl_lfloat_support_element.innerHTML = "Supported";
+            _wgl_lfloat_support_element.style.color = "#00ff00";
+        } else {
+            _wgl_lfloat_support_element.innerHTML = "Not supported";
+            _wgl_lfloat_support_element.style.color = "#ff0000";
+        }
         
         if (_EXT_color_buffer_float) {
             _audio_infos.float_data = true;
@@ -689,8 +713,14 @@ var FragmentSynth = function (params) {
             _read_pixels_format = _gl.FLOAT;
             
             _amp_divisor = 1.0;
+            
+            _wgl_float_support_element.innerHTML = "Supported";
+            _wgl_float_support_element.style.color = "#00ff00";
         } else {
             _read_pixels_format = _gl.UNSIGNED_BYTE;
+            
+            _wgl_float_support_element.innerHTML = "Not supported (8-bit)";
+            _wgl_float_support_element.style.color = "#ff0000";
         }
     }
 
@@ -763,6 +793,8 @@ var FragmentSynth = function (params) {
     _buildFeedback();
     
     _initDb();
+    
+    _clipboard = new Clipboard(".fs-documentation-keyword");
 };
     
     if (_electronInit()) {

@@ -1933,10 +1933,15 @@ canvas {
 
 .fs-documentation {
     color: #ffffff;
-    margin: 8px;
+    /*margin: 8px;*/
     padding: 6px;
     font-size: 12px;
     background-color: #111111;
+}
+
+.fs-documentation a {
+    color: #ffff00;
+    text-decoration: none;
 }
 
 .fs-documentation-entries {
@@ -1962,6 +1967,10 @@ canvas {
 
 .fs-documentation-keyword {
     color: #ffd700;
+}
+
+.fs-documentation-keyword:hover {
+    cursor: pointer;
 }
 
 .play-position-triangle-vflip:hover {
@@ -2162,4 +2171,14 @@ canvas {
 
 .fs-selected-slice:nth-child(1) {
     border-bottom-color: green;
+}
+
+.fs-about {
+    font-size: 12px;
+    overflow: hidden;
+}
+
+.fs-about-footer {
+    text-align: center;
+    font-size: 15px;
 }
