@@ -21013,7 +21013,7 @@ var _createFasSettingsContent = function () {
         chn_genv_type_label,
         chn_genv_type_select,
         chn_genv_option,
-        chn_genv_options = ["sine", "hann", "hamming", "tukey", "gaussian", "confined gaussian", "trapezoidal", "blackman", "blackman harris"],
+        chn_genv_options = ["sine", "hann", "hamming", "tukey", "gaussian", "confined gaussian", "trapezoidal", "blackman", "blackman harris", "parzen", "nutall", "flattop", "kaiser"],
         chn_settings,
         j = 0, i = 0;
     
@@ -21196,12 +21196,12 @@ var _createFasSettingsContent = function () {
             bar: false,
 
             step: 0.01,
-            scroll_step: 0.01,
+            scroll_step: 0.001,
 
             default_value: gmin,
             value: gmin,
 
-            decimals: 2,
+            decimals: 4,
             
             title: "Min. grain length",
 
@@ -21221,12 +21221,12 @@ var _createFasSettingsContent = function () {
             bar: false,
 
             step: 0.01,
-            scroll_step: 0.01,
+            scroll_step: 0.001,
 
             default_value: gmax,
             value: gmax,
             
-            decimals: 2,
+            decimals: 4,
 
             title: "Max. grain length",
 
