@@ -17,6 +17,8 @@ var _parseCompileOutput = function (output) {
         msg_icon,
 
         line = 0,
+        
+        result = [],
 
         m;
 
@@ -38,9 +40,13 @@ var _parseCompileOutput = function (output) {
         if (_gl2) {
             line = line - 1;
         }
+        
+        result.push({ line: m[1] - 1, msg: m[2]});
 
         _codemirror_line_widgets.push(_code_editor.addLineWidget(line - 1, msg_container, { coverGutter: false, noHScroll: true }));
     }
+    
+    return result;
 };
 
 var _updateCodeView = function () {

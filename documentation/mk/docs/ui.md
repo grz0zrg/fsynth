@@ -2,13 +2,13 @@
 
 Fragment user interface use a simple layout with five different parts.
 
-![Fragment UI guide](tutorials/images/ui_help.png)
+[![Fragment UI guide](tutorials/images/ui_help.png)](tutorials/images/ui_help.png)
 
 ## Layout
 
 ### Info. panel
 
-![Informations panel](tutorials/images/info_bar.png)
+[![Informations panel](tutorials/images/info_bar.png)](tutorials/images/info_bar.png)
 
 The information panel at the top convey minor and major informations such as (in order from left to right)
 
@@ -155,6 +155,7 @@ Inputs are widgets which accept user values.
 Some inputs have a red square which indicate MIDI learn functionality support for this widget
 
 ![MIDI learn](tutorials/images/midi_learn.png)
+
 The red square appearing on an UI interface widget indicate that the MIDI learn functionality is supported for the widget, it only appear on WebMIDI enabled browsers such as Chrome and Opera and on widgets which are allowed to be controlled by MIDI.
 
 By left clicking on the red square, it turn green and any inputs from enabled MIDI devices will be captured by the widget.

@@ -16001,7 +16001,7 @@ _toolsInit();/* jslint browser: true */
     
     This show notification messages in corners of the score area,
     generic notifications can be stacked and a duration can be set,
-    fail notification is used for notifications that should not disapear and should be solved (aka, GLSL compilation failed),
+    fail notification is used for notifications that should not disappear and should be solved (aka, GLSL compilation failed),
     fail notification is always shown in the left corner, if a generic notification is shown at the same time, it will go to the right corner,
     there is also the utter fail notification which is just used for critical, app. breaking stuff...
 */
@@ -16019,7 +16019,16 @@ var _utter_fail_element = document.getElementById("fs_utter_fail"),
 ************************************************************/
 
 var _fail = function (message, utter) {
-    _fail_element.innerHTML = message;
+    if (message instanceof Element) {
+        _fail_element.innerHTML = "";
+        _fail_element.appendChild(message);
+        
+        if (_notification_element.innerHTML !== "") {
+            _notification_element.classList.add("fs-text-align-right");
+        }
+    } else {
+        _fail_element.innerHTML = message;
+    }
     
     if (utter) {
         document.body.innerHTML = "";
@@ -16028,8 +16037,6 @@ var _fail = function (message, utter) {
         
         document.body.appendChild(_utter_fail_element);
     }
-    
-    //console.log(message);
 };
 
 var _utterFailRemove = function () {
@@ -18421,18 +18428,37 @@ var _createAndLinkProgram = function (vertex_shader, fragment_shader) {
 
 var _createShader = function (shader_type, shader_code) {
     var shader = _gl.createShader(shader_type),
+        
+        parse_result,
+        
+        container,
+        elem,
 
-        log;
+        log, i = 0;
 
     _gl.shaderSource(shader, shader_code);
     _gl.compileShader(shader);
 
     if (!_gl.getShaderParameter(shader, _gl.COMPILE_STATUS)) {
         log = _gl.getShaderInfoLog(shader);
-
-        _fail("Failed to compile shader: " + log);
         
-        _parseCompileOutput(log);
+        parse_result = _parseCompileOutput(log);
+        
+        container = document.createElement("div");
+        
+        container.innerHTML = '<span class="fs-shader-error-header">Compilation errors</span>\n';
+        
+        for (i = 0; i < parse_result.length; i += 1) {
+            elem = document.createElement("span");
+            elem.classList.add("fs-shader-error");
+            elem.innerHTML = "  <strong>" + parse_result[i].line + "</strong>: " + parse_result[i].msg + "\n";
+            // TODO
+            //elem.addEventListener("click", setCursorCb({ start: { line: parse_result[i].line, column: 0 }}));
+            container.appendChild(elem);
+        }
+        
+        _fail(container);
+            
 
         _gl.deleteShader(shader);
 
@@ -19904,28 +19930,28 @@ var _createChannelSettingsDialog = function (input_channel_id) {
                 fragment_input_channel.texture = new_texture;
             }
 
-            _dbUpdateInput(input_channel_id, fragment_input_channel.db_obj);
+            _dbUpdateInput(_parseInt10(input_channel_id), fragment_input_channel.db_obj);
         });
 
     channel_filter_select.addEventListener("change", function () {
             _setTextureFilter(fragment_input_channel.texture, this.value);
         
             fragment_input_channel.db_obj.settings.f = this.value;
-            _dbUpdateInput(input_channel_id, fragment_input_channel.db_obj);
+            _dbUpdateInput(_parseInt10(input_channel_id), fragment_input_channel.db_obj);
         });
     
     channel_wrap_s_select.addEventListener("change", function () {
             _setTextureWrapS(fragment_input_channel.texture, this.value);
         
             fragment_input_channel.db_obj.settings.wrap.s = this.value;
-            _dbUpdateInput(input_channel_id, fragment_input_channel.db_obj);
+            _dbUpdateInput(_parseInt10(input_channel_id), fragment_input_channel.db_obj);
         });
     
     channel_wrap_t_select.addEventListener("change", function () {
             _setTextureWrapT(fragment_input_channel.texture, this.value);
         
             fragment_input_channel.db_obj.settings.wrap.t = this.value;
-            _dbUpdateInput(input_channel_id, fragment_input_channel.db_obj);
+            _dbUpdateInput(_parseInt10(input_channel_id), fragment_input_channel.db_obj);
         });
     
     channel_settings_dialog = WUI_Dialog.create(dialog_element.id, {
@@ -20108,10 +20134,10 @@ var _removeInputChannel = function (input_id) {
     _fragment_input_data.splice(input_id, 1);
 
     _sortInputs();
-
+    
     _compile();
     
-    _dbRemoveInput(input_id);
+    _dbRemoveInput(_parseInt10(input_id));
 };
 
 var _createInputThumb = function (input_id, image, thumb_title, src) {
@@ -20187,8 +20213,8 @@ var _createInputThumb = function (input_id, image, thumb_title, src) {
         src_input_data = _fragment_input_data[src_input_id];
         
         // db update
-        _dbUpdateInput(dst_input_id, dst_input_data.db_obj);
-        _dbUpdateInput(src_input_id, src_input_data.db_obj);
+        _dbUpdateInput(_parseInt10(dst_input_id), dst_input_data.db_obj);
+        _dbUpdateInput(_parseInt10(src_input_id), src_input_data.db_obj);
         //
 
         e.target.style = "";
@@ -20692,6 +20718,8 @@ var _parseCompileOutput = function (output) {
         msg_icon,
 
         line = 0,
+        
+        result = [],
 
         m;
 
@@ -20713,9 +20741,13 @@ var _parseCompileOutput = function (output) {
         if (_gl2) {
             line = line - 1;
         }
+        
+        result.push({ line: m[1] - 1, msg: m[2]});
 
         _codemirror_line_widgets.push(_code_editor.addLineWidget(line - 1, msg_container, { coverGutter: false, noHScroll: true }));
     }
+    
+    return result;
 };
 
 var _updateCodeView = function () {
@@ -21942,7 +21974,7 @@ var _uiInit = function () {
         });
     
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
-            title: "Import image, audio, webcam, canvas",
+            title: "Import dialog (images, audio etc.)",
 
             width: "380px",
             height: "494px",

@@ -6,7 +6,7 @@
     
     This show notification messages in corners of the score area,
     generic notifications can be stacked and a duration can be set,
-    fail notification is used for notifications that should not disapear and should be solved (aka, GLSL compilation failed),
+    fail notification is used for notifications that should not disappear and should be solved (aka, GLSL compilation failed),
     fail notification is always shown in the left corner, if a generic notification is shown at the same time, it will go to the right corner,
     there is also the utter fail notification which is just used for critical, app. breaking stuff...
 */
@@ -24,7 +24,16 @@ var _utter_fail_element = document.getElementById("fs_utter_fail"),
 ************************************************************/
 
 var _fail = function (message, utter) {
-    _fail_element.innerHTML = message;
+    if (message instanceof Element) {
+        _fail_element.innerHTML = "";
+        _fail_element.appendChild(message);
+        
+        if (_notification_element.innerHTML !== "") {
+            _notification_element.classList.add("fs-text-align-right");
+        }
+    } else {
+        _fail_element.innerHTML = message;
+    }
     
     if (utter) {
         document.body.innerHTML = "";
@@ -33,8 +42,6 @@ var _fail = function (message, utter) {
         
         document.body.appendChild(_utter_fail_element);
     }
-    
-    //console.log(message);
 };
 
 var _utterFailRemove = function () {

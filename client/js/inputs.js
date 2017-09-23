@@ -228,28 +228,28 @@ var _createChannelSettingsDialog = function (input_channel_id) {
                 fragment_input_channel.texture = new_texture;
             }
 
-            _dbUpdateInput(input_channel_id, fragment_input_channel.db_obj);
+            _dbUpdateInput(_parseInt10(input_channel_id), fragment_input_channel.db_obj);
         });
 
     channel_filter_select.addEventListener("change", function () {
             _setTextureFilter(fragment_input_channel.texture, this.value);
         
             fragment_input_channel.db_obj.settings.f = this.value;
-            _dbUpdateInput(input_channel_id, fragment_input_channel.db_obj);
+            _dbUpdateInput(_parseInt10(input_channel_id), fragment_input_channel.db_obj);
         });
     
     channel_wrap_s_select.addEventListener("change", function () {
             _setTextureWrapS(fragment_input_channel.texture, this.value);
         
             fragment_input_channel.db_obj.settings.wrap.s = this.value;
-            _dbUpdateInput(input_channel_id, fragment_input_channel.db_obj);
+            _dbUpdateInput(_parseInt10(input_channel_id), fragment_input_channel.db_obj);
         });
     
     channel_wrap_t_select.addEventListener("change", function () {
             _setTextureWrapT(fragment_input_channel.texture, this.value);
         
             fragment_input_channel.db_obj.settings.wrap.t = this.value;
-            _dbUpdateInput(input_channel_id, fragment_input_channel.db_obj);
+            _dbUpdateInput(_parseInt10(input_channel_id), fragment_input_channel.db_obj);
         });
     
     channel_settings_dialog = WUI_Dialog.create(dialog_element.id, {
@@ -432,10 +432,10 @@ var _removeInputChannel = function (input_id) {
     _fragment_input_data.splice(input_id, 1);
 
     _sortInputs();
-
+    
     _compile();
     
-    _dbRemoveInput(input_id);
+    _dbRemoveInput(_parseInt10(input_id));
 };
 
 var _createInputThumb = function (input_id, image, thumb_title, src) {
@@ -511,8 +511,8 @@ var _createInputThumb = function (input_id, image, thumb_title, src) {
         src_input_data = _fragment_input_data[src_input_id];
         
         // db update
-        _dbUpdateInput(dst_input_id, dst_input_data.db_obj);
-        _dbUpdateInput(src_input_id, src_input_data.db_obj);
+        _dbUpdateInput(_parseInt10(dst_input_id), dst_input_data.db_obj);
+        _dbUpdateInput(_parseInt10(src_input_id), src_input_data.db_obj);
         //
 
         e.target.style = "";

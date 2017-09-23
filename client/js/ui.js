@@ -1059,7 +1059,7 @@ var _uiInit = function () {
         });
     
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
-            title: "Import image, audio, webcam, canvas",
+            title: "Import dialog (images, audio etc.)",
 
             width: "380px",
             height: "494px",

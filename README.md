@@ -121,6 +121,10 @@ Channels based parameters :
   - trapezoidal
   - blackman
   - blackman harris
+  - parzen
+  - nutall
+  - flattop
+  - kaiser
 - Minimum grain length
 - Maximum grain length
 
@@ -129,7 +133,7 @@ Dynamics parameters
 - Red = Left amplitude
 - Green = Right amplitude
 - Blue = Grain sample (index), between [0,1], grain density if >= 2
-- Alpha = Grain index, play grain backward if negative
+- Alpha = Grain index, between [0,1], play grain backward if negative, grain index randomization if >= 2
 
 #### Sampler ([FAS](https://github.com/grz0zrg/fas) only)
 

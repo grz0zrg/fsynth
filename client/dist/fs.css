@@ -1364,6 +1364,10 @@ canvas {
     z-index: 4;
     
     opacity: 1;
+    
+    font-size: 13px;
+    
+    line-height: 15px;
 }
 
 .fs-haxis-infos {
@@ -2185,4 +2189,14 @@ canvas {
 .fs-about-footer {
     text-align: center;
     font-size: 15px;
+}
+
+.fs-shader-error-header {
+    font-size: 16px;
+    line-height: 18px;
+}
+
+.fs-shader-error {
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 2px;
 }

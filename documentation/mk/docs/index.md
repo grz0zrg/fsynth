@@ -4,7 +4,7 @@
 
 Fragment has a progressive learning curve, anyone can start to experiment with sounds and visuals really quickly.
 
-Fragment has many features making it a bliss to produce any kind of sounds which can be associated with visuals, it is aimed at artists seeking a creative environment with few limitations to experiment with, a programmable noise-of-all-kinds software.
+Fragment has many features making it a bliss to produce any kind of sounds which can be associated with visuals, it is aimed at artists seeking a creative environment with few limitations to experiment with, a programmable noise-of-all-kinds software, Fragment potential is almost boundless.
 
 Many videos of most features are available on [the official YouTube channel](https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ)
 
@@ -14,7 +14,7 @@ The old single page documentation (still updated to some extent) is available [h
 
 The PDF documentation can be found [here](https://www.fsynth.com/pdf/fragment_documentation.pdf)
 
-All software is free of charge, and distributed according to free software/open source principles and licenses.*
+*All software is free of charge, and distributed according to free software/open source principles and licenses.*
 
 ## Requirement
 

@@ -47,18 +47,37 @@ var _createAndLinkProgram = function (vertex_shader, fragment_shader) {
 
 var _createShader = function (shader_type, shader_code) {
     var shader = _gl.createShader(shader_type),
+        
+        parse_result,
+        
+        container,
+        elem,
 
-        log;
+        log, i = 0;
 
     _gl.shaderSource(shader, shader_code);
     _gl.compileShader(shader);
 
     if (!_gl.getShaderParameter(shader, _gl.COMPILE_STATUS)) {
         log = _gl.getShaderInfoLog(shader);
-
-        _fail("Failed to compile shader: " + log);
         
-        _parseCompileOutput(log);
+        parse_result = _parseCompileOutput(log);
+        
+        container = document.createElement("div");
+        
+        container.innerHTML = '<span class="fs-shader-error-header">Compilation errors</span>\n';
+        
+        for (i = 0; i < parse_result.length; i += 1) {
+            elem = document.createElement("span");
+            elem.classList.add("fs-shader-error");
+            elem.innerHTML = "  <strong>" + parse_result[i].line + "</strong>: " + parse_result[i].msg + "\n";
+            // TODO
+            //elem.addEventListener("click", setCursorCb({ start: { line: parse_result[i].line, column: 0 }}));
+            container.appendChild(elem);
+        }
+        
+        _fail(container);
+            
 
         _gl.deleteShader(shader);
 

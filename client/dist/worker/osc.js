@@ -3395,7 +3395,7 @@ var _getNoteBundle = function (i, j, c, l, r, b, a, base_freq, octave_len) {
                 type: "f",
                 value: r
             },
-            // osc alpha value
+            // osc blue value
             {
                 type: "f",
                 value: b
