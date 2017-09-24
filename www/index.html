@@ -114,10 +114,10 @@
                         <p class="value-description">
                         </p>
                         <p class="fp-join-session-text value-description fp-center-text">
-                            Web-based spectral synthesizer and live coding environment.
+                            Web-based audiovisual live coding environment
                         </p>
                         <p class="fp-join-session-heading value-description fp-center-text">
-                            Join a session and start to experiment!
+                            Join a session below and start to experiment!
                         </p>
                         <div class="fp-session-form">
                             <div class="row">
@@ -164,15 +164,15 @@
                             About
                         </h5>
                         <hr/>
-                        <p class="fp-margin fp-justify value-description">
-                            Fragment is a fully featured additive/spectral synthesizer and live coding platform with an unique approach.
+                        <div class="fp-margin fp-justify value-description">
+                            Fragment is a collaborative cross-platform audiovisual live coding environment with pixels based <strong>real-time image-synth approach to sound synthesis</strong>, the sound synthesis is powered by pixels data produced on the graphics card by live GLSL code, everything is based on pixels! 
                             <br/><br/>
-                            Fragment add sine waves to produce sounds from vertical slices containing the pixels data of a graphical canvas, each horizontal lines of the canvas is associated with a pure sine wave generator, the sine wave frequency is determined by the pixel position on the vertical axis, all the vertical slices are then "fed" to the synthesis engine which translate the pixels data to audio data, the pixels data value (red and green channel) determine the amplitude of the associated sine wave for each audio channels (it is stereophonic) and the vertical position of the pixel determine which sine wave generator is active, the synthesizer is mainly controlled by the visuals generated from the GLSL script.
+                            Fragment is able to produce high-quality fast <strong>simultaneous additive</strong> and <strong>granular synthesis</strong> with <strong>re-synthesis support</strong>, it has many features making it a bliss to produce <strong>any kind of sounds or visuals</strong> and is aimed at artists seeking a creative environment with few limitations to experiment with, a programmable noise-of-all-kinds software.
                             <br/><br/>
-                            This synthesizer support the WebMIDI API which is only supported by <i class="fa fa-chrome" aria-hidden="true"></i> <strong>Chrome</strong> and <i class="fa fa-opera" aria-hidden="true"></i> <strong>Opera</strong> browser at the moment.
+                            Many videos of most features are available on the <a href="https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ">official YouTube channel</a>
                             <br/><br/>
                             If you have any questions or require help, a <a href="https://www.fsynth.com/documentation">documentation</a> and a <a href="https://quiet.fsynth.com">discussion board</a> is available.
-                        </p>
+                        </div>
                     </div>
                 </div>
                 <div id="features" class="fp-anchor row">
@@ -184,7 +184,7 @@
                         <div class="fp-margin fp-justify value-description">
                             <ul class="fp-features">
                                 <li>
-                                    Powerful additive synthesizer powered by WebAudio oscillators, a wavetable OR a native program written in C (fastest)
+                                    Complete additive, spectral, granular synthesizer powered by WebAudio oscillators, a wavetable OR Fragment Audio Server
                                 </li>
                                 <li>
                                     Complete audio/visuals live coding environment with JIT compilation of shader code
@@ -205,10 +205,16 @@
                                     32-bit float images data (WebGL 2 only)
                                 </li>
                                 <li>
-                                    Multiple audio output channels per slice
+                                    Multi-output channels per slice
                                 </li>
                                 <li>
-                                    Shader inputs (webcam, images, audio files (resynthesis)...)
+                                    Shader inputs (webcam, images, videos with audio analysis, audio files analysis...)
+                                </li>
+                                <li>
+                                    MIDI in
+                                </li>
+                                <li>
+                                    OSC in/out
                                 </li>
                                 <li>
                                     Spectral recording with export and re-import as a texture
@@ -220,58 +226,7 @@
                                     Per-sessions discussion system
                                 </li>
                                 <li>
-                                    Sessions based (no authentifications needed)
-                                </li>
-                                <li>
-                                    Smart automatic settings save/load
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="fp-anchor row">
-                    <div class="column value">
-                        <h5 class="value-heading">
-                            MIDI Features
-                        </h5>
-                        <hr/>
-                        <div class="fp-margin fp-justify value-description">
-                            <ul class="fp-features">
-                                <li>
-                                    Integrated MIDI support for notes with related MIDI data access in the fragment shader
-                                </li>
-                                <li>
-                                    Hot plugging of MIDI input devices
-                                </li>
-                                <li>
-                                    MIDI enabled widgets with MIDI learn feature
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="fp-anchor row">
-                    <div class="column value">
-                        <h5 class="value-heading">
-                            Requirements
-                        </h5>
-                        <hr/>
-                        <div class="fp-margin fp-justify value-description">
-                            <ul class="fp-requirements">
-                                <li>
-                                    Browser such as Chrome, Opera, Safari or Firefox for the web app. (WebMIDI is not supported by Firefox)
-                                </li>
-                                <li>
-                                    Medium-end GPU (Graphics Processing Unit), it was made with a NVIDIA GeForce GTX 970
-                                </li>
-                                <li>
-                                    Medium-end multi-core CPU
-                                </li>
-                                <li>
-                                    A MIDI device such as a MIDI keyboard/controller is recommended
-                                </li>
-                                <li>
-                                    Some friends to design sounds with!
+                                    Sessions based, without authentifications
                                 </li>
                             </ul>
                         </div>
@@ -280,15 +235,13 @@
                 <div id="downloads" class="fp-anchor row">
                     <div class="column value">
                         <h5 class="value-heading">
-                            Crackling audio ? There is a solution!
+                            Download
                         </h5>
                         <hr/>
                         <p class="fp-margin fp-justify value-description">
-                            Fragment use the Web Audio API, it need a fast CPU for the audio synthesis and a fast GPU for the visuals, unwanted crackles may happen.
+                            The Fragment launcher is an easy to use tool to launch the web. application with maximum audio synthesis performance.
                         </p>
-                        <p class="fp-margin fp-justify value-description">
-                            As a solution for slow CPU, a fast native application is available which is essentially a C port of the synthesis engine, it receive pixels data from the application on localhost port 3003, once executed you can enable the native audio option (the waveform icon) from the web application to enjoy a smooth crackle-free audio experience and many other neat features like audio device choice and multiple audio output, the application can be downloaded as a statically linked binary for these platforms :
-                        </p>
+
                         <table class="fp-dl-table u-full-width">
                             <thead>
                                 <tr>
@@ -307,7 +260,7 @@
                                     </td>
                                     <td class="fp-download">
                                         <a href="dl/fas-win32.zip">
-                                            <!--<i class="fa fa-download" aria-hidden="true"></i>-->Soon...
+                                            <i class="fa fa-download" aria-hidden="true"></i>
                                         </a>
                                     </td>
                                 </tr>
@@ -341,19 +294,37 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <p class="value-description u-pull-left fp-small-text">
-                            Advanced usage from command-line : fas --h
-                        </p>
-                        <p class="value-description u-pull-right">
-                            Sources are available on <a href="https://github.com/grz0zrg/fas">Github</a>.
-                        </p>
+                    </div>
+                </div>
+                <div class="fp-anchor row">
+                    <div class="column value">
+                        <h5 class="value-heading">
+                            Requirements
+                        </h5>
+                        <hr/>
+                        <div class="fp-margin fp-justify value-description">
+                            <ul class="fp-requirements">
+                                <li>
+                                    Web. browser such as Chromium (recommended), Opera, Safari or Firefox (MIDI is not supported by Firefox at the moment)
+                                </li>
+                                <li>
+                                    Mid-range GPU, Fragment was made and regularly used with a GeForce GTX 970
+                                </li>
+                                <li>
+                                    Mid-range multi-core CPU, a beefy CPU may be needed for advanced features
+                                </li>
+                                <li>
+                                    A MIDI device such as a MIDI keyboard/controller is recommended
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="section categories">
             <div class="container">
-                <h3 class="section-heading">Experiment, Share, Collaborate</h3>
+                <h3 class="section-heading">Real-time programmable audio and visuals environment</h3>
                 <div style="height: 120px"></div>
             </div>
         </div>
@@ -362,7 +333,6 @@
                 <div class="row">
                     <a href="https://github.com/grz0zrg/fsynth" style="font-size: 24px;"><i class="fa fa-github-alt" aria-hidden="true"></i></a>
                     <br/><br/>
-a   
                     Fragment © 2016 - 2017
                     <br/>
                     Made with <span style="color: #ff0000"><i class="fa fa-heart" aria-hidden="true"></i></span> by <a href="https://github.com/grz0zrg">Julien Verneuil</a>

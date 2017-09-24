@@ -25,6 +25,27 @@ void main () {
 }
 ```
 
+## Pre-defined uniforms
+
+Fragment has many pre-defined uniforms which can be used to access different informations.
+
+Here is a list of Fragment pre-defined uniforms
+
+- `vec2 resolution` viewport resolution (in pixels)
+- `float globalTime` playback time (in seconds)
+- `float baseFrequency`score base frequency
+- `float octave`score octave range
+- `vec4 mouse`normalized mouse pixel coords.
+- `vec4 date`year, month, day, time in seconds
+- `sampler2D iInputN`Imported data access, typical usage : texture2D(iInput0, uv);
+- `sampler2D pFrame` The previous frame available as a texture
+- `sampler2D pFrameSynth`The previous synth frame available as a texture (WebGL 2)
+- `int frame` The current frame
+- `float htoy` take a frequency as argument and return its vertical position on the canvas (in pixels units)
+- `float fline` take a frequency as argument and return either 1 or 0 (shortcut to draw a horizontal line)
+- `vec4[N] keyboard`MIDI note-on/note-off events : frequency, velocity, elapsed time since the key was pressed, MIDI channel
+- `vec3[N] pKey`store the previous note-off for each channels, frequency, velocity, elapsed time since the key was pressed
+
 ### Reference cards
 
 The Khronos Group (authors of the language specification) released several reference cards of the GLSL specification, the reference cards are compact reference of the full language specification which can be used in conjunctions with code samples to learn the OpenGL Shading Language quickly.

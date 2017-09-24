@@ -19804,8 +19804,8 @@ var _createChannelSettingsDialog = function (input_channel_id) {
                     value_min_width: 88,
 
                     on_change: function (v) {
-                        fragment_input_channel.video_elem.playbackRate = v;
-                        fragment_input_channel.playrate = v;
+                        fragment_input_channel.video_elem.playbackRate = _parseInt10(v);
+                        fragment_input_channel.playrate = _parseInt10(v);
                     }
                 });
         
@@ -19832,8 +19832,8 @@ var _createChannelSettingsDialog = function (input_channel_id) {
                     value_min_width: 88,
 
                     on_change: function (v) {
-                        fragment_input_channel.videostart = v;
-                        fragment_input_channel.video_elem.currentTime = v;
+                        fragment_input_channel.videostart = _parseInt10(v);
+                        fragment_input_channel.video_elem.currentTime = _parseInt10(v);
                     }
                 });
         
@@ -19860,7 +19860,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
                     value_min_width: 88,
 
                     on_change: function (v) {
-                        fragment_input_channel.videoend = v;
+                        fragment_input_channel.videoend = _parseInt10(v);
                     }
                 });
         
@@ -20397,19 +20397,19 @@ var _addVideoEvents = function (video_element, input) {
                 if (this.currentTime < video_start_pos) {
                     video_element.playbackRate = input.playrate;
                     this.currentTime = video_start_pos;
-                    //this.play();
+                    this.play();
                 } else if (this.currentTime > video_end_pos) {
                     video_element.playbackRate = -input.playrate;
                     this.currentTime = video_end_pos;
-                    //this.play();
+                    this.play();
                 }
             } else {
                 if (this.currentTime < video_start_pos) {
                     this.currentTime = video_end_pos;
-                    //this.play();
+                    this.play();
                 } else if (this.currentTime >= video_end_pos) {
                     this.currentTime = video_start_pos;
-                    //this.play();
+                    this.play();
                 }
             }
         }
@@ -20540,8 +20540,8 @@ var _addFragmentInput = function (type, input, settings) {
             
             data = _create2DTexture(video_element, false, false);
 
-            _setTextureWrapS(data.texture, "clamp");
-            _setTextureWrapT(data.texture, "clamp");
+            _setTextureWrapS(data.texture, "repeat");
+            _setTextureWrapT(data.texture, "repeat");
             
             _flipYTexture(data.texture, true);
 
@@ -21124,7 +21124,7 @@ var _createFasSettingsContent = function () {
         chn_settings_div.innerHTML = "Chn " + (j + 1);
         
         chn_synthesis_select.appendChild(additive_option);
-        chn_synthesis_select.appendChild(spectral_option);
+        //chn_synthesis_select.appendChild(spectral_option);
         chn_synthesis_select.appendChild(granular_option);
         chn_synthesis_select.appendChild(sampler_option);
         
@@ -21136,7 +21136,7 @@ var _createFasSettingsContent = function () {
             if (chn_settings[0] === 0) {
                 additive_option.selected = true;
             } else if (chn_settings[0] === 1) {
-                spectral_option.selected = true;
+                //spectral_option.selected = true;
             } else if (chn_settings[0] === 2) {
                 granular_option.selected = true;
             } else if (chn_settings[0] === 3) {
@@ -21227,8 +21227,8 @@ var _createFasSettingsContent = function () {
 
             bar: false,
 
-            step: 0.01,
-            scroll_step: 0.001,
+            step: 0.0001,
+            scroll_step: 0.01,
 
             default_value: gmin,
             value: gmin,
@@ -21252,8 +21252,8 @@ var _createFasSettingsContent = function () {
 
             bar: false,
 
-            step: 0.01,
-            scroll_step: 0.001,
+            step: 0.0001,
+            scroll_step: 0.01,
 
             default_value: gmax,
             value: gmax,
@@ -21974,7 +21974,7 @@ var _uiInit = function () {
         });
     
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
-            title: "Import dialog (images, audio etc.)",
+            title: "Import dialog (images etc.)",
 
             width: "380px",
             height: "494px",

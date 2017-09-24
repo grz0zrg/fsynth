@@ -543,7 +543,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                         <div>
                             <div>
                                 <div class="fs-documentation">
-                                    Pre-defined shader inputs (uniforms)
+                                    Pre-defined uniforms (click on a keyword to copy)
                                     <ul class="fs-documentation-entries">
                                         <li>
                                             vec2 <span class="fs-documentation-keyword" data-clipboard-text="resolution">resolution</span> :
@@ -671,7 +671,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                         </div>
                         <div>
                             <div class="fs-documentation">
-                                GLSL snippets
+                                GLSL snippets (click to copy)
                                 <ul class="fs-documentation-entries">
                                     <li>
                                         <span class="fs-documentation-keyword" data-clipboard-text="const float a[2] = float[2](0., 0.);">float array initializer</span>
@@ -682,11 +682,29 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                                     <li>
                                         <span class="fs-documentation-keyword" data-clipboard-text="vec4 t = texture(iInput, vec2(uv.x, uv.y));">2D texture</span>
                                     </li>
+                                    <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="highp float rand(vec2 co) {&#010;highp float a = 12.9898;&#010;highp float b = 78.233;&#010;highp float c = 43758.5453;&#010;highp float dt= dot(co.xy ,vec2(a,b));&#010;highp float sn= mod(dt,3.14);&#010;return fract(sin(sn) * c);&#010;}">rand</span>
+                                    </li>
                                 </ul>
-                                Fragment snippets
+                                Fragment snippets (click to copy)
                                 <ul class="fs-documentation-entries">
                                     <li>
                                         <span class="fs-documentation-keyword" data-clipboard-text="vec3 pdata = pKey[int(kchn)];&#010;kfrq = mix(pdata.x, kfrq, min(ktim * 28., 1.));">portamento (MIDI keyboard)</span>
+                                    </li>
+                                    <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="float adsr(float t, vec4 v, float s) {&#010;v.xyw = max(vec3(2.2e-05), v.xyw);&#010;float ta = t/v.x;&#010;float td = max(s, 1.0-(t-v.x)*(1.0-s)/v.y);&#010;float tr = (1.0 - max(0.0,t-(v.x+v.y+v.z))/v.w);&#010;return max(0.0, min(ta, tr*td));&#010;}">ADSR function</span>
+                                    </li>
+                                    <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="float lpf(float x, float c, float s) {&#010;return .5 + .5 *(atan(s*cos(3.141592653 * min(max((x-c) * s,0.),1.)))/atan(s));&#010;}">LPF (low-pass filter)</span>
+                                    </li>
+                                    <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="float hpf(float x, float c, float s) {&#010;return lpf(1. - x, 1. - c, s); &#010;}">HPF (high-pass filter, require LPF)</span>
+                                    </li>
+                                    <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="float bpf(float x, float c, float s) {&#010;return lpf(x, c, s) * hpf(x, c, s);&#010;}">BPF (band-pass filter, require LPF and HPF)</span>
+                                    </li>
+                                    <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="for (int k = 0; k < 8; k += 1) {&#010;vec4 data = keyboard[k];&#010;&#010;float kfrq = data.x;&#010;float kvel = data.y;&#010;float ktim = data.z;&#010;float kchn = data.w;&#010;&#010;if (kfrq == 0.) {&#010;break;&#010;}&#010;&#010;if (uv.x < 0.25 && kchn == 1.) {&#010;&#010;} else if (uv.x > 0.25 && uv.x < 0.5 && kchn == 2.) {&#010;&#010;}">2 channels MIDI/Multitimbrality</span>
                                     </li>
                                 </ul>
                             </div>

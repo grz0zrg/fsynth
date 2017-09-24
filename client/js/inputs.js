@@ -102,8 +102,8 @@ var _createChannelSettingsDialog = function (input_channel_id) {
                     value_min_width: 88,
 
                     on_change: function (v) {
-                        fragment_input_channel.video_elem.playbackRate = v;
-                        fragment_input_channel.playrate = v;
+                        fragment_input_channel.video_elem.playbackRate = _parseInt10(v);
+                        fragment_input_channel.playrate = _parseInt10(v);
                     }
                 });
         
@@ -130,8 +130,8 @@ var _createChannelSettingsDialog = function (input_channel_id) {
                     value_min_width: 88,
 
                     on_change: function (v) {
-                        fragment_input_channel.videostart = v;
-                        fragment_input_channel.video_elem.currentTime = v;
+                        fragment_input_channel.videostart = _parseInt10(v);
+                        fragment_input_channel.video_elem.currentTime = _parseInt10(v);
                     }
                 });
         
@@ -158,7 +158,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
                     value_min_width: 88,
 
                     on_change: function (v) {
-                        fragment_input_channel.videoend = v;
+                        fragment_input_channel.videoend = _parseInt10(v);
                     }
                 });
         
@@ -695,19 +695,19 @@ var _addVideoEvents = function (video_element, input) {
                 if (this.currentTime < video_start_pos) {
                     video_element.playbackRate = input.playrate;
                     this.currentTime = video_start_pos;
-                    //this.play();
+                    this.play();
                 } else if (this.currentTime > video_end_pos) {
                     video_element.playbackRate = -input.playrate;
                     this.currentTime = video_end_pos;
-                    //this.play();
+                    this.play();
                 }
             } else {
                 if (this.currentTime < video_start_pos) {
                     this.currentTime = video_end_pos;
-                    //this.play();
+                    this.play();
                 } else if (this.currentTime >= video_end_pos) {
                     this.currentTime = video_start_pos;
-                    //this.play();
+                    this.play();
                 }
             }
         }
@@ -838,8 +838,8 @@ var _addFragmentInput = function (type, input, settings) {
             
             data = _create2DTexture(video_element, false, false);
 
-            _setTextureWrapS(data.texture, "clamp");
-            _setTextureWrapT(data.texture, "clamp");
+            _setTextureWrapS(data.texture, "repeat");
+            _setTextureWrapT(data.texture, "repeat");
             
             _flipYTexture(data.texture, true);
 

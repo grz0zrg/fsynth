@@ -16,18 +16,24 @@ Fragment accept OSC inputs from *127.0.0.1:8081*
 
 The supported OSC address are
 
-- */clear* Clear all defined uniforms
-- */video* An array which control a video settings
-  - input id (must be a video)
-  - playback rate
-  - video loop start
-  - video loop end
-  - video current time (seek)
-- */i[uniformname]* Create/extend a **float** uniform **array** or update a specific index
-  - index
-  - value
-- */a[uniformname]* Create or update a **float** uniform **array**
-  - an array of values
+`/clear` Clear all OSC defined uniforms
+
+`/video` An array which control a video settings
+
+- input id (must be a video)
+- playback rate
+- video loop start
+- video loop end
+- video current time (seek)
+
+`/i[uniformname]` Create/extend a **float** uniform **array** or update a specific index
+
+- index
+- value
+
+`/a[uniformname]` Create or update a **float** uniform **array**
+
+- an array of values
 
 This feature is useful to send data to the fragment shader from an external application and control videos, it act as an alternative and powerful controller.
 

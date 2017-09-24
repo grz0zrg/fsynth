@@ -47,8 +47,8 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
 ## Requirement
 
 - Recent web browser such as Chrome, Opera, Safari or Firefox (MIDI is not supported by Firefox at the moment)
-- Recent medium GPU, this app. was made and tested with a GeForce GTX 970
-- Recent medium multi-core CPU (a dual core should be ok with the FAS, a beefy CPU is needed if you use more than one output channel)
+- Mid-range GPU, this app. was made and tested with a GeForce GTX 970
+- Mid-range multi-core CPU (a dual core should be ok with the FAS, a beefy CPU is needed if you use more than one output channel)
 - Not necessary but a MIDI device such as a MIDI keyboard is recommended
 
 **Note on performances :** Fragment has excellent performances with a modern multi-core system and a browser such as Chrome, if you experience crackles or need advanced audio features, it is recommended that you use the external synthesis program (FAS) and the independent code editor, the things that may cause poor performances is generally due to the browser reflow (UI side)

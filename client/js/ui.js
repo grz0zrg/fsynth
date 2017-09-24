@@ -209,7 +209,7 @@ var _createFasSettingsContent = function () {
         chn_settings_div.innerHTML = "Chn " + (j + 1);
         
         chn_synthesis_select.appendChild(additive_option);
-        chn_synthesis_select.appendChild(spectral_option);
+        //chn_synthesis_select.appendChild(spectral_option);
         chn_synthesis_select.appendChild(granular_option);
         chn_synthesis_select.appendChild(sampler_option);
         
@@ -221,7 +221,7 @@ var _createFasSettingsContent = function () {
             if (chn_settings[0] === 0) {
                 additive_option.selected = true;
             } else if (chn_settings[0] === 1) {
-                spectral_option.selected = true;
+                //spectral_option.selected = true;
             } else if (chn_settings[0] === 2) {
                 granular_option.selected = true;
             } else if (chn_settings[0] === 3) {
@@ -312,8 +312,8 @@ var _createFasSettingsContent = function () {
 
             bar: false,
 
-            step: 0.01,
-            scroll_step: 0.001,
+            step: 0.0001,
+            scroll_step: 0.01,
 
             default_value: gmin,
             value: gmin,
@@ -337,8 +337,8 @@ var _createFasSettingsContent = function () {
 
             bar: false,
 
-            step: 0.01,
-            scroll_step: 0.001,
+            step: 0.0001,
+            scroll_step: 0.01,
 
             default_value: gmax,
             value: gmax,
@@ -1059,7 +1059,7 @@ var _uiInit = function () {
         });
     
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
-            title: "Import dialog (images, audio etc.)",
+            title: "Import dialog (images etc.)",
 
             width: "380px",
             height: "494px",
