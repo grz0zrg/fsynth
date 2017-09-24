@@ -6,7 +6,7 @@ Fragment is heavily inspired by [Shadertoy](https://www.shadertoy.com/) as well.
 
 ## Testing
 
-- Frang Khrum
+- Franz Khrum
 
 ## Papers
 
