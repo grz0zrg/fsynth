@@ -1,0 +1,10 @@
+{
+    "name": "fs-fas-relay",
+    "version": "1.0.0",
+    "description": "Fragment Audio Server Relay",
+    "dependencies": {
+        "winston": "~0.8.0",
+        "minimist": "1.2.0",
+        "ws": "3.2.0"
+    }
+}

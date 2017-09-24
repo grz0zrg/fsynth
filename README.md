@@ -51,13 +51,16 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
 - Mid-range multi-core CPU (a dual core should be ok with the FAS, a beefy CPU is needed if you use more than one output channel)
 - Not necessary but a MIDI device such as a MIDI keyboard is recommended
 
-**Note on performances :** Fragment has excellent performances with a modern multi-core system and a browser such as Chrome, if you experience crackles or need advanced audio features, it is recommended that you use the external synthesis program (FAS) and the independent code editor, the things that may cause poor performances is generally due to the browser reflow (UI side)
+**Note on performances :** Fragment has excellent performances with a modern multi-core system and a browser such as Chrome, if you experience crackles or need advanced audio features, it is recommended that you use the sound server and the independent code editor, the things that may cause poor performances is generally due to the browser reflow (UI side)
+
+Fragment is able to do real-time distributed sound synthesis with the sound server for the more demanding, it support any number of machines over the wire and multicore support, this feature also need the fas_relay to work (see below)
 
 ## Features
 
 - Complete additive, spectral, granular synthesizer powered by WebAudio oscillators (work best in Chrome), a Wavetable (slow) OR a [C native audio server](https://github.com/grz0zrg/fas) (fastest)
 - Live coding/JIT compilation of shader code
 - Real-time, collaborative app.
+- Distributed sound synthesis, multi-machines/multi-core support (Fragment Audio Server with fas_relay)
 - Stereophonic or monaural
 - Polyphonic
 - Multitimbral
@@ -181,6 +184,7 @@ Many tools are available to enhance Fragment.
 - [Independent GLSL editor which can directly connect to the sharedb server](https://github.com/grz0zrg/fsynth/tree/master/editor) 
 - [Audio server which communicate via the WebSocket API](https://github.com/grz0zrg/fas)
 - [OSC relay](https://github.com/grz0zrg/fsynth/tree/master/osc_relay)
+- [FAS relay: Distributed multi-machines/multi-core realtime sound synthesis](https://github.com/grz0zrg/fsynth/tree/master/fas_relay)
 
 
 - [SuperCollider port of the additive synthesis engine (use OSC)](https://github.com/grz0zrg/fsynth/tree/master/supercollider)
@@ -206,6 +210,7 @@ Many tools are available to enhance Fragment.
  * fsdb - sharedb server (collaborative features)
  * fsws - web. server (only used for development or local installation)
  * osc_relay - an OSC relay which use the osc.js library (must be launched to use OSC features)
+ * fas_relay - distributed multi-machines/multi-core realtime sound synthesis
  * editor - external GLSL code editor
  * supercollider - the SuperCollider port of the additive synthesis engine (fed through OSC)
  * documentation - MAML (Minimalist Anubis Markup Language) with the latest HTML and PDF doc.
@@ -244,6 +249,10 @@ Fragment make use of NodeJS, NPM, MongoDB and Redis database, once those are ins
 
 - cd osc_relay & npm install & node osc_relay
 
+ To use the FAS relay :
+
+- cd fas_relay & npm install & node fas_relay
+
 ## Prod. system
 
  * *prod_files* contain a list of files and directories that will be copied to the production system
@@ -252,9 +261,9 @@ Fragment make use of NodeJS, NPM, MongoDB and Redis database, once those are ins
 
 ## The future
 
-Some more work involving parallelism and plenty of bugfix on the native FAS program need to be done, maybe a VST/LV2 plugin for accessibility and of course many new features are coming soon. ;)
+Maybe a VST/LV2 plugin for accessibility and of course many new features are coming soon. ;)
 
-A native app. will be done soon but with a totally different paradigm, it may be the "ultimate" image synth while being extremely simple technically and very flexible/accessible, it will also fix the main limitation of Fragment by allowing > 60 FPS capture (configurable so not limited to the display refresh rate...) which mean basically unlimited granularity as the hardware get faster.
+A native app. will be done soon but with a totally different paradigm, it may be extremely simple technically and very flexible/accessible, it will also fix the main limitation of Fragment by allowing > 60 FPS capture (configurable so not limited to the display refresh rate...) which mean basically unlimited granularity as the hardware get faster.
 
 ## Stuff used to make this
 

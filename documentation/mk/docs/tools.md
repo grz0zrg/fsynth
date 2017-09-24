@@ -34,6 +34,12 @@ The OSC relay need [NodeJS](https://nodejs.org/en/) and [NPM](https://www.npmjs.
 
 To use the OSC relay once NodeJS and NPM is installed, type `cd osc_relay & npm install & node osc_relay` in a terminal at the OSC relay root level directory
 
+## FAS relay
+
+Fragment support distributed sound synthesis on any machines or cores over the network
+
+The [FAS relay](https://github.com/grz0zrg/fsynth/tree/master/fas_relay) is a simple program which relay data from the client to all audio server instances specified at launch
+
 ## SuperCollider
 
 A limited portion of the additive synthesis engine has been ported to [SuperCollider](http://supercollider.github.io), it can be used by using the OSC relay and enabling OSC output.

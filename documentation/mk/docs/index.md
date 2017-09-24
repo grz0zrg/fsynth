@@ -30,3 +30,5 @@ Fragment has excellent performances with a modern multi-core system and a browse
 If you experience crackles or need advanced audio features, it is recommended that you use the audio server available as a download on the homepage.
 
 The audio server is able to provide fast sound synthesis, it also provide many settings such as audio device selection, sample rate settings etc.
+
+Moreover, the audio server is able to do distributed real-time audio synthesis on any machines or cores over the network by splitting the workload between servers instance, [fas_relay](https://github.com/grz0zrg/fsynth/tree/master/fas_relay) is needed to use this feature
