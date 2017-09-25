@@ -38,7 +38,22 @@ To use the OSC relay once NodeJS and NPM is installed, type `cd osc_relay & npm 
 
 Fragment support distributed sound synthesis on any machines or cores over the network
 
-The [FAS relay](https://github.com/grz0zrg/fsynth/tree/master/fas_relay) is a simple program which relay data from the client to all audio server instances specified at launch
+The [FAS relay](https://github.com/grz0zrg/fsynth/tree/master/fas_relay) is a program which relay data from the client to all audio server instances specified at launch, audio server instances can be remote or local (same compute = multi-core)
+
+Moreover, three type of distribution system can be chosen (the constant must be changed in the source-code at the moment)
+
+DSPLIT
+
+- Will split the data in equal blocks and distribute them over each audio server instances
+
+DINTER
+
+- Interleaved, this will distribute data over each servers in a linear & cyclical fashion
+
+DSMART
+
+- Distribute the data equally over all the audio servers, not in a linear fashion
+- The algorithm is rather unoptimized but may provide the best performances/distribution quality out of the three methods available
 
 ## SuperCollider
 

@@ -184,7 +184,7 @@ Many tools are available to enhance Fragment.
 - [Independent GLSL editor which can directly connect to the sharedb server](https://github.com/grz0zrg/fsynth/tree/master/editor) 
 - [Audio server which communicate via the WebSocket API](https://github.com/grz0zrg/fas)
 - [OSC relay](https://github.com/grz0zrg/fsynth/tree/master/osc_relay)
-- [FAS relay: Distributed multi-machines/multi-core realtime sound synthesis](https://github.com/grz0zrg/fsynth/tree/master/fas_relay)
+- [FAS relay: Distributed multi-machines/multi-core realtime sound synthesis with three distribution algorithm](https://github.com/grz0zrg/fsynth/tree/master/fas_relay)
 
 
 - [SuperCollider port of the additive synthesis engine (use OSC)](https://github.com/grz0zrg/fsynth/tree/master/supercollider)

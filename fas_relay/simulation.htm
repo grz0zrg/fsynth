@@ -1,0 +1,370 @@
+<html>
+    <meta charset="UTF-8">
+    <head>
+        <title>
+            FAS Relay distribution playground.
+        </title>
+        <style>
+            button {
+              margin-top: 4px;
+            }
+            .box {
+                width: 8px;
+                height: 8px;
+
+                display: inline-block;
+                background-color: #444444;
+                margin-left: 1px;
+                margin-top: 1px;
+            }
+
+            .red {
+                background-color: #ff0000;
+            }
+
+            .separator {
+                background-color: #000000;
+                width: 2px;
+                height: 16px;
+                margin-left: 8px;
+                margin-right: 8px;
+            }
+
+            .container {
+                width: 444px;
+                display: inline-block;
+                margin: 2px;
+                border: solid 1px #dddddd;
+                border-radius: 8px;
+                background-color: #fafafa;
+                padding: 8px;
+            }
+            .center {
+                text-align: center;
+            }
+            .header {
+                font-size: 18px;
+            }
+        </style>
+        <script type="text/javascript">
+            // parameters
+            var channels_in_frame = 2;
+            var fas_count = 2;
+            var height = 539;
+
+            var gen_frame_timeout;
+            var previous_frame;
+            var prei_arr;
+
+            function drawProcessDistribution (process, arr, where) {
+                var e2 = document.createElement("div");
+                e2.innerHTML = "Process " + (process + 1);
+                where.appendChild(e2);
+
+                for (j = 0; j < channels_in_frame; j += 1) {
+                    for (k = 0; k < (height * 4); k += 4) {
+                        var index = k + j * (height * 4);
+                        var e = document.createElement("div");
+
+                        e.className = "box";
+                        e.dataset.valueR = arr[index];
+                        e.dataset.valueL = arr[index + 1];
+
+                        if (arr[index] > 0 && arr[index + 1] > 0) {
+                            e.className = "box red";
+                        }
+
+                        where.appendChild(e);
+                    }
+
+                    where.appendChild(document.createElement("br"));
+                    where.appendChild(document.createElement("br"));
+                }
+            }
+
+            function drawMethods (frames, pframes) {
+                var i;
+                var data_length_per_fas = Math.round((height / fas_count) * 4);
+                var fi = 0;
+                var start = 0;
+                var end = 0;
+
+                document.body.innerHTML = "";
+
+                // create container to simulate each methods
+                var container1 = document.createElement("div");
+                container1.className = "container";
+                document.body.appendChild(container1);
+
+                var container2 = document.createElement("div");
+                container2.className = "container";
+                document.body.appendChild(container2);
+
+                var container3 = document.createElement("div");
+                container3.className = "container";
+                document.body.appendChild(container3);
+
+                // method infos
+                drawMethodHeader("DSPLIT", container1);
+
+                // DSPLIT method
+                for (i = 0; i < fas_count; i += 1) {
+                    var new_arr = new Array(frames.length);
+
+                    for (j = 0; j < channels_in_frame; j += 1) {
+                        start = (height * 4) * j + fi;
+                        end = start + data_length_per_fas;
+
+                        for (k = start; k < end; k += 1) {
+                            new_arr[k] = frames[k];
+                        }
+                    }
+
+                    drawProcessDistribution(i, new_arr, container1);
+
+                    fi += data_length_per_fas;
+                }
+
+                drawMethodHeader("DINTER", container2);
+
+                // DINTER method
+                for (i = 0; i < fas_count; i += 1) {
+                    var new_arr = new Array(frames.length);
+
+                    for (j = (i * 4); j < frames.length; j += (fas_count * 4)) {
+                        new_arr[j] = frames[j];
+                        new_arr[j + 1] = frames[j + 1];
+                        new_arr[j + 2] = frames[j + 2];
+                        new_arr[j + 3] = frames[j + 3];
+                    }
+
+                    drawProcessDistribution(i, new_arr, container2);
+                }
+
+                drawMethodHeader("DSMART", container3);
+
+                // DSMART method
+                var smart_arr = [];
+                var instance = 0;
+                for (j = 0; j < channels_in_frame; j += 1) {
+                    for (k = 0; k < (height * 4); k += 4) {
+                        var index = k + j * (height * 4);
+
+                        var r = frames[index],
+                            g = frames[index + 1],
+                            b = frames[index + 2],
+                            a = frames[index + 3];
+
+                        var pr = pframes[index],
+                            pg = pframes[index + 1];
+
+                        if (r > 0 || g > 0) {
+                            if (pr > 0 || pg > 0) {
+                                smart_arr.push({ fas: prei_arr[index / 4], i: index, c: j, r: r, g: g, b: b, a: a });
+                            } else {
+                                prei_arr[index / 4] = instance;
+                                smart_arr.push({ fas: instance, i: index, c: j, r: r, g: g, b: b, a: a });
+
+                                instance++;
+                                instance %= fas_count;
+                            }
+                        } else {
+                            if (pr > 0 || pg > 0) {
+                                smart_arr.push({ fas: prei_arr[index / 4], i: index, c: j, r: r, g: g, b: b, a: a });
+                            }
+                        }
+                    }
+                }
+
+                var fas_arr = [];
+                for (i = 0; i < fas_count; i += 1) {
+                    fas_arr.push(new Array(frames.length));
+                }
+
+                for (i = 0; i < smart_arr.length; i += 1) {
+                    var obj = smart_arr[i];
+
+                    //for (j = 0; j < channels_in_frame; j += 1) {
+                        var arr_index = obj.i;
+
+                        fas_arr[obj.fas][arr_index] = obj.r;
+                        fas_arr[obj.fas][arr_index + 1] = obj.g;
+                        fas_arr[obj.fas][arr_index + 2] = obj.b;
+                        fas_arr[obj.fas][arr_index + 3] = obj.a;
+                    //}
+                }
+
+                for (i = 0; i < fas_count; i += 1) {
+                    drawProcessDistribution(i, fas_arr[i], container3);
+                }
+            }
+
+            function drawMethodHeader (method_name, where) {
+                var elem = document.createElement("div");
+                elem.innerHTML = "Canvas height: <strong>" + height + "</strong>px RGBA";
+                where.appendChild(elem);
+
+                elem = document.createElement("div");
+                elem.innerHTML = "Process count: <strong>" + fas_count + "</strong>";
+                where.appendChild(elem);
+
+                elem = document.createElement("div");
+                elem.innerHTML = "Channels: <strong>" + channels_in_frame + "</strong>";
+                where.appendChild(elem);
+
+                where.appendChild(document.createElement("br"));
+
+                elem = document.createElement("div");
+                elem.innerHTML = "<strong>" + method_name + "</strong>";
+                elem.className = "center header";
+                where.appendChild(elem);
+            }
+
+            var global_time = 0;
+            var _frames_elems = [];
+            var _frames = [];
+
+            function resetFrame() {
+                prei_arr = new Array(channels_in_frame * height);
+
+                for (i = 0; i < (channels_in_frame * height); i++) {
+                    prei_arr[i] = 0;
+                }
+
+                previous_frame = new Array(4 * channels_in_frame * height);
+                previous_frame.fill(0);
+            }
+
+            var run = false;
+
+            function randRun() {
+                if (run === false) {
+                    resetFrame();
+
+                    run = true;
+                } else {
+                    run = false;
+                }
+            }
+
+            function genFrame() {
+                global_time++;
+
+                drawMethods(_frames, previous_frame);
+
+                previous_frame = _frames.slice(0);
+
+                for (var j = 0; j < _frames_elems.length; j += 1) {
+                    if (j%height === 0) {
+                        document.body.appendChild(document.createElement("br"));
+                    }
+                    document.body.appendChild(_frames_elems[j]);
+                }
+
+                document.body.appendChild(document.createElement("br"));
+
+                var reset_btn = document.createElement("button")
+                reset_btn.innerHTML = "Reset frame";
+                reset_btn.type = "button";
+                reset_btn.addEventListener("click", function () { resetFrame(); genFrame(); });
+                document.body.appendChild(reset_btn);
+
+                var next_btn = document.createElement("button")
+                next_btn.innerHTML = "Next frame";
+                next_btn.type = "button";
+                next_btn.addEventListener("click", genFrame);
+                document.body.appendChild(next_btn);
+
+                var run_btn = document.createElement("button")
+                run_btn.innerHTML = "Randomize & Simulate (click again to stop)";
+                run_btn.type = "button";
+                run_btn.addEventListener("click", function () { randRun(); genFrame(); } );
+                document.body.appendChild(run_btn);
+
+                var elem = document.createElement("div");
+                elem.innerHTML = "<br>Note: Each lines inside a process represent a vertical Fragment slice channel, the distribution does not care much about channels.";
+                document.body.appendChild(elem);
+
+                if (run) {
+                    for (var i = 0; i < (4 * channels_in_frame * height); i++) {
+                        _frames[i] = Math.max(Math.random() * 2 - 1, 0);
+                    }
+
+                    requestAnimationFrame(genFrame);
+                }
+            }
+
+            function frameElemClick (index) {
+                return function (e) {
+                    var el = e.target;
+
+                    if (el.classList.contains("red")) {
+                        el.className = "int box";
+
+                        _frames[index] = 0;
+                        _frames[index+1] = 0;
+                        _frames[index+2] = 0;
+                        _frames[index+3] = 0;
+                    } else {
+                        el.className = "int box red";
+
+                        _frames[index] = 1;
+                        _frames[index+1] = 1;
+                        _frames[index+2] = 1;
+                        _frames[index+3] = 1;
+                    }
+                };
+            }
+
+            var mousedown = false;
+            var lastelem = null;
+
+            window.onload = function () {
+                for (var j = 0; j < channels_in_frame; j += 1) {
+                    for (var k = 0; k < (height * 4); k += 4) {
+                        var index = k + j * (height * 4);
+
+                        var e = document.createElement("div");
+
+                        e.className = "int box";
+                        e.dataset.frameIndex = index;
+
+                        e.addEventListener("click", frameElemClick(index));
+
+                        _frames_elems.push(e);
+                    }
+                }
+
+                window.addEventListener("mousedown", function (e) {
+                    if (e.target.classList.contains("int")) {
+                        mousedown = true;
+
+                        lastelem = e.target;
+                    }
+                });
+
+                window.addEventListener("mouseup", function () {
+                    mousedown = false;
+                });
+
+                window.addEventListener("mousemove", function (e) {
+                    if (mousedown && e.target !== lastelem && lastelem !== null) {
+                        if (e.target.classList.contains("int")) {
+                            frameElemClick(parseInt(e.target.dataset.frameIndex, 10))({ target: e.target });
+
+                            lastelem = e.target;
+                        }
+                    }
+                });
+
+                resetFrame();
+
+                genFrame();
+            };
+        </script>
+    </head>
+
+    <body>
+
+    </body>
+</html>

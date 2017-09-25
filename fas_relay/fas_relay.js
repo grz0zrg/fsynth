@@ -5,7 +5,7 @@
  * This allow to distribute the sound synthesis computation over different computers or cores
  *
  * Listen (websocket) on 127.0.0.1:3003 then split the incoming data and distribute it to a multitude of Fragment Audio Server which listen on port starting from 3004
- * Gather and compute the overall load from incoming data from all the connected Fragment Audio Server
+ * Output the load from all the connected Fragment Audio Server incoming data
  *
  * Usage:
  *   Simple usage (same machine, will try to connect to 127.0.0.1:3004, 127.0.0.1:3005 etc) : node fas_relay -count 2
@@ -16,6 +16,15 @@ const SYNTH_SETTINGS = 0,
       FRAME_DATA = 1,
       GAIN_CHANGE = 2,
       CHN_SETTINGS = 3;
+
+// distribution methods of pixels value, see simulation.html to watch and interact with all those algorithms
+const DSPLIT = 0, // split the slices in equals chunks for each servers
+      // interleaved processing
+      // this will distribute data over each servers in a linear & cyclical fashion, it has very good performances
+      DINTER = 1,
+      // smart distribution of load over each servers
+      // this is the best algorithm, it distribute data equally for all servers and not in a linear fashion, there is many improvements to do on it but it work great
+      DSMART = 2;
 
 var WebSocket = require("ws"),
     winston = require("winston"),
@@ -34,12 +43,22 @@ var WebSocket = require("ws"),
         ]
     }),
 
+    distribution_method = DSMART,
+
     fas_wss = [],
     fas_wss_count = 0,
 
     args = require('minimist')(process.argv.slice(2)),
     args_arr = process.argv.slice(2),
     fas_count = null;
+
+if (distribution_method === DSPLIT) {
+    logger.info("Distribution algorithm: DSPLIT");
+} else if (distribution_method === DINTER) {
+    logger.info("Distribution algorithm: DINTER");
+} else if (distribution_method === DSMART) {
+    logger.info("Distribution algorithm: DSMART");
+}
 
 if (args.count) {
     fas_count = parseInt(args.count, 10);
@@ -62,15 +81,26 @@ function websocketConnect() {
 
         socket.binaryType = "arraybuffer";
 
+        var pframes = null,
+            smart_piarr = null,
+            fas_arr = null;
+
         socket.on("message", function incoming(data) {
             var uint8_view,
                 uint32_view,
+                data,
+                data_view,
                 frame_data,
                 frame_length,
                 data_length_per_fas,
                 start = 0,
+                mono,
                 end,
-                endc,
+                index,
+                instance = 0,
+                obj,
+                r, g, b, a, pr, pg,
+                smart_arr,
                 fi = 0,
                 ws_obj,
                 i = 0, j = 0, k = 0;
@@ -108,36 +138,128 @@ function websocketConnect() {
                 uint32_view = new Uint32Array(data, 8, 2);
 
                 frame_length = uint32_view[0]; // channels in the frame
-                data_length_per_fas = Math.ceil((data_length / fas_wss_count) * 4);
+                mono = uint32_view[1];
+                data_length_per_fas = Math.round((data_length / fas_wss_count) * 4);
+
+                data_view = new frame_array_type(data, 16);
 
                 // split pixels data and distribute it to FAS instances over the wire
-                for (i = 0; i < fas_wss_count; i += 1) {
-                    ws_obj = fas_wss[i];
+                if (distribution_method === DSPLIT) {
+                    for (i = 0; i < fas_wss_count; i += 1) {
+                        ws_obj = fas_wss[i];
 
-                    ws_obj.data = data.slice(0);
+                        ws_obj.data = data.slice(0);
 
-                    frame_data = new frame_array_type(ws_obj.data, 16);
+                        frame_data = new frame_array_type(ws_obj.data, 16);
+                        //frame_data.fill(0);
 
-                    for (j = 0; j < channels; j += 1) {
-                        start = data_length_rgba * j;
-                        endc = data_length_rgba * (j + 1);
-                        end = Math.min(start + fi + data_length_per_fas, endc);
+                        for (j = 0; j < frame_length; j += 1) {
+                            start = data_length_rgba * j + fi;
+                            end = start + data_length_per_fas;
 
-                        for (k = start; k < (start + fi); k += 1) {
-                            frame_data[k] = 0;
+                            for (k = start; k < end; k += 1) {
+                                frame_data[k] = data_view[k];
+                            }
                         }
 
-                        for (k = end; k < endc; k += 1) {
-                            frame_data[k] = 0;
+                        ws_obj.socket.send(ws_obj.data, sendError);
+
+                        fi += data_length_per_fas;
+                    }
+                } else if (distribution_method === DINTER) {
+                    for (i = 0; i < fas_wss_count; i += 1) {
+                        ws_obj = fas_wss[i];
+
+                        ws_obj.data = data.slice(0);
+
+                        frame_data = new frame_array_type(ws_obj.data, 16);
+                        //frame_data.fill(0);
+
+                        for (j = (i * 4); j < frame_data.length; j += (fas_wss_count * 4)) {
+                            frame_data[j] = data_view[j];
+                            frame_data[j + 1] = data_view[j + 1];
+                            frame_data[j + 2] = data_view[j + 2];
+                            frame_data[j + 3] = data_view[j + 3];
                         }
 
-                        // fill don't work (implementation ?)
-                        //frame_data.fill(0, start + fi, end);
+                        ws_obj.socket.send(ws_obj.data, sendError);
+
+                        fi += data_length_per_fas;
+                    }
+                } else if (distribution_method === DSMART) {
+                    if (pframes === null) {
+                        pframes = new frame_array_type(new frame_array_type(data.slice(0), 16).length);
                     }
 
-                    ws_obj.socket.send(ws_obj.data, sendError);
+                    if (smart_piarr === null) {
+                        smart_piarr = new Array(frame_length * data_length);
+                    }
 
-                    fi += data_length_per_fas;
+                    if (fas_arr === null) {
+                        fas_arr = [];
+                        for (i = 0; i < fas_wss_count; i += 1) {
+                            fas_arr.push(new ArrayBuffer(data.byteLength));
+                        }
+                    }
+
+                    smart_arr = [];
+                    for (j = 0; j < fas_wss_count; j += 1) {
+                        for (k = 0; k < data_length_rgba; k += 4) {
+                            index = k + j * data_length_rgba;
+
+                            r = data_view[index];
+                            g = data_view[index + 1];
+                            b = data_view[index + 2];
+                            a = data_view[index + 3];
+
+                            pr = pframes[index];
+                            pg = pframes[index + 1];
+
+                            if (r > 0 || g > 0) {
+                                if (pr > 0 || pg > 0) {
+                                    smart_arr.push({ fas: smart_piarr[index / 4], i: index, c: j, r: r, g: g, b: b, a: a });
+                                } else {
+                                    smart_piarr[index / 4] = instance;
+                                    smart_arr.push({ fas: instance, i: index, c: j, r: r, g: g, b: b, a: a });
+
+                                    instance++;
+                                    instance %= fas_wss_count;
+                                }
+                            } else {
+                                if (pr > 0 || pg > 0) {
+                                    smart_arr.push({ fas: smart_piarr[index / 4], i: index, c: j, r: r, g: g, b: b, a: a });
+                                }
+                            }
+                        }
+                    }
+
+                    for (i = 0; i < smart_arr.length; i += 1) {
+                        obj = smart_arr[i];
+
+                        index = obj.i;
+
+                        data_view = new frame_array_type(fas_arr[obj.fas], 16);
+                        data_view[index]     = obj.r;
+                        data_view[index + 1] = obj.g;
+                        data_view[index + 2] = obj.b;
+                        data_view[index + 3] = obj.a;
+                    }
+
+                    for (i = 0; i < fas_wss_count; i += 1) {
+                        ws_obj = fas_wss[i];
+
+                        var fas_data = fas_arr[i];
+                        var v1 = new Uint8Array(fas_data, 0, 1);
+                        var v2 = new Uint32Array(fas_data, 8, 2);
+
+                        v1[0] = uint8_view;
+                        v2[0] = frame_length;
+                        v2[1] = mono;
+
+                        ws_obj.socket.send(fas_arr[i], sendError);
+                    }
+
+                    pframes = new frame_array_type(data.slice(0), 16);
                 }
             }
         });
