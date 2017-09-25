@@ -26,6 +26,7 @@ var WebSocket = require("ws"),
     channels = 0,
 
     data_length = 0,
+    data_length_rgba = 0,
 
     logger = new (winston.Logger)({
         transports: [
@@ -68,9 +69,11 @@ function websocketConnect() {
                 frame_length,
                 data_length_per_fas,
                 start = 0,
+                end,
+                endc,
                 fi = 0,
-                ws,
-                i = 0, j = 0;
+                ws_obj,
+                i = 0, j = 0, k = 0;
 
             uint8_view = new Uint8Array(data, 0, 1);
 
@@ -79,6 +82,7 @@ function websocketConnect() {
                 if (uint8_view[0] === SYNTH_SETTINGS) {
                     uint32_view = new Uint32Array(data, 8, 3);
                     data_length = uint32_view[0];
+                    data_length_rgba = data_length * 4;
 
                     if (uint32_view[2]) {
                         frame_array_type = Float32Array;
@@ -104,22 +108,34 @@ function websocketConnect() {
                 uint32_view = new Uint32Array(data, 8, 2);
 
                 frame_length = uint32_view[0]; // channels in the frame
-                data_length_per_fas = (data_length / fas_wss_count) * frame_data_comp;
+                data_length_per_fas = Math.ceil((data_length / fas_wss_count) * 4);
 
                 // split pixels data and distribute it to FAS instances over the wire
                 for (i = 0; i < fas_wss_count; i += 1) {
-                    ws = fas_wss[i];
+                    ws_obj = fas_wss[i];
 
-                    ws.data = data.slice(0);
+                    ws_obj.data = data.slice(0);
 
-                    frame_data = new frame_array_type(ws.data, 16);
+                    frame_data = new frame_array_type(ws_obj.data, 16);
+
                     for (j = 0; j < channels; j += 1) {
-                        start = data_length * frame_data_comp * j;
+                        start = data_length_rgba * j;
+                        endc = data_length_rgba * (j + 1);
+                        end = Math.min(start + fi + data_length_per_fas, endc);
 
-                        frame_data.fill(0, start + fi, start + fi + data_length_per_fas);
+                        for (k = start; k < (start + fi); k += 1) {
+                            frame_data[k] = 0;
+                        }
+
+                        for (k = end; k < endc; k += 1) {
+                            frame_data[k] = 0;
+                        }
+
+                        // fill don't work (implementation ?)
+                        //frame_data.fill(0, start + fi, end);
                     }
 
-                    ws.socket.send(ws.data, sendError);
+                    ws_obj.socket.send(ws_obj.data, sendError);
 
                     fi += data_length_per_fas;
                 }
@@ -159,6 +175,14 @@ function onFASClose(ws, i, port) {
   };
 }
 
+function onFASMessage(i) {
+    return function msg(message) {
+        var stream_load = new Float64Array(message);
+
+        logger.info("Server %s stream load: %s.", i, parseInt(stream_load * 100, 10) + "%");
+    };
+}
+
 function fasConnect(cb) {
     var i = 0,
         c = fas_count,
@@ -178,7 +202,10 @@ function fasConnect(cb) {
 
             ws = new WebSocket("ws://127.0.0.1:" + port);
         }
+        ws.binaryType = "arraybuffer";
         ws.on("open", onFASOpen(i, port, cb));
+
+        ws.on("message", onFASMessage(i));
 
         ws.on("close", onFASClose(ws, i, port));
 
