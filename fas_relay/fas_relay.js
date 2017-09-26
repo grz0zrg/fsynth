@@ -183,8 +183,6 @@ function websocketConnect() {
                         }
 
                         ws_obj.socket.send(ws_obj.data, sendError);
-
-                        fi += data_length_per_fas;
                     }
                 } else if (distribution_method === DSMART) {
                     if (pframes === null) {
