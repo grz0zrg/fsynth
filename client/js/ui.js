@@ -114,6 +114,8 @@ var _createFasSettingsContent = function () {
     var dialog_div = document.getElementById(_fas_dialog).lastElementChild,
         detached_dialog = WUI_Dialog.getDetachedDialog(_fas_dialog),
         main_chn_settings_div = document.createElement("div"),
+        fas_actions_div = document.createElement("div"),
+        load_samples_btn = document.createElement("button"),
         synth_chn_br,
         chn_settings_div,
         chn_div,
@@ -134,6 +136,16 @@ var _createFasSettingsContent = function () {
         chn_settings,
         j = 0, i = 0;
     
+    load_samples_btn.innerHTML = "Reload samples";
+    load_samples_btn.className = "fs-btn fs-btn-default";
+    
+    load_samples_btn.addEventListener("click", function () {
+        _fasNotify(_FAS_ACTION);
+    });
+    
+    fas_actions_div.style.textAlign = "center";
+    fas_actions_div.appendChild(load_samples_btn);
+    
     // update chn. settings
     _chn_settings.length = _output_channels;
     
@@ -147,6 +159,8 @@ var _createFasSettingsContent = function () {
     
     dialog_div.style = "overflow: auto";
     dialog_div.innerHTML = "";
+    
+    dialog_div.appendChild(fas_actions_div);
     
     main_chn_settings_div.classList.add("fs-chn-settings-main");
     main_chn_settings_div.innerHTML = "Channels";
@@ -172,6 +186,7 @@ var _createFasSettingsContent = function () {
         granular_option.innerHTML = "granular";
         additive_option.innerHTML = "additive";
         spectral_option.innerHTML = "spectral";
+        spectral_option.style.display = "none";
         sampler_option.innerHTML = "sampler";
         
         chn_genv_type_label = document.createElement("label");
@@ -209,7 +224,7 @@ var _createFasSettingsContent = function () {
         chn_settings_div.innerHTML = "Chn " + (j + 1);
         
         chn_synthesis_select.appendChild(additive_option);
-        //chn_synthesis_select.appendChild(spectral_option);
+        chn_synthesis_select.appendChild(spectral_option);
         chn_synthesis_select.appendChild(granular_option);
         chn_synthesis_select.appendChild(sampler_option);
         

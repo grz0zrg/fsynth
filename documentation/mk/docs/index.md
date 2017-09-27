@@ -23,6 +23,8 @@ The PDF documentation can be found [here](https://www.fsynth.com/pdf/fragment_do
 - Mid-range multi-core CPU, a beefy CPU may be needed for advanced features
 - Not necessary but a MIDI device such as a MIDI keyboard is recommended
 
+A high amount of memory is needed to load many samples/distributed sound synthesis with the audio server, this is because all samples are pre-loaded for each instances.
+
 ## Performances
 
 Fragment has excellent performances with a modern multi-core system and a browser such as Chromium.

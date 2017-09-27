@@ -9,8 +9,8 @@
               margin-top: 4px;
             }
             .box {
-                width: 8px;
-                height: 8px;
+                width: 16px;
+                height: 16px;
 
                 display: inline-block;
                 background-color: #444444;
@@ -31,7 +31,7 @@
             }
 
             .container {
-                width: 444px;
+                width: 274px;
                 display: inline-block;
                 margin: 2px;
                 border: solid 1px #dddddd;
@@ -48,13 +48,14 @@
         </style>
         <script type="text/javascript">
             // parameters
-            var channels_in_frame = 2;
-            var fas_count = 2;
-            var height = 539;
+            var channels_in_frame = 4;
+            var fas_count = 4;
+            var height = 16;
 
             var gen_frame_timeout;
             var previous_frame;
             var prei_arr;
+            var fas_arr = [];
 
             function drawProcessDistribution (process, arr, where) {
                 var e2 = document.createElement("div");
@@ -160,42 +161,69 @@
 
                         if (r > 0 || g > 0) {
                             if (pr > 0 || pg > 0) {
-                                smart_arr.push({ fas: prei_arr[index / 4], i: index, c: j, r: r, g: g, b: b, a: a });
-                            } else {
-                                prei_arr[index / 4] = instance;
-                                smart_arr.push({ fas: instance, i: index, c: j, r: r, g: g, b: b, a: a });
+                                var pii = prei_arr[index / 4];
+                                var f = fas_arr[pii];
 
-                                instance++;
-                                instance %= fas_count;
+                                f.data[index]     = r;
+                                f.data[index + 1] = g;
+                                f.data[index + 2] = b;
+                                f.data[index + 3] = a;
+                            } else {
+                                for (var i = 0; i < fas_count; i += 1) {
+                                    var fa = fas_arr[i];
+                                    var fa2 = fas_arr[i + 1];
+                                    if (fa2) {
+                                        if (fa.count < fa2.count) {
+                                            fa.data[index]     = r;
+                                            fa.data[index + 1] = g;
+                                            fa.data[index + 2] = b;
+                                            fa.data[index + 3] = a;
+                                            fa.count++;
+
+                                            prei_arr[index / 4] = i;
+
+                                            break;
+                                        } else if (fa.count > fa2.count) {
+                                            fa2.data[index]     = r;
+                                            fa2.data[index + 1] = g;
+                                            fa2.data[index + 2] = b;
+                                            fa2.data[index + 3] = a;
+                                            fa2.count++;
+
+                                            prei_arr[index / 4] = i + 1;
+
+                                            break;
+                                        }
+                                    } else {
+                                        fa.data[index]     = r;
+                                        fa.data[index + 1] = g;
+                                        fa.data[index + 2] = b;
+                                        fa.data[index + 3] = a;
+                                        fa.count++;
+
+                                        prei_arr[index / 4] = i;
+
+                                        break;
+                                    }
+                                }
                             }
                         } else {
                             if (pr > 0 || pg > 0) {
-                                smart_arr.push({ fas: prei_arr[index / 4], i: index, c: j, r: r, g: g, b: b, a: a });
+                                var pii = prei_arr[index / 4];
+                                var f = fas_arr[pii];
+
+                                f.data[index]     = 0;
+                                f.data[index + 1] = 0;
+                                f.data[index + 2] = 0;
+                                f.data[index + 3] = 0;
+                                f.count--;
                             }
                         }
                     }
                 }
 
-                var fas_arr = [];
                 for (i = 0; i < fas_count; i += 1) {
-                    fas_arr.push(new Array(frames.length));
-                }
-
-                for (i = 0; i < smart_arr.length; i += 1) {
-                    var obj = smart_arr[i];
-
-                    //for (j = 0; j < channels_in_frame; j += 1) {
-                        var arr_index = obj.i;
-
-                        fas_arr[obj.fas][arr_index] = obj.r;
-                        fas_arr[obj.fas][arr_index + 1] = obj.g;
-                        fas_arr[obj.fas][arr_index + 2] = obj.b;
-                        fas_arr[obj.fas][arr_index + 3] = obj.a;
-                    //}
-                }
-
-                for (i = 0; i < fas_count; i += 1) {
-                    drawProcessDistribution(i, fas_arr[i], container3);
+                    drawProcessDistribution(i, fas_arr[i].data, container3);
                 }
             }
 
@@ -225,6 +253,11 @@
             var _frames = [];
 
             function resetFrame() {
+                fas_arr = [];
+                for (var i = 0; i < fas_count; i += 1) {
+                    fas_arr.push({ data: new Array(frames.length), count: 0 });
+                }
+
                 prei_arr = new Array(channels_in_frame * height);
 
                 for (i = 0; i < (channels_in_frame * height); i++) {

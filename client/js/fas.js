@@ -18,7 +18,8 @@ var _fas = {
     _FAS_AUDIO_INFOS = 2,
     _FAS_GAIN_INFOS = 3,
     _FAS_FRAME = 4,
-    _FAS_CHN_INFOS = 5;
+    _FAS_CHN_INFOS = 5,
+    _FAS_ACTION = 6;
 
 /***********************************************************
     Functions.

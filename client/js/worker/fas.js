@@ -20,7 +20,8 @@ var _fas = false,
     _FAS_AUDIO_INFOS = 2,
     _FAS_GAIN_INFOS = 3,
     _FAS_FRAME = 4,
-    _FAS_CHN_INFOS = 5;
+    _FAS_CHN_INFOS = 5,
+    _FAS_ACTION = 6;
 
 /***********************************************************
     Functions.
@@ -92,6 +93,29 @@ var _sendGain = function (audio_infos) {
 
     }
 };
+
+var _sendAction = function (action) {
+    if (!_fas) {
+        return;
+    }
+    
+    var action_buffer = new ArrayBuffer(8 + 8),
+        uint8_view = new Uint8Array(action_buffer, 0, 2);
+
+    uint8_view[0] = 4;
+    uint8_view[1] = 0;
+    
+    if (_fas_ws.readyState !== 1) {
+        setTimeout(_sendAction, 1000, action);
+        return;
+    }
+
+    try {
+        _fas_ws.send(action_buffer);
+    } finally {
+
+    }
+}
 
 var _sendChnInfos = function (chn_infos) {
     if (!_fas) {
@@ -265,5 +289,7 @@ self.onmessage = function (m) {
         _sendFrame(arg, data.mono, data.float);
     } else if (cmd === _FAS_CHN_INFOS) {
         _sendChnInfos(arg);
+    } else if (cmd === _FAS_ACTION) {
+        _sendAction(arg);
     }
 };

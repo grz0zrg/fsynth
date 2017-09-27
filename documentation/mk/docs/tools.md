@@ -1,10 +1,10 @@
 ## FAS: Fragment Audio Server
 
-The Fragment Audio Server is an program written with the C language for very fast real-time audio synthesis.
+The Fragment Audio Server is a program written with the C language for very fast real-time audio synthesis.
 
 It is recommended to use Fragment with the Fragment Audio Server enabled.
 
-The advantage of using the audio server is that it provide the best audio performances along with audio devices choice, multiple audio outputs, sample rate choice, granular synthesis & sampler method, realtime scheduling under Linux and more...
+The advantage of using the audio server is that it provide the best audio performances along with audio devices choice, multiple audio outputs, sample rate choice, granular synthesis & sampler method, distributed sound synthesis over multiple machines or cores, realtime scheduling under Linux and more...
 
 Fragment communicate with FAS by sending data through the network when the Fragment FAS option (waveform icon) is enabled, FAS can run on any machines independently of the Fragment application, it gather the pixels data from Fragment in real-time, compute things and deliver the audio through the selected audio device.
 
@@ -52,8 +52,9 @@ DINTER
 
 DSMART
 
-- Distribute the data equally over all the audio servers, not in a linear fashion
-- The algorithm is rather unoptimized but may provide the best performances/distribution quality out of the three methods available
+- Distribute the data equally over all the audio servers
+- Provide the best performances/distribution quality out of the three methods available
+- Will also distribute different channels data to different instances
 
 ## SuperCollider
 

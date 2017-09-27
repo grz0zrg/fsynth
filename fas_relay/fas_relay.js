@@ -18,12 +18,12 @@ const SYNTH_SETTINGS = 0,
       CHN_SETTINGS = 3;
 
 // distribution methods of pixels value, see simulation.html to watch and interact with all those algorithms
-const DSPLIT = 0, // split the slices in equals chunks for each servers
+const DSPLIT = 0, // split the slices in equals chunks for each servers, this is the naive algorithm
       // interleaved processing
       // this will distribute data over each servers in a linear & cyclical fashion, it has very good performances
       DINTER = 1,
       // smart distribution of load over each servers
-      // this is the best algorithm, it distribute data equally for all servers and not in a linear fashion, there is many improvements to do on it but it work great
+      // this is the best algorithm, it distribute data equally to all servers, it, it work great
       DSMART = 2;
 
 var WebSocket = require("ws"),
@@ -143,121 +143,160 @@ function websocketConnect() {
 
                 data_view = new frame_array_type(data, 16);
 
-                // split pixels data and distribute it to FAS instances over the wire
-                if (distribution_method === DSPLIT) {
+                if (fas_wss_count === 1) {
                     for (i = 0; i < fas_wss_count; i += 1) {
-                        ws_obj = fas_wss[i];
+                        fas_wss[i].socket.send(data, sendError);
+                    }
+                } else {
+                    // split pixels data and distribute it to FAS instances over the wire
+                    if (distribution_method === DSPLIT) {
+                        for (i = 0; i < fas_wss_count; i += 1) {
+                            ws_obj = fas_wss[i];
 
-                        ws_obj.data = data.slice(0);
+                            ws_obj.data = data.slice(0);
 
-                        frame_data = new frame_array_type(ws_obj.data, 16);
-                        //frame_data.fill(0);
+                            frame_data = new frame_array_type(ws_obj.data, 16);
+                            //frame_data.fill(0);
+
+                            for (j = 0; j < frame_length; j += 1) {
+                                start = data_length_rgba * j + fi;
+                                end = start + data_length_per_fas;
+
+                                for (k = start; k < end; k += 1) {
+                                    frame_data[k] = data_view[k];
+                                }
+                            }
+
+                            ws_obj.socket.send(ws_obj.data, sendError);
+
+                            fi += data_length_per_fas;
+                        }
+                    } else if (distribution_method === DINTER) {
+                        for (i = 0; i < fas_wss_count; i += 1) {
+                            ws_obj = fas_wss[i];
+
+                            ws_obj.data = data.slice(0);
+
+                            frame_data = new frame_array_type(ws_obj.data, 16);
+                            //frame_data.fill(0);
+
+                            for (j = (i * 4); j < frame_data.length; j += (fas_wss_count * 4)) {
+                                frame_data[j] = data_view[j];
+                                frame_data[j + 1] = data_view[j + 1];
+                                frame_data[j + 2] = data_view[j + 2];
+                                frame_data[j + 3] = data_view[j + 3];
+                            }
+
+                            ws_obj.socket.send(ws_obj.data, sendError);
+                        }
+                    } else if (distribution_method === DSMART) {
+                        if (pframes === null) {
+                            pframes = new frame_array_type(new frame_array_type(data.slice(0), 16).length);
+                        }
+
+                        if (smart_piarr === null) {
+                            smart_piarr = new Array(frame_length * data_length);
+                        }
+
+                        if (fas_arr === null) {
+                            fas_arr = [];
+                            for (i = 0; i < fas_wss_count; i += 1) {
+                                var ab = new ArrayBuffer(data.byteLength);
+                                fas_arr.push({ data: ab, data_view: new frame_array_type(ab, 16), count: 0 });
+                            }
+                        }
 
                         for (j = 0; j < frame_length; j += 1) {
-                            start = data_length_rgba * j + fi;
-                            end = start + data_length_per_fas;
+                            for (k = 0; k < data_length_rgba; k += 4) {
+                                index = k + j * data_length_rgba;
 
-                            for (k = start; k < end; k += 1) {
-                                frame_data[k] = data_view[k];
-                            }
-                        }
+                                r = data_view[index];
+                                g = data_view[index + 1];
+                                b = data_view[index + 2];
+                                a = data_view[index + 3];
 
-                        ws_obj.socket.send(ws_obj.data, sendError);
+                                pr = pframes[index];
+                                pg = pframes[index + 1];
 
-                        fi += data_length_per_fas;
-                    }
-                } else if (distribution_method === DINTER) {
-                    for (i = 0; i < fas_wss_count; i += 1) {
-                        ws_obj = fas_wss[i];
+                                if (r > 0 || g > 0) {
+                                    if (pr > 0 || pg > 0) {
+                                        var pii = smart_piarr[index / 4];
+                                        var f = fas_arr[pii];
 
-                        ws_obj.data = data.slice(0);
+                                        f.data_view[index]     = r;
+                                        f.data_view[index + 1] = g;
+                                        f.data_view[index + 2] = b;
+                                        f.data_view[index + 3] = a;
+                                    } else {
+                                        for (i = 0; i < fas_wss_count; i += 1) {
+                                            var fa = fas_arr[i];
+                                            var fa2 = fas_arr[i + 1];
+                                            if (fa2) {
+                                                if (fa.count < fa2.count) {
+                                                    fa.data_view[index]     = r;
+                                                    fa.data_view[index + 1] = g;
+                                                    fa.data_view[index + 2] = b;
+                                                    fa.data_view[index + 3] = a;
+                                                    fa.count++;
 
-                        frame_data = new frame_array_type(ws_obj.data, 16);
-                        //frame_data.fill(0);
+                                                    smart_piarr[index / 4] = i;
 
-                        for (j = (i * 4); j < frame_data.length; j += (fas_wss_count * 4)) {
-                            frame_data[j] = data_view[j];
-                            frame_data[j + 1] = data_view[j + 1];
-                            frame_data[j + 2] = data_view[j + 2];
-                            frame_data[j + 3] = data_view[j + 3];
-                        }
+                                                    break;
+                                                } else if (fa.count > fa2.count) {
+                                                    fa2.data_view[index]     = r;
+                                                    fa2.data_view[index + 1] = g;
+                                                    fa2.data_view[index + 2] = b;
+                                                    fa2.data_view[index + 3] = a;
+                                                    fa2.count++;
 
-                        ws_obj.socket.send(ws_obj.data, sendError);
-                    }
-                } else if (distribution_method === DSMART) {
-                    if (pframes === null) {
-                        pframes = new frame_array_type(new frame_array_type(data.slice(0), 16).length);
-                    }
+                                                    smart_piarr[index / 4] = i + 1;
 
-                    if (smart_piarr === null) {
-                        smart_piarr = new Array(frame_length * data_length);
-                    }
+                                                    break;
+                                                }
+                                            } else {
+                                                fa.data_view[index]     = r;
+                                                fa.data_view[index + 1] = g;
+                                                fa.data_view[index + 2] = b;
+                                                fa.data_view[index + 3] = a;
+                                                fa.count++;
 
-                    if (fas_arr === null) {
-                        fas_arr = [];
-                        for (i = 0; i < fas_wss_count; i += 1) {
-                            fas_arr.push(new ArrayBuffer(data.byteLength));
-                        }
-                    }
+                                                smart_piarr[index / 4] = i;
 
-                    smart_arr = [];
-                    for (j = 0; j < fas_wss_count; j += 1) {
-                        for (k = 0; k < data_length_rgba; k += 4) {
-                            index = k + j * data_length_rgba;
-
-                            r = data_view[index];
-                            g = data_view[index + 1];
-                            b = data_view[index + 2];
-                            a = data_view[index + 3];
-
-                            pr = pframes[index];
-                            pg = pframes[index + 1];
-
-                            if (r > 0 || g > 0) {
-                                if (pr > 0 || pg > 0) {
-                                    smart_arr.push({ fas: smart_piarr[index / 4], i: index, c: j, r: r, g: g, b: b, a: a });
+                                                break;
+                                            }
+                                        }
+                                    }
                                 } else {
-                                    smart_piarr[index / 4] = instance;
-                                    smart_arr.push({ fas: instance, i: index, c: j, r: r, g: g, b: b, a: a });
+                                    if (pr > 0 || pg > 0) {
+                                        var pii = smart_piarr[index / 4];
+                                        var f = fas_arr[pii];
 
-                                    instance++;
-                                    instance %= fas_wss_count;
-                                }
-                            } else {
-                                if (pr > 0 || pg > 0) {
-                                    smart_arr.push({ fas: smart_piarr[index / 4], i: index, c: j, r: r, g: g, b: b, a: a });
+                                        f.data_view[index]     = 0;
+                                        f.data_view[index + 1] = 0;
+                                        f.data_view[index + 2] = 0;
+                                        f.data_view[index + 3] = 0;
+                                        f.count--;
+                                    }
                                 }
                             }
                         }
+
+                        for (i = 0; i < fas_wss_count; i += 1) {
+                            ws_obj = fas_wss[i];
+
+                            var fas_data = fas_arr[i].data;
+                            var v1 = new Uint8Array(fas_data, 0, 1);
+                            var v2 = new Uint32Array(fas_data, 8, 2);
+
+                            v1[0] = uint8_view;
+                            v2[0] = frame_length;
+                            v2[1] = mono;
+
+                            ws_obj.socket.send(fas_data, sendError);
+                        }
+
+                        pframes = new frame_array_type(data.slice(0), 16);
                     }
-
-                    for (i = 0; i < smart_arr.length; i += 1) {
-                        obj = smart_arr[i];
-
-                        index = obj.i;
-
-                        data_view = new frame_array_type(fas_arr[obj.fas], 16);
-                        data_view[index]     = obj.r;
-                        data_view[index + 1] = obj.g;
-                        data_view[index + 2] = obj.b;
-                        data_view[index + 3] = obj.a;
-                    }
-
-                    for (i = 0; i < fas_wss_count; i += 1) {
-                        ws_obj = fas_wss[i];
-
-                        var fas_data = fas_arr[i];
-                        var v1 = new Uint8Array(fas_data, 0, 1);
-                        var v2 = new Uint32Array(fas_data, 8, 2);
-
-                        v1[0] = uint8_view;
-                        v2[0] = frame_length;
-                        v2[1] = mono;
-
-                        ws_obj.socket.send(fas_arr[i], sendError);
-                    }
-
-                    pframes = new frame_array_type(data.slice(0), 16);
                 }
             }
         });
@@ -280,12 +319,12 @@ function onFASOpen(i, port, cb) {
   };
 }
 
-function onFASClose(ws, i, port) {
+function onFASClose(fas_obj) {
   return function close() {
-      logger.info("FAS %s disconnected from port %s.", i, port);
+      logger.info("FAS %s disconnected from port %s.", fas_obj.i, fas_obj.p);
 
       for (i = 0; i < fas_wss_count; i += 1) {
-          if (fas_wss[i].socket === ws) {
+          if (fas_wss[i].socket === fas_obj.s) {
               fas_wss.splice(i, 1);
               break;
           }
@@ -327,7 +366,7 @@ function fasConnect(cb) {
 
         ws.on("message", onFASMessage(i));
 
-        ws.on("close", onFASClose(ws, i, port));
+        ws.on("close", onFASClose({ s: ws, i: i, p: port }));
 
         fas_wss.push({
           socket: ws,
