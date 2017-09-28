@@ -21040,6 +21040,7 @@ var _createFasSettingsContent = function () {
         additive_option,
         spectral_option,
         sampler_option,
+        fm_option,
         chn_gmin_size_input,
         chn_gmax_size_input,
         gmin = 0.01,
@@ -21098,11 +21099,13 @@ var _createFasSettingsContent = function () {
         additive_option = document.createElement("option");
         spectral_option = document.createElement("option");
         sampler_option = document.createElement("option");
+        fm_option = document.createElement("option");
         granular_option.innerHTML = "granular";
         additive_option.innerHTML = "additive";
         spectral_option.innerHTML = "spectral";
         spectral_option.style.display = "none";
         sampler_option.innerHTML = "sampler";
+        fm_option.innerHTML = "FM";
         
         chn_genv_type_label = document.createElement("label");
         chn_genv_type_select = document.createElement("select");
@@ -21142,6 +21145,7 @@ var _createFasSettingsContent = function () {
         chn_synthesis_select.appendChild(spectral_option);
         chn_synthesis_select.appendChild(granular_option);
         chn_synthesis_select.appendChild(sampler_option);
+        chn_synthesis_select.appendChild(fm_option);
         
         chn_settings = _chn_settings[j];
         
@@ -21156,6 +21160,8 @@ var _createFasSettingsContent = function () {
                 granular_option.selected = true;
             } else if (chn_settings[0] === 3) {
                 sampler_option.selected = true;
+            } else if (chn_settings[0] === 4) {
+                fm_option.selected = true;
             }
             
             if (chn_settings[1] !== undefined) {
@@ -21198,6 +21204,8 @@ var _createFasSettingsContent = function () {
                     this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "";
                 } else if (this.value === "sampler") {
                     value = 3;
+                } else if (this.value === "FM") {
+                    value = 4;
                 } else {
                     value = 0;
                 }

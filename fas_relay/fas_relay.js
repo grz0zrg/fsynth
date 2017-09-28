@@ -83,11 +83,13 @@ function websocketConnect() {
 
         var pframes = null,
             smart_piarr = null,
-            fas_arr = null;
+            fas_arr = null,
+            channels = [];
 
         socket.on("message", function incoming(data) {
             var uint8_view,
                 uint32_view,
+                float64_view,
                 data,
                 data_view,
                 frame_data,
@@ -129,6 +131,13 @@ function websocketConnect() {
                     channels = uint32_view[0];
 
                     logger.info("%s Channels.", channels);
+
+                    for (i = 0; i < channels; i += 1) {
+                        uint8_view = new Uint32Array(data, 16 + i * 24, 2);
+                        float64_view = new Float64Array(data, 16 + 8 + i * 24);
+
+                        channels[i] = { synthesis: uint8_view[0]; };
+                    }
                 }
 
                 for (i = 0; i < fas_wss_count; i += 1) {
