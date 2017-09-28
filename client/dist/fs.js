@@ -22543,8 +22543,9 @@ var _uiInit = function () {
                         output_code = output_code.replace(/fragCoord/g, "gl_FragCoord");
                         output_code = output_code.replace(/fragColor/g, "gl_FragColor");
                         output_code = output_code.replace(/iResolution/g, "resolution");
-                        output_code = output_code.replace(/iGlobalTime/g, "globalTime");
+                        output_code = output_code.replace(/iTime/g, "globalTime");
                         output_code = output_code.replace(/iMouse/g, "mouse");
+                        output_code = output_code.replace(/iChannel/g, "iInput");
 
                         _code_editor.setValue(output_code);
 
