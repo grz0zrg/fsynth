@@ -30,6 +30,7 @@ pages:
     - 'OSC': 'tutorials/osc.md'
     - 'Controllers': 'tutorials/ctrls.md'
     - 'Visuals': 'tutorials/visuals.md'
+- Settings: 'settings.md'
 - Tips: 'tips.md'
 - Tools: 'tools.md'
 - Credits: 'credits.md'

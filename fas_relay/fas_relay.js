@@ -3,13 +3,20 @@
  *
  * This application allow to serve multiple Fragment Audio Server over the wire by splitting and distributing the incoming pixels data
  * This allow to distribute the sound synthesis computation over different computers or cores
+ * See "simulation.htm" for the algorithms playground with a nice simulation of servers load
+ *
+ * Allow to specify the distribution weight (aka load) for each servers via the -w option, this only work with DSMART method!
+ * Note: the distribution "weight" is a float which indicate "server performance", 1 is the default weight,
+ *       a high weight value for a server (say 2 while all others are 1) mean that the server is slower and will take half load,
+ *       a low value for a server (say 0.5) mean that the server is fast and will take double load
  *
  * Listen (websocket) on 127.0.0.1:3003 then split the incoming data and distribute it to a multitude of Fragment Audio Server which listen on port starting from 3004
- * Output the load from all the connected Fragment Audio Server incoming data
+ * The load output from all the connected Fragment Audio Server incoming data is also printed at regular interval
  *
  * Usage:
- *   Simple usage (same machine, will try to connect to 127.0.0.1:3004, 127.0.0.1:3005 etc) : node fas_relay -count 2
- *   Usage by specifying address/port of each sound server : node fas_relay 127.0.0.1:3004 127.0.0.1:3005
+ *   Simple usage (same machine, will try to connect to 127.0.0.1:3004, 127.0.0.1:3005 etc) : node fas_relay -c 2
+ *   Usage by specifying address/port of each sound server : node fas_relay -s="127.0.0.1:3004 127.0.0.1:3005"
+ *   Usage by specifying address/port + distribution weight of each sound server : node fas_relay -w="1 1.5" -s="127.0.0.1:3004 127.0.0.1:3005"
  */
 
 const SYNTH_SETTINGS = 0,
@@ -48,9 +55,29 @@ var WebSocket = require("ws"),
     fas_wss = [],
     fas_wss_count = 0,
 
-    args = require('minimist')(process.argv.slice(2)),
-    args_arr = process.argv.slice(2),
+    fas_load_timeout,
+
+    args = require('minimist')(process.argv.slice(2), {
+        string: ["s", "w"]
+      }),
+
+    fas_servers = [],
+    fas_weight = [],
+    fas_loads = [],
     fas_count = null;
+
+if (args.s) {
+    fas_servers = fas_servers.split(" ");
+} else if (args.c) {
+    fas_count = parseInt(args.c, 10);
+}
+
+if (args.w) {
+    fas_weight = fas_weight.split(" ");
+    fas_weight = fas_weight.map(function (w) {
+            return parseFloat(w);
+        });
+}
 
 if (distribution_method === DSPLIT) {
     logger.info("Distribution algorithm: DSPLIT");
@@ -58,10 +85,6 @@ if (distribution_method === DSPLIT) {
     logger.info("Distribution algorithm: DINTER");
 } else if (distribution_method === DSMART) {
     logger.info("Distribution algorithm: DSMART");
-}
-
-if (args.count) {
-    fas_count = parseInt(args.count, 10);
 }
 
 function sendError(error) {
@@ -136,7 +159,7 @@ function websocketConnect() {
                         uint8_view = new Uint32Array(data, 16 + i * 24, 2);
                         float64_view = new Float64Array(data, 16 + 8 + i * 24);
 
-                        channels[i] = { synthesis: uint8_view[0]; };
+                        channels[i] = { synthesis: uint8_view[0] };
                     }
                 }
 
@@ -240,13 +263,14 @@ function websocketConnect() {
                                         for (i = 0; i < fas_wss_count; i += 1) {
                                             var fa = fas_arr[i];
                                             var fa2 = fas_arr[i + 1];
+
                                             if (fa2) {
                                                 if (fa.count < fa2.count) {
                                                     fa.data_view[index]     = r;
                                                     fa.data_view[index + 1] = g;
                                                     fa.data_view[index + 2] = b;
                                                     fa.data_view[index + 3] = a;
-                                                    fa.count++;
+                                                    fa.count += fas_loads[i];
 
                                                     smart_piarr[index / 4] = i;
 
@@ -256,18 +280,19 @@ function websocketConnect() {
                                                     fa2.data_view[index + 1] = g;
                                                     fa2.data_view[index + 2] = b;
                                                     fa2.data_view[index + 3] = a;
-                                                    fa2.count++;
+                                                    fa2.count += fas_loads[i + 1];
 
                                                     smart_piarr[index / 4] = i + 1;
 
                                                     break;
                                                 }
                                             } else {
+                                                var fal = fas_loads[i];
                                                 fa.data_view[index]     = r;
                                                 fa.data_view[index + 1] = g;
                                                 fa.data_view[index + 2] = b;
                                                 fa.data_view[index + 3] = a;
-                                                fa.count++;
+                                                fa.count += fas_loads[i];
 
                                                 smart_piarr[index / 4] = i;
 
@@ -284,7 +309,7 @@ function websocketConnect() {
                                         f.data_view[index + 1] = 0;
                                         f.data_view[index + 2] = 0;
                                         f.data_view[index + 3] = 0;
-                                        f.count--;
+                                        f.count -= fas_loads[pii];
                                     }
                                 }
                             }
@@ -347,8 +372,30 @@ function onFASMessage(i) {
     return function msg(message) {
         var stream_load = new Float64Array(message);
 
+        fas_loads[i] = stream_load;
+
         logger.info("Server %s stream load: %s.", i, parseInt(stream_load * 100, 10) + "%");
     };
+}
+
+function onFASError(i, addr) {
+    return function msg(message) {
+        logger.error("Cannot connect to server '%s' (id %s).", addr, i);
+        logger.error("Network error message : %s", message);
+    };
+}
+
+function printOverallLoad() {
+    var i = 0, l = 0;
+    for (i = 0; i < fas_loads.length; i += 1) {
+        l += fas_loads[i];
+    }
+
+    if (i > 0) {
+        l /= i;
+    }
+
+    logger.info("Overall stream load: %s.", i, parseInt(l * 100, 10) + "%");
 }
 
 function fasConnect(cb) {
@@ -357,21 +404,28 @@ function fasConnect(cb) {
         port, ws;
 
     if (c === null) {
-        c = args_arr.length;
+        c = fas_servers.length;
     }
 
     for (i = 0; i < c; i += 1) {
+        var addr = "";
         if (fas_count === null) {
-            port = args_arr[i].split(":")[1];
+            port = fas_servers[i].split(":")[1];
 
-            ws = new WebSocket("ws://" + args_arr[i]);
+            addr = "ws://" + fas_servers[i];
+
+            ws = new WebSocket(addr);
         } else {
             port = 3004 + i;
 
-            ws = new WebSocket("ws://127.0.0.1:" + port);
+            addr = "ws://127.0.0.1:" + port;
+
+            ws = new WebSocket(addr);
         }
         ws.binaryType = "arraybuffer";
         ws.on("open", onFASOpen(i, port, cb));
+
+        ws.on("error", onFASError(i, addr));
 
         ws.on("message", onFASMessage(i));
 
@@ -381,9 +435,16 @@ function fasConnect(cb) {
           socket: ws,
           data: null
         });
+
+        if (!fas_loads[i]) {
+            fas_loads[i] = 1;
+        }
     }
 
     fas_count = c;
+
+    clearTimeout(fas_load_timeout);
+    fas_load_timeout = setTimeout(printOverallLoad, 2000);
 }
 
 fasConnect(websocketConnect);

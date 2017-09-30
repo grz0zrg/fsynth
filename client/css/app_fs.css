@@ -390,6 +390,10 @@ canvas {
     vertical-align: middle;
 }
 
+.fs-spacer {
+    height: 6px;
+}
+
 .fs-btn {
     color: #ffffff;
     
@@ -398,7 +402,7 @@ canvas {
     font-size: 11pt;
     
     margin-bottom: 4px;
-    margin-top: 14px;
+    margin-top: 4px;
     
     border-radius: 4px;
     

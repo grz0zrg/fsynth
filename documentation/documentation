@@ -38,8 +38,9 @@ $bigtitle(Fragment)
 $title(The Collaborative Spectral Synthesizer)
 $center(by Julien Verneuil - contact@fsynth.com)
 $nl
-$ifhtml($center($big(This is the HTML documentation of the Fragment synthesizer.)))$ifpdf($center($big(This is the documentation of the Fragment synthesizer.)))
-$ifhtml($center(The PDF documentation can be found $tlink(here)(https://www.fsynth.com/pdf/fragment_documentation.pdf)))
+$ifhtml($center(This is the old HTML documentation of the Fragment synthesizer.))$ifpdf($center(This is the old documentation of the Fragment synthesizer.))
+$ifhtml($center($big(The new documentation can be found $tlink(here)(https://www.fsynth.com/documentation))))
+$ifhtml($center(The old PDF documentation can be found $tlink(here)(https://www.fsynth.com/pdf/fragment_old_documentation.pdf)))
 $center($tlink($ifhtml($image(580)(images/fsynth_ui.png))$ifpdf($pagewidthimage(images/fsynth_ui.png)))(https://www.fsynth.com))
 $nl
 $center($bold(Table of Contents))
@@ -72,12 +73,13 @@ After many hours spent crafting the software, the first version of Fragment was 
 $nl
 $subsection(Capabilities)
 $list(
-	$item Powerful additive synthesizer
-		$list($item Powered by WebAudio oscillators $item Powered by $ref(fas)(FAS), an independent program $item Powered by a wavetable )
+	$item Powerful additive/granular synthesizer
+		$list($item Powered by WebAudio oscillators (additive only) $item Powered by $ref(fas)(FAS), an independent program $item Powered by a wavetable (additive only) )
 	$item Stereophonic / Monaural
 	$item Polyphonic
 		$list($item Automatically detected from the GPU capabilities $item 16 notes minimum $item 704 notes with a GeForce GTX 970 GPU)
 	$item Multitimbral
+	$item Distributed multi-machines/multi-core sound synthesis over the wire with $ref(fas)(FAS))
 	$item Spectral recording with mixing and PNG export
 	$item 8-bit or 32-bit floating point processing of pixels data for audio synthesis (WebGL 2.0 only)
 	$item Adjustable audio output channel per slices
@@ -114,7 +116,7 @@ Fragment may be quite hungry in term of computing resources, a dual core with hi
 
 Several methods are provided to synthesize sounds, each with performances pros and cons:
 $list(
-	$item $ref(fas)(FAS) ($bold(recommended method)): $list($item Fastest $item Multiple output support with soundcard choice $item Many audio settings $item Can run on a dedicated computer such as a Raspberry PI $item Dedicated program which receive Fragment data over the network $item Enhanced noise modeling with band-limited noise $item Granular synthesis capability (soon))
+	$item $ref(fas)(FAS) ($bold(recommended method)): $list($item Fastest $item Has more synthesis methods like granular, FM/PM and sampler type $item Multiple output support with soundcard choice $item Many audio settings $item Can run on a dedicated computer such as a Raspberry PI $item Dedicated program which receive Fragment data over the network $item Enhanced noise modeling with band-limited noise $item Granular synthesis capability (soon))
 	$item WebAudio oscillators: $list($item Fastest with Chrome $item May not work with Firefox if the canvas is too high vertically $item Require a fast CPU $item Integrated global "release" envelope)
 	$item Wavetable $bold(not recommended): $list($item Most compatible browser method $item Will produce crackles))
 $subsubsection(GPU)
@@ -153,7 +155,7 @@ For example, on a Raspberry PI 3 (1.2GHz 64-bit quad-core ARMv8 CPU) ~700 oscill
 
 Actually, there is a also a hard limit which is that the frequency capture of slices cannot go beyond the refresh rate of your monitor (and this also depend on the browser implementation, commonly 60 FPS which mean ~16ms time granularity), this could however be bypassed by switching to a different monitor or disabling browser vertical synchronization.
 
-Fragment can also do other types of synthesis like granular synthesis.
+Fragment can also do other types of synthesis like granular synthesis which is only available by using the Audio Server.
 
 $nl
 $label(score)
@@ -279,6 +281,8 @@ $list(
 			$item should be a power of 2 and positive integer))
 Once launched, you can stop the FAS server by pressing any keys.
 $nl
+For more informations on the Fragment Audio Server, see the newer documentation $tlink(here)(https://www.fsynth.com/documentation)
+$nl
 $section(The user interface)
 $tlink($center($pagewidthimage(images/ui_help.png)))(images/ui_help.png)
 $tlink($center(Click to view the full image))(images/ui_help.png)
@@ -334,7 +338,7 @@ The purpose of slices is to capture the pixels of vertical parts of the canvas w
 Slices can be moved by dragging them on the X axis, to do so, maintain the left mouse button on a slice and move the mouse cursor around on the horizontal axis.
 $pagewidthgif(dragging_slices)
 Double-clicking on a slice open its settings dialog directly:
-$tlink($center($image(336)(images/slice_settings.png)))(images/slice_settings.png)
+$tlink($center($image(322)(images/slice_settings.png)))(images/slice_settings.png)
 The following actions are possible by right-clicking on a slice:
 $list(
 	$item mute/unmute
@@ -397,7 +401,7 @@ $center(Complex inputs can be ordered in real-time by drag & drop.)
 
 To open the complex input import dialog, click on the "add complex inputs" button, a new dialog will appear with three sections:
 
-$center($image(394)(images/import.png))
+$center($image(382)(images/import.png))
 $list(
 	$item Audio import settings: This determine how audio files will be analyzed when imported
 	$list(
@@ -410,7 +414,7 @@ $list(
 		$item Height: A value of 0 will automatically create an input with the height equal to the score height
 		$item Min. freq.: A value of 0 will automatically assign the score min. frequency
 		$item Max. freq.: A value of 0 will automatically assign a max. frequency related to the score settings)
-		$item Import mov. audio: Enabling it allow to import videos audio track
+		$item Import mov. audio: Enabling it allow to import videos audio track as an image
 	$item Import toolbar
 	$list(
 		$item Img: This will open a file selection window to import images
@@ -455,7 +459,7 @@ $label(canvas)
 $subsection(The canvas input)
 The canvas input is a powerful feature which allow to draw on a canvas with brushes, the canvas is usable within the fragment shader as a texture which is updated as you draw on it.
 
-When you right click on the canvas input thumbnail, the canvas input will be selected and appear with green borders, the canvas content will appear in front of the graphical score and a "paint tools" dialog will open.
+When you right click on the canvas input thumbnail, the canvas input will be selected and appear with green borders, the canvas content will appear in front of the graphical score and a paint-like tools dialog will open.
 
 You can directly draw on the graphical score when a canvas input is selected but you cannot move or add slices anymore, you must unselect the selected canvas input before.
 
@@ -592,18 +596,21 @@ $list(
 	$item OSC IN
 	$list(
 		$item Enable/disable OSC input, you can add and controls uniform variables through OSC, you will need an $tlink(OSC relay)(https://github.com/grz0zrg/fsynth/tree/master/osc_relay) to use this feature)
-  $item OSC OUT
+	$item OSC OUT
 	$list(
-		$item Enable/disable OSC output, slices data will be sent through OSC bundles via WebSockets, you will need an $tlink(OSC relay)(https://github.com/grz0zrg/fsynth/tree/master/osc_relay) to use this feature)
+		$item Enable/disable OSC output, pixels data will be send as an OSC bundle, you will need an $tlink(OSC relay)(https://github.com/grz0zrg/fsynth/tree/master/osc_relay) to use this feature)
 	$item Feedback
 	$list(
 		$item Enable/disable the availability of the previous frame in the fragment shader (aka feedback), this is useful for complex effects, may be CPU/GPU intensive)
 	$item Editor theme
 	$list(
 		$item A list of themes for the code editor)
+	$item OSC address
+	$list(
+		$item OSC in/out (relay) network address)
 	$item FAS address
 	$list(
-		$item The location of $ref(fas)(FAS (Fragment Audio Server)) on the network))
+		$item The location of $ref(fas)(FAS (Fragment Audio Server) on the network)))
 
 $label(midisettingsdialog)
 $subsection(MIDI settings dialog)

@@ -51,15 +51,19 @@
             var channels_in_frame = 4;
             var fas_count = 4;
             var height = 16;
+            var fas_weight = [1.0, 1., 0.5, 1]; // depend on fas_count
 
             var gen_frame_timeout;
             var previous_frame;
             var prei_arr;
             var fas_arr = [];
 
-            function drawProcessDistribution (process, arr, where) {
+            function drawProcessDistribution (process, arr, where, w) {
                 var e2 = document.createElement("div");
                 e2.innerHTML = "Process " + (process + 1);
+                if (w) {
+                    e2.innerHTML += " - Weight " + fas_weight[process];
+                }
                 where.appendChild(e2);
 
                 for (j = 0; j < channels_in_frame; j += 1) {
@@ -178,7 +182,7 @@
                                             fa.data[index + 1] = g;
                                             fa.data[index + 2] = b;
                                             fa.data[index + 3] = a;
-                                            fa.count++;
+                                            fa.count += fas_weight[i];
 
                                             prei_arr[index / 4] = i;
 
@@ -188,7 +192,7 @@
                                             fa2.data[index + 1] = g;
                                             fa2.data[index + 2] = b;
                                             fa2.data[index + 3] = a;
-                                            fa2.count++;
+                                            fa2.count += fas_weight[i + 1];
 
                                             prei_arr[index / 4] = i + 1;
 
@@ -199,7 +203,7 @@
                                         fa.data[index + 1] = g;
                                         fa.data[index + 2] = b;
                                         fa.data[index + 3] = a;
-                                        fa.count++;
+                                        fa.count += fas_weight[i];
 
                                         prei_arr[index / 4] = i;
 
@@ -216,14 +220,14 @@
                                 f.data[index + 1] = 0;
                                 f.data[index + 2] = 0;
                                 f.data[index + 3] = 0;
-                                f.count--;
+                                f.count -= fas_weight[pii];
                             }
                         }
                     }
                 }
 
                 for (i = 0; i < fas_count; i += 1) {
-                    drawProcessDistribution(i, fas_arr[i].data, container3);
+                    drawProcessDistribution(i, fas_arr[i].data, container3, true);
                 }
             }
 

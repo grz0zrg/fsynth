@@ -656,7 +656,7 @@ var _uiInit = function () {
             title: "Session & global settings",
 
             width: "320px",
-            height: "450px",
+            height: "460px",
 
             halign: "center",
             valign: "center",
@@ -1085,7 +1085,7 @@ var _uiInit = function () {
             title: "Import dialog (images etc.)",
 
             width: "380px",
-            height: "494px",
+            height: "500px",
 
             halign: "center",
             valign: "center",

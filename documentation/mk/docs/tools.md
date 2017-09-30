@@ -38,9 +38,9 @@ To use the OSC relay once NodeJS and NPM is installed, type `cd osc_relay & npm 
 
 Fragment support distributed sound synthesis on any machines or cores over the network
 
-The [FAS relay](https://github.com/grz0zrg/fsynth/tree/master/fas_relay) is a program which relay data from the client to all audio server instances specified at launch, audio server instances can be remote or local (same compute = multi-core)
+The [FAS relay](https://github.com/grz0zrg/fsynth/tree/master/fas_relay) is a program which listen to port 3003 and wait a client connection, when a client is connected, it relay the data from the client to all audio server instances specified at launch, audio server instances can be remote or local (same computer = multi-core)
 
-Moreover, three type of distribution system can be chosen (the constant must be changed in the source-code at the moment)
+Moreover, three type of distribution system can be chosen (the constant must be changed in the source-code at the moment), DSMART is recommended as it provide the best performances/distribution
 
 DSPLIT
 
@@ -52,9 +52,26 @@ DINTER
 
 DSMART
 
-- Distribute the data equally over all the audio servers
+- Distribute the data equally by default over all the audio servers
 - Provide the best performances/distribution quality out of the three methods available
 - Will also distribute different channels data to different instances
+- Weight can be defined per servers, this may be of interest to run the servers on machines that has different capabilities, you could have double amount of processing for machine X while normal amount for machine Y and low amount of processing for machine Z etc.
+
+**Commands line argument** (example for 3 localhost servers)
+
+-c3
+
+- Shortcut when servers are on the same machine, this will connect to 3 localhost servers from port 3004 to 3006
+- Equivalent to `-s="127.0.0.1:3004 127.0.0.1:3005 127.0.0.1:3006"`
+
+-s="list of servers address+port separated by whitespace"
+
+- Example : `-s="127.0.0.1:3004 127.0.0.1:3005 127.0.0.1:3006"`
+
+-w="list of servers weight as a float value for each servers"
+
+- the distribution "weight" is a float which indicate "server performance", 1 is the default weight, a high weight value (say 2 while all others are 1) mean that the server is slower and will take half load, a low value for a server (say 0.5) mean that the server is fast and will take double load
+- Example : `-s="1 0.5 1"`
 
 ## SuperCollider
 

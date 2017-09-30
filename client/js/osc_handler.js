@@ -16,7 +16,7 @@ var _osc = {
         queue_timeout: null
     },
 
-    //_osc_address_input = document.getElementById("fs_osc_address"),
+    _osc_address_input = document.getElementById("fs_osc_inout_address"),
     
     _OSC_ENABLE = 0,
     _OSC_DISABLE = 1,
@@ -107,15 +107,14 @@ var _oscInit = function () {
         _osc.address = address;
     }
 
-/*
     _osc_address_input.value = _osc.address;
     
     _osc_address_input.addEventListener('input', function () {
             _osc.address = this.value;
         
-            localStorage.setItem("fas-address", _osc.address);
+            localStorage.setItem("osc-address", _osc.address);
         });
-*/
+
     _osc.worker.addEventListener("message", function (m) {
             var data = m.data, i;
         
