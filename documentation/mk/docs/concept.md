@@ -40,6 +40,8 @@ Fragment secondary sound synthesis is granular, the grains source are based on a
 
 Just like additive synthesis, re-synthesis can be done with granular synthesis and most granular parameters can be manipulated by the user.
 
+The combination of granular synthesis and additive synthesis provide powerful sound capabilities which can sound quite organic.
+
 #### Sampler
 
-Fragment can also act like a regular sampler, this method is only available with the audio server.
+Fragment can also act like a regular sampler, this method is only available with the audio server, it is a work in progress and may work partially.

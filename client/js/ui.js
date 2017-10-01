@@ -47,6 +47,8 @@ var _icon_class = {
     _fas_dialog_id = "fs_fas_dialog",
     _fas_dialog,
     
+    _fas_chn_notify_timeout,
+    
     _wui_main_toolbar,
     
     _send_slices_settings_timeout,
@@ -99,6 +101,10 @@ var _showMIDIOutDialog = function () {
     WUI_Dialog.open(_midi_out_dialog);
 };
 
+var _fasNotifyChnInfos = function () {
+    _fasNotify(_FAS_CHN_INFOS, _chn_settings);  
+};
+
 var _onChangeGrainSize = function (channel, channel_data_index) {
     return function (value) {
         _chn_settings[channel][channel_data_index] = value;
@@ -106,7 +112,8 @@ var _onChangeGrainSize = function (channel, channel_data_index) {
         _local_session_settings.chn_settings[channel] = _chn_settings[channel];
         _saveLocalSessionSettings();
 
-        _fasNotify(_FAS_CHN_INFOS, _chn_settings);
+        clearTimeout(_fas_chn_notify_timeout);
+        _fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 2000);
     };
 };
 
@@ -189,8 +196,9 @@ var _createFasSettingsContent = function () {
         additive_option.innerHTML = "additive";
         spectral_option.innerHTML = "spectral";
         spectral_option.style.display = "none";
+        fm_option.style.display = "none";
         sampler_option.innerHTML = "sampler";
-        fm_option.innerHTML = "FM";
+        fm_option.innerHTML = "PM/FM";
         
         chn_genv_type_label = document.createElement("label");
         chn_genv_type_select = document.createElement("select");
@@ -246,7 +254,7 @@ var _createFasSettingsContent = function () {
             } else if (chn_settings[0] === 3) {
                 sampler_option.selected = true;
             } else if (chn_settings[0] === 4) {
-                fm_option.selected = true;
+                //fm_option.selected = true;
             }
             
             if (chn_settings[1] !== undefined) {
@@ -289,7 +297,7 @@ var _createFasSettingsContent = function () {
                     this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "";
                 } else if (this.value === "sampler") {
                     value = 3;
-                } else if (this.value === "FM") {
+                } else if (this.value === "PM/FM") {
                     value = 4;
                 } else {
                     value = 0;
@@ -300,7 +308,8 @@ var _createFasSettingsContent = function () {
                 _local_session_settings.chn_settings[j] = _chn_settings[j];
                 _saveLocalSessionSettings();
             
-                _fasNotify(_FAS_CHN_INFOS, _chn_settings);
+                clearTimeout(_fas_chn_notify_timeout);
+                _fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 2000);
             });
         
         chn_genv_type_select.addEventListener("change", function() {
@@ -312,7 +321,8 @@ var _createFasSettingsContent = function () {
                 _local_session_settings.chn_settings[j] = _chn_settings[j];
                 _saveLocalSessionSettings();
             
-                _fasNotify(_FAS_CHN_INFOS, _chn_settings);
+                clearTimeout(_fas_chn_notify_timeout);
+                _fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 2000);
             });
         
         chn_div.appendChild(chn_synthesis_label);

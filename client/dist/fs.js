@@ -19790,7 +19790,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
 
                     bar: false,
 
-                    step: "any",
+                    step: 0.001,
                     scroll_step: 0.01,
 
                     default_value: fragment_input_channel.playrate,
@@ -19804,8 +19804,8 @@ var _createChannelSettingsDialog = function (input_channel_id) {
                     value_min_width: 88,
 
                     on_change: function (v) {
-                        fragment_input_channel.video_elem.playbackRate = _parseInt10(v);
-                        fragment_input_channel.playrate = _parseInt10(v);
+                        fragment_input_channel.video_elem.playbackRate = parseFloat(v);
+                        fragment_input_channel.playrate = parseFloat(v);
                     }
                 });
         
@@ -19818,8 +19818,8 @@ var _createChannelSettingsDialog = function (input_channel_id) {
 
                     bar: false,
 
-                    step: "any",
-                    scroll_step: 0.0001,
+                    step: 0.0001,
+                    scroll_step: 0.001,
 
                     default_value: fragment_input_channel.videostart,
                     value: fragment_input_channel.videostart,
@@ -19832,8 +19832,8 @@ var _createChannelSettingsDialog = function (input_channel_id) {
                     value_min_width: 88,
 
                     on_change: function (v) {
-                        fragment_input_channel.videostart = _parseInt10(v);
-                        fragment_input_channel.video_elem.currentTime = _parseInt10(v);
+                        fragment_input_channel.videostart = parseFloat(v);
+                        fragment_input_channel.video_elem.currentTime = fragment_input_channel.video_elem.duration * parseFloat(v);
                     }
                 });
         
@@ -19846,8 +19846,8 @@ var _createChannelSettingsDialog = function (input_channel_id) {
 
                     bar: false,
 
-                    step: "any",
-                    scroll_step: 0.0001,
+                    step: 0.0001,
+                    scroll_step: 0.001,
 
                     default_value: fragment_input_channel.videoend,
                     value: fragment_input_channel.videoend,
@@ -19860,7 +19860,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
                     value_min_width: 88,
 
                     on_change: function (v) {
-                        fragment_input_channel.videoend = _parseInt10(v);
+                        fragment_input_channel.videoend = parseFloat(v);
                     }
                 });
         
@@ -20962,6 +20962,8 @@ var _icon_class = {
     _fas_dialog_id = "fs_fas_dialog",
     _fas_dialog,
     
+    _fas_chn_notify_timeout,
+    
     _wui_main_toolbar,
     
     _send_slices_settings_timeout,
@@ -21014,6 +21016,10 @@ var _showMIDIOutDialog = function () {
     WUI_Dialog.open(_midi_out_dialog);
 };
 
+var _fasNotifyChnInfos = function () {
+    _fasNotify(_FAS_CHN_INFOS, _chn_settings);  
+};
+
 var _onChangeGrainSize = function (channel, channel_data_index) {
     return function (value) {
         _chn_settings[channel][channel_data_index] = value;
@@ -21021,7 +21027,8 @@ var _onChangeGrainSize = function (channel, channel_data_index) {
         _local_session_settings.chn_settings[channel] = _chn_settings[channel];
         _saveLocalSessionSettings();
 
-        _fasNotify(_FAS_CHN_INFOS, _chn_settings);
+        clearTimeout(_fas_chn_notify_timeout);
+        _fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 2000);
     };
 };
 
@@ -21104,8 +21111,9 @@ var _createFasSettingsContent = function () {
         additive_option.innerHTML = "additive";
         spectral_option.innerHTML = "spectral";
         spectral_option.style.display = "none";
+        fm_option.style.display = "none";
         sampler_option.innerHTML = "sampler";
-        fm_option.innerHTML = "FM";
+        fm_option.innerHTML = "PM/FM";
         
         chn_genv_type_label = document.createElement("label");
         chn_genv_type_select = document.createElement("select");
@@ -21161,7 +21169,7 @@ var _createFasSettingsContent = function () {
             } else if (chn_settings[0] === 3) {
                 sampler_option.selected = true;
             } else if (chn_settings[0] === 4) {
-                fm_option.selected = true;
+                //fm_option.selected = true;
             }
             
             if (chn_settings[1] !== undefined) {
@@ -21204,7 +21212,7 @@ var _createFasSettingsContent = function () {
                     this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "";
                 } else if (this.value === "sampler") {
                     value = 3;
-                } else if (this.value === "FM") {
+                } else if (this.value === "PM/FM") {
                     value = 4;
                 } else {
                     value = 0;
@@ -21215,7 +21223,8 @@ var _createFasSettingsContent = function () {
                 _local_session_settings.chn_settings[j] = _chn_settings[j];
                 _saveLocalSessionSettings();
             
-                _fasNotify(_FAS_CHN_INFOS, _chn_settings);
+                clearTimeout(_fas_chn_notify_timeout);
+                _fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 2000);
             });
         
         chn_genv_type_select.addEventListener("change", function() {
@@ -21227,7 +21236,8 @@ var _createFasSettingsContent = function () {
                 _local_session_settings.chn_settings[j] = _chn_settings[j];
                 _saveLocalSessionSettings();
             
-                _fasNotify(_FAS_CHN_INFOS, _chn_settings);
+                clearTimeout(_fas_chn_notify_timeout);
+                _fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 2000);
             });
         
         chn_div.appendChild(chn_synthesis_label);

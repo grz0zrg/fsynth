@@ -88,7 +88,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
 
                     bar: false,
 
-                    step: "any",
+                    step: 0.001,
                     scroll_step: 0.01,
 
                     default_value: fragment_input_channel.playrate,
@@ -102,8 +102,8 @@ var _createChannelSettingsDialog = function (input_channel_id) {
                     value_min_width: 88,
 
                     on_change: function (v) {
-                        fragment_input_channel.video_elem.playbackRate = _parseInt10(v);
-                        fragment_input_channel.playrate = _parseInt10(v);
+                        fragment_input_channel.video_elem.playbackRate = parseFloat(v);
+                        fragment_input_channel.playrate = parseFloat(v);
                     }
                 });
         
@@ -116,8 +116,8 @@ var _createChannelSettingsDialog = function (input_channel_id) {
 
                     bar: false,
 
-                    step: "any",
-                    scroll_step: 0.0001,
+                    step: 0.0001,
+                    scroll_step: 0.001,
 
                     default_value: fragment_input_channel.videostart,
                     value: fragment_input_channel.videostart,
@@ -130,8 +130,8 @@ var _createChannelSettingsDialog = function (input_channel_id) {
                     value_min_width: 88,
 
                     on_change: function (v) {
-                        fragment_input_channel.videostart = _parseInt10(v);
-                        fragment_input_channel.video_elem.currentTime = _parseInt10(v);
+                        fragment_input_channel.videostart = parseFloat(v);
+                        fragment_input_channel.video_elem.currentTime = fragment_input_channel.video_elem.duration * parseFloat(v);
                     }
                 });
         
@@ -144,8 +144,8 @@ var _createChannelSettingsDialog = function (input_channel_id) {
 
                     bar: false,
 
-                    step: "any",
-                    scroll_step: 0.0001,
+                    step: 0.0001,
+                    scroll_step: 0.001,
 
                     default_value: fragment_input_channel.videoend,
                     value: fragment_input_channel.videoend,
@@ -158,7 +158,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
                     value_min_width: 88,
 
                     on_change: function (v) {
-                        fragment_input_channel.videoend = _parseInt10(v);
+                        fragment_input_channel.videoend = parseFloat(v);
                     }
                 });
         

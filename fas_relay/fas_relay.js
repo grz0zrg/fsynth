@@ -67,13 +67,13 @@ var WebSocket = require("ws"),
     fas_count = null;
 
 if (args.s) {
-    fas_servers = fas_servers.split(" ");
+    fas_servers = args.s.split(" ");
 } else if (args.c) {
     fas_count = parseInt(args.c, 10);
 }
 
 if (args.w) {
-    fas_weight = fas_weight.split(" ");
+    fas_weight = args.w.split(" ");
     fas_weight = fas_weight.map(function (w) {
             return parseFloat(w);
         });
@@ -224,10 +224,12 @@ function websocketConnect() {
                     } else if (distribution_method === DSMART) {
                         if (pframes === null) {
                             pframes = new frame_array_type(new frame_array_type(data.slice(0), 16).length);
+                            pframes.fill(0);
                         }
 
                         if (smart_piarr === null) {
                             smart_piarr = new Array(frame_length * data_length);
+                            smart_piarr.fill(0);
                         }
 
                         if (fas_arr === null) {
@@ -270,7 +272,7 @@ function websocketConnect() {
                                                     fa.data_view[index + 1] = g;
                                                     fa.data_view[index + 2] = b;
                                                     fa.data_view[index + 3] = a;
-                                                    fa.count += fas_loads[i];
+                                                    fa.count += fas_weight[i];
 
                                                     smart_piarr[index / 4] = i;
 
@@ -280,19 +282,18 @@ function websocketConnect() {
                                                     fa2.data_view[index + 1] = g;
                                                     fa2.data_view[index + 2] = b;
                                                     fa2.data_view[index + 3] = a;
-                                                    fa2.count += fas_loads[i + 1];
+                                                    fa2.count += fas_weight[i + 1];
 
                                                     smart_piarr[index / 4] = i + 1;
 
                                                     break;
                                                 }
                                             } else {
-                                                var fal = fas_loads[i];
                                                 fa.data_view[index]     = r;
                                                 fa.data_view[index + 1] = g;
                                                 fa.data_view[index + 2] = b;
                                                 fa.data_view[index + 3] = a;
-                                                fa.count += fas_loads[i];
+                                                fa.count += fas_weight[i];
 
                                                 smart_piarr[index / 4] = i;
 
@@ -309,7 +310,7 @@ function websocketConnect() {
                                         f.data_view[index + 1] = 0;
                                         f.data_view[index + 2] = 0;
                                         f.data_view[index + 3] = 0;
-                                        f.count -= fas_loads[pii];
+                                        f.count -= fas_weight[pii];
                                     }
                                 }
                             }
@@ -372,9 +373,13 @@ function onFASMessage(i) {
     return function msg(message) {
         var stream_load = new Float64Array(message);
 
-        fas_loads[i] = stream_load;
+        fas_loads[i] = stream_load[0];
 
-        logger.info("Server %s stream load: %s.", i, parseInt(stream_load * 100, 10) + "%");
+        if (fas_loads[i] <= 0) {
+          return;
+        }
+
+        logger.info("Server %s stream load: %s.", i, parseInt(stream_load[0] * 100, 10) + "%");
     };
 }
 
@@ -393,9 +398,18 @@ function printOverallLoad() {
 
     if (i > 0) {
         l /= i;
+    } else {
+        return;
     }
 
-    logger.info("Overall stream load: %s.", i, parseInt(l * 100, 10) + "%");
+    if (l <= 0) {
+      return;
+    }
+
+    logger.info("Overall stream load: %s.", parseInt(l * 100, 10) + "%");
+
+    clearTimeout(fas_load_timeout);
+    fas_load_timeout = setTimeout(printOverallLoad, 4000);
 }
 
 function fasConnect(cb) {
@@ -407,15 +421,17 @@ function fasConnect(cb) {
         c = fas_servers.length;
     }
 
+    fas_count = c;
+
     for (i = 0; i < c; i += 1) {
         var addr = "";
-        if (fas_count === null) {
+        if (args.s) {
             port = fas_servers[i].split(":")[1];
 
             addr = "ws://" + fas_servers[i];
 
             ws = new WebSocket(addr);
-        } else {
+        } else if (args.c) {
             port = 3004 + i;
 
             addr = "ws://127.0.0.1:" + port;
@@ -436,15 +452,13 @@ function fasConnect(cb) {
           data: null
         });
 
-        if (!fas_loads[i]) {
-            fas_loads[i] = 1;
+        if (!fas_weight[i]) {
+            fas_weight[i] = 1;
         }
     }
 
-    fas_count = c;
-
     clearTimeout(fas_load_timeout);
-    fas_load_timeout = setTimeout(printOverallLoad, 2000);
+    fas_load_timeout = setTimeout(printOverallLoad, 4000);
 }
 
 fasConnect(websocketConnect);
