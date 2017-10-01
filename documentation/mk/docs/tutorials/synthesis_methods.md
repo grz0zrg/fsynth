@@ -40,13 +40,13 @@ This is the default and main sound synthesis method.
 
 Granular synthesis is the secondary synthesis method available with the Fragment Audio Server.
 
-The Fragment Audio Server load all samples from a **grains folder** and try to guess their pitch to map it on the canvas so that it match the canvas freq. mapping.
+The Fragment Audio Server load all samples from a **grains folder** and try to guess their pitch to map it on the canvas so that it match the canvas freq. mapping, under Linux and if you installed Fragment from the .deb package, the grains folder is at **/usr/local/share/fragment/grains** by default, otherwise the grain folder should be located in the audio server directory or should be specified from arguments or launcher settings.
 
 The pitch algorithm used to find the sample pitch may be sometimes wrong on some samples, it is possible to force the pitch of a specific sample by adding the MIDI note to their filename, such as `flute_A#4.wav`  or `flute_As4.wav` for example (the note name can be lowercase or uppercase), it is also possible to force a specific frequency by adding it to the filename between `####`such as `flute_##440##.wav`
 
 Just like with additive synthesis, re-synthesis by granular means is possible altough computationally heavy.
 
-Fragment work with granular synthesis on pre-loaded samples, all samples (.wav, .aiff and related samples) must be placed into the **grains** folder of the Fragment launcher/server
+Fragment work with granular synthesis on pre-loaded samples, all samples (.wav, .aiff and related samples) must be placed into the **grains** folder of the Fragment launcher/server (see above)
 
 A good source of free samples is the [OLPC](http://one.laptop.org/) sound samples available [here](http://wiki.laptop.org/go/Sound_samples)
 

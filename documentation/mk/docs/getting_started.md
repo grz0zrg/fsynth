@@ -2,7 +2,7 @@
 
 The quickest way to get started is to create a session on the [homepage](https://www.fsynth.com)
 
-You can also use the Fragment launcher available as a download on the homepage, the launcher keep a list of the sessions you joined in, it is also bundled with the audio server to provide excellent audio performances.
+You can also use the Fragment launcher available on the homepage as a .deb package for Ubuntu/Debian and executable files for Windows, the launcher keep a list of the sessions you joined in, it is also bundled with the audio server to provide excellent audio performances.
 
 Once the session is created, you will join automatically the Fragment application, an example code which produce basic sounds willl be provided automatically.
 

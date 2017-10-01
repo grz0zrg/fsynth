@@ -28,6 +28,7 @@ pages:
     - 'Canvas import': 'tutorials/canvas_import.md'
     - 'Spectral recording': 'tutorials/spectral_record.md'
     - 'OSC': 'tutorials/osc.md'
+    - 'Audio Server': 'tutorials/audio_server.md'
     - 'Controllers': 'tutorials/ctrls.md'
     - 'Visuals': 'tutorials/visuals.md'
 - Settings: 'settings.md'
