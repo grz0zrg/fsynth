@@ -16,4 +16,6 @@ Sounds import has specific analysis settings which can be used to fine-tune the 
 
 Mass import is supported by drag and dropping files onto a specific part of the import dialog.
 
+All imported data except movies are saved per sessions locally in the browser storage.
+
 ![Fragment import dialog](images/import_dialog.png)

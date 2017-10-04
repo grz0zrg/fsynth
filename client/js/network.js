@@ -112,7 +112,7 @@ var _shareDBConnect = function () {
         
         _sharedb_doc_ready = true;
     });
-    
+/*
     _sharedb_ctrl_doc = _sharedb_connection.get("_" + _session, "ctrls");
     _sharedb_ctrl_doc.on('error', _sharedbDocError);
     
@@ -189,6 +189,7 @@ var _shareDBConnect = function () {
         _sharedb_ctrl_doc_ready = true;
 
     });
+*/
 };
 
 var _prepareMessage = function (type, obj) {

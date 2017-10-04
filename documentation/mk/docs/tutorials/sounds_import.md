@@ -12,6 +12,8 @@ Once a sound file is added, a conversion phase which perform audio analysis and 
 
 Once the sound is converted to an image, several actions are available by clicking on the resulting image thumbnail, see *images import* section for the actions details.
 
+Many sounds can be imported at the same time, Fragment will convert them to images one by one.
+
 ## Import settings
 
 The audio import settings which can be found in the import dialog are the settings associated to the audio analysis process (overlap-add STFT processing) which perform the conversion of audio data to pixels data (spectogram), tweaking the various settings can give a wide range of different spectogram with varying re-synthesis quality
@@ -67,6 +69,12 @@ This settings associated with the PPB settings are used for the resulting image 
 ##### PPB - Pixels Per Beats
 
 This settings associated with the BPM settings are used for the resulting image width, low ppb will result in longer images while high ppb will result in a more condensed image
+
+##### BPM/PPB Computation
+
+The relationship between BPM and PPB is given by `(1.0 / ppb) * (60.0 / bpm)`
+
+The default BPM and PPB values (60) are optimized for a refresh rate of 60 FPS by default
 
 ##### Height
 

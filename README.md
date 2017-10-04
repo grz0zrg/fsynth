@@ -32,11 +32,11 @@ Table of Contents
 
 ## About Fragment
 
-Fragment is a collaborative audiovisual live coding web. environment with pixels based (image-synth) live additive/spectral/granular synthesis/sequencing, the **sound synthesis** is **powered by pixels data** generated from live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)
+Fragment is a collaborative audiovisual live coding web. environment with pixels based (image-synth) live additive/spectral/granular synthesis and sequencing, the **sound synthesis** is **powered by pixels data** generated from live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)
 
 Many videos of most features are available on [YouTube](https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ)
 
-Fragment has only one fragment shader which has the particularity to be shared between the users of an online session, it update and compile on-the-fly as you or other peoples type, some settings are also synchronized between users such as slices, some global settings and uniform controllers.
+Fragment has only one fragment shader which has the particularity to be shared between the users of an online session, it update and compile on-the-fly as you or other peoples type, some settings are also synchronized between users such as slices and some global settings.
 
 Fragment has many features making it a bliss to produce any kind of sounds associated (or not) with visuals, it is aimed at artists seeking a creative environment with few limitations to experiment with, a programmable noise-of-all-kinds software.
 

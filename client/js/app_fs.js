@@ -384,7 +384,8 @@ var FragmentSynth = function (params) {
         
         _hover_freq = null,
 
-        _input_channel_prefix = "iInput";
+        _input_channel_prefix = "iInput",
+        _input_video_prefix = "fvid";
 
     /***********************************************************
         App. Includes.

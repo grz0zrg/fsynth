@@ -16423,7 +16423,8 @@ _utter_fail_element.innerHTML = "";
         
         _hover_freq = null,
 
-        _input_channel_prefix = "iInput";
+        _input_channel_prefix = "iInput",
+        _input_video_prefix = "fvid";
 
     /***********************************************************
         App. Includes.
@@ -17268,7 +17269,7 @@ var _audio_to_image_worker = new Worker("dist/worker/audio_to_image.min.js"),
         window_type: "kaiser",
         overlap: 8,
         bpm: 60,
-        ppb: 12,
+        ppb: 60,
         height: 0,
         minfreq: 0,
         maxfreq: 0,
@@ -18163,6 +18164,10 @@ var _frame = function (raf_time) {
                 _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
         } else if (fragment_input.type === 1 || fragment_input.type === 3) { // video/camera
             if (fragment_input.video_elem.readyState === fragment_input.video_elem.HAVE_ENOUGH_DATA) {
+                if (fragment_input.type === 3) {
+                    _gl.uniform1f(_getUniformLocation(_input_video_prefix + i), fragment_input.video_elem.currentTime / fragment_input.video_elem.duration);
+                }
+                
                 _gl.activeTexture(_gl.TEXTURE0 + i);
                 _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
                 _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
@@ -18302,7 +18307,7 @@ var _frame = function (raf_time) {
         // OSC
         if (_osc.enabled) {
             if (_osc.out) {
-                // make a copy all channels again
+                // make a copy of all channels again
                 var buffer_osc = [];
                 for (i = 0; i < _output_channels; i += 1) {
                     buffer_osc.push(new _synth_data_array(_data[i]));
@@ -18602,9 +18607,10 @@ var _glsl_compilation = function () {
 
         if (fragment_input.type === 0 ||
            fragment_input.type === 1 ||
-           fragment_input.type === 2 ||
-           fragment_input.type === 3) { // 2D texture from either image, webcam, canvas, video type
-            glsl_code += "uniform sampler2D iInput" + i + ";";
+           fragment_input.type === 2) { // 2D texture from either image, webcam, canvas
+            glsl_code += "uniform sampler2D " + _input_channel_prefix + "" + i + ";";
+        } else if (fragment_input.type === 3) { // video type
+            glsl_code += "uniform sampler2D " + _input_channel_prefix + "" + i + ";" + " uniform float " + _input_video_prefix + "" + i + ";";
         }
     }
     
@@ -18894,7 +18900,7 @@ var _shareDBConnect = function () {
         
         _sharedb_doc_ready = true;
     });
-    
+/*
     _sharedb_ctrl_doc = _sharedb_connection.get("_" + _session, "ctrls");
     _sharedb_ctrl_doc.on('error', _sharedbDocError);
     
@@ -18971,6 +18977,7 @@ var _shareDBConnect = function () {
         _sharedb_ctrl_doc_ready = true;
 
     });
+*/
 };
 
 var _prepareMessage = function (type, obj) {
@@ -21388,7 +21395,7 @@ var _showRecordDialog = function () {
 };
 
 var _onImportDialogClose = function () {
-    WUI_ToolBar.toggle(_wui_main_toolbar, 14);
+    WUI_ToolBar.toggle(_wui_main_toolbar, 13);
     
     WUI_Dialog.close(_import_dialog);
 };
@@ -22603,11 +22610,13 @@ var _uiInit = function () {
             ],
     */
             inputs: [
+/*
                 {
                     icon: "fs-controls-icon",
                     on_click: _showControlsDialog,
                     tooltip: "Controllers input"
                 },
+*/
                 {
                     icon: _icon_class.plus,
                     type: "toggle",

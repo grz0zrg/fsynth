@@ -3275,7 +3275,7 @@ var _disconnect = function () {
 
 var _connect = function (opts) {
     _osc_port = new osc.WebSocketPort({
-        url: "ws://127.0.0.1:8081",
+        url: "ws://"  + opts.address,
         metadata: true
     });
     

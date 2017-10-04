@@ -138,12 +138,13 @@ var _convert = function (params, data) {
                     r  = real_final[stft_data_index],
                  
                     amp = (Math.sqrt(r * r + im * im) / hop_divisor);
+/*
                     db = 20 * Math.log10(amp);
-                    
+
                     if (db < -40) {
                         amp = 0.0;
                     }
-                        
+*/                      
                     mag = Math.round(amp * 255);
                     phase = Math.round(Math.atan2(mag,r) * 180 / Math.PI) / hop_divisor * 255;
                     

@@ -221,9 +221,10 @@ var _glsl_compilation = function () {
 
         if (fragment_input.type === 0 ||
            fragment_input.type === 1 ||
-           fragment_input.type === 2 ||
-           fragment_input.type === 3) { // 2D texture from either image, webcam, canvas, video type
-            glsl_code += "uniform sampler2D iInput" + i + ";";
+           fragment_input.type === 2) { // 2D texture from either image, webcam, canvas
+            glsl_code += "uniform sampler2D " + _input_channel_prefix + "" + i + ";";
+        } else if (fragment_input.type === 3) { // video type
+            glsl_code += "uniform sampler2D " + _input_channel_prefix + "" + i + ";" + " uniform float " + _input_video_prefix + "" + i + ";";
         }
     }
     

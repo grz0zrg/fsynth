@@ -663,6 +663,10 @@ var _frame = function (raf_time) {
                 _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
         } else if (fragment_input.type === 1 || fragment_input.type === 3) { // video/camera
             if (fragment_input.video_elem.readyState === fragment_input.video_elem.HAVE_ENOUGH_DATA) {
+                if (fragment_input.type === 3) {
+                    _gl.uniform1f(_getUniformLocation(_input_video_prefix + i), fragment_input.video_elem.currentTime / fragment_input.video_elem.duration);
+                }
+                
                 _gl.activeTexture(_gl.TEXTURE0 + i);
                 _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
                 _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
@@ -802,7 +806,7 @@ var _frame = function (raf_time) {
         // OSC
         if (_osc.enabled) {
             if (_osc.out) {
-                // make a copy all channels again
+                // make a copy of all channels again
                 var buffer_osc = [];
                 for (i = 0; i < _output_channels; i += 1) {
                     buffer_osc.push(new _synth_data_array(_data[i]));
