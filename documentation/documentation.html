@@ -82,8 +82,8 @@ p                                 {  width: 600px; }
 <div style="text-align: center; color: inherit; font-size: inherit;"><p><span style="font-size: 120%;"><span style="font-size: 120%;">The Collaborative Spectral Synthesizer</span></span></p></div>
 <div style="text-align: center; color: inherit; font-size: inherit;"><p>by Julien Verneuil - contact@fsynth.com</p></div>
 <br>
-<div style="text-align: center; color: inherit; font-size: inherit;"><p><span style="font-size: 120%;">This is the old HTML documentation of the Fragment synthesizer.</span></p></div>
-<div style="text-align: center; color: inherit; font-size: inherit;"><p>The new documentation can be found <a href="https://www.fsynth.com/documentation">here</a></p></div>
+<div style="text-align: center; color: inherit; font-size: inherit;"><p>This is the old HTML documentation of the Fragment synthesizer.</p></div>
+<div style="text-align: center; color: inherit; font-size: inherit;"><p><span style="font-size: 120%;">The new documentation can be found <a href="https://www.fsynth.com/documentation">here</a></span></p></div>
 <div style="text-align: center; color: inherit; font-size: inherit;"><p>The old PDF documentation can be found <a href="https://www.fsynth.com/pdf/fragment_old_documentation.pdf">here</a></p></div>
 <div style="text-align: center; color: inherit; font-size: inherit;"><p><a href="https://www.fsynth.com"><img src="images/fsynth_ui.png" width="580"></a></p></div>
 <br>
@@ -97,12 +97,13 @@ a software emulation of the Russian photoelectronic synthesizer <a href="http://
 the prototype was quite mature but lacked in features, i considered Fragment as a pretty failed experiment at the time.<br><br>In the summer 2016 while i was releasing the prototype source code, i played with it again and after tweaking the GLSL code, i was able to make some nice sounds, so i started to think about that prototype again and come up with many ideas that would make Fragment more functional and easier to use, the real work begun.<br><br>After many hours spent crafting the software, the first version of Fragment was released in January 2017, it was quite limited at that time, Fragment has now improved alot.<br><br><br>
 <a id="subsec1_2"></a><span style="font-size: 120%;"><strong>1.2. Capabilities</strong></span><br><br>
 <span><ul>
-	<li> Powerful additive synthesizer
-		<span><ul><li> Powered by WebAudio oscillators <li> Powered by <a rel="tag" href="#fas">FAS</a>, an independent program <li> Powered by a wavetable </ul></span>
+	<li> Powerful additive/granular synthesizer
+		<span><ul><li> Powered by WebAudio oscillators (additive only) <li> Powered by <a rel="tag" href="#fas">FAS</a>, an independent program <li> Powered by a wavetable (additive only) </ul></span>
 	<li> Stereophonic / Monaural
 	<li> Polyphonic
 		<span><ul><li> Automatically detected from the GPU capabilities <li> 16 notes minimum <li> 704 notes with a GeForce GTX 970 GPU</ul></span>
 	<li> Multitimbral
+	<li> Distributed multi-machines/multi-core sound synthesis over the wire with <a rel="tag" href="#fas">FAS</a>
 	<li> Spectral recording with mixing and PNG export
 	<li> 8-bit or 32-bit floating point processing of pixels data for audio synthesis (WebGL 2.0 only)
 	<li> Adjustable audio output channel per slices
@@ -129,7 +130,7 @@ Fragment require a browser with full support for ECMAScript 5, CSS3, WebAudio an
 <a id="subsubsec1_3_2"></a><br><br><strong>1.3.2. CPU</strong><br><br>
 Fragment may be quite hungry in term of computing resources, a dual core with high clock speed is recommended, a CPU with more cores can be useful if you just want to use the browser for audio output.<br><br>Several methods are provided to synthesize sounds, each with performances pros and cons:
 <span><ul>
-	<li> <a rel="tag" href="#fas">FAS</a> (<strong>recommended method</strong>): <span><ul><li> Fastest <li> Multiple output support with soundcard choice <li> Many audio settings <li> Can run on a dedicated computer such as a Raspberry PI <li> Dedicated program which receive Fragment data over the network <li> Enhanced noise modeling with band-limited noise <li> Granular synthesis capability (soon)</ul></span>
+	<li> <a rel="tag" href="#fas">FAS</a> (<strong>recommended method</strong>): <span><ul><li> Fastest <li> Has more synthesis methods like granular, FM/PM and sampler type <li> Multiple output support with soundcard choice <li> Many audio settings <li> Can run on a dedicated computer such as a Raspberry PI <li> Dedicated program which receive Fragment data over the network <li> Enhanced noise modeling with band-limited noise <li> Granular synthesis capability (soon)</ul></span>
 	<li> WebAudio oscillators: <span><ul><li> Fastest with Chrome <li> May not work with Firefox if the canvas is too high vertically <li> Require a fast CPU <li> Integrated global "release" envelope</ul></span>
 	<li> Wavetable <strong>not recommended</strong>: <span><ul><li> Most compatible browser method <li> Will produce crackles</ul></span></ul></span>
 <a id="subsubsec1_3_3"></a><br><br><strong>1.3.3. GPU</strong><br><br>
@@ -142,7 +143,7 @@ Fragment was developed and tested with a NVIDIA GeForce GTX 970 GPU, a powerful 
 <a id="sec2"></a><br><br><span style="font-size: 120%;"><span style="font-size: 120%;"><strong>2. Concept</strong></span></span><br><br>
 Fragment basically capture 1 pixel wide slices of a canvas at the display refresh rate and translate RGBA pixels value to notes, the notes are then interpreted and played by one of the synthesis tool.<br><br>The content of the canvas is produced on the GPU by a collaborative GLSL script, the GPU make it extremely fast and easy to do any kinds of pixels manipulations.<br><br>There is many features in Fragment which allow any creative minds to produce complex sounds in different ways and even with external tools, i suggest all the readers to look at great softwares like the <a href="https://www.iannix.org">IanniX sequencer</a> and to use it with Fragment using the MIDI capabilities.<br><br>While Fragment may seem overwhelming at first, the only thing that is required to produce sounds with it is to know how to generate the visuals, the visuals can be drawn directly over the canvas with a canvas input, produced directly by the GLSL code, come from images, sound files, webcam etc.<br><br>The goal of this section is to clarify the inner working of Fragment.<br><br><br>
 <a id="subsec2_1"></a><span style="font-size: 120%;"><strong>2.1. Additive synthesis</strong></span><br><br>
-Fragment is first and foremost a powerful additive synthesizer which make an extended use of additive synthesis.<br><br>Additive synthesis is a sound synthesis technique that create timbres by adding sine waves together.<br><br>Adding sine waves produce a timbre, the timbre quality is mainly defined by its harmonic content and the dynamic characteristics of the harmonic content.<br><br>The concept of additive synthesis is centuries old, it has first been used by pipe organs.<br><br>Fragment can theoretically produce any timbres with precise accuracy.<br><br>The only limit to the amount of sine waves that can be added by Fragment is the limit of the available processing power.<br><br>For example, on a Raspberry PI 3 (1.2GHz 64-bit quad-core ARMv8 CPU) ~700 oscillators can be played simultaneously using two cores, matching the capability of the ANS synthesizer.<br><br>Actually, there is a also a hard limit which is that the frequency capture of slices cannot go beyond the refresh rate of your monitor (and this also depend on the browser implementation, commonly 60 FPS which mean ~16ms time granularity), this could however be bypassed by switching to a different monitor or disabling browser vertical synchronization.<br><br>Fragment can also do other types of synthesis like granular synthesis.<br><br><br>
+Fragment is first and foremost a powerful additive synthesizer which make an extended use of additive synthesis.<br><br>Additive synthesis is a sound synthesis technique that create timbres by adding sine waves together.<br><br>Adding sine waves produce a timbre, the timbre quality is mainly defined by its harmonic content and the dynamic characteristics of the harmonic content.<br><br>The concept of additive synthesis is centuries old, it has first been used by pipe organs.<br><br>Fragment can theoretically produce any timbres with precise accuracy.<br><br>The only limit to the amount of sine waves that can be added by Fragment is the limit of the available processing power.<br><br>For example, on a Raspberry PI 3 (1.2GHz 64-bit quad-core ARMv8 CPU) ~700 oscillators can be played simultaneously using two cores, matching the capability of the ANS synthesizer.<br><br>Actually, there is a also a hard limit which is that the frequency capture of slices cannot go beyond the refresh rate of your monitor (and this also depend on the browser implementation, commonly 60 FPS which mean ~16ms time granularity), this could however be bypassed by switching to a different monitor or disabling browser vertical synchronization.<br><br>Fragment can also do other types of synthesis like granular synthesis which is only available by using the Audio Server.<br><br><br>
 <a id="score"></a>
 <a id="subsec2_2"></a><span style="font-size: 120%;"><strong>2.2. The graphical score</strong></span><br><br>
 Fragment graphical score represent the sound spectrum which is generated by the GPU from a fragment program.<br><br>The fragment program (also known as a fragment shader) is executed by the GPU and compute the color and other attributes of each "fragment" - a technical term which mean a single pixel.<br><br>The graphical score represent a kind of sonic canvas where the X axis represent time and the Y axis represent frequencies, you "paint" the graphical score by writing a fragment program which will be executed for each pixels of the graphical score.<br><br>What you hear in Fragment is determined by the position of "slices" which are added on the graphical score, slices are vertical bits of the graphical score which are merged together and produce an audible result.<br><br>The content of slices is captured at the rate of the display refresh rate which conventionally should be 60fps most of the time which mean a time granularity of at best ~16ms.<br><br>The frequency mapping of the graphical score is fixed by a logarithmic formula, altough the formula cannot be changed right now, some parameters are available in the settings dialog to fine tune the frequency map.<br><br>The frequency mapping is defined by the formula:
@@ -222,6 +223,8 @@ Here is a list of the program arguments which FAS support (along with the defaul
 			<li> should be a power of 2 and positive integer</ul></span></ul></span>
 Once launched, you can stop the FAS server by pressing any keys.
 <br>
+For more informations on the Fragment Audio Server, see the newer documentation <a href="https://www.fsynth.com/documentation">here</a>
+<br>
 <a id="sec5"></a><br><br><span style="font-size: 120%;"><span style="font-size: 120%;"><strong>5. The user interface</strong></span></span><br><br>
 <a href="images/ui_help.png"><div style="text-align: center; color: inherit; font-size: inherit;"><p><img src="images/ui_help.png" width="600"></p></div></a>
 <a href="images/ui_help.png"><div style="text-align: center; color: inherit; font-size: inherit;"><p>Click to view the full image</p></div></a>
@@ -261,7 +264,7 @@ You are free to add any number of slices, adding many slices may have an impact 
 Slices are an important part of Fragment, there will be no sounds if you don't add at least one slice.<br><br>The purpose of slices is to capture the pixels of vertical parts of the canvas which will be fed to the audio synthesis engine, they are like turntable needles, they can be dragged around in real-time by the mouse or by a MIDI controller, you can use programs like <a href="https://www.iannix.org">IanniX</a> to move them following certain kind of patterns.<br><br>Slices can be moved by dragging them on the X axis, to do so, maintain the left mouse button on a slice and move the mouse cursor around on the horizontal axis.
 <a href="gif/dragging_slices.gif"><div style="text-align: center; color: inherit; font-size: inherit;"><p><img src="gif/dragging_slices.gif" width="600"></p></div></a>
 Double-clicking on a slice open its settings dialog directly:
-<a href="images/slice_settings.png"><div style="text-align: center; color: inherit; font-size: inherit;"><p><img src="images/slice_settings.png" width="336"></p></div></a>
+<a href="images/slice_settings.png"><div style="text-align: center; color: inherit; font-size: inherit;"><p><img src="images/slice_settings.png" width="322"></p></div></a>
 The following actions are possible by right-clicking on a slice:
 <span><ul>
 	<li> mute/unmute
@@ -308,7 +311,7 @@ The toolbar is a collection of tools and settings which are grouped by sections,
 		<li> <a rel="tag" href="#finputs">GLSL inputs import</a></ul></span></ul></span><br><br><a id="finputs"></a>
 <a id="subsec5_5"></a><span style="font-size: 120%;"><strong>5.5. The fragment inputs</strong></span><br><br>
 Fragment inputs are complex inputs which can be used in the fragment program as a 2D texture.<br><br>The fragment inputs panel is a complete list of all the added inputs, each of them appear as a thumbnail near the <strong>add complex inputs button</strong>, nothing will be shown if no complex inputs were added.<br><br>All complex inputs can be used as 2D textures (texture2d) within the fragment program, they are defined as <strong>iInputN</strong> where N is the id of the input starting from 0.<br><br>You can find the input id by hovering over the thumbnail or in the title of the complex input settings dialog.<br><br><a href="gif/input_reorder.gif"><div style="text-align: center; color: inherit; font-size: inherit;"><p><img src="gif/input_reorder.gif" width="294"></p></div></a>
-<div style="text-align: center; color: inherit; font-size: inherit;"><p>Complex inputs can be ordered in real-time by drag &amp; drop.</p></div><br><br>To open the complex input import dialog, click on the "add complex inputs" button, a new dialog will appear with three sections:<br><br><div style="text-align: center; color: inherit; font-size: inherit;"><p><img src="images/import.png" width="394"></p></div>
+<div style="text-align: center; color: inherit; font-size: inherit;"><p>Complex inputs can be ordered in real-time by drag &amp; drop.</p></div><br><br>To open the complex input import dialog, click on the "add complex inputs" button, a new dialog will appear with three sections:<br><br><div style="text-align: center; color: inherit; font-size: inherit;"><p><img src="images/import.png" width="382"></p></div>
 <span><ul>
 	<li> Audio import settings: This determine how audio files will be analyzed when imported
 	<span><ul>
@@ -321,7 +324,7 @@ Fragment inputs are complex inputs which can be used in the fragment program as 
 		<li> Height: A value of 0 will automatically create an input with the height equal to the score height
 		<li> Min. freq.: A value of 0 will automatically assign the score min. frequency
 		<li> Max. freq.: A value of 0 will automatically assign a max. frequency related to the score settings</ul></span>
-		<li> Import mov. audio: Enabling it allow to import videos audio track
+		<li> Import mov. audio: Enabling it allow to import videos audio track as an image
 	<li> Import toolbar
 	<span><ul>
 		<li> Img: This will open a file selection window to import images
@@ -356,7 +359,7 @@ The complex input settings dialog have several options:
 <strong>Note</strong>: The "repeat" and "mirrored" Wrap S/T option will be unavailable if your browser does not support the WebGL 2 API, it is only available by adding images with power-of-2 dimensions (128x64, 256x256 etc.) or by using a browser with WebGL 2 support.<br><br><br>
 <a id="canvas"></a>
 <a id="subsec5_6"></a><span style="font-size: 120%;"><strong>5.6. The canvas input</strong></span><br><br>
-The canvas input is a powerful feature which allow to draw on a canvas with brushes, the canvas is usable within the fragment shader as a texture which is updated as you draw on it.<br><br>When you right click on the canvas input thumbnail, the canvas input will be selected and appear with green borders, the canvas content will appear in front of the graphical score and a "paint tools" dialog will open.<br><br>You can directly draw on the graphical score when a canvas input is selected but you cannot move or add slices anymore, you must unselect the selected canvas input before.<br><br>A right click on a selected canvas input thumbnail will unselect it.<br><br>Brushes can be added by adding complex inputs images from the <a rel="tag" href="#finputs">import inputs dialog</a>.<br><br>Brushes can be selected by clicking on the corresponding brush thumbnail.<br><br>Any actions affecting brushes will display an overlay helper for some seconds to help you visualize the changes.<br><br>To draw on the canvas input, you must first select a brush in the "paint tools" dialog, Fragment is bundled with 20 high-quality brushes and 949 are available as a separate download.<br><br><div style="text-align: center; color: inherit; font-size: inherit;"><p><img src="images/paint_toolbox.png" width="410"></p></div>
+The canvas input is a powerful feature which allow to draw on a canvas with brushes, the canvas is usable within the fragment shader as a texture which is updated as you draw on it.<br><br>When you right click on the canvas input thumbnail, the canvas input will be selected and appear with green borders, the canvas content will appear in front of the graphical score and a paint-like tools dialog will open.<br><br>You can directly draw on the graphical score when a canvas input is selected but you cannot move or add slices anymore, you must unselect the selected canvas input before.<br><br>A right click on a selected canvas input thumbnail will unselect it.<br><br>Brushes can be added by adding complex inputs images from the <a rel="tag" href="#finputs">import inputs dialog</a>.<br><br>Brushes can be selected by clicking on the corresponding brush thumbnail.<br><br>Any actions affecting brushes will display an overlay helper for some seconds to help you visualize the changes.<br><br>To draw on the canvas input, you must first select a brush in the "paint tools" dialog, Fragment is bundled with 20 high-quality brushes and 949 are available as a separate download.<br><br><div style="text-align: center; color: inherit; font-size: inherit;"><p><img src="images/paint_toolbox.png" width="410"></p></div>
 <div style="text-align: center; color: inherit; font-size: inherit;"><p>The "paint tools" dialog has three parts, a toolbar, brush settings and the brushes list.</p></div>
 The toolbar actions:
 <span><ul>
@@ -457,9 +460,9 @@ The session &amp; global settings dialog content (in order from top to bottom):
 	<li> OSC IN
 	<span><ul>
 		<li> Enable/disable OSC input, you can add and controls uniform variables through OSC, you will need an <a href="https://github.com/grz0zrg/fsynth/tree/master/osc_relay">OSC relay</a> to use this feature</ul></span>
-  <li> OSC OUT
+	<li> OSC OUT
 	<span><ul>
-		<li> Enable/disable OSC output, slices data will be sent through OSC bundles via WebSockets, you will need an <a href="https://github.com/grz0zrg/fsynth/tree/master/osc_relay">OSC relay</a> to use this feature</ul></span>
+		<li> Enable/disable OSC output, pixels data will be send as an OSC bundle, you will need an <a href="https://github.com/grz0zrg/fsynth/tree/master/osc_relay">OSC relay</a> to use this feature</ul></span>
 	<li> Feedback
 	<span><ul>
 		<li> Enable/disable the availability of the previous frame in the fragment shader (aka feedback), this is useful for complex effects, may be CPU/GPU intensive</ul></span>
@@ -468,10 +471,10 @@ The session &amp; global settings dialog content (in order from top to bottom):
 		<li> A list of themes for the code editor</ul></span>
 	<li> OSC address
 	<span><ul>
-		<li> OSC in/out (relay) network address</ul></span></ul></span>
+		<li> OSC in/out (relay) network address</ul></span>
 	<li> FAS address
 	<span><ul>
-		<li> The location of <a rel="tag" href="#fas">FAS (Fragment Audio Server)</a> on the network</ul></span>)<br><br><a id="midisettingsdialog"></a>
+		<li> The location of <a rel="tag" href="#fas">FAS (Fragment Audio Server) on the network</a></ul></span></ul></span><br><br><a id="midisettingsdialog"></a>
 <a id="subsec5_10"></a><span style="font-size: 120%;"><strong>5.10. MIDI settings dialog</strong></span><br><br>
 <a href="images/midi_settings.png"><div style="text-align: center; color: inherit; font-size: inherit;"><p><img src="images/midi_settings.png" width="325"></p></div></a>
 <br>
@@ -1236,5 +1239,5 @@ Fragment is a free and open source software released under the term of the BSDv2
 		<li> <a href="http://www.texturemate.com">Bundled brushes</a>
 		</ul></span></ul></span><br><br><br>
 <div style="text-align: center; color: inherit; font-size: inherit;"><p><span style="font-size: 120%;"><span style="font-size: 120%;"><span style="font-size: 120%;"><span style="font-size: 120%;">T<span style="display: inline; color: rgb(150,0,0)"><em>h</em></span><span style="display: inline; color: rgb(10,0,130)"><sup>a</sup></span><span style="display: inline; color: rgb(100,100,0)"><span style="font-size: 120%;">n</span></span><span style="display: inline; color: rgb(150,0,0)"><em>k</em></span> <span style="display: inline; color: rgb(0,100,100)"><sub><span style="font-size: 120%;">y</span></sub></span><span style="display: inline; color: rgb(100,100,0)"><span style="font-size: 120%;">o</span></span><span style="display: inline; color: rgb(0,100,100)"><sub><span style="font-size: 120%;">u</span></sub></span>!</span></span></span></span></p></div>
-<div style="text-align: center; color: inherit; font-size: inherit;"><p>last update: 2017-9-30</p></div>
+<div style="text-align: center; color: inherit; font-size: inherit;"><p>last update: 2017-10-7</p></div>
 </div></td></tr></table></center></body></html>

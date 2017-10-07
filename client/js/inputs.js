@@ -286,7 +286,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "#subsec5_5"); 
+                    window.open(_documentation_link + "tutorials/import/"); 
                 },
                 class_name: "fs-help-icon"
             }

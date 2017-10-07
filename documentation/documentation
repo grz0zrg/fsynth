@@ -79,7 +79,7 @@ $list(
 	$item Polyphonic
 		$list($item Automatically detected from the GPU capabilities $item 16 notes minimum $item 704 notes with a GeForce GTX 970 GPU)
 	$item Multitimbral
-	$item Distributed multi-machines/multi-core sound synthesis over the wire with $ref(fas)(FAS))
+	$item Distributed multi-machines/multi-core sound synthesis over the wire with $ref(fas)(FAS)
 	$item Spectral recording with mixing and PNG export
 	$item 8-bit or 32-bit floating point processing of pixels data for audio synthesis (WebGL 2.0 only)
 	$item Adjustable audio output channel per slices

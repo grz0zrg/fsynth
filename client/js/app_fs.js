@@ -132,7 +132,7 @@ var FragmentSynth = function (params) {
 
     var _fs_state = 1,
         
-        _documentation_link = "https://www.fsynth.com/documentation.html",
+        _documentation_link = "https://www.fsynth.com/documentation/",
 
         _username = localStorage.getItem('fs-user-name'),
         _local_session_settings = localStorage.getItem(_getSessionName()),

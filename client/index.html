@@ -73,9 +73,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
      You can find all the sessions you joined in by going on the homepage at https://www.fsynth.com
 
      Don't forget that you can invite friends to join your session by sharing the link shown in the adress bar.
-
-     Note : Image/Webcam inputs are not implemented collaboratively, the images or webcam you add can be seen by you only!
-
+     
      Have fun!
   */
 
@@ -98,7 +96,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
 
       float kfrq = data.x; // frequency
       float kvel = data.y; // velocity
-      float ktim = data.z; // elpased time
+      float ktim = data.z; // elapsed time
       float kchn = data.w; // channel
 
       // we quit as soon as there is no more note-on data
@@ -785,8 +783,16 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                                             </li>
                                         </ul>
                                     </li>
+                                    <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="https://www.patreon.com/fsynth">Patreon (support us)</span>
+                                        <ul>
+                                            <li>
+                                                <a href="https://www.patreon.com/fsynth">https://www.patreon.com/fsynth</a>
+                                            </li>
+                                        </ul>
+                                    </li>
                                 </ul>
-                                <br/><br/><br/><br/>
+                                <br/><br/>
                                 <div class="fs-about-footer">
                                     <a href="https://www.fsynth.com"><img src="data/fsynth2.png" width="297"></a>
                                     <br/><br/>
