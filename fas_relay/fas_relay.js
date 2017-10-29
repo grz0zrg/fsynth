@@ -306,11 +306,13 @@ function websocketConnect() {
                                         var pii = smart_piarr[index / 4];
                                         var f = fas_arr[pii];
 
-                                        f.data_view[index]     = 0;
-                                        f.data_view[index + 1] = 0;
-                                        f.data_view[index + 2] = 0;
-                                        f.data_view[index + 3] = 0;
-                                        f.count -= fas_weight[pii];
+                                        if (f) {
+                                            f.data_view[index]     = 0;
+                                            f.data_view[index + 1] = 0;
+                                            f.data_view[index + 2] = 0;
+                                            f.data_view[index + 3] = 0;
+                                            f.count -= fas_weight[pii];
+                                        }
                                     }
                                 }
                             }
