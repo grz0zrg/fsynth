@@ -155,7 +155,9 @@ var _createFasSettingsContent = function () {
     fas_actions_div.appendChild(load_samples_btn);
     
     // update chn. settings
-    _chn_settings.length = _output_channels;
+    if (_output_channels > _chn_settings.length) {
+        _chn_settings.length = _output_channels;
+    }
     
     if (detached_dialog) {
         dialog_div = detached_dialog.document.body;
@@ -241,7 +243,7 @@ var _createFasSettingsContent = function () {
         chn_synthesis_select.appendChild(fm_option);
         
         chn_settings = _chn_settings[j];
-        
+        console.log(_chn_settings);
         if (!chn_settings) {
             _chn_settings[j] = [0, 0, 0, 0];
         } else {

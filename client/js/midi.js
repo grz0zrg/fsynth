@@ -366,13 +366,13 @@ var _onMIDIMessage = function (midi_message) {
                 _pkeyboard.data[value.channel * 3]     = value.frq;
                 _pkeyboard.data[value.channel * 3 + 1] = value.vel;
                 _pkeyboard.data[value.channel * 3 + 2] = value.time;
+                
+                value.noteoff_time = Date.now();
+                value.noteoff = true;
             }
             
             _useProgram(_program);
             _setUniforms(_gl, "vec", _program, "pKey", _pkeyboard.data, _pkeyboard.data_components);
-            
-            value.noteoff_time = Date.now();
-            value.noteoff = true;
 
             // we will delete it later on for release time (in graphics callback)
             //delete _keyboard.pressed[key];

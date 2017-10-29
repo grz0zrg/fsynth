@@ -21067,7 +21067,9 @@ var _createFasSettingsContent = function () {
     fas_actions_div.appendChild(load_samples_btn);
     
     // update chn. settings
-    _chn_settings.length = _output_channels;
+    if (_output_channels > _chn_settings.length) {
+        _chn_settings.length = _output_channels;
+    }
     
     if (detached_dialog) {
         dialog_div = detached_dialog.document.body;
@@ -21153,7 +21155,7 @@ var _createFasSettingsContent = function () {
         chn_synthesis_select.appendChild(fm_option);
         
         chn_settings = _chn_settings[j];
-        
+        console.log(_chn_settings);
         if (!chn_settings) {
             _chn_settings[j] = [0, 0, 0, 0];
         } else {
@@ -25444,13 +25446,13 @@ var _onMIDIMessage = function (midi_message) {
                 _pkeyboard.data[value.channel * 3]     = value.frq;
                 _pkeyboard.data[value.channel * 3 + 1] = value.vel;
                 _pkeyboard.data[value.channel * 3 + 2] = value.time;
+                
+                value.noteoff_time = Date.now();
+                value.noteoff = true;
             }
             
             _useProgram(_program);
             _setUniforms(_gl, "vec", _program, "pKey", _pkeyboard.data, _pkeyboard.data_components);
-            
-            value.noteoff_time = Date.now();
-            value.noteoff = true;
 
             // we will delete it later on for release time (in graphics callback)
             //delete _keyboard.pressed[key];
