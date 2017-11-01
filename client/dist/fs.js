@@ -21155,7 +21155,7 @@ var _createFasSettingsContent = function () {
         chn_synthesis_select.appendChild(fm_option);
         
         chn_settings = _chn_settings[j];
-        console.log(_chn_settings);
+
         if (!chn_settings) {
             _chn_settings[j] = [0, 0, 0, 0];
         } else {
@@ -26312,6 +26312,28 @@ document.getElementById("fs_import_audio_ck_videotrack").addEventListener('chang
     var videotrack_import = this.checked;
     
     _audio_import_settings.videotrack_import = videotrack_import;
+});
+
+document.getElementById("fs_remove_comments").addEventListener('click', function (e) {
+    var input_code  = _code_editor.getValue(),
+        output_code = input_code;
+    
+    output_code = output_code.replace(/(\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/)|(\/\/.*)/g, "");
+
+    _code_editor.setValue(output_code);
+    
+    _compile();
+});
+
+document.getElementById("fs_remove_spaces").addEventListener('click', function (e) {
+    var input_code  = _code_editor.getValue(),
+        output_code = input_code;
+    
+    output_code = output_code.replace(/^\s{2,}$/gm, "");
+
+    _code_editor.setValue(output_code);
+    
+    _compile();
 });
 
 document.addEventListener('mouseup', function (e) {

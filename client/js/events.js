@@ -125,6 +125,28 @@ document.getElementById("fs_import_audio_ck_videotrack").addEventListener('chang
     _audio_import_settings.videotrack_import = videotrack_import;
 });
 
+document.getElementById("fs_remove_comments").addEventListener('click', function (e) {
+    var input_code  = _code_editor.getValue(),
+        output_code = input_code;
+    
+    output_code = output_code.replace(/(\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/)|(\/\/.*)/g, "");
+
+    _code_editor.setValue(output_code);
+    
+    _compile();
+});
+
+document.getElementById("fs_remove_spaces").addEventListener('click', function (e) {
+    var input_code  = _code_editor.getValue(),
+        output_code = input_code;
+    
+    output_code = output_code.replace(/^\s{2,}$/gm, "");
+
+    _code_editor.setValue(output_code);
+    
+    _compile();
+});
+
 document.addEventListener('mouseup', function (e) {
     _mouse_btn = 0;
     

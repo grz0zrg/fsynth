@@ -45,7 +45,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
 
      This is a sample program which produce a 440 Hz tone and a basic sawtooth like waveform and timbre when played by a MIDI keyboard.
 
-     Please use a MIDI enabled browser such as Chrome and enable your MIDI keyboard in the MIDI settings dialog to hear the timbre (the MIDI plug icon)
+     Please use a MIDI enabled browser such as Chrome, the MIDI keyboard can be enabled in the MIDI settings dialog to hear the timbre (the MIDI/Jack plug icon)
 
      The software documentation is available at : https://www.fsynth.com/documentation
 
@@ -67,7 +67,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
      You can experiment right away with the sound/visual by tweaking the values of this sample program, any modifications is updated in real-time as you type.
 
      If you need some more help you can :
-       - Click on the ? icon
+       - Click on the ? icon, many snippets and informations are available
        - Post on the Fragment message board at https://quiet.fsynth.com
 
      You can find all the sessions you joined in by going on the homepage at https://www.fsynth.com
@@ -674,16 +674,40 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                         </div>
                         <div>
                             <div class="fs-documentation">
+                                Action snippets (click to execute)
+                                <ul class="fs-documentation-entries">
+                                    <li>
+                                        <span id="fs_remove_comments" class="fs-documentation-keyword">Remove all comments</span>
+                                    </li>
+                                    <li>
+                                        <span id="fs_remove_spaces" class="fs-documentation-keyword">Remove all 2+ spaces on a single line</span>
+                                    </li>
+                                </ul>
                                 GLSL snippets (click to copy)
                                 <ul class="fs-documentation-entries">
                                     <li>
-                                        <span class="fs-documentation-keyword" data-clipboard-text="const float a[2] = float[2](0., 0.);">float array initializer</span>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="#define pi 3.1415926535897932384626433832795028841971693993751058209749">PI (define)</span>
                                     </li>
                                     <li>
-                                        <span class="fs-documentation-keyword" data-clipboard-text="const vec4 a[2] = vec4[2](vec4(0., 0., 0., 0.), vec4(0., 0., 0., 0.));">vec4 array initializer</span>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="const float af[2] = float[2](0., 0.);">float array initializer</span>
                                     </li>
                                     <li>
-                                        <span class="fs-documentation-keyword" data-clipboard-text="vec4 t = texture(iInput, vec2(uv.x, uv.y));">2D texture</span>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="const vec2 a2[2] = vec2[2](vec2(0., 0.), vec2(0., 0.));">vec2 array initializer</span>
+                                    </li>
+                                    <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="const vec3 a3[2] = vec3[2](vec3(0., 0., 0.), vec3(0., 0., 0.));">vec3 array initializer</span>
+                                    </li>
+                                    <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="const vec4 a4[2] = vec4[2](vec4(0., 0., 0., 0.), vec4(0., 0., 0., 0.));">vec4 array initializer</span>
+                                    </li>
+                                    <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="vec4 t = texture(iInput0, vec2(uv.x, uv.y));">2D texture from imports</span>
+                                    </li>
+                                    <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="vec2 to_uv(vec3 n) {&#010;vec2 uv;&#010;uv.x = atan(-n.x, n.y);&#010;uv.x = (uv.x + 3.141592653 / 2.0) / (3.141592653 * 2.0) + 3.141592653 * (28.670 / 360.0);&#010;uv.y = acos(n.z) / 3.141592653;&#010;return uv;&#010;}">to_uv coordinates (cartesian)</span>
+                                    </li>
+                                     <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="vec3 to_polar(vec2 uv) {&#010;float theta = 2.0 * 3.141592653 * uv.x + - 3.141592653 / 2.0;&#010;float phi = 3.141592653 * uv.y;&#010;vec3 n;&#010;n.x = cos(theta) * sin(phi);&#010;n.y = sin(theta) * sin(phi);&#010;n.z = cos(phi);&#010;return n;&#010;}">to_polar coordinates</span>
                                     </li>
                                     <li>
                                         <span class="fs-documentation-keyword" data-clipboard-text="highp float rand(vec2 co) {&#010;highp float a = 12.9898;&#010;highp float b = 78.233;&#010;highp float c = 43758.5453;&#010;highp float dt= dot(co.xy ,vec2(a,b));&#010;highp float sn= mod(dt,3.14);&#010;return fract(sin(sn) * c);&#010;}">rand</span>
@@ -692,10 +716,25 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                                 Fragment snippets (click to copy)
                                 <ul class="fs-documentation-entries">
                                     <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="vec4 psf= texture(pFrameSynth, vec2(uv.x, uv.y));">Previous synth frame texture (WebGL 2 only)</span>
+                                    </li>
+                                    <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="vec4 pf = texture(pFrame, vec2(uv.x, uv.y));">Previous frame texture</span>
+                                    </li>
+                                    <li>
                                         <span class="fs-documentation-keyword" data-clipboard-text="vec3 pdata = pKey[int(kchn)];&#010;kfrq = mix(pdata.x, kfrq, min(ktim * 28., 1.));">portamento (MIDI keyboard)</span>
                                     </li>
                                     <li>
                                         <span class="fs-documentation-keyword" data-clipboard-text="float adsr(float t, vec4 v, float s) {&#010;v.xyw = max(vec3(2.2e-05), v.xyw);&#010;float ta = t/v.x;&#010;float td = max(s, 1.0-(t-v.x)*(1.0-s)/v.y);&#010;float tr = (1.0 - max(0.0,t-(v.x+v.y+v.z))/v.w);&#010;return max(0.0, min(ta, tr*td));&#010;}">ADSR function</span>
+                                    </li>
+                                    <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="float env = adsr(ktim, vec4(0.075, 0.05, 0., .25), 0.75);">ADSR usage</span>
+                                    </li>
+                                    <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="float attenuation_constant = 1.9;&#010;float f = 1. / pow(i, attenuation_constant);">Simple Exp. low-pass filter</span>
+                                    </li>
+                                    <li>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="float cutoff = htoy(kfrq) / resolution.y;&#010; float slope = 1.8;">Filters argument - frequency as cutoff</span>
                                     </li>
                                     <li>
                                         <span class="fs-documentation-keyword" data-clipboard-text="float lpf(float x, float c, float s) {&#010;return .5 + .5 *(atan(s*cos(3.141592653 * min(max((x-c) * s,0.),1.)))/atan(s));&#010;}">LPF (low-pass filter)</span>

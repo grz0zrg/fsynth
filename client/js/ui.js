@@ -243,7 +243,7 @@ var _createFasSettingsContent = function () {
         chn_synthesis_select.appendChild(fm_option);
         
         chn_settings = _chn_settings[j];
-        console.log(_chn_settings);
+
         if (!chn_settings) {
             _chn_settings[j] = [0, 0, 0, 0];
         } else {
