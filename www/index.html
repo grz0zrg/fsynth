@@ -184,16 +184,13 @@
                         <div class="fp-margin fp-justify value-description">
                             <ul class="fp-features">
                                 <li>
-                                    Complete additive, spectral, granular synthesizer powered by WebAudio oscillators/wavetable (only additive) OR Fragment Audio Server (additive &amp; granular)
+                                    Additive, spectral, granular synthesizer powered by WebAudio/wavetable (additive only) OR Fragment Audio Server (additive &amp; granular)
                                 </li>
                                 <li>
                                     Complete audio/visuals live coding environment with <a href="https://en.wikipedia.org/wiki/Just-in-time_compilation">JIT compilation</a> of shader code
                                 </li>
                                 <li>
                                     Real-time, collaborative app.
-                                </li>
-                                <li>
-                                    Distributed sound synthesis, multi-machines/multi-core support (Audio Server with <a href="https://github.com/grz0zrg/fsynth/tree/master/fas_relay">fas_relay</a>)
                                 </li>
                                 <li>
                                     Stereophonic or monaural
@@ -223,23 +220,52 @@
                                     Spectral recording with export and re-import as a texture
                                 </li>
                                 <li>
-                                    Sessions based, discussion system, no authentifications, able to run locally
+                                    Sessions based without authentifications, able to run locally
                                 </li>
                                 <li>
-                                    Free, cross-platform &nbsp; open-source software (Simplified BSD License)
+                                    Distributed sound synthesis, multi-machines/multi-core support (Audio Server with <a href="https://github.com/grz0zrg/fsynth/tree/master/fas_relay">fas_relay</a>)
+                                </li>
+                                <li>
+                                    Free, cross-platform, open-source software (Simplified BSD License)
                                 </li>
                             </ul>
+                        </div>
+                    </div>
+                </div>
+                <div id="news" class="fp-anchor row">
+                    <div class="column value" style="margin-bottom: 4px;">
+                        <h5 class="value-heading" style="margin-top: 0;">
+                            News
+                        </h5>
+                        <hr style="margin-bottom: 4px;"/>
+                        <div class="fp-margin fp-justify value-description">
+                            <table style="width: 100%; margin-bottom: 0">
+                                <tbody>
+                                    <tr>
+                                        <td style="text-align: center; border-bottom: solid 1px #f4f4f4">
+                                            11/01/2017
+                                            <br/>
+                                            &nbsp;<a href="https://quiet.fsynth.com/d/8-fragment-anniversary-update">Minor bug fixes update (1.0.1)</a>
+                                        </td>
+                                        <td style="text-align: center; border-bottom: solid 1px #f4f4f4">
+                                            09/07/2017
+                                            <br/>
+                                            &nbsp;<a href="https://quiet.fsynth.com/d/8-fragment-anniversary-update">Fragment 1.0 released !</a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
                 <div id="downloads" class="fp-anchor row">
                     <div class="column value">
                         <h5 class="value-heading">
-                            Download
+                            Downloads
                         </h5>
                         <hr/>
                         <p class="fp-margin fp-justify value-description">
-                            The Fragment launcher is an <strong>easy to use</strong> tool to <strong>launch the web. application</strong> with <strong>maximum audio synthesis performance</strong> through the <strong>bundled audio server</strong>, it is available for Windows as a zip file and Linux as a .deb package.
+                            The Fragment launcher is an <strong>easy to use</strong> tool to <strong>launch the web. application</strong> with <strong>maximum sound synthesis performance</strong> through the <strong>bundled audio server</strong>, it is available for Windows as a zip file and Linux as a .deb package.
                         </p>
 
                         <table class="fp-dl-table u-full-width">
@@ -253,7 +279,7 @@
                             <tbody>
                                 <tr>
                                     <td>
-                                        6c6c75ae051900043da2411b334efc22
+                                        8da5ee7c3c52ad710b87a8e4ab1826f3
                                     </td>
                                     <td>
                                         <i class="fa fa-windows" aria-hidden="true"></i>&nbsp;Windows 32/64 Bits
@@ -266,14 +292,14 @@
                                 </tr>
                                 <tr>
                                     <td>
-                                        38013757db91df47765cfe1b8f5d9c3e
+                                        c3dfc80239afff3b9ef38838af6a50aa
                                     </td>
                                     <td>
                                         <i class="fa fa-linux" aria-hidden="true"></i>&nbsp;Linux .deb 32/64 Bits
                                     </td>
 
                                     <td class="fp-download">
-                                        <a href="dl/fragment_1.0_amd64.deb">
+                                        <a href="dl/fragment_1.0.1_amd64.deb">
                                             <i class="fa fa-download" aria-hidden="true"></i>
                                         </a>
                                     </td>
@@ -281,10 +307,10 @@
                             </tbody>
                         </table>
                         <div class="fp-margin fp-justify value-description">
-                            <strong>Instructions to install the .deb package from a terminal (Ubuntu, Debian etc.) :</strong>
+                            <strong><i class="fa fa-linux" aria-hidden="true" style="font-size: 20px"></i> &nbsp;Instructions to install the .deb package from a terminal (Ubuntu, Debian etc.)</strong>
                             <ul class="fp-features">
                                 <li>
-                                    <code>sudo dpkg -i fragment_1.0_amd64.deb</code>
+                                    <code>sudo dpkg -i fragment_1.0.1_amd64.deb</code>
                                 </li>
                                 <li>
                                     <code>sudo apt-get -f install</code>
@@ -292,14 +318,31 @@
                                 <li>
                                     launch with <code>fas_launcher</code> command or through the app. menu of your system
                                 </li>
+                                <li>
+                                    <a href="https://www.fsynth.com/documentation/tutorials/audio_server/">More details about the launcher</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="fp-margin fp-justify value-description">
+                            <i class="fa fa-windows" aria-hidden="true" style="font-size: 20px"></i> &nbsp;<strong>Windows instructions</strong>
+                            <ul class="fp-features">
+                                <li>
+                                    Unzip somewhere
+                                </li>
+                                <li>
+                                    Execute <strong>fas_launcher.exe</strong>
+                                </li>
+                                <li>
+                                    <a href="https://www.fsynth.com/documentation/tutorials/audio_server/">More details about the launcher</a>
+                                </li>
                             </ul>
                         </div>
                         <div class="fp-margin fp-right value-description">
-                            <strong>Fragment source-code :</strong>
+                            <strong>Fragment source-code</strong>
                             <ul class="fp-features">
-                                <li>Application : <a href="https://github.com/grz0zrg/fsynth">GitHub</a></li>
-                                <li>Audio Server : <a href="https://github.com/grz0zrg/fas">GitHub</a></li>
-                                <li>FAS Launcher : <a href="https://github.com/grz0zrg/fas_launcher">GitHub</a></li>
+                                <li>Web. Application &amp; tools : <a href="https://github.com/grz0zrg/fsynth">GitHub</a></li>
+                                <li>C Audio Server : <a href="https://github.com/grz0zrg/fas">GitHub</a></li>
+                                <li>Launcher : <a href="https://github.com/grz0zrg/fas_launcher">GitHub</a></li>
                             </ul>
                         </div>
                         Note : The audio server binary can be found within the .zip file and .deb package.<br/><br/>
