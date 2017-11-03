@@ -107,6 +107,7 @@ function websocketConnect() {
         var pframes = null,
             smart_piarr = null,
             fas_arr = null,
+            frame_length = null,
             channels = [];
 
         socket.on("message", function incoming(data) {
@@ -116,7 +117,6 @@ function websocketConnect() {
                 data,
                 data_view,
                 frame_data,
-                frame_length,
                 data_length_per_fas,
                 start = 0,
                 mono,
@@ -169,6 +169,12 @@ function websocketConnect() {
             } else {
                 uint32_view = new Uint32Array(data, 8, 2);
 
+                if (frame_length !== uint32_view[0]) {
+                    pframes = null;
+                    smart_piarr = null;
+                    fas_arr = null;
+                }
+                  
                 frame_length = uint32_view[0]; // channels in the frame
                 mono = uint32_view[1];
                 data_length_per_fas = Math.round((data_length / fas_wss_count) * 4);
