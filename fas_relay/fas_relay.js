@@ -52,6 +52,8 @@ var WebSocket = require("ws"),
 
     distribution_method = DSMART,
 
+    client_socket,
+
     fas_wss = [],
     fas_wss_count = 0,
 
@@ -100,6 +102,8 @@ function websocketConnect() {
 
     wss.binaryType = "arraybuffer";
     wss.on("connection", function (socket) {
+        client_socket = socket;
+
         logger.info("Client successfully connected.");
 
         socket.binaryType = "arraybuffer";
@@ -174,7 +178,7 @@ function websocketConnect() {
                     smart_piarr = null;
                     fas_arr = null;
                 }
-                  
+
                 frame_length = uint32_view[0]; // channels in the frame
                 mono = uint32_view[1];
                 data_length_per_fas = Math.round((data_length / fas_wss_count) * 4);
@@ -399,12 +403,15 @@ function onFASError(i, addr) {
 }
 
 function printOverallLoad() {
+    clearTimeout(fas_load_timeout);
+    fas_load_timeout = setTimeout(printOverallLoad, 2000);
+
     var i = 0, l = 0;
     for (i = 0; i < fas_loads.length; i += 1) {
         l += fas_loads[i];
     }
 
-    if (i > 0) {
+    if (l > 0) {
         l /= i;
     } else {
         return;
@@ -416,8 +423,16 @@ function printOverallLoad() {
 
     logger.info("Overall stream load: %s.", parseInt(l * 100, 10) + "%");
 
-    clearTimeout(fas_load_timeout);
-    fas_load_timeout = setTimeout(printOverallLoad, 4000);
+    var load_buffer = new ArrayBuffer(8),
+        float64_view = new Float64Array(load_buffer, 0);
+
+    float64_view[0] = l;
+
+    try {
+      client_socket.send(load_buffer, sendError);
+    } catch (e) {
+      console.log(e);
+    }
 }
 
 function fasConnect(cb) {
@@ -466,7 +481,7 @@ function fasConnect(cb) {
     }
 
     clearTimeout(fas_load_timeout);
-    fas_load_timeout = setTimeout(printOverallLoad, 4000);
+    fas_load_timeout = setTimeout(printOverallLoad, 2000);
 }
 
 fasConnect(websocketConnect);
