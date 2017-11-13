@@ -33,7 +33,7 @@ void main () {
 
   const float harmonics = 16.;
 
-  for (int k = 0; k < 8; k += 1) {
+  for (int k = 0; k < 16; k += 2) {
     vec4 data = keyboard[k];
 
     float kfrq = data.x;

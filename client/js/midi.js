@@ -15,6 +15,8 @@ var _midi_access = null,
         o_total_active: 0
     },
     
+    _mpe_instrument,
+    
     _midi_notes = [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
     
     _midi_device_uid = 0;
@@ -208,9 +210,9 @@ var _deleteMIDIDevice = function (id, type) {
 
 var _onMIDIAccessChange = function (connection_event) {
     var device = connection_event.port;
-    
+
     // only inputs are supported at the moment
-    if (device.type !== "input" && device.type !== "output") {
+    if (device.type !== "input"/* && device.type !== "output"*/) {
         return;
     }
 
@@ -300,88 +302,161 @@ var _midiDataOut = function (pixels_data, prev_pixels_data) {
     }
 };
 
-var _MIDInotesUpdate = function (update_uniform) {
-    var i = 0, key, value;
+var _MIDInotesCleanup = function (v) {
+    var key, value;
+
+    _keyboard.data.splice(v.i, _keyboard.data_components);
     
-    _keyboard.data = new Float32Array(_keyboard.data_length);
-    _keyboard.data.fill(0);
+    delete _keyboard.pressed[v.k];
 
     for (key in _keyboard.pressed) { 
         value = _keyboard.pressed[key];
-
-        _keyboard.data[i] = value.frq;
-        _keyboard.data[i + 1] = value.vel;
-        _keyboard.data[i + 2] = value.time;//Date.now();
-        _keyboard.data[i + 3] = value.channel;
         
-        i += _keyboard.data_components;
-
-        if (i > _keyboard.data_length) {
-            break;
+        if (value.id > v.i) {
+            value.id -= _keyboard.data_components;
         }
     }
+};
 
-    _keyboard.polyphony = i / _keyboard.data_components;
+var _MIDInotesUpdate = function (date) {
+    var et = 0, key, v, dead_notes_buffer = [];
+    
+    // update notes time
+    for (key in _keyboard.pressed) { 
+        v = _keyboard.pressed[key];
+        
+        // check if we need to cleanup the note
+        if (v.noteoff) {
+            et = date - v.noteoff_time;
+            
+            if (et >= _keyboard.note_lifetime) {
+                dead_notes_buffer.push({
+                        k: key,
+                        i: v.id
+                    });
+                
+                // dead notes will be cleaned up before the next frame begin (see _MIDInotesCleanup)
+                
+                continue;
+            }
+        }
 
-    if (update_uniform) {
-        _useProgram(_program);
-        _gl.uniform4fv(_getUniformLocation("keyboard", _program), new Float32Array(_keyboard.data));
-        //_setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
+        et = date - v.time;
+
+        _keyboard.data[v.id + 2] = et / 1000;
     }
+
+    _keyboard.polyphony = _keyboard.data.length / _keyboard.data_components;
+    
+    return dead_notes_buffer;
 }
 
+// general MIDI messages processing
 var _onMIDIMessage = function (midi_message) {
     var i = 0, midi_device = _midi_devices.input[this.id],
-        key, value, channel = midi_message.data[0] & 0x0f;
+        key, frq, value, value2, channel = midi_message.data[0] & 0x0f;
 
     if (!midi_device.enabled) {
         return;
     }
-
-    switch (midi_message.data[0] & 0xf0) {
-        case 0x90:
-            if (midi_message.data[2] !== 0) { // note-on
-                key = channel + "_" + midi_message.data[1];
-
-                _keyboard.pressed[key] = {
-                        frq: _frequencyFromNoteNumber(midi_message.data[1]),
-                        vel: midi_message.data[2] / 127,
-                        time: Date.now(),
-                        channel: channel,
-                        noteoff: false,
-                        noteoff_time: 0
-                    };
-                
-                _MIDInotesUpdate(true);
-            }
-            break;
-
-        case 0x80: // note-off
-            key = channel + "_" + midi_message.data[1];
-            
-            value = _keyboard.pressed[key];
-            
-            // keep previous key
-            if (value) { 
-                _pkeyboard.data[value.channel * 3]     = value.frq;
-                _pkeyboard.data[value.channel * 3 + 1] = value.vel;
-                _pkeyboard.data[value.channel * 3 + 2] = value.time;
-                
-                value.noteoff_time = Date.now();
-                value.noteoff = true;
-            }
-            
-            _useProgram(_program);
-            _setUniforms(_gl, "vec", _program, "pKey", _pkeyboard.data, _pkeyboard.data_components);
-
-            // we will delete it later on for release time (in graphics callback)
-            //delete _keyboard.pressed[key];
-
-            //_MIDInotesUpdate(true);
-            break;
-    }
+    
+    _mpe_instrument.processMidiMessage(midi_message.data);
 
     WUI_RangeSlider.submitMIDIMessage(midi_message);
+};
+
+// MPE/MIDI messages (provided by mpejs)
+var _mpeMIDIMessage = function (notes) {
+    var i = 0,
+        data, note, key, d;
+    
+    for (i = 0; i < notes.length; i += 1) {
+        data = notes[i];
+
+        key = (data.channel - 1) + "_" + data.noteNumber;
+        note = _keyboard.pressed[key];
+
+        if (data.noteState !== 0) {
+            if (!data.frq) {
+                data.frq = _frequencyFromNoteNumber(data.noteNumber);
+            }
+            
+            if (note) { // note update / re-trigger
+                if (note.noteoff) { // re-trigger
+                    d = _keyboard.pressed[key];
+                    
+                    d.time = Date.now();
+                    d.noteoff = false;
+                    d.noteoff_time = 0;
+                    d.pressure = data.pressure;
+                    d.timbre = data.timbre;
+                    d.pitchBend = data.pitchBend;
+                    d.noteOnVelocity = data.noteOnVelocity;
+                    d.frq = data.frq;
+                    
+                    _keyboard.data[note.id] = note.frq;
+                    _keyboard.data[note.id + 1] = note.noteOnVelocity;
+                    _keyboard.data[note.id + 2] = note.time;
+                    _keyboard.data[note.id + 4] = note.pitchBend;
+                    _keyboard.data[note.id + 5] = note.timbre;
+                    _keyboard.data[note.id + 6] = note.pressure;
+                } else { // note update
+                    if (note.pitchBend === data.pitchBend && 
+                        note.timbre === data.timbre && 
+                        note.pressure === data.pressure) {
+                        continue;
+                    }
+
+                    note.pitchBend = data.pitchBend;
+                    note.timbre = data.timbre;
+                    note.pressure = data.pressure;
+
+                    _keyboard.data[note.id + 4] = note.pitchBend;
+                    _keyboard.data[note.id + 5] = note.timbre;
+                    _keyboard.data[note.id + 6] = note.pressure;
+                }
+            } else { // note-on
+                if (_keyboard.data.length > _keyboard.data_length) {
+                    _notification("Cannot process more notes. Please increase maximum polyphony.");
+                }
+
+                // remove the empty data
+                _keyboard.data.splice(_keyboard.data.length - _keyboard.data_components, _keyboard.data_components);
+
+                note = {
+                        frq: data.frq,
+                        noteOnVelocity: data.noteOnVelocity,
+                        pitchBend: data.pitchBend,
+                        timbre: data.timbre,
+                        pressure: data.pressure,
+                        time: Date.now(),
+                        channel: data.channel - 1,
+                        noteoff: false,
+                        noteoff_time: 0,
+                        id: _keyboard.data.length
+                    };
+
+                _keyboard.data.push(note.frq, note.noteOnVelocity, note.time, note.channel, note.pitchBend, note.timbre, note.pressure, 0);
+                _keyboard.data.push(0, 0, 0, 0, 0, 0, 0, 0); // fill up with empty data ("stop point")
+
+                _keyboard.pressed[key] = note;
+            }
+        } else { // note-off
+            if (note) {
+                _keyboard.data[note.id + 7] = data.noteOffVelocity;
+                
+                _pkeyboard.data[note.channel * 3] = note.frq;
+                _pkeyboard.data[note.channel * 3 + 1] = note.noteOnVelocity;
+                _pkeyboard.data[note.channel * 3 + 2] = note.time;
+
+                note.noteoff_time = Date.now();
+                note.noteoff = true;
+
+                _useProgram(_program);
+                _setUniforms(_gl, "vec", _program, "pKey", _pkeyboard.data, _pkeyboard.data_components);
+            }
+        }
+    }
 };
 
 var _midiAccessSuccess = function (midi_access) {
@@ -389,19 +464,27 @@ var _midiAccessSuccess = function (midi_access) {
     
     _midi_access = midi_access;
     
-    midi_settings_element.innerHTML = '<div class="fs-midi-settings-section">I/O</div>';
+    _mpe_instrument = mpe({
+            log: null,
+            normalize: true
+        });
+    
+    _mpe_instrument.subscribe(_mpeMIDIMessage);
+    
+    //midi_settings_element.innerHTML = '<div class="fs-midi-settings-section">I/O</div>';
     
     _midi_access.inputs.forEach(
         function (midi_in) {
             _addMIDIDevice(midi_in, midi_in.type);
         }
     );
-    
+/*
     _midi_access.outputs.forEach(
         function (midi_out) {
             _addMIDIDevice(midi_out, midi_out.type);
         }
     );
+*/
     
     _midi_access.onstatechange = _onMIDIAccessChange;
 };
@@ -417,16 +500,16 @@ var _midiAccessFailure = function (msg) {
 var _midiInit = function () {
     var i = 0,
         midi_settings_element = document.getElementById(_midi_settings_dialog_id).lastElementChild;
-    
-    _keyboard.data = [];
-    
+
+    _keyboard.data = [0, 0, 0, 0, 0, 0, 0, 0];
+/*
     for (i = 0; i < _keyboard.polyphony_max; i += 1) {
         _keyboard.data[i] = 0;
     }
-
+*/
     if (_webMIDISupport()) {
         navigator.requestMIDIAccess().then(_midiAccessSuccess, _midiAccessFailure);
     } else {
-        midi_settings_element.innerHTML = "<center>WebMIDI API is not enabled or supported by this browser.</center>";
+        midi_settings_element.innerHTML = "<center>WebMIDI API is not enabled/supported by this browser, please use a <a href=\"https://caniuse.com/#search=midi\">compatible browser</a>.</center>";
     }
 }

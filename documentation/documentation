@@ -88,7 +88,7 @@ $list(
 	$item WebGL 2.0 and GLSL 3.0 support when compatibility is detected
 	$item OSC support, a $tlink(SuperCollider)(http://supercollider.github.io/) synth. which use OSC data from Fragment is also available
 	$item MIDI Enabled
-		$list($item Only with WebMIDI API enabled browsers (Google Chrome) $item Hot plugging of MIDI devices is supported)
+		$list($item Only with WebMIDI API enabled browsers (Google Chrome) $item Hot plugging of MIDI devices is supported $item Multidimensional Polyphonic Expression (MPE) support)
 	$item Collaborative app.
 		$list($item MIDI and shader inputs are not synchronized between users)
   $item Feedback support
@@ -973,12 +973,16 @@ You must have a WebMIDI supported browser (such as Chrome or Opera) to use MIDI 
 
 Once your MIDI keyboard is plugged in, you can go in the Fragment MIDI devices dialog and enable it.
 
-The MIDI data will now be available in a pre-defined $bold(vec4 array) named $bold(keyboard), the array length is the actual polyphony capability of Fragment, the array contain a series of vec4 items, a vec4 item contain:
+The MIDI data will now be available in a pre-defined $bold(vec4 array) named $bold(keyboard), the array length * 2 is the actual polyphony capability of Fragment, the array contain a series of vec4 items, two vec4 items contain:
 $list(
-	$item the note-on frequency
+	$item the note frequency
 	$item the note velocity
 	$item the elapsed time since the key was pressed
-	$item the MIDI channel)
+	$item the MIDI channel
+	$item the pitch bend value
+	$item the timbre (CC74)
+	$item the pressure (aftertouch)
+	$item release velocity (set on note-off))
 Important note: There is no notions of "note-off" in Fragment, a note-off is simply an item filled with 0, Fragment will add note-on in order and will reorder the array as necessary, this mean that you can loop over all items and break the loop if an item component is equal to 0, it is possible to detect note-off events by using the previous frame (aka feedback feature).
 
 Here is how you can use a MIDI keyboard:
@@ -994,15 +998,20 @@ $glslcode(
     // 8 notes polyphony
     // this can be increased up to the maximal polyphonic capabilities
     // of Fragment for your platform
-    for (int k = 0; k < 8; k += 1) {
+    for (int k = 0; k < 16; k += 2) {
       // we get the note-on data
       vec4 data = keyboard[k];
+      vec4 data2 = keyboard[k + 1];
 
       float kfrq = data.x; // frequency
       float kvel = data.y; // velocity
       float ktim = data.z; // elpased time
       float kchn = data.w; // channel
-
+      float kpth = data2.x; // pitch bend
+      float ktmb = data2.y; // timbre (CC74)
+      float kpre = data2.z; // pressure (aftertouch)
+      float kvof = data2.w; // release velocity (set on note-off)
+    
       // we quit as soon as there is no more note-on data
       // this is optional but it might help with performances
       // so we don't compute harmonics uselessly
@@ -1011,11 +1020,11 @@ $glslcode(
       }
 
       for (float i = 1.; i < harmonics; i += 1.) {
-        float a = 1. / pow(i, attenuation_constant);
+        float a = 1. / pow(i, attenuation_constant * (1.-ktmb) * 2.);
 
         // we apply the velocity
-        l += fline(kfrq * i) * a * kvel;
-        r += fline(kfrq * i) * a * kvel;
+        l += fline(kfrq * i + kpth * 2.) * a * kvel * kpre;
+        r += fline(kfrq * i + kpth * 2.) * a * kvel * kpre;
       }
     }
 
@@ -1027,17 +1036,17 @@ $glslcode(
   }
 )
 $ifhtml($center($ogg(audio/fsynth_midi.ogg)))
-You can now play something with your MIDI keyboard and hear your simple timbre!
+You can now play something with your MIDI keyboard and hear a simple timbre!
 
 You might find the loop kind of weird, why we don't just loop over all available note-on messages? This is because the default GLSL spec. with WebGL is quite limited when it come to loop features... for example, it does not allow dynamicals indexes however you can use dynamical indexes if your browser has support for WebGL 2.
 
 All the examples below will use the GLSL version that is the most compatible, if your browser has support for WebGL 2 you can replace this line :
 $glslcode(
-    for (int k = 0; k < 8; k += 1) {
+    for (int k = 0; k < 16; k += 2) {
 )
 by this line :
 $glslcode(
-    for (int k = 0; k < keyboard.length(); k += 1) {
+    for (int k = 0; k < keyboard.length(); k += 2) {
 )
 
 $nl
@@ -1064,7 +1073,7 @@ $glslcode(
 
     const float harmonics = 8.;
 
-    for (int k = 0; k < 8; k += 1) {
+    for (int k = 0; k < 16; k += 2) {
       vec4 data = keyboard[k];
 
       float kfrq = data.x;
@@ -1115,7 +1124,7 @@ $glslcode(
     // we will now increase the amount of harmonics
     const float harmonics = 16.;
 
-    for (int k = 0; k < 8; k += 1) {
+    for (int k = 0; k < 16; k += 2) {
       vec4 data = keyboard[k];
 
       float kfrq = data.x;
@@ -1165,7 +1174,7 @@ $glslcode(
 
     const float harmonics = 16.;
 
-    for (int k = 0; k < 8; k += 1) {
+    for (int k = 0; k < 16; k += 2) {
       vec4 data = keyboard[k];
 
       float kfrq = data.x;
@@ -1238,7 +1247,7 @@ $glslcode(
 
     const float harmonics = 16.;
 
-    for (int k = 0; k < 8; k += 1) {
+    for (int k = 0; k < 16; k += 2) {
       vec4 data = keyboard[k];
 
       float kfrq = data.x;
@@ -1318,7 +1327,7 @@ $glslcode(
 
     const float harmonics = 16.;
 
-    for (int k = 0; k < 8; k += 1) {
+    for (int k = 0; k < 16; k += 2) {
       vec4 data = keyboard[k];
 
       float kfrq = data.x;
@@ -1379,7 +1388,7 @@ $glslcode(
 
     const float harmonics = 16.;
 
-    for (int k = 0; k < 8; k += 1) {
+    for (int k = 0; k < 16; k += 2) {
       vec4 data = keyboard[k];
 
       float kfrq = data.x;
@@ -1456,7 +1465,7 @@ $glslcode(
 
     const float harmonics = 16.;
 
-    for (int k = 0; k < 8; k += 1) {
+    for (int k = 0; k < 16; k += 2) {
       vec4 data = keyboard[k];
 
       float kfrq = data.x;
@@ -1542,7 +1551,7 @@ $glslcode(
 
     const float harmonics = 16.;
 
-    for (int k = 0; k < 8; k += 1) {
+    for (int k = 0; k < 16; k += 2) {
       vec4 data = keyboard[k];
 
       float kfrq = data.x;
@@ -1648,7 +1657,7 @@ void main () {
     // now we just copy 8 notes from the "keyboard" array
     // which will allow us to play 8 notes at the same time
     // with a MIDI keyboard
-    for (int k = 0; k < 8; k += 1) {
+    for (int k = 0; k < 16; k += 2) {
       notes[k] = keyboard[k];
     }
 
@@ -1719,7 +1728,7 @@ $list(
 	$item Testing: $list($item Franz Khrum)
 	$item Papers: $list(
 		$item $tlink(The Scientist and Engineer's Guide to Digital Signal Processing)(http://www.dspguide.com)
-		$item $tlink(Welsh's Synthesizer Cookbook)(http://www.synthesizer-cookbook.com)
+		$item $tlink(L'audionumérique 3ed by Curtis Road)(http://www.audionumerique.com)
 		$item $tlink(Fabrice Neyret Desmos page)(http://www-evasion.imag.fr/Membres/Fabrice.Neyret/demos/DesmosGraph/indexImages.html)
 	)
 	$item Ideas: $list(
@@ -1737,6 +1746,7 @@ $list(
 		$item $tlink(libflds)(http://liblfds.org)
 		$item $tlink(portaudio)(http://www.portaudio.com)
 		$item $tlink(libwebsockets)(https://libwebsockets.org)
+		$item $tlink(mpejs)(https://github.com/WeAreROLI/mpejs)
 		$item $tlink(Brackets)(http://brackets.io/)
 		$item $tlink(fa2png)(http://fa2png.io/)
 		$item $tlink(FontAwesome)(http://fontawesome.io/)
@@ -1757,7 +1767,8 @@ $list(
 		$item $tlink(strong-cluster-control)(https://github.com/strongloop/strong-cluster-control))
 	$item Data: $list(
 		$item $tlink(Bundled brushes)(http://www.texturemate.com)
-		))
+		)
+	$item more credits on $tlink(GitHub)(https://github.com/grz0zrg/fsynth))
 
 $nl
 $center($big($big($big($big($colorize(funny)(Thank you!))))))

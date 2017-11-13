@@ -36,5 +36,6 @@ pages:
 - Credits: 'credits.md'
 theme: readthedocs
 site_favicon: "favicon.ico"
-repo_url: "https://github.com/grz0zrg/fsynth/tree/master/documentation/mk"
+repo_url: "https://github.com/grz0zrg/fsynth"
 repo_name: "github"
+edit_uri: edit/master/documentation/mk/docs/

@@ -18,11 +18,13 @@ Some Fragment settings are also synchronized between users such as slices, some 
 
 Fragment is an image-synth, the sound synthesis source of data is the **pixels** also called a **fragment**.
 
-With Fragment, all sounds is operated from a frequency level, amplitudes are assigned to frequencies to produce sounds, this is valid for all synthesis techniques.
+With Fragment, all sounds is operated from a frequency level by drawing (with GLSL code) over a canvas, frequency is represented on the vertical axis and stereo/mono amplitude is represented by the intensity of each pixels, parts of the canvas is then captured by user-positioned slices.
 
 Since the sound synthesis source of data is the pixels, we need a way to capture them, this is done by slicing the canvas, pixels data (1px wide) are then captured from the slice at the browser display refresh rate and are then translated to notes from the RGBA pixels value, the notes are then interpreted and played by one or more synthesis method in real-time.
 
 The canvas represent frequencies (exponential map) on the vertical axis, the horizontal axis generally represent time.
+
+One of the unique feature of Fragment is the time visualization of any sounds, the horizontal axis span several pixels, thus enabling the user to see a limited sound past, present and future.
 
 There is many type of sound synthesis available within Fragment, all work from the same concept, **the pixels**.
 

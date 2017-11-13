@@ -25,6 +25,9 @@
 /*#include sharedb/sharedb.js*/
 /*#include sharedb/ot-text.js*/
 
+// mpejs - https://github.com/WeAreROLI/mpejs
+/*#include mpe.js/mpe.min.js*/
+
 /*#include resize_throttler/resize_throttler.js*/
 
 window.onload = function() {
@@ -254,14 +257,14 @@ var FragmentSynth = function (params) {
         // note-on/note-off related stuff (MIDI keyboard etc.)
         _keyboard = {
             data: [],
-            data_components: 4,
+            data_components: 8,
             // polyphonic capabilities is set dynamically from MAX_FRAGMENT_UNIFORM_VECTORS parameter
             // ~221 MAX_FRAGMENT_UNIFORM_VECTORS value will be generally the default for desktop
             // this permit a polyphony of ~60 notes with 4 components for each notes and by considering the reserved uniform vectors
             // all this is limited by the MAX_FRAGMENT_UNIFORM_VECTORS parameter on the GPU taking into account the other Fragment uniform PLUS sessions uniform
             // at the time of this comment in 2017, 99.9% of desktop devices support up to 221 uniform vectors while there is a 83.9% support for up to 512 uniform vectors,
             // this amount to ~192 notes polyphony, a capability of 1024 lead to ~704 notes polyphony and so on...
-            data_length: 60 * 4,
+            data_length: 60 * 8,
             // amount of allocated uniform vectors
             uniform_vectors: 0,
             pressed: {},

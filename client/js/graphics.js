@@ -544,7 +544,7 @@ var _canvasRecord = function (ndata) {
 };
 
 var _frame = function (raf_time) {
-    var i = 0, et = 0, j = 0, o = 0,
+    var i = 0, j = 0, o = 0,
 
         play_position_marker,
         play_position_marker_x = 0,
@@ -575,40 +575,9 @@ var _frame = function (raf_time) {
         
         buffer = [],
         
-        dead_notes_buffer = [];
-
-    // update notes time
-    for (key in _keyboard.pressed) { 
-        v = _keyboard.pressed[key];
-        
-        // check if we need to cleanup notes
-        if (v.noteoff) {
-            et = date - v.noteoff_time;
-            if (et >= _keyboard.note_lifetime) {
-                dead_notes_buffer.push(key);
-
-                i += _keyboard.data_components;
-
-                if (i > _keyboard.data_length) {
-                    break;
-                }
-                
-                // dead notes will be cleaned up before the next frame begin
-            
-                continue;
-            }
-        }
-        
-        et = date - v.time;
-
-        _keyboard.data[i + 2] = et / 1000;
-
-        i += _keyboard.data_components;
-
-        if (i > _keyboard.data_length) {
-            break;
-        }
-    }
+        dead_notes_buffer;
+    
+    dead_notes_buffer = _MIDInotesUpdate(date);
     
     if (_feedback.enabled) {
         current_frame = _feedback.pframe[_feedback.index];
@@ -832,7 +801,7 @@ var _frame = function (raf_time) {
         }
         
         for (i = 0; i < _output_channels; i += 1) {
-            _prev_data[i] = new _synth_data_array(_data[i]);
+            _prev_data[i] = new _synth_data_array(buffer[i]);
         }
         
         _data = buffer;
@@ -875,11 +844,11 @@ var _frame = function (raf_time) {
     
     _globalFrame += 1;
     
-    // cleanup all dead notes
+    // cleanup all MIDI dead notes
     for (i = 0; i < dead_notes_buffer.length; i += 1) {
-        delete _keyboard.pressed[dead_notes_buffer[i]];
-
-        _MIDInotesUpdate();
+        v = dead_notes_buffer[i];
+        
+        _MIDInotesCleanup(v);
     }
     
     _raf = window.requestAnimationFrame(_frame);

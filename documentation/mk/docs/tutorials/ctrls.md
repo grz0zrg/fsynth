@@ -4,5 +4,4 @@ The controllers dialog allow to add synchronized controllers between the users o
 
 Many type of controls can be added by entering an uniform name and choosing the GLSL type.
 
-
-
+This is a deprecated feature and is no longer enabled within Fragment, it is replaced by OSC.

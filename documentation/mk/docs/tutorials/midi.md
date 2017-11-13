@@ -2,16 +2,23 @@
 
 *You must have a WebMIDI supported browser (such as Chrome or Opera) to use Fragment MIDI inputs.*
 
-Fragment support MIDI inputs, it has built-in support for MIDI **keyboards** and **controllers**.
+Fragment support MIDI inputs, it has built-in support for MIDI **keyboards** (see OSC for controllers).
+
+Fragment has complete support for *Multidimensional Polyphonic Expression* aka MPE which apply to a new class of controllers like the LinnStrument, Eigenharp and Roli RISE/SeaBoard allowing full per-note expressive support.
 
 Once your MIDI keyboard is plugged in, it can be found and enabled in the Fragment MIDI devices dialog.
 
-The MIDI data of the keyboard will now be available in a pre-defined **vec4 array** named **keyboard**, the array length is the actual polyphony capability of Fragment, the array contain a series of vec4 items, a vec4 item contain
+The MIDI data of the keyboard will now be available in a pre-defined **vec4 array** named **keyboard**, the array length * 2 is the actual polyphony capability of Fragment, the array contain a series of vec4 items, a note is constitued by two vec4 items which contain
 
-- the note-on frequency
+- the note frequency
 - the note velocity
 - the elapsed time since the key was pressed
 - the MIDI channel
+- the pitch bend
+- the timbre (CC74)
+- the pressure (aftertouch)
+
+All values except frequency/time/channel are normalized to a 0.0-1.0 range.
 
 There is no notions of *note-off* in Fragment, a note-off is simply an item filled with 0 inside the array.
 
@@ -33,13 +40,18 @@ void main () {
   const float harmonics = 8.;
 
   // 8 notes polyphony
-  for (int k = 0; k < 8; k += 1) {
+  for (int k = 0; k < 16; k += 2) {
     vec4 data = keyboard[k];
+    vec4 data2 = keyboard[k + 1];
 
     float kfrq = data.x; // frequency
     float kvel = data.y; // velocity
     float ktim = data.z; // elapsed time
     float kchn = data.w; // channel
+    float kpth = data2.x; // pitch bend
+    float ktmb = data2.y; // timbre (CC74)
+    float kpre = data2.z; // pressure (aftertouch)
+    float kvof = data2.w; // release velocity (set on note-off)
 
     // we quit as soon as there is no more note-on data
     // this is optional but it might help with performances
@@ -49,11 +61,11 @@ void main () {
     }
 
     for (float i = 1.; i < harmonics; i += 1.) {
-      float a = 1. / pow(i, attenuation_constant);
+      float a = 1. / pow(i, attenuation_constant + ktmb * 2.);
 
       // we apply key. velocity and use the key.frequency
-      l += fline(kfrq * i) * a * kvel;
-      r += fline(kfrq * i) * a * kvel;
+      l += fline(kfrq * i + kpth * 2.) * a * kvel * kpre;
+      r += fline(kfrq * i + kpth * 2.) * a * kvel * kpre;
     }
   }
 
@@ -67,6 +79,10 @@ void main () {
 - `kvel`key velocity from 0 to 1 (255)
 - `ktim`the elapsed time since the key was pressed, this is useful for envelopes and other things
 - `kchn`the key MIDI channel, this is useful for multitimbrality
+- `kpth`the pitch bend value from 0 to 1
+- `ktmb`the timbre (MPE) MIDI CC74
+- `kpre`aftertouch value from 0 to 1
+- `kvof`release velocity from 0 to 1
 
 ## Portamento
 
@@ -94,7 +110,7 @@ void main () {
 
   const float harmonics = 8.;
 
-  for (int k = 0; k < 8; k += 1) {
+  for (int k = 0; k < 16; k += 2) {
     vec4 data = keyboard[k];
 
     float kfrq = data.x;
@@ -126,9 +142,7 @@ void main () {
 
 ## MIDI controllers
 
-Fragment support MIDI controllers through the uniform controller dialog, GLSL variables can be created and changed in real-time by assigning a MIDI controller to an uniform created from the controller dialog.
-
-The values are shared between users.
+See OSC section to use more controllers.
 
 ## MIDI output
 
@@ -136,4 +150,4 @@ Fragment has no support yet for MIDI output.
 
 ## Note
 
-When a note-off is received, Fragment will actually keep the note in memory for an amount of time defined by the **note lifetime** global settings, this is useful for the release portion of envelopes for example, this settings can be found in the global settings dialog.
+When a note-off is received, Fragment will actually keep the note in memory for an amount of time defined by the **note lifetime** global settings, this is useful for the release portion of envelopes for example or to use the release velocity, this settings can be found in the global settings dialog.

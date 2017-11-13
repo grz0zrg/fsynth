@@ -298,6 +298,8 @@ var _imageProcessor = function (image_data, image_processing_done_cb) {
     var worker = new Worker("dist/worker/image_processor.min.js");
 
     worker.onmessage = function (e) {
+        worker.terminate();
+        
         image_processing_done_cb(e.data);
     };
 

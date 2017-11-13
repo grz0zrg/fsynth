@@ -44,6 +44,8 @@ With WebGL 2 capable web browser, audio can be produced independently from the v
 
 For any questions, a message board is available [here](https://quiet.fsynth.com/)
 
+You can support this project by donating to the following Bitcoin address : 13jcV65uSa8s4X2Vwvj1p9tPvweSWBUgX2
+
 ## Requirement
 
 - Recent web browser such as Chrome, Opera, Safari or Firefox (MIDI is not supported by Firefox at the moment)
@@ -51,20 +53,20 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
 - Mid-range multi-core CPU (a dual core should be ok with the FAS, a beefy CPU is needed if you use more than one output channel)
 - Not necessary but a MIDI device such as a MIDI keyboard is recommended
 
-**Note on performances :** Fragment has excellent performances with a modern multi-core system and a browser such as Chrome, if you experience crackles or need advanced audio features, it is recommended that you use the sound server and the independent code editor, the things that may cause poor performances is generally due to the browser reflow (UI side)
+**Note on performances :** Fragment has excellent performances with a modern multi-core system and a browser such as Chrome, if you experience crackles or need advanced audio features, it is recommended that you use the sound server and the independent code editor, the things that may cause poor performances is due to the browser reflow (UI side)
 
-Fragment is able to do real-time distributed sound synthesis with the sound server for the more demanding, it support any number of machines over the wire and multicore support, this feature also need the fas_relay to work (see below)
+Fragment is also able to do real-time distributed sound synthesis with the sound server, it support any number of machines over the wire and multicore support, this feature also need the fas_relay to work (see below)
 
 ## Features
 
-- Complete additive, spectral, granular synthesizer powered by WebAudio oscillators (work best in Chrome), a Wavetable (slow) OR a [C native audio server](https://github.com/grz0zrg/fas) (fastest)
+- Complete additive, spectral, granular synthesizer powered by WebAudio oscillators (work best in Chrome), a Wavetable (slow/worst) OR a [C native audio server](https://github.com/grz0zrg/fas) (fastest/best)
 - Live coding/JIT compilation of shader code
 - Real-time, collaborative app.
 - Distributed sound synthesis, multi-machines/multi-core support (Fragment Audio Server with fas_relay)
 - Stereophonic or monaural
 - Polyphonic
 - Multitimbral
-- MIDI inputs support with compatible web browsers
+- MIDI inputs support with [Web MIDI](https://caniuse.com/#feat=midi) compatible web browsers, MPE supported
 - Adjustable audio output channel per slices
 - Real-time frames by frames recording with export as an image or Fragment input (export back into itself, this can be used to build complex brushes for drawing canvas inputs)
 - WebGL 2.0 and GLSL 3.0 support when compatibility is detected
@@ -155,10 +157,20 @@ Fragment support MIDI inputs.
 
 ##### Features
 
-- MIDI keyboard support, note-on/note-off messages, note frequency, velocity, MIDI channel and elapsed time are accessible in the fragment shader
+- MIDI keyboard support, list of MIDI parameters accessible in the fragment shader :
+  - note-on/note-off messages
+  - note frequency
+  - velocity / release velocity
+  - aftertouch
+  - pitch bend
+  - CC74
+  - MIDI channel
+  - elapsed time since the key was pressed
 - Polyphony is automatically detected from the GPU capabilities (704 notes with a GeForce GTX 970 GPU, 16 notes is the minimum, maximum notes depend on the GPU capability/shader complexity)
-- Hot plugging of MIDI devices are supported,
-- MIDI enabled shader inputs
+- Multidimensional Polyphonic Expression (MPE) support
+- Hot plugging of MIDI devices
+
+If you need to control more parameters, see OSC below.
 
 ## OSC
 
@@ -213,7 +225,7 @@ Many tools are available to enhance Fragment.
  * fas_relay - distributed multi-machines/multi-core realtime sound synthesis
  * editor - external GLSL code editor
  * supercollider - the SuperCollider port of the additive synthesis engine (fed through OSC)
- * documentation - MAML (Minimalist Anubis Markup Language) with the latest HTML and PDF doc.
+ * documentation - MkDocs documentation and previous MAML (Minimalist Anubis Markup Language) documentation with the latest HTML and PDF doc.
  * main.js - Electron app. file
  * common.js - Server config. file
 
@@ -274,6 +286,7 @@ Client :
  * [osc.js](https://github.com/colinbdclark/osc.js/)
  * [glsl-simulator](https://github.com/burg/glsl-simulator) the GLSL parser is based on glsl-simulator
  * [ShareDB](https://github.com/share/sharedb/) for the collaborative features
+ * [mpejs](https://github.com/WeAreROLI/mpejs)
  * [Normalize](https://necolas.github.io/normalize.css/)
  * [Skeleton](http://getskeleton.com/) for the landing page
  * [Mikola Lysenko stft (enhanced version)](https://github.com/mikolalysenko/stft)
@@ -336,6 +349,6 @@ Simplified BSD license
 
 ## Credits
 
-The main inspiration (how it started) for all of this is [Alexander Zolotov Virtual ANS software](http://www.warmplace.ru/soft/ans/), thank to him.
+The main inspiration for all of this is [Alexander Zolotov Virtual ANS software](http://www.warmplace.ru/soft/ans/), thank to him.
 
 Heavily inspired by [Shadertoy](https://www.shadertoy.com) as well.

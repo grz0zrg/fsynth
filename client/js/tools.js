@@ -53,6 +53,10 @@ var _objSwap = function (src, dst) {
     }
 };
 
+var cloneObj = function (obj) {
+    return JSON.parse(JSON.stringify(obj));
+};
+
 var _swapArrayItem = function (arr, a, b) {
     var temp = arr[a];
     
@@ -190,7 +194,6 @@ var _truncateDecimals = function (num, digits) {
 };
 
 var _clipboardCopy = function (e) {
-    console.log(e.target,e.target.dataset.clipboard );
     var copy_event = new ClipboardEvent("copy", { dataType: "text/plain", data: e.target.dataset.clipboard } );
     document.dispatchEvent(copy_event);
 };
