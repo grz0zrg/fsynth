@@ -15,6 +15,8 @@ var _midi_access = null,
         o_total_active: 0
     },
     
+    _dead_notes_buffer,
+    
     _mpe_instrument,
     
     _midi_notes = [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
@@ -302,24 +304,35 @@ var _midiDataOut = function (pixels_data, prev_pixels_data) {
     }
 };
 
-var _MIDInotesCleanup = function (v) {
-    var key, value;
+var _MIDInotesCleanup = function () {
+    var key, value, i = 0, v;
 
-    _keyboard.data.splice(v.i, _keyboard.data_components);
-    
-    delete _keyboard.pressed[v.k];
+    // cleanup all MIDI dead notes
+    for (key in _dead_notes_buffer) {
+        v = _dead_notes_buffer[key];
 
-    for (key in _keyboard.pressed) { 
-        value = _keyboard.pressed[key];
-        
-        if (value.id > v.i) {
-            value.id -= _keyboard.data_components;
+        _keyboard.data.splice(v.i, _keyboard.data_components);
+
+        delete _keyboard.pressed[v.k];
+
+        for (key in _keyboard.pressed) { 
+            value = _keyboard.pressed[key];
+
+            if (value.id > v.i) {
+                value.id -= _keyboard.data_components;
+
+                if (_dead_notes_buffer[key]) {
+                    _dead_notes_buffer[key].i = value.id;
+                }
+            }
         }
     }
 };
 
 var _MIDInotesUpdate = function (date) {
-    var et = 0, key, v, dead_notes_buffer = [];
+    var et = 0, key, v;
+    
+    _dead_notes_buffer = {};
     
     // update notes time
     for (key in _keyboard.pressed) { 
@@ -330,10 +343,10 @@ var _MIDInotesUpdate = function (date) {
             et = date - v.noteoff_time;
             
             if (et >= _keyboard.note_lifetime) {
-                dead_notes_buffer.push({
+                _dead_notes_buffer[key] = {
                         k: key,
                         i: v.id
-                    });
+                    };
                 
                 // dead notes will be cleaned up before the next frame begin (see _MIDInotesCleanup)
                 
@@ -347,8 +360,6 @@ var _MIDInotesUpdate = function (date) {
     }
 
     _keyboard.polyphony = _keyboard.data.length / _keyboard.data_components;
-    
-    return dead_notes_buffer;
 }
 
 // general MIDI messages processing
@@ -406,7 +417,7 @@ var _mpeMIDIMessage = function (notes) {
                         note.pressure === data.pressure) {
                         continue;
                     }
-
+                    
                     note.pitchBend = data.pitchBend;
                     note.timbre = data.timbre;
                     note.pressure = data.pressure;

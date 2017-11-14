@@ -40,43 +40,6 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
         </script>
 
         <script type="x-webgl/x-fragment-shader" id="fragment-shader">
-  /*
-     Welcome to Fragment - The Collaborative Spectral Synthesizer
-
-     This is a sample program which produce a 440 Hz tone and a basic sawtooth like waveform and timbre when played by a MIDI keyboard.
-
-     Please use a MIDI enabled browser such as Chrome, the MIDI keyboard can be enabled in the MIDI settings dialog to hear the timbre (the MIDI/Jack plug icon)
-
-     The software documentation is available at : https://www.fsynth.com/documentation
-
-     Fragment interface is composed of four parts :
-       - info. panel/global settings at the top
-       - a graphical score
-       - a toolbar
-       - a GLSL code editor
-
-     Hover over an interface element for a short description of that element.
-
-     Now, if you want to hear what you see, you should try to right click on the graphical score,
-     a menu will be shown with one item, add a slice by clicking on the [+] icon.
-
-     You should hear something now, try to move the vertical slice by clicking on it, hold it then move the cursor around.
-
-     You can add as many slices as you want, you can also remove, mute or tweak slices by right-clicking on one.
-
-     You can experiment right away with the sound/visual by tweaking the values of this sample program, any modifications is updated in real-time as you type.
-
-     If you need some more help you can :
-       - Click on the ? icon, many snippets and informations are available
-       - Post on the Fragment message board at https://quiet.fsynth.com
-
-     You can find all the sessions you joined in by going on the homepage at https://www.fsynth.com
-
-     Don't forget that you can invite friends to join your session by sharing the link shown in the adress bar.
-     
-     Have fun!
-  */
-
   void main () {
     float l = 0.;
     float r = 0.;
@@ -135,6 +98,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
 
     <body>
         <div id="fs_red_curtain" class="fs-red-curtain"></div>
+        <!--
         <div id="fs_electron_login" class="fs-electron-login" style="display: none">
             <div class="fs-electron-login-logo">
                 <a href="https://www.fsynth.com">
@@ -216,7 +180,6 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                                     <select id="fs_fas_device" class="fs-btn">
 
                                     </select>
-                                    <!--<div id="fs_fas_device"></div>-->
                                 </div>
                                 <div id="fs_fas_infos"></div>
                                 <div>
@@ -251,7 +214,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                 </a>
             </div>
             <div id="fs_app_version" class="fs-app-version"></div>
-            <!--
+            
             <div class="section hero">
                 <div class="container">
                     <div class="row">
@@ -332,8 +295,9 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                     </div>
                 </div>
             </div>
-            -->
+            
         </div>
+-->
         <div id="fs_top_panel" class="fs-top-panel">
             <div id="fs_time_infos" class="fs-time-infos"></div>
             <div class="fs-app-infos">
@@ -350,6 +314,63 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
             </div>
             <div class="fs-app-settings">
                 <div id="mst_slider" class="mst-slider"></div>
+            </div>
+        </div>
+        
+        <div id="fs_quickstart">
+            <div>
+                <div class="fs-text">
+                     Fragment is a collaborative cross-platform real-time audiovisual live coding environment with a pixels based approach, the sound synthesis is powered by pixels data produced by live GLSL code.<br/><br/>
+
+                     Fragment interface is composed of four parts :<br/>
+                        <ul>
+                            <li>
+                                info. panel/global settings (like gain) at the top
+                            </li>
+                            <li>
+                                a graphical area which represent frequency on the vertical axis and time on the horizontal axis
+                            </li>
+                            <li>
+                                a toolbar
+                            </li>
+                            <li>
+                                a GLSL code editor
+                            </li>
+                        </ul>
+                    <br/>
+                     When a session is created for the first time, an example code is made available with a basic MIDI setup and a ~440Hz continuous tone.<br/><br/>
+                    
+                     To hear the tone, capture slices of the graphical data by right-clicking anywhere on the canvas and by clicking on the (+) icon.<br/><br/>
+                     
+                     Slices are just a way to capture the pixels, the captured data is then sent to the sound synthesis engine in real-time, there is two main type of synthesis, additive and granular, granular synthesis is only available with the sound server/launcher which can be downloaded on the homepage.<br/><br/>
+                    
+                     Any number of slices can be added, slices can be removed, muted or tweaked by right-clicking it.<br/><br/>
+                    
+                     The slices can be moved by clicking on it, holding it and by moving the cursor around.<br/><br/>
+                    
+                     To play a saw-like tone with a MIDI keyboard, click on the Jack plug icon on the toolbar to open the MIDI settings dialog and enable your MIDI controller.<br/><br/>
+
+                     You can experiment right away with the sound/visual by tweaking the values of this sample program, any modifications is updated in real-time as you type.<br/><br/>
+
+                     The sessions you joined in are saved locally and can be joined back by going to the <a href="https://www.fsynth.com">homepage</a><br/><br/>
+                        
+                     You can invite friends to join your session by sharing the link shown in the adress bar.<br/><br/>
+                    
+                     Need more help ?<br/>
+                        <ul>
+                            <li>
+                                 <a href="https://www.fsynth.com/documentation">Checkout the software documentation</a>
+                            </li>
+                            <li>
+                                Click on the ? icon on the toolbar, many code snippets and informations are available
+                            </li>
+                            <li>
+                                Make a post on the Fragment message board at https://quiet.fsynth.com
+                            </li>
+                        </ul>
+
+                     Have fun!<br/><br/>
+                </div>
             </div>
         </div>
 
@@ -655,7 +676,10 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                                                 frequency, velocity, elapsed time since the key was pressed, MIDI channel
                                             </li>
                                             <li>
-                                                Note : MIDI note-on/note-off events
+                                                pitch bend, timbre (CC74), pressure (aftertouch), release velocity
+                                            </li>
+                                            <li>
+                                                Note : MIDI note-on/note-off data
                                             </li>
                                         </ul>
                                     </li>
@@ -677,6 +701,11 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                             <div class="fs-documentation">
                                 Action snippets (click to execute)
                                 <ul class="fs-documentation-entries">
+                                    <li>
+                                        <span id="fs_show_quickstart" class="fs-documentation-keyword">
+                                            Show quickstart dialog
+                                        </span>
+                                    </li>
                                     <li>
                                         <span id="fs_remove_comments" class="fs-documentation-keyword">Remove all comments</span>
                                     </li>
@@ -840,7 +869,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                                     <div>Made with <span style="color: #ff0000">💖</span> by Julien Verneuil</div>
                                     <div>contact <span style="color: #aaaaaa">at</span> fsynth <span style="color: #aaaaaa">dot</span> com</div>
                                 </div>
-                                <br/><br/>
+                                <br/><br/><br/>
                             </div>
                         </div>
                         <div>

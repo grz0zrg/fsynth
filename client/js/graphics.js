@@ -573,11 +573,9 @@ var _frame = function (raf_time) {
         
         data,
         
-        buffer = [],
-        
-        dead_notes_buffer;
+        buffer = [];
     
-    dead_notes_buffer = _MIDInotesUpdate(date);
+    _MIDInotesUpdate(date);
     
     if (_feedback.enabled) {
         current_frame = _feedback.pframe[_feedback.index];
@@ -844,12 +842,7 @@ var _frame = function (raf_time) {
     
     _globalFrame += 1;
     
-    // cleanup all MIDI dead notes
-    for (i = 0; i < dead_notes_buffer.length; i += 1) {
-        v = dead_notes_buffer[i];
-        
-        _MIDInotesCleanup(v);
-    }
+    _MIDInotesCleanup();
     
     _raf = window.requestAnimationFrame(_frame);
 };

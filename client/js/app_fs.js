@@ -133,7 +133,9 @@ var FragmentSynth = function (params) {
         Fields.
     ************************************************************/
 
-    var _fs_state = 1,
+    var _motd = '<span class="fs-date">UPDATE 11/01/2017 : </span><a class="fs-link" href="https://quiet.fsynth.com/d/9-fragment-1-0-1">Fragment 1.0.2 released with MPE support! (click for more details)</a>',
+        
+        _fs_state = 1,
         
         _documentation_link = "https://www.fsynth.com/documentation/",
 

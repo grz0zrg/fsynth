@@ -325,7 +325,8 @@ var _inputThumbMenu = function (e) {
     
     if (input.type === 0) {
         items.push({ icon: "fs-xyf-icon", tooltip: "View image",  on_click: function () {
-                window.open(dom_image.src);
+                var win = window.open(dom_image.src);
+                win.document.write("<img src='"+dom_image.src+"'/>");
             } });
     }
     

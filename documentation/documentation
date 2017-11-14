@@ -1023,8 +1023,8 @@ $glslcode(
         float a = 1. / pow(i, attenuation_constant * (1.-ktmb) * 2.);
 
         // we apply the velocity
-        l += fline(kfrq * i + kpth * 2.) * a * kvel * kpre;
-        r += fline(kfrq * i + kpth * 2.) * a * kvel * kpre;
+        l += fline(kfrq * i + kpth * 2.) * a * (kvel + kpre);
+        r += fline(kfrq * i + kpth * 2.) * a * (kvel + kpre);
       }
     }
 

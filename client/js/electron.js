@@ -189,7 +189,8 @@ var _electronInit = function () {
         
         return true;
     } else {
-        document.body.removeChild(electron_login);
+        // deprecated - comments in the index.html should be removed to make it work!
+        //document.body.removeChild(electron_login);
     }
     
     return false;

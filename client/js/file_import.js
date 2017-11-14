@@ -62,11 +62,7 @@ var _loadFile = function (type) {
     }
 };
 
-/***********************************************************
-    Init.
-************************************************************/
-
-_import_dropzone_elem.addEventListener("drop", function (e) {
+var _importDropzoneDrop = function (e) {
     e.preventDefault();
     
     var data = e.dataTransfer,
@@ -93,7 +89,13 @@ _import_dropzone_elem.addEventListener("drop", function (e) {
     }
     
     e.target.style = "";
-});
+};
+
+/***********************************************************
+    Init.
+************************************************************/
+
+_import_dropzone_elem.addEventListener("drop", _importDropzoneDrop);
 
 _import_dropzone_elem.addEventListener("dragleave", function (e) {
     e.preventDefault();

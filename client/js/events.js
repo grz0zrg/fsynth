@@ -125,6 +125,10 @@ document.getElementById("fs_import_audio_ck_videotrack").addEventListener('chang
     _audio_import_settings.videotrack_import = videotrack_import;
 });
 
+document.getElementById("fs_show_quickstart").addEventListener('click', function (e) {
+    WUI_Dialog.open(_quickstart_dialog);
+});
+
 document.getElementById("fs_remove_comments").addEventListener('click', function (e) {
     var input_code  = _code_editor.getValue(),
         output_code = input_code;

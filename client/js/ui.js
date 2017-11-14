@@ -44,6 +44,9 @@ var _icon_class = {
     _import_dialog_id = "fs_import_dialog",
     _import_dialog,
     
+    _quickstart_dialog_id = "fs_quickstart",
+    _quickstart_dialog,
+    
     _fas_dialog_id = "fs_fas_dialog",
     _fas_dialog,
     
@@ -530,7 +533,11 @@ var _toggleMultiplyRecord = function () {
 };
 
 var _saveRecord = function () {
-    window.open(_record_canvas.toDataURL('image/png'));
+    var data_url = _record_canvas.toDataURL('image/png'),
+        win;
+    
+    win = window.open();
+    win.document.write("<img src='"+data_url+"'/>");
 };
 
 var _renderRecord = function () {
@@ -1201,7 +1208,7 @@ var _uiInit = function () {
             title: "Fragment - Help",
 
             width: "380px",
-            height: "735px",
+            height: "755px",
 
             halign: "center",
             valign: "center",
@@ -1248,6 +1255,34 @@ var _uiInit = function () {
                 }
             ]
         });
+    
+    _quickstart_dialog = WUI_Dialog.create(_quickstart_dialog_id, {
+            title: "Welcome to the Fragment quickstart guide",
+
+            width: "640px",
+            height: "480px",
+
+            halign: "center",
+            valign: "center",
+
+            open: true,
+
+            detachable: true,
+
+            status_bar: true,
+            status_bar_content: _motd,
+            draggable: true,
+        
+            header_btn: [
+                {
+                    title: "Help",
+                    on_click: function () {
+                        window.open(_documentation_link + "getting_started/"); 
+                    },
+                    class_name: "fs-help-icon"
+                }
+            ]
+    });
 
     _slice_settings_dialog = WUI_Dialog.create(_slice_settings_dialog_id, {
             title: "Slice settings",

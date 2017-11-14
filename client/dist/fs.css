@@ -2204,3 +2204,48 @@ canvas {
     background-color: rgba(0, 0, 0, 0.8);
     padding: 2px;
 }
+
+.fs-date {
+    font-size: 12px;
+    font-weight: bold;
+    color: orange;
+}
+
+.fs-link {
+    font-size: 12px;
+    text-decoration: none;
+    color: yellow;
+}
+
+.fs-link:hover {
+    color: greenyellow;
+}
+
+.fs-text {
+    padding: 8px;
+    
+    color: #ffffff;
+    font-size: 13px;
+}
+
+.fs-text p {
+    margin: 0;
+}
+
+.fs-text a {
+    text-decoration: none;
+    color: yellow;
+}
+
+.fs-text a:hover {
+    color: greenyellow;
+}
+
+.fs-text ul {
+    margin: 4px;
+    padding-left: 32px;
+}
+
+#fs_quickstart .wui-dialog-content {
+    overflow: auto;
+}

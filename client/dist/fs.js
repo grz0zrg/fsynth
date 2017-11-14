@@ -15719,7 +15719,8 @@ var _electronInit = function () {
         
         return true;
     } else {
-        document.body.removeChild(electron_login);
+        // deprecated - comments in the index.html should be removed to make it work!
+        //document.body.removeChild(electron_login);
     }
     
     return false;
@@ -16174,7 +16175,9 @@ _utter_fail_element.innerHTML = "";
         Fields.
     ************************************************************/
 
-    var _fs_state = 1,
+    var _motd = '<span class="fs-date">UPDATE 11/01/2017 : </span><a class="fs-link" href="https://quiet.fsynth.com/d/9-fragment-1-0-1">Fragment 1.0.2 released with MPE support! (click for more details)</a>',
+        
+        _fs_state = 1,
         
         _documentation_link = "https://www.fsynth.com/documentation/",
 
@@ -17455,11 +17458,7 @@ var _loadFile = function (type) {
     }
 };
 
-/***********************************************************
-    Init.
-************************************************************/
-
-_import_dropzone_elem.addEventListener("drop", function (e) {
+var _importDropzoneDrop = function (e) {
     e.preventDefault();
     
     var data = e.dataTransfer,
@@ -17486,7 +17485,13 @@ _import_dropzone_elem.addEventListener("drop", function (e) {
     }
     
     e.target.style = "";
-});
+};
+
+/***********************************************************
+    Init.
+************************************************************/
+
+_import_dropzone_elem.addEventListener("drop", _importDropzoneDrop);
 
 _import_dropzone_elem.addEventListener("dragleave", function (e) {
     e.preventDefault();
@@ -18079,11 +18084,9 @@ var _frame = function (raf_time) {
         
         data,
         
-        buffer = [],
-        
-        dead_notes_buffer;
+        buffer = [];
     
-    dead_notes_buffer = _MIDInotesUpdate(date);
+    _MIDInotesUpdate(date);
     
     if (_feedback.enabled) {
         current_frame = _feedback.pframe[_feedback.index];
@@ -18350,12 +18353,7 @@ var _frame = function (raf_time) {
     
     _globalFrame += 1;
     
-    // cleanup all MIDI dead notes
-    for (i = 0; i < dead_notes_buffer.length; i += 1) {
-        v = dead_notes_buffer[i];
-        
-        _MIDInotesCleanup(v);
-    }
+    _MIDInotesCleanup();
     
     _raf = window.requestAnimationFrame(_frame);
 };/* jslint browser: true */
@@ -19998,7 +19996,8 @@ var _inputThumbMenu = function (e) {
     
     if (input.type === 0) {
         items.push({ icon: "fs-xyf-icon", tooltip: "View image",  on_click: function () {
-                window.open(dom_image.src);
+                var win = window.open(dom_image.src);
+                win.document.write("<img src='"+dom_image.src+"'/>");
             } });
     }
     
@@ -20932,6 +20931,9 @@ var _icon_class = {
     _import_dialog_id = "fs_import_dialog",
     _import_dialog,
     
+    _quickstart_dialog_id = "fs_quickstart",
+    _quickstart_dialog,
+    
     _fas_dialog_id = "fs_fas_dialog",
     _fas_dialog,
     
@@ -21418,7 +21420,11 @@ var _toggleMultiplyRecord = function () {
 };
 
 var _saveRecord = function () {
-    window.open(_record_canvas.toDataURL('image/png'));
+    var data_url = _record_canvas.toDataURL('image/png'),
+        win;
+    
+    win = window.open();
+    win.document.write("<img src='"+data_url+"'/>");
 };
 
 var _renderRecord = function () {
@@ -22089,7 +22095,7 @@ var _uiInit = function () {
             title: "Fragment - Help",
 
             width: "380px",
-            height: "735px",
+            height: "755px",
 
             halign: "center",
             valign: "center",
@@ -22136,6 +22142,34 @@ var _uiInit = function () {
                 }
             ]
         });
+    
+    _quickstart_dialog = WUI_Dialog.create(_quickstart_dialog_id, {
+            title: "Welcome to the Fragment quickstart guide",
+
+            width: "640px",
+            height: "480px",
+
+            halign: "center",
+            valign: "center",
+
+            open: true,
+
+            detachable: true,
+
+            status_bar: true,
+            status_bar_content: _motd,
+            draggable: true,
+        
+            header_btn: [
+                {
+                    title: "Help",
+                    on_click: function () {
+                        window.open(_documentation_link + "getting_started/"); 
+                    },
+                    class_name: "fs-help-icon"
+                }
+            ]
+    });
 
     _slice_settings_dialog = WUI_Dialog.create(_slice_settings_dialog_id, {
             title: "Slice settings",
@@ -25071,6 +25105,8 @@ var _midi_access = null,
         o_total_active: 0
     },
     
+    _dead_notes_buffer,
+    
     _mpe_instrument,
     
     _midi_notes = [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
@@ -25358,24 +25394,35 @@ var _midiDataOut = function (pixels_data, prev_pixels_data) {
     }
 };
 
-var _MIDInotesCleanup = function (v) {
-    var key, value;
+var _MIDInotesCleanup = function () {
+    var key, value, i = 0, v;
 
-    _keyboard.data.splice(v.i, _keyboard.data_components);
-    
-    delete _keyboard.pressed[v.k];
+    // cleanup all MIDI dead notes
+    for (key in _dead_notes_buffer) {
+        v = _dead_notes_buffer[key];
 
-    for (key in _keyboard.pressed) { 
-        value = _keyboard.pressed[key];
-        
-        if (value.id > v.i) {
-            value.id -= _keyboard.data_components;
+        _keyboard.data.splice(v.i, _keyboard.data_components);
+
+        delete _keyboard.pressed[v.k];
+
+        for (key in _keyboard.pressed) { 
+            value = _keyboard.pressed[key];
+
+            if (value.id > v.i) {
+                value.id -= _keyboard.data_components;
+
+                if (_dead_notes_buffer[key]) {
+                    _dead_notes_buffer[key].i = value.id;
+                }
+            }
         }
     }
 };
 
 var _MIDInotesUpdate = function (date) {
-    var et = 0, key, v, dead_notes_buffer = [];
+    var et = 0, key, v;
+    
+    _dead_notes_buffer = {};
     
     // update notes time
     for (key in _keyboard.pressed) { 
@@ -25386,10 +25433,10 @@ var _MIDInotesUpdate = function (date) {
             et = date - v.noteoff_time;
             
             if (et >= _keyboard.note_lifetime) {
-                dead_notes_buffer.push({
+                _dead_notes_buffer[key] = {
                         k: key,
                         i: v.id
-                    });
+                    };
                 
                 // dead notes will be cleaned up before the next frame begin (see _MIDInotesCleanup)
                 
@@ -25403,8 +25450,6 @@ var _MIDInotesUpdate = function (date) {
     }
 
     _keyboard.polyphony = _keyboard.data.length / _keyboard.data_components;
-    
-    return dead_notes_buffer;
 }
 
 // general MIDI messages processing
@@ -25462,7 +25507,7 @@ var _mpeMIDIMessage = function (notes) {
                         note.pressure === data.pressure) {
                         continue;
                     }
-
+                    
                     note.pitchBend = data.pitchBend;
                     note.timbre = data.timbre;
                     note.pressure = data.pressure;
@@ -26371,6 +26416,10 @@ document.getElementById("fs_import_audio_ck_videotrack").addEventListener('chang
     var videotrack_import = this.checked;
     
     _audio_import_settings.videotrack_import = videotrack_import;
+});
+
+document.getElementById("fs_show_quickstart").addEventListener('click', function (e) {
+    WUI_Dialog.open(_quickstart_dialog);
 });
 
 document.getElementById("fs_remove_comments").addEventListener('click', function (e) {

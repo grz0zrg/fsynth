@@ -49,7 +49,7 @@ void main () {
     float ktim = data.z; // elapsed time
     float kchn = data.w; // channel
     float kpth = data2.x; // pitch bend
-    float ktmb = data2.y; // timbre (CC74)
+    float ktmb = 1.0 + data2.y; // timbre (CC74)
     float kpre = data2.z; // pressure (aftertouch)
     float kvof = data2.w; // release velocity (set on note-off)
 
@@ -64,8 +64,8 @@ void main () {
       float a = 1. / pow(i, attenuation_constant + ktmb * 2.);
 
       // we apply key. velocity and use the key.frequency
-      l += fline(kfrq * i + kpth * 2.) * a * kvel * kpre;
-      r += fline(kfrq * i + kpth * 2.) * a * kvel * kpre;
+      l += fline(kfrq * i + kpth * 2.) * a * (kvel + kpre);
+      r += fline(kfrq * i + kpth * 2.) * a * (kvel + kpre);
     }
   }
 
