@@ -26,7 +26,7 @@
 /*#include sharedb/ot-text.js*/
 
 // mpejs - https://github.com/WeAreROLI/mpejs
-/*#include mpe.js/mpe.min.js*/
+/*#include mpe.js/mpe.js*/
 
 /*#include resize_throttler/resize_throttler.js*/
 
@@ -133,7 +133,7 @@ var FragmentSynth = function (params) {
         Fields.
     ************************************************************/
 
-    var _motd = '<span class="fs-date">UPDATE 11/01/2017 : </span><a class="fs-link" href="https://quiet.fsynth.com/d/9-fragment-1-0-1">Fragment 1.0.2 released with MPE support! (click for more details)</a>',
+    var _motd = '<span class="fs-date">UPDATE 18/01/2017 : </span><a class="fs-link" href="https://quiet.fsynth.com/d/10-fragment-1-0-2">Fragment 1.0.2 released with MPE support! (click for more details)</a>',
         
         _fs_state = 1,
         

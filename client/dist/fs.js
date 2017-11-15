@@ -15223,7 +15223,1860 @@ CodeMirror.defineMode("glsl", function(config, parserConfig) {
 !function(t){function e(n){if(i[n])return i[n].exports;var r=i[n]={exports:{},id:n,loaded:!1};return t[n].call(r.exports,r,r.exports,e),r.loaded=!0,r.exports}var i={};return e.m=t,e.c=i,e.p="",e(0)}([function(t,e,i){ShareDB=i(1)},function(t,e,i){e.Connection=i(2),e.Doc=i(4),e.Error=i(7),e.Query=i(14),e.types=i(9)},function(t,e,i){(function(e){function n(t){h.EventEmitter.call(this),this.collections={},this.nextQueryId=1,this.queries={},this.seq=1,this.id=null,this.agent=null,this.debug=!1,this.bindToSocket(t)}function r(t){return t.hasPending()}function s(t){return t.hasWritePending()}var o=i(4),l=i(14),h=i(5),c=i(7),p=i(9),a=i(15);t.exports=n,h.mixin(n),n.prototype.bindToSocket=function(t){this.socket&&(this.socket.close(),this.socket.onmessage=null,this.socket.onopen=null,this.socket.onerror=null,this.socket.onclose=null),this.socket=t,this.state=0===t.readyState||1===t.readyState?"connecting":"disconnected",this.canSend=!1;var i=this;t.onmessage=function(t){try{var n="string"==typeof t.data?JSON.parse(t.data):t.data}catch(r){return void console.warn("Failed to parse message",t)}i.debug&&console.log("RECV",JSON.stringify(n));var s={data:n};if(i.emit("receive",s),s.data)try{i.handleMessage(s.data)}catch(r){e.nextTick(function(){i.emit("error",r)})}},t.onopen=function(){i._setState("connecting")},t.onerror=function(t){i.emit("connection error",t)},t.onclose=function(t){"closed"===t||"Closed"===t?i._setState("closed",t):"stopped"===t||"Stopped by server"===t?i._setState("stopped",t):i._setState("disconnected",t)}},n.prototype.handleMessage=function(t){var e=null;switch(t.error&&(e=new Error(t.error.message),e.code=t.error.code,e.data=t,delete t.error),t.a){case"init":return 1!==t.protocol?(e=new c(4019,"Invalid protocol version"),this.emit("error",e)):p.map[t.type]!==p.defaultType?(e=new c(4020,"Invalid default type"),this.emit("error",e)):"string"!=typeof t.id?(e=new c(4021,"Invalid client id"),this.emit("error",e)):(this.id=t.id,void this._setState("connected"));case"qf":var i=this.queries[t.id];return void(i&&i._handleFetch(e,t.data,t.extra));case"qs":var i=this.queries[t.id];return void(i&&i._handleSubscribe(e,t.data,t.extra));case"qu":return;case"q":var i=this.queries[t.id];if(!i)return;return e?i._handleError(e):(t.diff&&i._handleDiff(t.diff),void(t.hasOwnProperty("extra")&&i._handleExtra(t.extra)));case"bf":return this._handleBulkMessage(t,"_handleFetch");case"bs":return this._handleBulkMessage(t,"_handleSubscribe");case"bu":return this._handleBulkMessage(t,"_handleUnsubscribe");case"f":var n=this.getExisting(t.c,t.d);return void(n&&n._handleFetch(e,t.data));case"s":var n=this.getExisting(t.c,t.d);return void(n&&n._handleSubscribe(e,t.data));case"u":var n=this.getExisting(t.c,t.d);return void(n&&n._handleUnsubscribe(e));case"op":var n=this.getExisting(t.c,t.d);return void(n&&n._handleOp(e,t));default:console.warn("Ignorning unrecognized message",t)}},n.prototype._handleBulkMessage=function(t,e){if(t.data)for(var i in t.data){var n=this.getExisting(t.c,i);n&&n[e](t.error,t.data[i])}else if(Array.isArray(t.b))for(var r=0;r<t.b.length;r++){var i=t.b[r],n=this.getExisting(t.c,i);n&&n[e](t.error)}else if(t.b)for(var i in t.b){var n=this.getExisting(t.c,i);n&&n[e](t.error)}else console.error("Invalid bulk message",t)},n.prototype._reset=function(){this.seq=1,this.id=null,this.agent=null},n.prototype._setState=function(t,e){if(this.state!==t){if("connecting"===t&&"disconnected"!==this.state&&"stopped"!==this.state&&"closed"!==this.state||"connected"===t&&"connecting"!==this.state){var i=new c(5007,"Cannot transition directly from "+this.state+" to "+t);return this.emit("error",i)}this.state=t,this.canSend="connected"===t,"disconnected"!==t&&"stopped"!==t&&"closed"!==t||this._reset(),this.startBulk();for(var n in this.queries){var r=this.queries[n];r._onConnectionStateChanged()}for(var s in this.collections){var o=this.collections[s];for(var n in o)o[n]._onConnectionStateChanged()}this.endBulk(),this.emit(t,e),this.emit("state",t,e)}},n.prototype.startBulk=function(){this.bulk||(this.bulk={})},n.prototype.endBulk=function(){if(this.bulk)for(var t in this.bulk){var e=this.bulk[t];this._sendBulk("f",t,e.f),this._sendBulk("s",t,e.s),this._sendBulk("u",t,e.u)}this.bulk=null},n.prototype._sendBulk=function(t,e,i){if(i){var n,r=[],s={},o=0;for(var l in i){var h=i[l];null==h?r.push(l):(s[l]=h,n=l,o++)}if(1===r.length){var l=r[0];this.send({a:t,c:e,d:l})}else r.length&&this.send({a:"b"+t,c:e,b:r});if(1===o){var c=s[n];this.send({a:t,c:e,d:n,v:c})}else o&&this.send({a:"b"+t,c:e,b:s})}},n.prototype._sendAction=function(t,e,i){if(this._addDoc(e),this.bulk){var n=this.bulk[e.collection]||(this.bulk[e.collection]={}),r=n[t]||(n[t]={}),s=r.hasOwnProperty(e.id);return r[e.id]=i,s}var o={a:t,c:e.collection,d:e.id,v:i};this.send(o)},n.prototype.sendFetch=function(t){return this._sendAction("f",t,t.version)},n.prototype.sendSubscribe=function(t){return this._sendAction("s",t,t.version)},n.prototype.sendUnsubscribe=function(t){return this._sendAction("u",t)},n.prototype.sendOp=function(t,e){this._addDoc(t);var i={a:"op",c:t.collection,d:t.id,v:t.version,src:e.src,seq:e.seq};e.op&&(i.op=e.op),e.create&&(i.create=e.create),e.del&&(i.del=e.del),this.send(i)},n.prototype.send=function(t){this.debug&&console.log("SEND",JSON.stringify(t)),this.emit("send",t),this.socket.send(JSON.stringify(t))},n.prototype.close=function(){this.socket.close()},n.prototype.getExisting=function(t,e){if(this.collections[t])return this.collections[t][e]},n.prototype.get=function(t,e){var i=this.collections[t]||(this.collections[t]={}),n=i[e];return n||(n=i[e]=new o(this,t,e),this.emit("doc",n)),n},n.prototype._destroyDoc=function(t){var e=this.collections[t.collection];e&&(delete e[t.id],a.hasKeys(e)||delete this.collections[t.collection])},n.prototype._addDoc=function(t){var e=this.collections[t.collection];e||(e=this.collections[t.collection]={}),e[t.id]!==t&&(e[t.id]=t)},n.prototype._createQuery=function(t,e,i,n,r){var s=this.nextQueryId++,o=new l(t,this,s,e,i,n,r);return this.queries[s]=o,o.send(),o},n.prototype._destroyQuery=function(t){delete this.queries[t.id]},n.prototype.createFetchQuery=function(t,e,i,n){return this._createQuery("qf",t,e,i,n)},n.prototype.createSubscribeQuery=function(t,e,i,n){return this._createQuery("qs",t,e,i,n)},n.prototype.hasPending=function(){return!(!this._firstDoc(r)&&!this._firstQuery(r))},n.prototype.hasWritePending=function(){return!!this._firstDoc(s)},n.prototype.whenNothingPending=function(t){var i=this._firstDoc(r);if(i)return void i.once("nothing pending",this._nothingPendingRetry(t));var n=this._firstQuery(r);return n?void n.once("ready",this._nothingPendingRetry(t)):void e.nextTick(t)},n.prototype._nothingPendingRetry=function(t){var i=this;return function(){e.nextTick(function(){i.whenNothingPending(t)})}},n.prototype._firstDoc=function(t){for(var e in this.collections){var i=this.collections[e];for(var n in i){var r=i[n];if(t(r))return r}}},n.prototype._firstQuery=function(t){for(var e in this.queries){var i=this.queries[e];if(t(i))return i}}}).call(e,i(3))},function(t,e){function i(){throw new Error("setTimeout has not been defined")}function n(){throw new Error("clearTimeout has not been defined")}function r(t){if(p===setTimeout)return setTimeout(t,0);if((p===i||!p)&&setTimeout)return p=setTimeout,setTimeout(t,0);try{return p(t,0)}catch(e){try{return p.call(null,t,0)}catch(e){return p.call(this,t,0)}}}function s(t){if(a===clearTimeout)return clearTimeout(t);if((a===n||!a)&&clearTimeout)return a=clearTimeout,clearTimeout(t);try{return a(t)}catch(e){try{return a.call(null,t)}catch(e){return a.call(this,t)}}}function o(){v&&f&&(v=!1,f.length?d=f.concat(d):g=-1,d.length&&l())}function l(){if(!v){var t=r(o);v=!0;for(var e=d.length;e;){for(f=d,d=[];++g<e;)f&&f[g].run();g=-1,e=d.length}f=null,v=!1,s(t)}}function h(t,e){this.fun=t,this.array=e}function c(){}var p,a,u=t.exports={};!function(){try{p="function"==typeof setTimeout?setTimeout:i}catch(t){p=i}try{a="function"==typeof clearTimeout?clearTimeout:n}catch(t){a=n}}();var f,d=[],v=!1,g=-1;u.nextTick=function(t){var e=new Array(arguments.length-1);if(arguments.length>1)for(var i=1;i<arguments.length;i++)e[i-1]=arguments[i];d.push(new h(t,e)),1!==d.length||v||r(l)},h.prototype.run=function(){this.fun.apply(null,this.array)},u.title="browser",u.browser=!0,u.env={},u.argv=[],u.version="",u.versions={},u.on=c,u.addListener=c,u.once=c,u.off=c,u.removeListener=c,u.removeAllListeners=c,u.emit=c,u.binding=function(t){throw new Error("process.binding is not supported")},u.cwd=function(){return"/"},u.chdir=function(t){throw new Error("process.chdir is not supported")},u.umask=function(){return 0}},function(t,e,i){(function(e){function n(t,e,i){h.EventEmitter.call(this),this.connection=t,this.collection=e,this.id=i,this.version=null,this.type=null,this.data=void 0,this.inflightFetch=[],this.inflightSubscribe=[],this.inflightUnsubscribe=[],this.pendingFetch=[],this.subscribed=!1,this.wantSubscribe=!1,this.inflightOp=null,this.pendingOps=[],this.type=null,this.applyStack=null,this.preventCompose=!1}function r(t,e,i){if(e){var n=t.pop();t.push(function(t){n&&n(t),i&&i(t)})}else t.push(i)}function s(t){delete t.op,delete t.create,delete t.del}function o(t,e){if(t.del)return s(e);if(e.del)return new c(4017,"Document was deleted");if(e.create)return new c(4018,"Document alredy created");if(e.op){if(t.create)return new c(4018,"Document already created");if(t.type.transformX){var i=t.type.transformX(t.op,e.op);t.op=i[0],e.op=i[1]}else{var n=t.type.transform(t.op,e.op,"left"),r=t.type.transform(e.op,t.op,"right");t.op=n,e.op=r}}}function l(t,e){for(var i=!1,n=0;n<t.length;n++){var r=t[n];r&&(r(e),i=!0)}return i}var h=i(5),c=i(7),p=i(9);t.exports=n,h.mixin(n),n.prototype.destroy=function(t){var e=this;e.whenNothingPending(function(){return e.connection._destroyDoc(e),e.wantSubscribe?e.unsubscribe(t):void(t&&t())})},n.prototype._setType=function(t){if("string"==typeof t&&(t=p.map[t]),t)this.type=t;else{if(null!==t){var e=new c(4008,"Missing type "+t);return this.emit("error",e)}this.type=t,this.data=void 0}},n.prototype.ingestSnapshot=function(t,e){if(!t)return e&&e();if("number"!=typeof t.v){var i=new c(5008,"Missing version in ingested snapshot. "+this.collection+"."+this.id);return e?e(i):this.emit("error",i)}if(this.type||this.hasWritePending()){if(null==this.version){if(this.hasWritePending())return e&&this.once("no write pending",e);var i=new c(5009,"Cannot ingest snapshot in doc with null version. "+this.collection+"."+this.id);return e?e(i):this.emit("error",i)}return t.v>this.version?this.fetch(e):e&&e()}if(this.version>t.v)return e&&e();this.version=t.v;var n=void 0===t.type?p.defaultType:t.type;this._setType(n),this.data=this.type&&this.type.deserialize?this.type.deserialize(t.data):t.data,this.emit("load"),e&&e()},n.prototype.whenNothingPending=function(t){return this.hasPending()?void this.once("nothing pending",t):void t()},n.prototype.hasPending=function(){return!!(this.inflightOp||this.pendingOps.length||this.inflightFetch.length||this.inflightSubscribe.length||this.inflightUnsubscribe.length||this.pendingFetch.length)},n.prototype.hasWritePending=function(){return!(!this.inflightOp&&!this.pendingOps.length)},n.prototype._emitNothingPending=function(){this.hasWritePending()||(this.emit("no write pending"),this.hasPending()||this.emit("nothing pending"))},n.prototype._emitResponseError=function(t,e){return e?(e(t),void this._emitNothingPending()):(this._emitNothingPending(),void this.emit("error",t))},n.prototype._handleFetch=function(t,e){var i=this.inflightFetch.shift();return t?this._emitResponseError(t,i):(this.ingestSnapshot(e,i),void this._emitNothingPending())},n.prototype._handleSubscribe=function(t,e){var i=this.inflightSubscribe.shift();return t?this._emitResponseError(t,i):(this.wantSubscribe&&(this.subscribed=!0),this.ingestSnapshot(e,i),void this._emitNothingPending())},n.prototype._handleUnsubscribe=function(t){var e=this.inflightUnsubscribe.shift();return t?this._emitResponseError(t,e):(e&&e(),void this._emitNothingPending())},n.prototype._handleOp=function(t,e){if(t)return this.inflightOp?(4002===t.code&&(t=null),this._rollback(t)):this.emit("error",t);if(this.inflightOp&&e.src===this.inflightOp.src&&e.seq===this.inflightOp.seq)return void this._opAcknowledged(e);if(null==this.version||e.v>this.version)return void this.fetch();if(!(e.v<this.version)){if(this.inflightOp){var i=o(this.inflightOp,e);if(i)return this._hardRollback(i)}for(var n=0;n<this.pendingOps.length;n++){var i=o(this.pendingOps[n],e);if(i)return this._hardRollback(i)}this.version++,this._otApply(e,!1)}},n.prototype._onConnectionStateChanged=function(){if(this.connection.canSend)this.flush(),this._resubscribe();else if(this.inflightOp&&(this.pendingOps.unshift(this.inflightOp),this.inflightOp=null),this.subscribed=!1,(this.inflightFetch.length||this.inflightSubscribe.length)&&(this.pendingFetch=this.pendingFetch.concat(this.inflightFetch,this.inflightSubscribe),this.inflightFetch.length=0,this.inflightSubscribe.length=0),this.inflightUnsubscribe.length){var t=this.inflightUnsubscribe;this.inflightUnsubscribe=[],l(t)}},n.prototype._resubscribe=function(){var t=this.pendingFetch;return this.pendingFetch=[],this.wantSubscribe?t.length?void this.subscribe(function(e){l(t,e)}):void this.subscribe():void(t.length&&this.fetch(function(e){l(t,e)}))},n.prototype.fetch=function(t){if(this.connection.canSend){var e=this.connection.sendFetch(this);return void r(this.inflightFetch,e,t)}this.pendingFetch.push(t)},n.prototype.subscribe=function(t){if(this.wantSubscribe=!0,this.connection.canSend){var e=this.connection.sendSubscribe(this);return void r(this.inflightSubscribe,e,t)}this.pendingFetch.push(t)},n.prototype.unsubscribe=function(t){if(this.wantSubscribe=!1,this.subscribed=!1,this.connection.canSend){var i=this.connection.sendUnsubscribe(this);return void r(this.inflightUnsubscribe,i,t)}t&&e.nextTick(t)},n.prototype.flush=function(){this.connection.canSend&&!this.inflightOp&&!this.paused&&this.pendingOps.length&&this._sendOp()},n.prototype._otApply=function(t,e){if(t.op){if(!this.type){var i=new c(4015,"Cannot apply op to uncreated document. "+this.collection+"."+this.id);return this.emit("error",i)}if(!e&&this.type===p.defaultType&&t.op.length>1){this.applyStack||(this.applyStack=[]);for(var n=this.applyStack.length,r=0;r<t.op.length;r++){for(var s=t.op[r],l={op:[s]},h=n;h<this.applyStack.length;h++){var a=o(this.applyStack[h],l);if(a)return this._hardRollback(a)}this.emit("before op",l.op,e),this.data=this.type.apply(this.data,l.op),this.emit("op",l.op,e)}return void this._popApplyStack(n)}return this.emit("before op",t.op,e),this.data=this.type.apply(this.data,t.op),void this.emit("op",t.op,e)}if(t.create)return this._setType(t.create.type),this.data=this.type.deserialize?this.type.createDeserialized?this.type.createDeserialized(t.create.data):this.type.deserialize(this.type.create(t.create.data)):this.type.create(t.create.data),void this.emit("create",e);if(t.del){var u=this.data;return this._setType(null),void this.emit("del",u,e)}},n.prototype._sendOp=function(){var t=this.connection.id;if(t){this.inflightOp||(this.inflightOp=this.pendingOps.shift());var e=this.inflightOp;if(!e){var i=new c(5010,"No op to send on call to _sendOp");return this.emit("error",i)}e.sentAt=Date.now(),e.retries=null==e.retries?0:e.retries+1,null==e.seq&&(e.seq=this.connection.seq++),this.connection.sendOp(this,e),null==e.src&&(e.src=t)}},n.prototype._submit=function(t,i,n){if(i||(i=!0),t.op){if(!this.type){var r=new c(4015,"Cannot submit op. Document has not been created. "+this.collection+"."+this.id);return n?n(r):this.emit("error",r)}this.type.normalize&&(t.op=this.type.normalize(t.op))}this._pushOp(t,n),this._otApply(t,i);var s=this;e.nextTick(function(){s.flush()})},n.prototype._pushOp=function(t,e){if(this.applyStack)this.applyStack.push(t);else{var i=this._tryCompose(t);if(i)return void i.callbacks.push(e)}t.type=this.type,t.callbacks=[e],this.pendingOps.push(t)},n.prototype._popApplyStack=function(t){if(t>0)return void(this.applyStack.length=t);var e=this.applyStack[0];if(this.applyStack=null,e){var i=this.pendingOps.indexOf(e);if(i!==-1)for(var n=this.pendingOps.splice(i),i=0;i<n.length;i++){var e=n[i],r=this._tryCompose(e);r?r.callbacks=r.callbacks.concat(e.callbacks):this.pendingOps.push(e)}}},n.prototype._tryCompose=function(t){if(!this.preventCompose){var e=this.pendingOps[this.pendingOps.length-1];if(e)return e.create&&t.op?(e.create.data=this.type.apply(e.create.data,t.op),e):e.op&&t.op&&this.type.compose?(e.op=this.type.compose(e.op,t.op),e):void 0}},n.prototype.submitOp=function(t,e,i){"function"==typeof e&&(i=e,e=null);var n={op:t},r=e&&e.source;this._submit(n,r,i)},n.prototype.create=function(t,e,i,n){if("function"==typeof e?(n=e,i=null,e=null):"function"==typeof i&&(n=i,i=null),e||(e=p.defaultType.uri),this.type){var r=new c(4016,"Document already exists");return n?n(r):this.emit("error",r)}var s={create:{type:e,data:t}},o=i&&i.source;this._submit(s,o,n)},n.prototype.del=function(t,e){if("function"==typeof t&&(e=t,t=null),!this.type){var i=new c(4015,"Document does not exist");return e?e(i):this.emit("error",i)}var n={del:!0},r=t&&t.source;this._submit(n,r,e)},n.prototype.pause=function(){this.paused=!0},n.prototype.resume=function(){this.paused=!1,this.flush()},n.prototype._opAcknowledged=function(t){if(this.inflightOp.create)this.version=t.v;else if(t.v!==this.version)return console.warn("Invalid version from server. Expected: "+this.version+" Received: "+t.v,t),this.fetch();this.version++,this._clearInflightOp()},n.prototype._rollback=function(t){var e=this.inflightOp;if(e.op&&e.type.invert){e.op=e.type.invert(e.op);for(var i=0;i<this.pendingOps.length;i++){var n=o(this.pendingOps[i],e);if(n)return this._hardRollback(n)}return this._otApply(e,!1),void this._clearInflightOp(t)}this._hardRollback(t)},n.prototype._hardRollback=function(t){var e=this.inflightOp,i=this.pendingOps;this._setType(null),this.version=null,this.inflightOp=null,this.pendingOps=[];var n=this;this.fetch(function(){for(var r=e&&l(e.callbacks,t),s=0;s<i.length;s++)l(i[s].callbacks,t);if(t&&!r)return n.emit("error",t)})},n.prototype._clearInflightOp=function(t){var e=l(this.inflightOp.callbacks,t);if(this.inflightOp=null,this.flush(),this._emitNothingPending(),t&&!e)return this.emit("error",t)}}).call(e,i(3))},function(t,e,i){function n(t){for(var e in r.prototype)t.prototype[e]=r.prototype[e]}var r=i(6).EventEmitter;e.EventEmitter=r,e.mixin=n},function(t,e){function i(){this._events=this._events||{},this._maxListeners=this._maxListeners||void 0}function n(t){return"function"==typeof t}function r(t){return"number"==typeof t}function s(t){return"object"==typeof t&&null!==t}function o(t){return void 0===t}t.exports=i,i.EventEmitter=i,i.prototype._events=void 0,i.prototype._maxListeners=void 0,i.defaultMaxListeners=10,i.prototype.setMaxListeners=function(t){if(!r(t)||t<0||isNaN(t))throw TypeError("n must be a positive number");return this._maxListeners=t,this},i.prototype.emit=function(t){var e,i,r,l,h,c;if(this._events||(this._events={}),"error"===t&&(!this._events.error||s(this._events.error)&&!this._events.error.length)){if(e=arguments[1],e instanceof Error)throw e;var p=new Error('Uncaught, unspecified "error" event. ('+e+")");throw p.context=e,p}if(i=this._events[t],o(i))return!1;if(n(i))switch(arguments.length){case 1:i.call(this);break;case 2:i.call(this,arguments[1]);break;case 3:i.call(this,arguments[1],arguments[2]);break;default:l=Array.prototype.slice.call(arguments,1),i.apply(this,l)}else if(s(i))for(l=Array.prototype.slice.call(arguments,1),c=i.slice(),r=c.length,h=0;h<r;h++)c[h].apply(this,l);return!0},i.prototype.addListener=function(t,e){var r;if(!n(e))throw TypeError("listener must be a function");return this._events||(this._events={}),this._events.newListener&&this.emit("newListener",t,n(e.listener)?e.listener:e),this._events[t]?s(this._events[t])?this._events[t].push(e):this._events[t]=[this._events[t],e]:this._events[t]=e,s(this._events[t])&&!this._events[t].warned&&(r=o(this._maxListeners)?i.defaultMaxListeners:this._maxListeners,r&&r>0&&this._events[t].length>r&&(this._events[t].warned=!0,console.error("(node) warning: possible EventEmitter memory leak detected. %d listeners added. Use emitter.setMaxListeners() to increase limit.",this._events[t].length),"function"==typeof console.trace&&console.trace())),this},i.prototype.on=i.prototype.addListener,i.prototype.once=function(t,e){function i(){this.removeListener(t,i),r||(r=!0,e.apply(this,arguments))}if(!n(e))throw TypeError("listener must be a function");var r=!1;return i.listener=e,this.on(t,i),this},i.prototype.removeListener=function(t,e){var i,r,o,l;if(!n(e))throw TypeError("listener must be a function");if(!this._events||!this._events[t])return this;if(i=this._events[t],o=i.length,r=-1,i===e||n(i.listener)&&i.listener===e)delete this._events[t],this._events.removeListener&&this.emit("removeListener",t,e);else if(s(i)){for(l=o;l-- >0;)if(i[l]===e||i[l].listener&&i[l].listener===e){r=l;break}if(r<0)return this;1===i.length?(i.length=0,delete this._events[t]):i.splice(r,1),this._events.removeListener&&this.emit("removeListener",t,e)}return this},i.prototype.removeAllListeners=function(t){var e,i;if(!this._events)return this;if(!this._events.removeListener)return 0===arguments.length?this._events={}:this._events[t]&&delete this._events[t],this;if(0===arguments.length){for(e in this._events)"removeListener"!==e&&this.removeAllListeners(e);return this.removeAllListeners("removeListener"),this._events={},this}if(i=this._events[t],n(i))this.removeListener(t,i);else if(i)for(;i.length;)this.removeListener(t,i[i.length-1]);return delete this._events[t],this},i.prototype.listeners=function(t){var e;return e=this._events&&this._events[t]?n(this._events[t])?[this._events[t]]:this._events[t].slice():[]},i.prototype.listenerCount=function(t){if(this._events){var e=this._events[t];if(n(e))return 1;if(e)return e.length}return 0},i.listenerCount=function(t,e){return t.listenerCount(e)}},function(t,e,i){function n(t,e){n["super"].call(this,e),this.code=t}var r=i(8);r(n),t.exports=n},function(t,e){"use strict";function i(t){t&&r(this,"message",{configurable:!0,value:t,writable:!0});var e=this.constructor.name;e&&e!==this.name&&r(this,"name",{configurable:!0,value:e,writable:!0}),s(this,this.constructor)}function n(t,e){if(null==e||e===Error)e=i;else if("function"!=typeof e)throw new TypeError("super_ should be a function");var n;if("string"==typeof t)n=t,t=function(){e.apply(this,arguments)},o&&(o(t,n),n=null);else if("function"!=typeof t)throw new TypeError("constructor should be either a string or a function");t.super_=t["super"]=e;var r={constructor:{configurable:!0,value:t,writable:!0}};return null!=n&&(r.name={configurable:!0,value:n,writable:!0}),t.prototype=Object.create(e.prototype,r),t}var r=Object.defineProperty,s=Error.captureStackTrace;s||(s=function(t){var e=new Error;r(t,"stack",{configurable:!0,get:function(){var t=e.stack;return r(this,"stack",{value:t}),t},set:function(e){r(t,"stack",{configurable:!0,value:e,writable:!0})}})}),i.prototype=Object.create(Error.prototype,{constructor:{configurable:!0,value:i,writable:!0}});var o=function(){function t(t,e){return r(t,"name",{configurable:!0,value:e})}try{var e=function(){};if(t(e,"foo"),"foo"===e.name)return t}catch(i){}}();e=t.exports=n,e.BaseError=i},function(t,e,i){e.defaultType=i(10).type,e.map={},e.register=function(t){t.name&&(e.map[t.name]=t),t.uri&&(e.map[t.uri]=t)},e.register(e.defaultType)},function(t,e,i){t.exports={type:i(11)}},function(t,e,i){function n(t){t.t="text0";var e={p:t.p.pop()};null!=t.si&&(e.i=t.si),null!=t.sd&&(e.d=t.sd),t.o=[e]}function r(t){t.p.push(t.o[0].p),null!=t.o[0].i&&(t.si=t.o[0].i),null!=t.o[0].d&&(t.sd=t.o[0].d),delete t.t,delete t.o}var s=function(t){return"[object Array]"==Object.prototype.toString.call(t)},o=function(t){return!!t&&t.constructor===Object},l=function(t){return JSON.parse(JSON.stringify(t))},h={name:"json0",uri:"http://sharejs.org/types/JSONv0"},c={};h.registerSubtype=function(t){c[t.name]=t},h.create=function(t){return void 0===t?null:l(t)},h.invertComponent=function(t){var e={p:t.p};return t.t&&c[t.t]&&(e.t=t.t,e.o=c[t.t].invert(t.o)),void 0!==t.si&&(e.sd=t.si),void 0!==t.sd&&(e.si=t.sd),void 0!==t.oi&&(e.od=t.oi),void 0!==t.od&&(e.oi=t.od),void 0!==t.li&&(e.ld=t.li),void 0!==t.ld&&(e.li=t.ld),void 0!==t.na&&(e.na=-t.na),void 0!==t.lm&&(e.lm=t.p[t.p.length-1],e.p=t.p.slice(0,t.p.length-1).concat([t.lm])),e},h.invert=function(t){for(var e=t.slice().reverse(),i=[],n=0;n<e.length;n++)i.push(h.invertComponent(e[n]));return i},h.checkValidOp=function(t){for(var e=0;e<t.length;e++)if(!s(t[e].p))throw new Error("Missing path")},h.checkList=function(t){if(!s(t))throw new Error("Referenced element not a list")},h.checkObj=function(t){if(!o(t))throw new Error("Referenced element not an object (it was "+JSON.stringify(t)+")")},h.apply=function(t,e){h.checkValidOp(e),e=l(e);for(var i={data:t},r=0;r<e.length;r++){var s=e[r];null==s.si&&null==s.sd||n(s);for(var o=null,p=null,a=i,u="data",f=0;f<s.p.length;f++){var d=s.p[f];if(o=a,p=u,a=a[u],u=d,null==o)throw new Error("Path invalid")}if(s.t&&void 0!==s.o&&c[s.t])a[u]=c[s.t].apply(a[u],s.o);else if(void 0!==s.na){if("number"!=typeof a[u])throw new Error("Referenced element not a number");a[u]+=s.na}else if(void 0!==s.li&&void 0!==s.ld)h.checkList(a),a[u]=s.li;else if(void 0!==s.li)h.checkList(a),a.splice(u,0,s.li);else if(void 0!==s.ld)h.checkList(a),a.splice(u,1);else if(void 0!==s.lm){if(h.checkList(a),s.lm!=u){var v=a[u];a.splice(u,1),a.splice(s.lm,0,v)}}else if(void 0!==s.oi)h.checkObj(a),a[u]=s.oi;else{if(void 0===s.od)throw new Error("invalid / missing instruction in op");h.checkObj(a),delete a[u]}}return i.data},h.shatter=function(t){for(var e=[],i=0;i<t.length;i++)e.push([t[i]]);return e},h.incrementalApply=function(t,e,i){for(var n=0;n<e.length;n++){var r=[e[n]];t=h.apply(t,r),i(r,t)}return t};var p=h.pathMatches=function(t,e,i){if(t.length!=e.length)return!1;for(var n=0;n<t.length;n++)if(t[n]!==e[n]&&(!i||n!==t.length-1))return!1;return!0};h.append=function(t,e){if(e=l(e),0===t.length)return void t.push(e);var i=t[t.length-1];if(null==e.si&&null==e.sd||null==i.si&&null==i.sd||(n(e),n(i)),p(e.p,i.p))if(e.t&&i.t&&e.t===i.t&&c[e.t]){if(i.o=c[e.t].compose(i.o,e.o),null!=e.si||null!=e.sd){for(var s=e.p,o=0;o<i.o.length-1;o++)e.o=[i.o.pop()],e.p=s.slice(),r(e),t.push(e);r(i)}}else null!=i.na&&null!=e.na?t[t.length-1]={p:i.p,na:i.na+e.na}:void 0!==i.li&&void 0===e.li&&e.ld===i.li?void 0!==i.ld?delete i.li:t.pop():void 0!==i.od&&void 0===i.oi&&void 0!==e.oi&&void 0===e.od?i.oi=e.oi:void 0!==i.oi&&void 0!==e.od?void 0!==e.oi?i.oi=e.oi:void 0!==i.od?delete i.oi:t.pop():void 0!==e.lm&&e.p[e.p.length-1]===e.lm||t.push(e);else null==e.si&&null==e.sd||null==i.si&&null==i.sd||(r(e),r(i)),t.push(e)},h.compose=function(t,e){h.checkValidOp(t),h.checkValidOp(e);for(var i=l(t),n=0;n<e.length;n++)h.append(i,e[n]);return i},h.normalize=function(t){var e=[];t=s(t)?t:[t];for(var i=0;i<t.length;i++){var n=t[i];null==n.p&&(n.p=[]),h.append(e,n)}return e},h.commonLengthForOps=function(t,e){var i=t.p.length,n=e.p.length;if((null!=t.na||t.t)&&i++,(null!=e.na||e.t)&&n++,0===i)return-1;if(0===n)return null;i--,n--;for(var r=0;r<i;r++){var s=t.p[r];if(r>=n||s!==e.p[r])return null}return i},h.canOpAffectPath=function(t,e){return null!=h.commonLengthForOps({p:e},t)},h.transformComponent=function(t,e,i,s){e=l(e);var o=h.commonLengthForOps(i,e),p=h.commonLengthForOps(e,i),a=e.p.length,u=i.p.length;if((null!=e.na||e.t)&&a++,(null!=i.na||i.t)&&u++,null!=p&&u>a&&e.p[p]==i.p[p])if(void 0!==e.ld){var f=l(i);f.p=f.p.slice(a),e.ld=h.apply(l(e.ld),[f])}else if(void 0!==e.od){var f=l(i);f.p=f.p.slice(a),e.od=h.apply(l(e.od),[f])}if(null!=o){var d=a==u,f=i;if(null==e.si&&null==e.sd||null==i.si&&null==i.sd||(n(e),f=l(i),n(f)),f.t&&c[f.t]){if(e.t&&e.t===f.t){var v=c[e.t].transform(e.o,f.o,s);if(v.length>0)if(null!=e.si||null!=e.sd)for(var g=e.p,y=0;y<v.length;y++)e.o=[v[y]],e.p=g.slice(),r(e),h.append(t,e);else e.o=v,h.append(t,e);return t}}else if(void 0!==i.na);else if(void 0!==i.li&&void 0!==i.ld){if(i.p[o]===e.p[o]){if(!d)return t;if(void 0!==e.ld){if(void 0===e.li||"left"!==s)return t;e.ld=l(i.li)}}}else if(void 0!==i.li)void 0!==e.li&&void 0===e.ld&&d&&e.p[o]===i.p[o]?"right"===s&&e.p[o]++:i.p[o]<=e.p[o]&&e.p[o]++,void 0!==e.lm&&d&&i.p[o]<=e.lm&&e.lm++;else if(void 0!==i.ld){if(void 0!==e.lm&&d){if(i.p[o]===e.p[o])return t;var g=i.p[o],m=e.p[o],b=e.lm;(g<b||g===b&&m<b)&&e.lm--}if(i.p[o]<e.p[o])e.p[o]--;else if(i.p[o]===e.p[o]){if(u<a)return t;if(void 0!==e.ld){if(void 0===e.li)return t;delete e.ld}}}else if(void 0!==i.lm)if(void 0!==e.lm&&a===u){var m=e.p[o],b=e.lm,_=i.p[o],w=i.lm;if(_!==w)if(m===_){if("left"!==s)return t;e.p[o]=w,m===b&&(e.lm=w)}else m>_&&e.p[o]--,m>w?e.p[o]++:m===w&&_>w&&(e.p[o]++,m===b&&e.lm++),b>_?e.lm--:b===_&&b>m&&e.lm--,b>w?e.lm++:b===w&&(w>_&&b>m||w<_&&b<m?"right"===s&&e.lm++:b>m?e.lm++:b===_&&e.lm--)}else if(void 0!==e.li&&void 0===e.ld&&d){var m=i.p[o],b=i.lm;g=e.p[o],g>m&&e.p[o]--,g>b&&e.p[o]++}else{var m=i.p[o],b=i.lm;g=e.p[o],g===m?e.p[o]=b:(g>m&&e.p[o]--,g>b?e.p[o]++:g===b&&m>b&&e.p[o]++)}else if(void 0!==i.oi&&void 0!==i.od){if(e.p[o]===i.p[o]){if(void 0===e.oi||!d)return t;if("right"===s)return t;e.od=i.oi}}else if(void 0!==i.oi){if(void 0!==e.oi&&e.p[o]===i.p[o]){if("left"!==s)return t;h.append(t,{p:e.p,od:i.oi})}}else if(void 0!==i.od&&e.p[o]==i.p[o]){if(!d)return t;if(void 0===e.oi)return t;delete e.od}}return h.append(t,e),t},i(12)(h,h.transformComponent,h.checkValidOp,h.append);var a=i(13);h.registerSubtype(a),t.exports=h},function(t,e){function i(t,e,i,n){var r=function(t,i,n,r){e(n,t,i,"left"),e(r,i,t,"right")},s=t.transformX=function(t,e){i(t),i(e);for(var o=[],l=0;l<e.length;l++){for(var h=e[l],c=[],p=0;p<t.length;){var a=[];if(r(t[p],h,c,a),p++,1!==a.length){if(0===a.length){for(var u=p;u<t.length;u++)n(c,t[u]);h=null;break}for(var f=s(t.slice(p),a),d=0;d<f[0].length;d++)n(c,f[0][d]);for(var v=0;v<f[1].length;v++)n(o,f[1][v]);h=null;break}h=a[0]}null!=h&&n(o,h),t=c}return[t,o]};t.transform=function(t,i,n){if("left"!==n&&"right"!==n)throw new Error("type must be 'left' or 'right'");return 0===i.length?t:1===t.length&&1===i.length?e([],t[0],i[0],n):"left"===n?s(t,i)[0]:s(i,t)[1]}}t.exports=i},function(t,e,i){var n=t.exports={name:"text0",uri:"http://sharejs.org/types/textv0",create:function(t){if(null!=t&&"string"!=typeof t)throw new Error("Initial data must be a string");return t||""}},r=function(t,e,i){return t.slice(0,e)+i+t.slice(e)},s=function(t){if("number"!=typeof t.p)throw new Error("component missing position field");if("string"==typeof t.i==("string"==typeof t.d))throw new Error("component needs an i or d field");if(t.p<0)throw new Error("position cannot be negative")},o=function(t){for(var e=0;e<t.length;e++)s(t[e])};n.apply=function(t,e){var i;o(e);for(var n=0;n<e.length;n++){var s=e[n];if(null!=s.i)t=r(t,s.p,s.i);else{if(i=t.slice(s.p,s.p+s.d.length),s.d!==i)throw new Error("Delete component '"+s.d+"' does not match deleted text '"+i+"'");t=t.slice(0,s.p)+t.slice(s.p+s.d.length)}}return t};var l=n._append=function(t,e){if(""!==e.i&&""!==e.d)if(0===t.length)t.push(e);else{var i=t[t.length-1];null!=i.i&&null!=e.i&&i.p<=e.p&&e.p<=i.p+i.i.length?t[t.length-1]={i:r(i.i,e.p-i.p,e.i),p:i.p}:null!=i.d&&null!=e.d&&e.p<=i.p&&i.p<=e.p+e.d.length?t[t.length-1]={d:r(e.d,i.p-e.p,i.d),p:e.p}:t.push(e)}};n.compose=function(t,e){o(t),o(e);for(var i=t.slice(),n=0;n<e.length;n++)l(i,e[n]);return i},n.normalize=function(t){var e=[];null==t.i&&null==t.p||(t=[t]);for(var i=0;i<t.length;i++){var n=t[i];null==n.p&&(n.p=0),l(e,n)}return e};var h=function(t,e,i){return null!=e.i?e.p<t||e.p===t&&i?t+e.i.length:t:t<=e.p?t:t<=e.p+e.d.length?e.p:t-e.d.length};n.transformCursor=function(t,e,i){for(var n="right"===i,r=0;r<e.length;r++)t=h(t,e[r],n);
 return t};var c=n._tc=function(t,e,i,n){if(s(e),s(i),null!=e.i)l(t,{i:e.i,p:h(e.p,i,"right"===n)});else if(null!=i.i){var r=e.d;e.p<i.p&&(l(t,{d:r.slice(0,i.p-e.p),p:e.p}),r=r.slice(i.p-e.p)),""!==r&&l(t,{d:r,p:e.p+i.i.length})}else if(e.p>=i.p+i.d.length)l(t,{d:e.d,p:e.p-i.d.length});else if(e.p+e.d.length<=i.p)l(t,e);else{var o={d:"",p:e.p};e.p<i.p&&(o.d=e.d.slice(0,i.p-e.p)),e.p+e.d.length>i.p+i.d.length&&(o.d+=e.d.slice(i.p+i.d.length-e.p));var c=Math.max(e.p,i.p),p=Math.min(e.p+e.d.length,i.p+i.d.length),a=e.d.slice(c-e.p,p-e.p),u=i.d.slice(c-i.p,p-i.p);if(a!==u)throw new Error("Delete ops delete different text in the same region of the document");""!==o.d&&(o.p=h(o.p,i),l(t,o))}return t},p=function(t){return null!=t.i?{d:t.i,p:t.p}:{i:t.d,p:t.p}};n.invert=function(t){t=t.slice().reverse();for(var e=0;e<t.length;e++)t[e]=p(t[e]);return t},i(12)(n,c,o,l)},function(t,e,i){(function(e){function n(t,e,i,n,s,o,l){r.EventEmitter.call(this),this.action=t,this.connection=e,this.id=i,this.collection=n,this.query=s,this.results=null,o&&o.results&&(this.results=o.results,delete o.results),this.extra=void 0,this.options=o,this.callback=l,this.ready=!1,this.sent=!1}var r=i(5);t.exports=n,r.mixin(n),n.prototype.hasPending=function(){return!this.ready},n.prototype.send=function(){if(this.connection.canSend){var t={a:this.action,id:this.id,c:this.collection,q:this.query};if(this.options&&(t.o=this.options),this.results){for(var e=[],i=0;i<this.results.length;i++){var n=this.results[i];e.push([n.id,n.version])}t.r=e}this.connection.send(t),this.sent=!0}},n.prototype.destroy=function(t){this.connection.canSend&&"qs"===this.action&&this.connection.send({a:"qu",id:this.id}),this.connection._destroyQuery(this),t&&e.nextTick(t)},n.prototype._onConnectionStateChanged=function(){this.connection.canSend&&!this.sent?this.send():this.sent=!1},n.prototype._handleFetch=function(t,e,i){this.connection._destroyQuery(this),this._handleResponse(t,e,i)},n.prototype._handleSubscribe=function(t,e,i){this._handleResponse(t,e,i)},n.prototype._handleResponse=function(t,e,i){var n=this.callback;if(this.callback=null,t)return this._finishResponse(t,n);if(!e)return this._finishResponse(null,n);var r=this,s=1,o=function(t){return t?r._finishResponse(t,n):void(--s||r._finishResponse(null,n))};if(Array.isArray(e))s+=e.length,this.results=this._ingestSnapshots(e,o),this.extra=i;else for(var l in e){s++;var h=e[l],c=this.connection.get(h.c||this.collection,l);c.ingestSnapshot(h,o)}o()},n.prototype._ingestSnapshots=function(t,e){for(var i=[],n=0;n<t.length;n++){var r=t[n],s=this.connection.get(r.c||this.collection,r.d);s.ingestSnapshot(r,e),i.push(s)}return i},n.prototype._finishResponse=function(t,e){return this.emit("ready"),this.ready=!0,t?(this.connection._destroyQuery(this),e?e(t):this.emit("error",t)):void(e&&e(null,this.results,this.extra))},n.prototype._handleError=function(t){this.emit("error",t)},n.prototype._handleDiff=function(t){for(var e=0;e<t.length;e++){var i=t[e];"insert"===i.type&&(i.values=this._ingestSnapshots(i.values))}for(var e=0;e<t.length;e++){var i=t[e];switch(i.type){case"insert":var n=i.values;Array.prototype.splice.apply(this.results,[i.index,0].concat(n)),this.emit("insert",n,i.index);break;case"remove":var r=i.howMany||1,s=this.results.splice(i.index,r);this.emit("remove",s,i.index);break;case"move":var r=i.howMany||1,o=this.results.splice(i.from,r);Array.prototype.splice.apply(this.results,[i.to,0].concat(o)),this.emit("move",o,i.from,i.to)}}this.emit("changed",this.results)},n.prototype._handleExtra=function(t){this.extra=t,this.emit("extra",t)}}).call(e,i(3))},function(t,e){function i(){}e.doNothing=i,e.hasKeys=function(t){for(var e in t)return!0;return!1}}]);!function(e){function t(n){if(r[n])return r[n].exports;var o=r[n]={exports:{},id:n,loaded:!1};return e[n].call(o.exports,o,o.exports,t),o.loaded=!0,o.exports}var r={};return t.m=e,t.c=r,t.p="",t(0)}([function(e,t,r){otText=r(1)},function(e,t,r){var n=r(2);n.api=r(3),e.exports={type:n}},function(e,t){t.name="text",t.uri="http://sharejs.org/types/textv1",t.create=function(e){if(null!=e&&"string"!=typeof e)throw Error("Initial data must be a string");return e||""};var r=Array.isArray||function(e){return"[object Array]"===Object.prototype.toString.call(e)},n=function(e){if(!r(e))throw Error("Op must be an array of components");for(var t=null,n=0;n<e.length;n++){var o=e[n];switch(typeof o){case"object":if(!("number"==typeof o.d&&o.d>0))throw Error("Object components must be deletes of size > 0");break;case"string":if(!(o.length>0))throw Error("Inserts cannot be empty");break;case"number":if(!(o>0))throw Error("Skip components must be >0");if("number"==typeof t)throw Error("Adjacent skip components should be combined")}t=o}if("number"==typeof t)throw Error("Op has a trailing skip")},o=function(e){return function(t){if(t&&0!==t.d)return 0===e.length?e.push(t):typeof t==typeof e[e.length-1]?"object"==typeof t?e[e.length-1].d+=t.d:e[e.length-1]+=t:e.push(t)}},i=function(e){var t=0,r=0,n=function(n,o){if(t===e.length)return n===-1?null:n;var i,s=e[t];return"number"==typeof s?n===-1||s-r<=n?(i=s-r,++t,r=0,i):(r+=n,n):"string"==typeof s?n===-1||"i"===o||s.length-r<=n?(i=s.slice(r),++t,r=0,i):(i=s.slice(r,r+n),r+=n,i):n===-1||"d"===o||s.d-r<=n?(i={d:s.d-r},++t,r=0,i):(r+=n,{d:n})},o=function(){return e[t]};return[n,o]},s=function(e){return"number"==typeof e?e:e.length||e.d},a=function(e){return e.length>0&&"number"==typeof e[e.length-1]&&e.pop(),e};t.normalize=function(e){for(var t=[],r=o(t),n=0;n<e.length;n++)r(e[n]);return a(t)},t.apply=function(e,t){if("string"!=typeof e)throw Error("Snapshot should be a string");n(t);for(var r=[],o=0;o<t.length;o++){var i=t[o];switch(typeof i){case"number":if(i>e.length)throw Error("The op is too long for this document");r.push(e.slice(0,i)),e=e.slice(i);break;case"string":r.push(i);break;case"object":e=e.slice(i.d)}}return r.join("")+e},t.transform=function(e,t,r){if("left"!=r&&"right"!=r)throw Error("side ("+r+") must be 'left' or 'right'");n(e),n(t);for(var c=[],f=o(c),u=i(e),h=u[0],l=u[1],p=0;p<t.length;p++){var b,g,m=t[p];switch(typeof m){case"number":for(b=m;b>0;)g=h(b,"i"),f(g),"string"!=typeof g&&(b-=s(g));break;case"string":"left"===r&&"string"==typeof l()&&f(h(-1)),f(m.length);break;case"object":for(b=m.d;b>0;)switch(g=h(b,"i"),typeof g){case"number":b-=g;break;case"string":f(g);break;case"object":b-=g.d}}}for(;m=h(-1);)f(m);return a(c)},t.compose=function(e,t){n(e),n(t);for(var r=[],c=o(r),f=i(e)[0],u=0;u<t.length;u++){var h,l,p=t[u];switch(typeof p){case"number":for(h=p;h>0;)l=f(h,"d"),c(l),"object"!=typeof l&&(h-=s(l));break;case"string":c(p);break;case"object":for(h=p.d;h>0;)switch(l=f(h,"d"),typeof l){case"number":c({d:l}),h-=l;break;case"string":h-=l.length;break;case"object":c(l)}}}for(;p=f(-1);)c(p);return a(r)};var c=function(e,t){for(var r=0,n=0;n<t.length;n++){var o=t[n];if(e<=r)break;switch(typeof o){case"number":if(e<=r+o)return e;r+=o;break;case"string":r+=o.length,e+=o.length;break;case"object":e-=Math.min(o.d,e-r)}}return e};t.transformSelection=function(e,t,r){var n=0;if(r){for(var o=0;o<t.length;o++){var i=t[o];switch(typeof i){case"number":n+=i;break;case"string":n+=i.length}}return n}return"number"==typeof e?c(e,t):[c(e[0],t),c(e[1],t)]},t.selectionEq=function(e,t){return null!=e[0]&&e[0]===e[1]&&(e=e[0]),null!=t[0]&&t[0]===t[1]&&(t=t[0]),e===t||null!=e[0]&&null!=t[0]&&e[0]===t[0]&&e[1]==t[1]}},function(e,t){function r(e,t){return{get:function(){return e()},getLength:function(){return e().length},insert:function(e,r,n){return t([e,r],n)},remove:function(e,r,n){return t([e,{d:r}],n)},_onOp:function(e){for(var t=0,r=0,n=0;n<e.length;n++){var o=e[n];switch(typeof o){case"number":t+=o,r+=o;break;case"string":this.onInsert&&this.onInsert(t,o),t+=o.length;break;case"object":this.onRemove&&this.onRemove(t,o.d),r+=o.d}}}}}e.exports=r,r.provides={text:!0}}]);
 // mpejs - https://github.com/WeAreROLI/mpejs
-var mpe=function(e){function t(r){if(n[r])return n[r].exports;var o=n[r]={exports:{},id:r,loaded:!1};return e[r].call(o.exports,o,o.exports,t),o.loaded=!0,o.exports}var n={};return t.m=e,t.c=n,t.p="",t(0)}([function(e,t,n){"use strict";function r(e){return e&&e.__esModule?e:{"default":e}}var o=n(1),i=r(o);e.exports=i["default"]},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r=n(2);Object.defineProperty(t,"default",{enumerable:!0,get:function(){return r.mpeInstrument}})},function(e,t,n){"use strict";function r(e){return e&&e.__esModule?e:{"default":e}}function o(e){if(Array.isArray(e)){for(var t=0,n=Array(e.length);t<e.length;t++)n[t]=e[t];return n}return Array.from(e)}Object.defineProperty(t,"__esModule",{value:!0}),t.mpeInstrument=void 0;var i=n(3),u=n(16),c=n(24),a=n(25),f=n(28),s=r(f);t.mpeInstrument=function(e){var t={log:!1,normalize:!0,pitch:!1,pitchBendRange:48},n=Object.assign({},t,e),r=i.compose.apply(void 0,o([n.pitch&&(0,a.addPitch)(n),n.pitchBendRange&&(0,a.convertPitchBendRange)(n),n.normalize&&a.normalize].filter(function(e){return e}))),f=function(e){return e.map(r)},l=[n.log&&(0,c.logger)(f)].filter(function(e){return e}),d=(0,i.createStore)(s["default"],i.applyMiddleware.apply(void 0,o(l))),p=function(){return d.getState().activeNotes},E=function(){return f(p())},y=function(){return d.dispatch((0,u.clearActiveNotes)())},O=function(e){var t=(0,u.generateMidiActions)(e,d.getState);t.forEach(d.dispatch)},_=function(e){var t=p();return d.subscribe(function(){var n=t;t=p(),t!==n&&e(E())})};return{processMidiMessage:O,clear:y,activeNotes:E,subscribe:_}}},function(e,t,n){"use strict";function r(e){return e&&e.__esModule?e:{"default":e}}t.__esModule=!0,t.compose=t.applyMiddleware=t.bindActionCreators=t.combineReducers=t.createStore=void 0;var o=n(4),i=r(o),u=n(11),c=r(u),a=n(13),f=r(a),s=n(14),l=r(s),d=n(15),p=r(d),E=n(12);r(E);t.createStore=i["default"],t.combineReducers=c["default"],t.bindActionCreators=f["default"],t.applyMiddleware=l["default"],t.compose=p["default"]},function(e,t,n){"use strict";function r(e){return e&&e.__esModule?e:{"default":e}}function o(e,t,n){function r(){N===_&&(N=_.slice())}function u(){return O}function a(e){if("function"!=typeof e)throw new Error("Expected listener to be a function.");var t=!0;return r(),N.push(e),function(){if(t){t=!1,r();var n=N.indexOf(e);N.splice(n,1)}}}function l(e){if(!(0,c["default"])(e))throw new Error("Actions must be plain objects. Use custom middleware for async actions.");if("undefined"==typeof e.type)throw new Error('Actions may not have an undefined "type" property. Have you misspelled a constant?');if(v)throw new Error("Reducers may not dispatch actions.");try{v=!0,O=y(O,e)}finally{v=!1}for(var t=_=N,n=0;n<t.length;n++)t[n]();return e}function d(e){if("function"!=typeof e)throw new Error("Expected the nextReducer to be a function.");y=e,l({type:s.INIT})}function p(){var e,t=a;return e={subscribe:function(e){function n(){e.next&&e.next(u())}if("object"!==("undefined"==typeof e?"undefined":i(e)))throw new TypeError("Expected the observer to be an object.");n();var r=t(n);return{unsubscribe:r}}},e[f["default"]]=function(){return this},e}var E;if("function"==typeof t&&"undefined"==typeof n&&(n=t,t=void 0),"undefined"!=typeof n){if("function"!=typeof n)throw new Error("Expected the enhancer to be a function.");return n(o)(e,t)}if("function"!=typeof e)throw new Error("Expected the reducer to be a function.");var y=e,O=t,_=[],N=_,v=!1;return l({type:s.INIT}),E={dispatch:l,subscribe:a,getState:u,replaceReducer:d},E[f["default"]]=p,E}var i="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e};t.__esModule=!0,t.ActionTypes=void 0,t["default"]=o;var u=n(5),c=r(u),a=n(9),f=r(a),s=t.ActionTypes={INIT:"@@redux/INIT"}},function(e,t,n){"use strict";function r(e){if(!u(e)||d.call(e)!=c||i(e))return!1;var t=o(e);if(null===t)return!0;var n=s.call(t,"constructor")&&t.constructor;return"function"==typeof n&&n instanceof n&&f.call(n)==l}var o=n(6),i=n(7),u=n(8),c="[object Object]",a=Object.prototype,f=Function.prototype.toString,s=a.hasOwnProperty,l=f.call(Object),d=a.toString;e.exports=r},function(e,t){"use strict";function n(e){return r(Object(e))}var r=Object.getPrototypeOf;e.exports=n},function(e,t){"use strict";function n(e){var t=!1;if(null!=e&&"function"!=typeof e.toString)try{t=!!(e+"")}catch(n){}return t}e.exports=n},function(e,t){"use strict";function n(e){return!!e&&"object"==("undefined"==typeof e?"undefined":r(e))}var r="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e};e.exports=n},function(e,t,n){(function(t){"use strict";e.exports=n(10)(t||window||void 0)}).call(t,function(){return this}())},function(e,t){"use strict";e.exports=function(e){var t,n=e.Symbol;return"function"==typeof n?n.observable?t=n.observable:(t=n("observable"),n.observable=t):t="@@observable",t}},function(e,t,n){"use strict";function r(e){return e&&e.__esModule?e:{"default":e}}function o(e,t){var n=t&&t.type,r=n&&'"'+n.toString()+'"'||"an action";return"Given action "+r+', reducer "'+e+'" returned undefined. To ignore an action, you must explicitly return the previous state.'}function i(e){Object.keys(e).forEach(function(t){var n=e[t],r=n(void 0,{type:c.ActionTypes.INIT});if("undefined"==typeof r)throw new Error('Reducer "'+t+'" returned undefined during initialization. If the state passed to the reducer is undefined, you must explicitly return the initial state. The initial state may not be undefined.');var o="@@redux/PROBE_UNKNOWN_ACTION_"+Math.random().toString(36).substring(7).split("").join(".");if("undefined"==typeof n(void 0,{type:o}))throw new Error('Reducer "'+t+'" returned undefined when probed with a random type. '+("Don't try to handle "+c.ActionTypes.INIT+' or other actions in "redux/*" ')+"namespace. They are considered private. Instead, you must return the current state for any unknown actions, unless it is undefined, in which case you must return the initial state, regardless of the action type. The initial state may not be undefined.")})}function u(e){for(var t=Object.keys(e),n={},r=0;r<t.length;r++){var u=t[r];"function"==typeof e[u]&&(n[u]=e[u])}var c,a=Object.keys(n);try{i(n)}catch(f){c=f}return function(){var e=arguments.length<=0||void 0===arguments[0]?{}:arguments[0],t=arguments[1];if(c)throw c;for(var r=!1,i={},u=0;u<a.length;u++){var f=a[u],s=n[f],l=e[f],d=s(l,t);if("undefined"==typeof d){var p=o(f,t);throw new Error(p)}i[f]=d,r=r||d!==l}return r?i:e}}t.__esModule=!0,t["default"]=u;var c=n(4),a=n(5),f=(r(a),n(12));r(f)},function(e,t){"use strict";function n(e){"undefined"!=typeof console&&"function"==typeof console.error&&console.error(e);try{throw new Error(e)}catch(t){}}t.__esModule=!0,t["default"]=n},function(e,t){"use strict";function n(e,t){return function(){return t(e.apply(void 0,arguments))}}function r(e,t){if("function"==typeof e)return n(e,t);if("object"!==("undefined"==typeof e?"undefined":o(e))||null===e)throw new Error("bindActionCreators expected an object or a function, instead received "+(null===e?"null":"undefined"==typeof e?"undefined":o(e))+'. Did you write "import ActionCreators from" instead of "import * as ActionCreators from"?');for(var r=Object.keys(e),i={},u=0;u<r.length;u++){var c=r[u],a=e[c];"function"==typeof a&&(i[c]=n(a,t))}return i}var o="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e};t.__esModule=!0,t["default"]=r},function(e,t,n){"use strict";function r(e){return e&&e.__esModule?e:{"default":e}}function o(){for(var e=arguments.length,t=Array(e),n=0;n<e;n++)t[n]=arguments[n];return function(e){return function(n,r,o){var u=e(n,r,o),a=u.dispatch,f=[],s={getState:u.getState,dispatch:function(e){return a(e)}};return f=t.map(function(e){return e(s)}),a=c["default"].apply(void 0,f)(u.dispatch),i({},u,{dispatch:a})}}}t.__esModule=!0;var i=Object.assign||function(e){for(var t=1;t<arguments.length;t++){var n=arguments[t];for(var r in n)Object.prototype.hasOwnProperty.call(n,r)&&(e[r]=n[r])}return e};t["default"]=o;var u=n(15),c=r(u)},function(e,t){"use strict";function n(){for(var e=arguments.length,t=Array(e),n=0;n<e;n++)t[n]=arguments[n];if(0===t.length)return function(e){return e};var o=function(){var e=t[t.length-1],n=t.slice(0,-1);return{v:function(){return n.reduceRight(function(e,t){return t(e)},e.apply(void 0,arguments))}}}();return"object"===("undefined"==typeof o?"undefined":r(o))?o.v:void 0}var r="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e};t.__esModule=!0,t["default"]=n},function(e,t,n){"use strict";function r(e){if(e&&e.__esModule)return e;var t={};if(null!=e)for(var n in e)Object.prototype.hasOwnProperty.call(e,n)&&(t[n]=e[n]);return t["default"]=e,t}Object.defineProperty(t,"__esModule",{value:!0}),t.generateMidiActions=t.clearActiveNotes=void 0;var o=n(17),i=n(19),u=r(i),c=n(21),a=r(c),f=n(23),s=(t.clearActiveNotes=function(){return{type:a.ALL_NOTES_OFF}},t.generateMidiActions=function(e,t){var n=(0,o.statusByteToChannel)(e[0]),r=e.slice(1),i=(0,o.statusByteClassifier)(e[0]),u=s(i,n,r),c={type:u,midiMessageType:i,channel:n,dataBytes:r},f=l(c,t),d=Object.assign({},c,f);return u===a.NOTE_OFF?[d,{type:a.NOTE_RELEASED}]:[d]},function(e,t,n){switch(e){case a.NOTE_ON:if(0===n[1])return a.NOTE_OFF;case a.CONTROL_CHANGE:if(74===n[0])return a.TIMBRE;if(123===n[0]&&1===t)return a.ALL_NOTES_OFF}return e}),l=function(e,t){var n=e.type,r=e.midiMessageType,o=e.channel,i=e.dataBytes;switch(n){case a.NOTE_ON:var c=t().channelScopes[o];return{noteNumber:i[0],noteOnVelocity:i[1],channelScope:c};case a.NOTE_OFF:return r===a.NOTE_ON?{noteNumber:i[0],noteOffVelocity:u.NOTE_OFF_VELOCITY}:{noteNumber:i[0],noteOffVelocity:i[1]};case a.PITCH_BEND:return{pitchBend:(0,f.dataBytesToUint14)(i.reverse())};case a.TIMBRE:return{timbre:(0,f.dataBytesToUint14)([i[1]])};case a.CHANNEL_PRESSURE:return{pressure:(0,f.dataBytesToUint14)(i)}}}},function(e,t,n){"use strict";function r(e){if(e&&e.__esModule)return e;var t={};if(null!=e)for(var n in e)Object.prototype.hasOwnProperty.call(e,n)&&(t[n]=e[n]);return t["default"]=e,t}Object.defineProperty(t,"__esModule",{value:!0}),t.statusByteToChannel=t.statusByteClassifier=void 0;var o=n(18),i=r(o);t.statusByteClassifier=function(e){var t=240&e;switch(t){case 128:return i.NOTE_OFF;case 144:return i.NOTE_ON;case 160:return i.AFTERTOUCH;case 176:return i.CONTROL_CHANGE;case 192:return i.PROGRAM_CHANGE;case 208:return i.CHANNEL_PRESSURE;case 224:return i.PITCH_BEND;case 240:return i.SYSTEM_MESSAGE}return i.UNCLASSIFIED},t.statusByteToChannel=function(e){return(15&e)+1}},function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0});t.CHANNEL_MESSAGE="CHANNEL_MESSAGE",t.SYSTEM_MESSAGE="SYSTEM_MESSAGE",t.NOTE_ON="NOTE_ON",t.NOTE_OFF="NOTE_OFF",t.AFTERTOUCH="AFTERTOUCH",t.CONTROL_CHANGE="CONTROL_CHANGE",t.PROGRAM_CHANGE="PROGRAM_CHANGE",t.CHANNEL_PRESSURE="CHANNEL_PRESSURE",t.PITCH_BEND="PITCH_BEND",t.CHANNEL_MODE="CHANNEL_MODE",t.ALL_SOUND_OFF="ALL_SOUND_OFF",t.RESET_ALL_CONTROLLERS="RESET_ALL_CONTROLLERS",t.LOCAL_CONTROL="LOCAL_CONTROL",t.ALL_NOTES_OFF="ALL_NOTES_OFF",t.SYSTEM_EXCLUSIVE="SYSTEM_EXCLUSIVE",t.MIDI_TIME_CODE_QUARTER_FRAME="MIDI_TIME_CODE_QUARTER_FRAME",t.SONG_POSITION_POINTER="SONG_POSITION_POINTER",t.SONG_SELECT="SONG_SELECT",t.TUNE_REQUEST="TUNE_REQUEST",t.END_OF_EXCLUSIVE="END_OF_EXCLUSIVE",t.TIMING_CLOCK="TIMING_CLOCK",t.UNDEFINED="UNDEFINED",t.START="START",t.CONTINUE="CONTINUE",t.STOP="STOP",t.ACTIVE_SENSING="ACTIVE_SENSING",t.RESET="RESET",t.UNCLASSIFIED="UNCLASSIFIED"},function(e,t,n){"use strict";function r(e){if(e&&e.__esModule)return e;var t={};if(null!=e)for(var n in e)Object.prototype.hasOwnProperty.call(e,n)&&(t[n]=e[n]);return t["default"]=e,t}Object.defineProperty(t,"__esModule",{value:!0}),t.CHANNEL_SCOPES=t.CHANNEL_SCOPE=t.ACTIVE_NOTE=t.NOTE_STATE=t.NOTE_OFF_VELOCITY=t.TIMBRE=t.PRESSURE=t.PITCH_BEND=t.NOTE_ON_VELOCITY=void 0;var o=n(20),i=r(o),u=t.NOTE_ON_VELOCITY=64,c=t.PITCH_BEND=8192,a=t.PRESSURE=0,f=t.TIMBRE=8192,s=(t.NOTE_OFF_VELOCITY=64,t.NOTE_STATE=i.KEY_DOWN),l=(t.ACTIVE_NOTE={noteOnVelocity:u,pitchBend:c,pressure:a,timbre:f,noteState:s},t.CHANNEL_SCOPE={pitchBend:c,timbre:f,pressure:a});t.CHANNEL_SCOPES={1:l,2:l,3:l,4:l,5:l,6:l,7:l,8:l,9:l,10:l,11:l,12:l,13:l,14:l,15:l,16:l}},function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0});t.OFF=0,t.KEY_DOWN=1,t.SUSTAINED=2,t.KEY_DOWN_AND_SUSTAINED=3},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r=n(18);Object.keys(r).forEach(function(e){"default"!==e&&"__esModule"!==e&&Object.defineProperty(t,e,{enumerable:!0,get:function(){return r[e]}})});var o=n(22);Object.keys(o).forEach(function(e){"default"!==e&&"__esModule"!==e&&Object.defineProperty(t,e,{enumerable:!0,get:function(){return o[e]}})})},function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0});t.TIMBRE="TIMBRE",t.NOTE_RELEASED="NOTE_RELEASED"},function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var n=t.scale7To14Bit=function(e){if(e>127)throw new RangeError("scale7To14Bit takes a 7-bit integer.\n"+("scale7To14Bit("+e+") is invalid."));return e<=64?e<<7:e/127*16383};t.dataBytesToUint14=function(e){var t=e.map(function(e){return 127&e});switch(e.length){case 1:return n(t[0]);case 2:return(t[0]<<7)+t[1]}throw new Error("midiDataToMpeValue takes one or two 8-bit integers.\n"+("midiDataToMpeValue("+e+") is invalid."))},t.int7ToUnsignedFloat=function(e){return e<=64?.5*e/64:.5+.5*(e-64)/63},t.int14ToUnsignedFloat=function(e){return e<=8192?.5*e/8192:.5+.5*(e-8192)/8191},t.int14ToSignedFloat=function(e){return e<=8192?e/8192-1:(e-8192)/8191}},function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var n=void 0;t.logger=function(e){return function(t){return function(r){return function(o){var i=r(o),u=n;return n=t.getState().activeNotes,n!==u&&console.log("active notes:",e(n)),i}}}}},function(e,t,n){"use strict";function r(e){if(Array.isArray(e)){for(var t=0,n=Array(e.length);t<e.length;t++)n[t]=e[t];return n}return Array.from(e)}Object.defineProperty(t,"__esModule",{value:!0}),t.findActiveNoteIndexesByChannel=t.findActiveNoteIndex=t.convertPitchBendRange=t.createPitchBendConverter=t.addPitch=t.addHelmholtzPitch=t.addScientificPitch=t.normalize=void 0;var o=n(3),i=n(26),u=n(23),c=n(27),a={noteOnVelocity:u.int7ToUnsignedFloat,noteOffVelocity:u.int7ToUnsignedFloat,pitchBend:u.int14ToSignedFloat,pressure:u.int14ToUnsignedFloat,timbre:u.int14ToUnsignedFloat},f=(t.normalize=function(e){return(0,i.transformObject)(e,a)},t.addScientificPitch=function(e){return"undefined"==typeof e.noteNumber?e:Object.assign({},e,{pitch:(0,c.toScientificPitch)(e.noteNumber)})}),s=t.addHelmholtzPitch=function(e){return"undefined"==typeof e.noteNumber?e:Object.assign({},e,{pitch:(0,c.toHelmholtzPitch)(e.noteNumber)})},l=(t.addPitch=function(e){var t=e.pitch;return"helmholtz"===t?s:f},t.createPitchBendConverter=function(e,t){var n=[e&&function(t){return t*parseFloat(e)},!t&&u.int14ToSignedFloat].filter(function(e){return e});return o.compose.apply(void 0,r(n))});t.convertPitchBendRange=function(e){var t=e.pitchBendRange,n=e.normalize;return function(e){return Object.assign({},e,{pitchBend:l(t,n)(e.pitchBend)})}},t.findActiveNoteIndex=function(e,t){var n=t.channel,r=t.noteNumber;return e.findIndex(function(e){return e.channel===n&&e.noteNumber===r})},t.findActiveNoteIndexesByChannel=function(e,t){return e.reduce(function(e,n,o){return n.channel===t.channel?[].concat(r(e),[o]):e},[])}},function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0});t.transformObject=function(e){var t=arguments.length>1&&void 0!==arguments[1]?arguments[1]:{},n=Object.keys(t).reduce(function(n,r){return"undefined"!=typeof e[r]&&(n[r]=t[r](e[r])),n},{});return Object.assign({},e,n)}},function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var n={0:"C",1:"C#",2:"D",3:"Eb",4:"E",5:"F",6:"F#",7:"G",8:"Ab",9:"A",10:"Bb",11:"B"},r=t.toPitchClassNumber=function(e){return Math.floor(e%12)},o=t.toOctaveNumber=function(e){return Math.floor(e/12)-1},i=t.toPitchClassName=function(e){return n[r(e)]},u=t.toHelmholtzCommas=function(e){var t=Math.max(-1*o(e)+2,0);return new Array(t).fill(",").join("")},c=t.toHelmholtzApostrophes=function(e){var t=Math.max(o(e)-3,0);return new Array(t).fill("'").join("")},a=t.toHelmholtzPitchName=function(e){return e>=48?i(e).toLowerCase():i(e)};t.toHelmholtzPitch=function(e){return""+a(e)+u(e)+c(e)},t.toScientificPitch=function(e){return""+i(e)+o(e)}},function(e,t,n){"use strict";function r(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(t,"__esModule",{value:!0});var o=n(3),i=n(29),u=r(i),c=n(30),a=r(c);t["default"]=(0,o.combineReducers)({channelScopes:a["default"],activeNotes:u["default"]})},function(e,t,n){"use strict";function r(e){if(e&&e.__esModule)return e;var t={};if(null!=e)for(var n in e)Object.prototype.hasOwnProperty.call(e,n)&&(t[n]=e[n]);return t["default"]=e,t}function o(e){if(Array.isArray(e)){for(var t=0,n=Array(e.length);t<e.length;t++)n[t]=e[t];return n}return Array.from(e)}Object.defineProperty(t,"__esModule",{value:!0});var i=n(21),u=r(i),c=n(19),a=r(c),f=n(20),s=r(f),l=n(25),d=function(){var e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:[],t=arguments[1];if(!u[t.type])return e;switch(t.type){case u.NOTE_ON:return[].concat(o(e),[p({},t)]);case u.NOTE_OFF:var n=(0,l.findActiveNoteIndex)(e,t);return n>=0?[].concat(o(e.slice(0,n)),[p(e[n],t)],o(e.slice(n+1))):e;case u.PITCH_BEND:case u.CHANNEL_PRESSURE:case u.TIMBRE:var r=(0,l.findActiveNoteIndexesByChannel)(e,t);return r.forEach(function(n){e=[].concat(o(e.slice(0,n)),[p(e[n],t)],o(e.slice(n+1)))}),e;case u.NOTE_RELEASED:return e.length?e.filter(function(e){return e.noteState!==s.OFF}):e;case u.ALL_NOTES_OFF:return[]}return e},p=function(){var e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:a.ACTIVE_NOTE,t=arguments[1],n=t.noteNumber,r=t.channel,o=t.channelScope,i=t.noteOnVelocity,c=t.noteOffVelocity,f=t.pitch,l=t.pitchBend,d=t.pressure,p=t.timbre;switch(t.type){case u.NOTE_ON:return Object.assign({},e,{noteNumber:n,channel:r,noteOnVelocity:i},f&&{pitch:f},o);case u.NOTE_OFF:return Object.assign({},e,{noteOffVelocity:c,noteState:s.OFF});case u.PITCH_BEND:return Object.assign({},e,{pitchBend:l});case u.CHANNEL_PRESSURE:return Object.assign({},e,{pressure:d});case u.TIMBRE:return Object.assign({},e,{timbre:p})}return e};t["default"]=d},function(e,t,n){"use strict";function r(e){if(e&&e.__esModule)return e;var t={};if(null!=e)for(var n in e)Object.prototype.hasOwnProperty.call(e,n)&&(t[n]=e[n]);return t["default"]=e,t}function o(e,t,n){return t in e?Object.defineProperty(e,t,{value:n,enumerable:!0,configurable:!0,writable:!0}):e[t]=n,e}Object.defineProperty(t,"__esModule",{value:!0});var i=n(21),u=r(i),c=n(19),a=r(c),f=function(){var e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:a.CHANNEL_SCOPES,t=arguments[1];if(!u[t.type])return e;var n=t.channel;return Object.assign({},e,o({},n,s(e[n],t)))},s=function(e,t){switch(t.type){case u.PITCH_BEND:return Object.assign({},e,{pitchBend:t.pitchBend});case u.CHANNEL_PRESSURE:return Object.assign({},e,{pressure:t.pressure});case u.TIMBRE:return Object.assign({},e,{timbre:t.timbre});case u.NOTE_ON:case u.NOTE_OFF:return a.CHANNEL_SCOPE}return e};t["default"]=f}]);
+var mpe =
+/******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId])
+/******/ 			return installedModules[moduleId].exports;
+
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			exports: {},
+/******/ 			id: moduleId,
+/******/ 			loaded: false
+/******/ 		};
+
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+
+/******/ 		// Flag the module as loaded
+/******/ 		module.loaded = true;
+
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+
+
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(0);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _ = __webpack_require__(1);
+
+	var _2 = _interopRequireDefault(_);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	module.exports = _2.default;
+
+/***/ },
+/* 1 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _mpeInstrument = __webpack_require__(2);
+
+	Object.defineProperty(exports, 'default', {
+	  enumerable: true,
+	  get: function get() {
+	    return _mpeInstrument.mpeInstrument;
+	  }
+	});
+
+/***/ },
+/* 2 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.mpeInstrument = undefined;
+
+	var _redux = __webpack_require__(3);
+
+	var _actions = __webpack_require__(16);
+
+	var _middlewares = __webpack_require__(24);
+
+	var _activeNoteUtils = __webpack_require__(25);
+
+	var _reducers = __webpack_require__(28);
+
+	var _reducers2 = _interopRequireDefault(_reducers);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+	/**
+	 * Creates a new instrument instance for processing MPE data
+	 *
+	 * @kind function
+	 * @example
+	 * import mpeInstrument from 'mpe';
+	 *
+	 * // Define `instrument` as an instance of `mpeInstrument`
+	 * const instrument = mpeInstrument();
+	 *
+	 * // Request MIDI device access from the Web MIDI API
+	 * navigator.requestMIDIAccess().then(access => {
+	 *   // Iterate over the list of inputs returned
+	 *   access.inputs.forEach(midiInput => {
+	 *     // Send 'midimessage' events to the mpe.js `instrument` instance
+	 *     midiInput.addEventListener(
+	 *       'midimessage',
+	 *       (event) => instrument.processMidiMessage(event.data)
+	 *     );
+	 *   });
+	 * });
+	 * @param {Object} options
+	 * @param {Boolean} [options.log=false] Log instrument state to the console on
+	 * change
+	 * @param {Boolean} [options.normalize=false] For all notes, remap `timbre`,
+	 * `noteOnVelocity`, `noteOffVelocity` and `pressure` between 0 and 1, remap
+	 * `pitchBend` between -1 and 1
+	 * @param {Boolean} [options.pitch=false] Adds a `pitch` property to all notes:
+	 * uses scientific notation eg. `C4` when `true` or `'scientific'`, uses
+	 * Helmholtz notation eg. `c'` when set to `'helmholtz'`
+	 * @param {Boolean} [options.pitchBendRange=48] Converts `pitchBend` to the
+	 * range specified, overriding `normalize` if both are set
+	 * @return {Object} Instance representing an MPE compatible instrument
+	 */
+	var mpeInstrument = exports.mpeInstrument = function mpeInstrument(options) {
+	  var defaults = {
+	    log: false,
+	    normalize: true,
+	    pitch: false,
+	    pitchBendRange: 48
+	  };
+	  var defaultedOptions = Object.assign({}, defaults, options);
+	  var formatNote = _redux.compose.apply(undefined, _toConsumableArray([defaultedOptions.pitch && (0, _activeNoteUtils.addPitch)(defaultedOptions), defaultedOptions.pitchBendRange && (0, _activeNoteUtils.convertPitchBendRange)(defaultedOptions), defaultedOptions.normalize && _activeNoteUtils.normalize].filter(function (f) {
+	    return f;
+	  })));
+	  var formatActiveNotes = function formatActiveNotes(notes) {
+	    return notes.map(formatNote);
+	  };
+	  var middlewares = [defaultedOptions.log && (0, _middlewares.logger)(formatActiveNotes)].filter(function (f) {
+	    return f;
+	  });
+	  var store = (0, _redux.createStore)(_reducers2.default, _redux.applyMiddleware.apply(undefined, _toConsumableArray(middlewares)));
+	  var rawActiveNotes = function rawActiveNotes() {
+	    return store.getState().activeNotes;
+	  };
+
+	  /**
+	   * Lists active notes of the `mpeInstrument` instance
+	   *
+	   * @example
+	   * import mpeInstrument from 'mpe';
+	   *
+	   * const instrument = mpeInstrument();
+	   *
+	   * instrument.activeNotes();
+	   * // => []
+	   *
+	   * instrument.processMidiMessage([145, 60, 127]);
+	   * instrument.activeNotes();
+	   * // => [ { noteNumber: 60,
+	   * //        channel: 2,
+	   * //        noteOnVelocity: 1,
+	   * //        pitchBend: 0,
+	   * //        timbre: 0.5,
+	   * //        pressure: 0 } ]
+	   *
+	   * @memberof mpeInstrument
+	   * @instance
+	   * @return {Array} Active note objects
+	   * @method activeNotes
+	   */
+	  var activeNotes = function activeNotes() {
+	    return formatActiveNotes(rawActiveNotes());
+	  };
+
+	  /**
+	   * Clears all active notes
+	   *
+	   * @example
+	   * import mpeInstrument from 'mpe';
+	   *
+	   * const instrument = mpeInstrument();
+	   *
+	   * instrument.activeNotes();
+	   * // => []
+	   *
+	   * instrument.processMidiMessage([145, 60, 127]);
+	   * instrument.activeNotes();
+	   * // => [ { noteNumber: 60,
+	   * //        channel: 2,
+	   * //        noteOnVelocity: 1,
+	   * //        pitchBend: 0,
+	   * //        timbre: 0.5,
+	   * //        pressure: 0 } ]
+	   *
+	   * instrument.clear();
+	   * instrument.activeNotes()
+	   * // => []
+	   *
+	   * @memberof mpeInstrument
+	   * @instance
+	   * @return {undefined}
+	   */
+	  var clear = function clear() {
+	    return store.dispatch((0, _actions.clearActiveNotes)());
+	  };
+
+	  /**
+	   * Reads an MPE message and updates `mpeInstrument` state
+	   *
+	   * @example
+	   * import mpeInstrument from 'mpe';
+	   *
+	   * const instrument = mpeInstrument();
+	   *
+	   * // Trigger a note on, channel 2, middle C, max velocity
+	   * instrument.processMidiMessage([145, 60, 127]);
+	   * @memberof mpeInstrument
+	   * @instance
+	   * @param {Uint8Array} midiMessage An MPE MIDI message
+	   * @return {undefined}
+	   */
+	  var processMidiMessage = function processMidiMessage(midiMessage) {
+	    var actions = (0, _actions.generateMidiActions)(midiMessage, store.getState);
+	    actions.forEach(store.dispatch);
+	  };
+
+	  /**
+	   * Subscribes a callback to changes to the instance's active notes
+	   *
+	   * @example
+	   * import mpeInstrument from 'mpe';
+	   *
+	   * const instrument = mpeInstrument();
+	   *
+	   * // Log `activeNotes` values to the console on change
+	   * instrument.subscribe(console.log);
+	   * @memberof mpeInstrument
+	   * @instance
+	   * @param {function} callback Callback for active note changes
+	   * @return {function} Unsubscribe the callback
+	   */
+	  var subscribe = function subscribe(callback) {
+	    var currentActiveNotes = rawActiveNotes();
+	    return store.subscribe(function () {
+	      var previousActiveNotes = currentActiveNotes;
+	      currentActiveNotes = rawActiveNotes();
+	      if (currentActiveNotes !== previousActiveNotes) {
+	        callback(activeNotes());
+	      }
+	    });
+	  };
+
+	  return {
+	    processMidiMessage: processMidiMessage,
+	    clear: clear,
+	    activeNotes: activeNotes,
+	    subscribe: subscribe
+	  };
+	};
+
+/***/ },
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	exports.__esModule = true;
+	exports.compose = exports.applyMiddleware = exports.bindActionCreators = exports.combineReducers = exports.createStore = undefined;
+
+	var _createStore = __webpack_require__(4);
+
+	var _createStore2 = _interopRequireDefault(_createStore);
+
+	var _combineReducers = __webpack_require__(11);
+
+	var _combineReducers2 = _interopRequireDefault(_combineReducers);
+
+	var _bindActionCreators = __webpack_require__(13);
+
+	var _bindActionCreators2 = _interopRequireDefault(_bindActionCreators);
+
+	var _applyMiddleware = __webpack_require__(14);
+
+	var _applyMiddleware2 = _interopRequireDefault(_applyMiddleware);
+
+	var _compose = __webpack_require__(15);
+
+	var _compose2 = _interopRequireDefault(_compose);
+
+	var _warning = __webpack_require__(12);
+
+	var _warning2 = _interopRequireDefault(_warning);
+
+	function _interopRequireDefault(obj) {
+	  return obj && obj.__esModule ? obj : { "default": obj };
+	}
+
+	/*
+	* This is a dummy function to check if the function name has been altered by minification.
+	* If the function has been minified and NODE_ENV !== 'production', warn the user.
+	*/
+	function isCrushed() {}
+
+	if (false) {
+	  (0, _warning2["default"])('You are currently using minified code outside of NODE_ENV === \'production\'. ' + 'This means that you are running a slower development build of Redux. ' + 'You can use loose-envify (https://github.com/zertosh/loose-envify) for browserify ' + 'or DefinePlugin for webpack (http://stackoverflow.com/questions/30030031) ' + 'to ensure you have the correct code for your production build.');
+	}
+
+	exports.createStore = _createStore2["default"];
+	exports.combineReducers = _combineReducers2["default"];
+	exports.bindActionCreators = _bindActionCreators2["default"];
+	exports.applyMiddleware = _applyMiddleware2["default"];
+	exports.compose = _compose2["default"];
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+	exports.__esModule = true;
+	exports.ActionTypes = undefined;
+	exports["default"] = createStore;
+
+	var _isPlainObject = __webpack_require__(5);
+
+	var _isPlainObject2 = _interopRequireDefault(_isPlainObject);
+
+	var _symbolObservable = __webpack_require__(9);
+
+	var _symbolObservable2 = _interopRequireDefault(_symbolObservable);
+
+	function _interopRequireDefault(obj) {
+	  return obj && obj.__esModule ? obj : { "default": obj };
+	}
+
+	/**
+	 * These are private action types reserved by Redux.
+	 * For any unknown actions, you must return the current state.
+	 * If the current state is undefined, you must return the initial state.
+	 * Do not reference these action types directly in your code.
+	 */
+	var ActionTypes = exports.ActionTypes = {
+	  INIT: '@@redux/INIT'
+	};
+
+	/**
+	 * Creates a Redux store that holds the state tree.
+	 * The only way to change the data in the store is to call `dispatch()` on it.
+	 *
+	 * There should only be a single store in your app. To specify how different
+	 * parts of the state tree respond to actions, you may combine several reducers
+	 * into a single reducer function by using `combineReducers`.
+	 *
+	 * @param {Function} reducer A function that returns the next state tree, given
+	 * the current state tree and the action to handle.
+	 *
+	 * @param {any} [initialState] The initial state. You may optionally specify it
+	 * to hydrate the state from the server in universal apps, or to restore a
+	 * previously serialized user session.
+	 * If you use `combineReducers` to produce the root reducer function, this must be
+	 * an object with the same shape as `combineReducers` keys.
+	 *
+	 * @param {Function} enhancer The store enhancer. You may optionally specify it
+	 * to enhance the store with third-party capabilities such as middleware,
+	 * time travel, persistence, etc. The only store enhancer that ships with Redux
+	 * is `applyMiddleware()`.
+	 *
+	 * @returns {Store} A Redux store that lets you read the state, dispatch actions
+	 * and subscribe to changes.
+	 */
+	function createStore(reducer, initialState, enhancer) {
+	  var _ref2;
+
+	  if (typeof initialState === 'function' && typeof enhancer === 'undefined') {
+	    enhancer = initialState;
+	    initialState = undefined;
+	  }
+
+	  if (typeof enhancer !== 'undefined') {
+	    if (typeof enhancer !== 'function') {
+	      throw new Error('Expected the enhancer to be a function.');
+	    }
+
+	    return enhancer(createStore)(reducer, initialState);
+	  }
+
+	  if (typeof reducer !== 'function') {
+	    throw new Error('Expected the reducer to be a function.');
+	  }
+
+	  var currentReducer = reducer;
+	  var currentState = initialState;
+	  var currentListeners = [];
+	  var nextListeners = currentListeners;
+	  var isDispatching = false;
+
+	  function ensureCanMutateNextListeners() {
+	    if (nextListeners === currentListeners) {
+	      nextListeners = currentListeners.slice();
+	    }
+	  }
+
+	  /**
+	   * Reads the state tree managed by the store.
+	   *
+	   * @returns {any} The current state tree of your application.
+	   */
+	  function getState() {
+	    return currentState;
+	  }
+
+	  /**
+	   * Adds a change listener. It will be called any time an action is dispatched,
+	   * and some part of the state tree may potentially have changed. You may then
+	   * call `getState()` to read the current state tree inside the callback.
+	   *
+	   * You may call `dispatch()` from a change listener, with the following
+	   * caveats:
+	   *
+	   * 1. The subscriptions are snapshotted just before every `dispatch()` call.
+	   * If you subscribe or unsubscribe while the listeners are being invoked, this
+	   * will not have any effect on the `dispatch()` that is currently in progress.
+	   * However, the next `dispatch()` call, whether nested or not, will use a more
+	   * recent snapshot of the subscription list.
+	   *
+	   * 2. The listener should not expect to see all state changes, as the state
+	   * might have been updated multiple times during a nested `dispatch()` before
+	   * the listener is called. It is, however, guaranteed that all subscribers
+	   * registered before the `dispatch()` started will be called with the latest
+	   * state by the time it exits.
+	   *
+	   * @param {Function} listener A callback to be invoked on every dispatch.
+	   * @returns {Function} A function to remove this change listener.
+	   */
+	  function subscribe(listener) {
+	    if (typeof listener !== 'function') {
+	      throw new Error('Expected listener to be a function.');
+	    }
+
+	    var isSubscribed = true;
+
+	    ensureCanMutateNextListeners();
+	    nextListeners.push(listener);
+
+	    return function unsubscribe() {
+	      if (!isSubscribed) {
+	        return;
+	      }
+
+	      isSubscribed = false;
+
+	      ensureCanMutateNextListeners();
+	      var index = nextListeners.indexOf(listener);
+	      nextListeners.splice(index, 1);
+	    };
+	  }
+
+	  /**
+	   * Dispatches an action. It is the only way to trigger a state change.
+	   *
+	   * The `reducer` function, used to create the store, will be called with the
+	   * current state tree and the given `action`. Its return value will
+	   * be considered the **next** state of the tree, and the change listeners
+	   * will be notified.
+	   *
+	   * The base implementation only supports plain object actions. If you want to
+	   * dispatch a Promise, an Observable, a thunk, or something else, you need to
+	   * wrap your store creating function into the corresponding middleware. For
+	   * example, see the documentation for the `redux-thunk` package. Even the
+	   * middleware will eventually dispatch plain object actions using this method.
+	   *
+	   * @param {Object} action A plain object representing “what changed”. It is
+	   * a good idea to keep actions serializable so you can record and replay user
+	   * sessions, or use the time travelling `redux-devtools`. An action must have
+	   * a `type` property which may not be `undefined`. It is a good idea to use
+	   * string constants for action types.
+	   *
+	   * @returns {Object} For convenience, the same action object you dispatched.
+	   *
+	   * Note that, if you use a custom middleware, it may wrap `dispatch()` to
+	   * return something else (for example, a Promise you can await).
+	   */
+	  function dispatch(action) {
+	    if (!(0, _isPlainObject2["default"])(action)) {
+	      throw new Error('Actions must be plain objects. ' + 'Use custom middleware for async actions.');
+	    }
+
+	    if (typeof action.type === 'undefined') {
+	      throw new Error('Actions may not have an undefined "type" property. ' + 'Have you misspelled a constant?');
+	    }
+
+	    if (isDispatching) {
+	      throw new Error('Reducers may not dispatch actions.');
+	    }
+
+	    try {
+	      isDispatching = true;
+	      currentState = currentReducer(currentState, action);
+	    } finally {
+	      isDispatching = false;
+	    }
+
+	    var listeners = currentListeners = nextListeners;
+	    for (var i = 0; i < listeners.length; i++) {
+	      listeners[i]();
+	    }
+
+	    return action;
+	  }
+
+	  /**
+	   * Replaces the reducer currently used by the store to calculate the state.
+	   *
+	   * You might need this if your app implements code splitting and you want to
+	   * load some of the reducers dynamically. You might also need this if you
+	   * implement a hot reloading mechanism for Redux.
+	   *
+	   * @param {Function} nextReducer The reducer for the store to use instead.
+	   * @returns {void}
+	   */
+	  function replaceReducer(nextReducer) {
+	    if (typeof nextReducer !== 'function') {
+	      throw new Error('Expected the nextReducer to be a function.');
+	    }
+
+	    currentReducer = nextReducer;
+	    dispatch({ type: ActionTypes.INIT });
+	  }
+
+	  /**
+	   * Interoperability point for observable/reactive libraries.
+	   * @returns {observable} A minimal observable of state changes.
+	   * For more information, see the observable proposal:
+	   * https://github.com/zenparsing/es-observable
+	   */
+	  function observable() {
+	    var _ref;
+
+	    var outerSubscribe = subscribe;
+	    return _ref = {
+	      /**
+	       * The minimal observable subscription method.
+	       * @param {Object} observer Any object that can be used as an observer.
+	       * The observer object should have a `next` method.
+	       * @returns {subscription} An object with an `unsubscribe` method that can
+	       * be used to unsubscribe the observable from the store, and prevent further
+	       * emission of values from the observable.
+	       */
+
+	      subscribe: function subscribe(observer) {
+	        if ((typeof observer === 'undefined' ? 'undefined' : _typeof(observer)) !== 'object') {
+	          throw new TypeError('Expected the observer to be an object.');
+	        }
+
+	        function observeState() {
+	          if (observer.next) {
+	            observer.next(getState());
+	          }
+	        }
+
+	        observeState();
+	        var unsubscribe = outerSubscribe(observeState);
+	        return { unsubscribe: unsubscribe };
+	      }
+	    }, _ref[_symbolObservable2["default"]] = function () {
+	      return this;
+	    }, _ref;
+	  }
+
+	  // When a store is created, an "INIT" action is dispatched so that every
+	  // reducer returns their initial state. This effectively populates
+	  // the initial state tree.
+	  dispatch({ type: ActionTypes.INIT });
+
+	  return _ref2 = {
+	    dispatch: dispatch,
+	    subscribe: subscribe,
+	    getState: getState,
+	    replaceReducer: replaceReducer
+	  }, _ref2[_symbolObservable2["default"]] = observable, _ref2;
+	}
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var getPrototype = __webpack_require__(6),
+	    isHostObject = __webpack_require__(7),
+	    isObjectLike = __webpack_require__(8);
+
+	/** `Object#toString` result references. */
+	var objectTag = '[object Object]';
+
+	/** Used for built-in method references. */
+	var objectProto = Object.prototype;
+
+	/** Used to resolve the decompiled source of functions. */
+	var funcToString = Function.prototype.toString;
+
+	/** Used to check objects for own properties. */
+	var hasOwnProperty = objectProto.hasOwnProperty;
+
+	/** Used to infer the `Object` constructor. */
+	var objectCtorString = funcToString.call(Object);
+
+	/**
+	 * Used to resolve the
+	 * [`toStringTag`](http://ecma-international.org/ecma-262/6.0/#sec-object.prototype.tostring)
+	 * of values.
+	 */
+	var objectToString = objectProto.toString;
+
+	/**
+	 * Checks if `value` is a plain object, that is, an object created by the
+	 * `Object` constructor or one with a `[[Prototype]]` of `null`.
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 0.8.0
+	 * @category Lang
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is a plain object,
+	 *  else `false`.
+	 * @example
+	 *
+	 * function Foo() {
+	 *   this.a = 1;
+	 * }
+	 *
+	 * _.isPlainObject(new Foo);
+	 * // => false
+	 *
+	 * _.isPlainObject([1, 2, 3]);
+	 * // => false
+	 *
+	 * _.isPlainObject({ 'x': 0, 'y': 0 });
+	 * // => true
+	 *
+	 * _.isPlainObject(Object.create(null));
+	 * // => true
+	 */
+	function isPlainObject(value) {
+	  if (!isObjectLike(value) || objectToString.call(value) != objectTag || isHostObject(value)) {
+	    return false;
+	  }
+	  var proto = getPrototype(value);
+	  if (proto === null) {
+	    return true;
+	  }
+	  var Ctor = hasOwnProperty.call(proto, 'constructor') && proto.constructor;
+	  return typeof Ctor == 'function' && Ctor instanceof Ctor && funcToString.call(Ctor) == objectCtorString;
+	}
+
+	module.exports = isPlainObject;
+
+/***/ },
+/* 6 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	/* Built-in method references for those with the same name as other `lodash` methods. */
+	var nativeGetPrototype = Object.getPrototypeOf;
+
+	/**
+	 * Gets the `[[Prototype]]` of `value`.
+	 *
+	 * @private
+	 * @param {*} value The value to query.
+	 * @returns {null|Object} Returns the `[[Prototype]]`.
+	 */
+	function getPrototype(value) {
+	  return nativeGetPrototype(Object(value));
+	}
+
+	module.exports = getPrototype;
+
+/***/ },
+/* 7 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	/**
+	 * Checks if `value` is a host object in IE < 9.
+	 *
+	 * @private
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is a host object, else `false`.
+	 */
+	function isHostObject(value) {
+	  // Many host objects are `Object` objects that can coerce to strings
+	  // despite having improperly defined `toString` methods.
+	  var result = false;
+	  if (value != null && typeof value.toString != 'function') {
+	    try {
+	      result = !!(value + '');
+	    } catch (e) {}
+	  }
+	  return result;
+	}
+
+	module.exports = isHostObject;
+
+/***/ },
+/* 8 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+	/**
+	 * Checks if `value` is object-like. A value is object-like if it's not `null`
+	 * and has a `typeof` result of "object".
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 4.0.0
+	 * @category Lang
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is object-like, else `false`.
+	 * @example
+	 *
+	 * _.isObjectLike({});
+	 * // => true
+	 *
+	 * _.isObjectLike([1, 2, 3]);
+	 * // => true
+	 *
+	 * _.isObjectLike(_.noop);
+	 * // => false
+	 *
+	 * _.isObjectLike(null);
+	 * // => false
+	 */
+	function isObjectLike(value) {
+	  return !!value && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) == 'object';
+	}
+
+	module.exports = isObjectLike;
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(global) {/* global window */
+	'use strict';
+
+	module.exports = __webpack_require__(10)(global || window || undefined);
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ },
+/* 10 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	module.exports = function symbolObservablePonyfill(root) {
+		var result;
+		var _Symbol = root.Symbol;
+
+		if (typeof _Symbol === 'function') {
+			if (_Symbol.observable) {
+				result = _Symbol.observable;
+			} else {
+				result = _Symbol('observable');
+				_Symbol.observable = result;
+			}
+		} else {
+			result = '@@observable';
+		}
+
+		return result;
+	};
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	exports.__esModule = true;
+	exports["default"] = combineReducers;
+
+	var _createStore = __webpack_require__(4);
+
+	var _isPlainObject = __webpack_require__(5);
+
+	var _isPlainObject2 = _interopRequireDefault(_isPlainObject);
+
+	var _warning = __webpack_require__(12);
+
+	var _warning2 = _interopRequireDefault(_warning);
+
+	function _interopRequireDefault(obj) {
+	  return obj && obj.__esModule ? obj : { "default": obj };
+	}
+
+	function getUndefinedStateErrorMessage(key, action) {
+	  var actionType = action && action.type;
+	  var actionName = actionType && '"' + actionType.toString() + '"' || 'an action';
+
+	  return 'Given action ' + actionName + ', reducer "' + key + '" returned undefined. ' + 'To ignore an action, you must explicitly return the previous state.';
+	}
+
+	function getUnexpectedStateShapeWarningMessage(inputState, reducers, action) {
+	  var reducerKeys = Object.keys(reducers);
+	  var argumentName = action && action.type === _createStore.ActionTypes.INIT ? 'initialState argument passed to createStore' : 'previous state received by the reducer';
+
+	  if (reducerKeys.length === 0) {
+	    return 'Store does not have a valid reducer. Make sure the argument passed ' + 'to combineReducers is an object whose values are reducers.';
+	  }
+
+	  if (!(0, _isPlainObject2["default"])(inputState)) {
+	    return 'The ' + argumentName + ' has unexpected type of "' + {}.toString.call(inputState).match(/\s([a-z|A-Z]+)/)[1] + '". Expected argument to be an object with the following ' + ('keys: "' + reducerKeys.join('", "') + '"');
+	  }
+
+	  var unexpectedKeys = Object.keys(inputState).filter(function (key) {
+	    return !reducers.hasOwnProperty(key);
+	  });
+
+	  if (unexpectedKeys.length > 0) {
+	    return 'Unexpected ' + (unexpectedKeys.length > 1 ? 'keys' : 'key') + ' ' + ('"' + unexpectedKeys.join('", "') + '" found in ' + argumentName + '. ') + 'Expected to find one of the known reducer keys instead: ' + ('"' + reducerKeys.join('", "') + '". Unexpected keys will be ignored.');
+	  }
+	}
+
+	function assertReducerSanity(reducers) {
+	  Object.keys(reducers).forEach(function (key) {
+	    var reducer = reducers[key];
+	    var initialState = reducer(undefined, { type: _createStore.ActionTypes.INIT });
+
+	    if (typeof initialState === 'undefined') {
+	      throw new Error('Reducer "' + key + '" returned undefined during initialization. ' + 'If the state passed to the reducer is undefined, you must ' + 'explicitly return the initial state. The initial state may ' + 'not be undefined.');
+	    }
+
+	    var type = '@@redux/PROBE_UNKNOWN_ACTION_' + Math.random().toString(36).substring(7).split('').join('.');
+	    if (typeof reducer(undefined, { type: type }) === 'undefined') {
+	      throw new Error('Reducer "' + key + '" returned undefined when probed with a random type. ' + ('Don\'t try to handle ' + _createStore.ActionTypes.INIT + ' or other actions in "redux/*" ') + 'namespace. They are considered private. Instead, you must return the ' + 'current state for any unknown actions, unless it is undefined, ' + 'in which case you must return the initial state, regardless of the ' + 'action type. The initial state may not be undefined.');
+	    }
+	  });
+	}
+
+	/**
+	 * Turns an object whose values are different reducer functions, into a single
+	 * reducer function. It will call every child reducer, and gather their results
+	 * into a single state object, whose keys correspond to the keys of the passed
+	 * reducer functions.
+	 *
+	 * @param {Object} reducers An object whose values correspond to different
+	 * reducer functions that need to be combined into one. One handy way to obtain
+	 * it is to use ES6 `import * as reducers` syntax. The reducers may never return
+	 * undefined for any action. Instead, they should return their initial state
+	 * if the state passed to them was undefined, and the current state for any
+	 * unrecognized action.
+	 *
+	 * @returns {Function} A reducer function that invokes every reducer inside the
+	 * passed object, and builds a state object with the same shape.
+	 */
+	function combineReducers(reducers) {
+	  var reducerKeys = Object.keys(reducers);
+	  var finalReducers = {};
+	  for (var i = 0; i < reducerKeys.length; i++) {
+	    var key = reducerKeys[i];
+	    if (typeof reducers[key] === 'function') {
+	      finalReducers[key] = reducers[key];
+	    }
+	  }
+	  var finalReducerKeys = Object.keys(finalReducers);
+
+	  var sanityError;
+	  try {
+	    assertReducerSanity(finalReducers);
+	  } catch (e) {
+	    sanityError = e;
+	  }
+
+	  return function combination() {
+	    var state = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+	    var action = arguments[1];
+
+	    if (sanityError) {
+	      throw sanityError;
+	    }
+
+	    if (false) {
+	      var warningMessage = getUnexpectedStateShapeWarningMessage(state, finalReducers, action);
+	      if (warningMessage) {
+	        (0, _warning2["default"])(warningMessage);
+	      }
+	    }
+
+	    var hasChanged = false;
+	    var nextState = {};
+	    for (var i = 0; i < finalReducerKeys.length; i++) {
+	      var key = finalReducerKeys[i];
+	      var reducer = finalReducers[key];
+	      var previousStateForKey = state[key];
+	      var nextStateForKey = reducer(previousStateForKey, action);
+	      if (typeof nextStateForKey === 'undefined') {
+	        var errorMessage = getUndefinedStateErrorMessage(key, action);
+	        throw new Error(errorMessage);
+	      }
+	      nextState[key] = nextStateForKey;
+	      hasChanged = hasChanged || nextStateForKey !== previousStateForKey;
+	    }
+	    return hasChanged ? nextState : state;
+	  };
+	}
+
+/***/ },
+/* 12 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	exports.__esModule = true;
+	exports["default"] = warning;
+	/**
+	 * Prints a warning in the console if it exists.
+	 *
+	 * @param {String} message The warning message.
+	 * @returns {void}
+	 */
+	function warning(message) {
+	  /* eslint-disable no-console */
+	  if (typeof console !== 'undefined' && typeof console.error === 'function') {
+	    console.error(message);
+	  }
+	  /* eslint-enable no-console */
+	  try {
+	    // This error was thrown as a convenience so that if you enable
+	    // "break on all exceptions" in your console,
+	    // it would pause the execution at this line.
+	    throw new Error(message);
+	    /* eslint-disable no-empty */
+	  } catch (e) {}
+	  /* eslint-enable no-empty */
+	}
+
+/***/ },
+/* 13 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+	exports.__esModule = true;
+	exports["default"] = bindActionCreators;
+	function bindActionCreator(actionCreator, dispatch) {
+	  return function () {
+	    return dispatch(actionCreator.apply(undefined, arguments));
+	  };
+	}
+
+	/**
+	 * Turns an object whose values are action creators, into an object with the
+	 * same keys, but with every function wrapped into a `dispatch` call so they
+	 * may be invoked directly. This is just a convenience method, as you can call
+	 * `store.dispatch(MyActionCreators.doSomething())` yourself just fine.
+	 *
+	 * For convenience, you can also pass a single function as the first argument,
+	 * and get a function in return.
+	 *
+	 * @param {Function|Object} actionCreators An object whose values are action
+	 * creator functions. One handy way to obtain it is to use ES6 `import * as`
+	 * syntax. You may also pass a single function.
+	 *
+	 * @param {Function} dispatch The `dispatch` function available on your Redux
+	 * store.
+	 *
+	 * @returns {Function|Object} The object mimicking the original object, but with
+	 * every action creator wrapped into the `dispatch` call. If you passed a
+	 * function as `actionCreators`, the return value will also be a single
+	 * function.
+	 */
+	function bindActionCreators(actionCreators, dispatch) {
+	  if (typeof actionCreators === 'function') {
+	    return bindActionCreator(actionCreators, dispatch);
+	  }
+
+	  if ((typeof actionCreators === 'undefined' ? 'undefined' : _typeof(actionCreators)) !== 'object' || actionCreators === null) {
+	    throw new Error('bindActionCreators expected an object or a function, instead received ' + (actionCreators === null ? 'null' : typeof actionCreators === 'undefined' ? 'undefined' : _typeof(actionCreators)) + '. ' + 'Did you write "import ActionCreators from" instead of "import * as ActionCreators from"?');
+	  }
+
+	  var keys = Object.keys(actionCreators);
+	  var boundActionCreators = {};
+	  for (var i = 0; i < keys.length; i++) {
+	    var key = keys[i];
+	    var actionCreator = actionCreators[key];
+	    if (typeof actionCreator === 'function') {
+	      boundActionCreators[key] = bindActionCreator(actionCreator, dispatch);
+	    }
+	  }
+	  return boundActionCreators;
+	}
+
+/***/ },
+/* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	exports.__esModule = true;
+
+	var _extends = Object.assign || function (target) {
+	  for (var i = 1; i < arguments.length; i++) {
+	    var source = arguments[i];for (var key in source) {
+	      if (Object.prototype.hasOwnProperty.call(source, key)) {
+	        target[key] = source[key];
+	      }
+	    }
+	  }return target;
+	};
+
+	exports["default"] = applyMiddleware;
+
+	var _compose = __webpack_require__(15);
+
+	var _compose2 = _interopRequireDefault(_compose);
+
+	function _interopRequireDefault(obj) {
+	  return obj && obj.__esModule ? obj : { "default": obj };
+	}
+
+	/**
+	 * Creates a store enhancer that applies middleware to the dispatch method
+	 * of the Redux store. This is handy for a variety of tasks, such as expressing
+	 * asynchronous actions in a concise manner, or logging every action payload.
+	 *
+	 * See `redux-thunk` package as an example of the Redux middleware.
+	 *
+	 * Because middleware is potentially asynchronous, this should be the first
+	 * store enhancer in the composition chain.
+	 *
+	 * Note that each middleware will be given the `dispatch` and `getState` functions
+	 * as named arguments.
+	 *
+	 * @param {...Function} middlewares The middleware chain to be applied.
+	 * @returns {Function} A store enhancer applying the middleware.
+	 */
+	function applyMiddleware() {
+	  for (var _len = arguments.length, middlewares = Array(_len), _key = 0; _key < _len; _key++) {
+	    middlewares[_key] = arguments[_key];
+	  }
+
+	  return function (createStore) {
+	    return function (reducer, initialState, enhancer) {
+	      var store = createStore(reducer, initialState, enhancer);
+	      var _dispatch = store.dispatch;
+	      var chain = [];
+
+	      var middlewareAPI = {
+	        getState: store.getState,
+	        dispatch: function dispatch(action) {
+	          return _dispatch(action);
+	        }
+	      };
+	      chain = middlewares.map(function (middleware) {
+	        return middleware(middlewareAPI);
+	      });
+	      _dispatch = _compose2["default"].apply(undefined, chain)(store.dispatch);
+
+	      return _extends({}, store, {
+	        dispatch: _dispatch
+	      });
+	    };
+	  };
+	}
+
+/***/ },
+/* 15 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+	exports.__esModule = true;
+	exports["default"] = compose;
+	/**
+	 * Composes single-argument functions from right to left. The rightmost
+	 * function can take multiple arguments as it provides the signature for
+	 * the resulting composite function.
+	 *
+	 * @param {...Function} funcs The functions to compose.
+	 * @returns {Function} A function obtained by composing the argument functions
+	 * from right to left. For example, compose(f, g, h) is identical to doing
+	 * (...args) => f(g(h(...args))).
+	 */
+
+	function compose() {
+	  for (var _len = arguments.length, funcs = Array(_len), _key = 0; _key < _len; _key++) {
+	    funcs[_key] = arguments[_key];
+	  }
+
+	  if (funcs.length === 0) {
+	    return function (arg) {
+	      return arg;
+	    };
+	  } else {
+	    var _ret = function () {
+	      var last = funcs[funcs.length - 1];
+	      var rest = funcs.slice(0, -1);
+	      return {
+	        v: function v() {
+	          return rest.reduceRight(function (composed, f) {
+	            return f(composed);
+	          }, last.apply(undefined, arguments));
+	        }
+	      };
+	    }();
+
+	    if ((typeof _ret === "undefined" ? "undefined" : _typeof(_ret)) === "object") return _ret.v;
+	  }
+	}
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.generateMidiActions = exports.clearActiveNotes = undefined;
+
+	var _statusByteUtils = __webpack_require__(17);
+
+	var _defaults = __webpack_require__(19);
+
+	var defaults = _interopRequireWildcard(_defaults);
+
+	var _actionTypes = __webpack_require__(21);
+
+	var types = _interopRequireWildcard(_actionTypes);
+
+	var _dataByteUtils = __webpack_require__(23);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	var clearActiveNotes = exports.clearActiveNotes = function clearActiveNotes() {
+	  return {
+	    type: types.ALL_NOTES_OFF
+	  };
+	};
+
+	var generateMidiActions = exports.generateMidiActions = function generateMidiActions(midiMessage, currentStateCallback) {
+	  var channel = (0, _statusByteUtils.statusByteToChannel)(midiMessage[0]);
+	  var dataBytes = midiMessage.slice(1);
+
+	  var midiMessageType = (0, _statusByteUtils.statusByteClassifier)(midiMessage[0]);
+	  var type = deriveActionType(midiMessageType, channel, dataBytes);
+	  var baseData = { type: type, midiMessageType: midiMessageType, channel: channel, dataBytes: dataBytes };
+	  var typeSpecificData = deriveTypeSpecificData(baseData, currentStateCallback);
+	  var mainAction = Object.assign({}, baseData, typeSpecificData);
+	  if (type === types.NOTE_OFF) {
+	    return [mainAction, { type: types.NOTE_RELEASED }];
+	  }
+	  return [mainAction];
+	};
+
+	var deriveActionType = function deriveActionType(midiMessageType, channel, dataBytes) {
+	  switch (midiMessageType) {
+	    case types.NOTE_ON:
+	      // A note on with velocity 0 is a treated as a note off
+	      if (dataBytes[1] === 0) return types.NOTE_OFF;
+            break;
+	    case types.CONTROL_CHANGE:
+	      // CC 74 is used for timbre messages
+	      if (dataBytes[0] === 74) return types.TIMBRE;
+	      // CC 123 on the master channel is an all notes off message
+	      if (dataBytes[0] === 123 && channel === 1) return types.ALL_NOTES_OFF;
+            break;
+	  }
+	  return midiMessageType;
+	};
+
+	var deriveTypeSpecificData = function deriveTypeSpecificData(baseData, currentStateCallback) {
+	  var type = baseData.type,
+	      midiMessageType = baseData.midiMessageType,
+	      channel = baseData.channel,
+	      dataBytes = baseData.dataBytes;
+
+	  switch (type) {
+	    case types.NOTE_ON:
+	      {
+	        // Note On messages bundle channelScope to set expression values at creation.
+	        var channelScope = currentStateCallback().channelScopes[channel];
+	        return { noteNumber: dataBytes[0], noteOnVelocity: dataBytes[1], channelScope: channelScope };
+	      }
+	    case types.NOTE_OFF:
+	      // A note on with velocity 0 is treated as a note off with velocity 64
+	      return midiMessageType === types.NOTE_ON ? { noteNumber: dataBytes[0], noteOffVelocity: defaults.NOTE_OFF_VELOCITY } : { noteNumber: dataBytes[0], noteOffVelocity: dataBytes[1] };
+	    case types.PITCH_BEND:
+	      // This Control Change message's data bytes are ordered [LSB, MSB].
+	      return { pitchBend: (0, _dataByteUtils.dataBytesToUint14)(dataBytes.reverse()) };
+	    case types.TIMBRE:
+	      return { timbre: (0, _dataByteUtils.dataBytesToUint14)([dataBytes[1]]) };
+	    case types.CHANNEL_PRESSURE:
+	      return { pressure: (0, _dataByteUtils.dataBytesToUint14)(dataBytes) };
+	  }
+	};
+
+/***/ },
+/* 17 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.statusByteToChannel = exports.statusByteClassifier = undefined;
+
+	var _midiMessageTypes = __webpack_require__(18);
+
+	var types = _interopRequireWildcard(_midiMessageTypes);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	var statusByteClassifier = exports.statusByteClassifier = function statusByteClassifier(statusByte) {
+	  var firstNibble = statusByte & 0xf0;
+	  switch (firstNibble) {
+	    case 0x80:
+	      return types.NOTE_OFF;
+	    case 0x90:
+	      return types.NOTE_ON;
+	    case 0xa0:
+	      return types.AFTERTOUCH;
+	    case 0xb0:
+	      return types.CONTROL_CHANGE;
+	    case 0xc0:
+	      return types.PROGRAM_CHANGE;
+	    case 0xd0:
+	      return types.CHANNEL_PRESSURE;
+	    case 0xe0:
+	      return types.PITCH_BEND;
+	    case 0xf0:
+	      return types.SYSTEM_MESSAGE;
+	  }
+	  return types.UNCLASSIFIED;
+	}; /**
+	    * Maps MIDI messages contents to message types.
+	    *
+	    * MIDI message information derived from this table:
+	    * https://www.midi.org/specifications/item/table-1-summary-of-midi-message
+	    */
+
+	var statusByteToChannel = exports.statusByteToChannel = function statusByteToChannel(statusByte) {
+	  return (statusByte & 0x0f) + 1;
+	};
+
+/***/ },
+/* 18 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	/**
+	 * Constants to map MIDI messages contents to message types.
+	 *
+	 * MIDI message information derived from this table:
+	 * https://www.midi.org/specifications/item/table-1-summary-of-midi-message
+	 */
+
+	var CHANNEL_MESSAGE = exports.CHANNEL_MESSAGE = 'CHANNEL_MESSAGE';
+	var SYSTEM_MESSAGE = exports.SYSTEM_MESSAGE = 'SYSTEM_MESSAGE';
+	var NOTE_ON = exports.NOTE_ON = 'NOTE_ON';
+	var NOTE_OFF = exports.NOTE_OFF = 'NOTE_OFF';
+	var AFTERTOUCH = exports.AFTERTOUCH = 'AFTERTOUCH';
+	var CONTROL_CHANGE = exports.CONTROL_CHANGE = 'CONTROL_CHANGE';
+	var PROGRAM_CHANGE = exports.PROGRAM_CHANGE = 'PROGRAM_CHANGE';
+	var CHANNEL_PRESSURE = exports.CHANNEL_PRESSURE = 'CHANNEL_PRESSURE';
+	var PITCH_BEND = exports.PITCH_BEND = 'PITCH_BEND';
+	var CHANNEL_MODE = exports.CHANNEL_MODE = 'CHANNEL_MODE';
+	var ALL_SOUND_OFF = exports.ALL_SOUND_OFF = 'ALL_SOUND_OFF';
+	var RESET_ALL_CONTROLLERS = exports.RESET_ALL_CONTROLLERS = 'RESET_ALL_CONTROLLERS';
+	var LOCAL_CONTROL = exports.LOCAL_CONTROL = 'LOCAL_CONTROL';
+	var ALL_NOTES_OFF = exports.ALL_NOTES_OFF = 'ALL_NOTES_OFF';
+	var SYSTEM_EXCLUSIVE = exports.SYSTEM_EXCLUSIVE = 'SYSTEM_EXCLUSIVE';
+	var MIDI_TIME_CODE_QUARTER_FRAME = exports.MIDI_TIME_CODE_QUARTER_FRAME = 'MIDI_TIME_CODE_QUARTER_FRAME';
+	var SONG_POSITION_POINTER = exports.SONG_POSITION_POINTER = 'SONG_POSITION_POINTER';
+	var SONG_SELECT = exports.SONG_SELECT = 'SONG_SELECT';
+	var TUNE_REQUEST = exports.TUNE_REQUEST = 'TUNE_REQUEST';
+	var END_OF_EXCLUSIVE = exports.END_OF_EXCLUSIVE = 'END_OF_EXCLUSIVE';
+	var TIMING_CLOCK = exports.TIMING_CLOCK = 'TIMING_CLOCK';
+	var UNDEFINED = exports.UNDEFINED = 'UNDEFINED';
+	var START = exports.START = 'START';
+	var CONTINUE = exports.CONTINUE = 'CONTINUE';
+	var STOP = exports.STOP = 'STOP';
+	var ACTIVE_SENSING = exports.ACTIVE_SENSING = 'ACTIVE_SENSING';
+	var RESET = exports.RESET = 'RESET';
+	var UNCLASSIFIED = exports.UNCLASSIFIED = 'UNCLASSIFIED';
+
+/***/ },
+/* 19 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.CHANNEL_SCOPES = exports.CHANNEL_SCOPE = exports.ACTIVE_NOTE = exports.NOTE_STATE = exports.NOTE_OFF_VELOCITY = exports.TIMBRE = exports.PRESSURE = exports.PITCH_BEND = exports.NOTE_ON_VELOCITY = undefined;
+
+	var _noteStates = __webpack_require__(20);
+
+	var noteStates = _interopRequireWildcard(_noteStates);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	var NOTE_ON_VELOCITY = exports.NOTE_ON_VELOCITY = 64;
+	var PITCH_BEND = exports.PITCH_BEND = 8192;
+	var PRESSURE = exports.PRESSURE = 0;
+	var TIMBRE = exports.TIMBRE = 8192;
+	var NOTE_OFF_VELOCITY = exports.NOTE_OFF_VELOCITY = 64;
+	var NOTE_STATE = exports.NOTE_STATE = noteStates.KEY_DOWN;
+
+	var ACTIVE_NOTE = exports.ACTIVE_NOTE = {
+	  noteOnVelocity: NOTE_ON_VELOCITY,
+	  pitchBend: PITCH_BEND,
+	  pressure: PRESSURE,
+	  timbre: TIMBRE,
+	  noteState: NOTE_STATE
+	};
+
+	var CHANNEL_SCOPE = exports.CHANNEL_SCOPE = {
+	  pitchBend: PITCH_BEND,
+	  timbre: TIMBRE,
+	  pressure: PRESSURE
+	};
+
+	var CHANNEL_SCOPES = exports.CHANNEL_SCOPES = {
+	  1: CHANNEL_SCOPE,
+	  2: CHANNEL_SCOPE,
+	  3: CHANNEL_SCOPE,
+	  4: CHANNEL_SCOPE,
+	  5: CHANNEL_SCOPE,
+	  6: CHANNEL_SCOPE,
+	  7: CHANNEL_SCOPE,
+	  8: CHANNEL_SCOPE,
+	  9: CHANNEL_SCOPE,
+	  10: CHANNEL_SCOPE,
+	  11: CHANNEL_SCOPE,
+	  12: CHANNEL_SCOPE,
+	  13: CHANNEL_SCOPE,
+	  14: CHANNEL_SCOPE,
+	  15: CHANNEL_SCOPE,
+	  16: CHANNEL_SCOPE
+	};
+
+/***/ },
+/* 20 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var OFF = exports.OFF = 0;
+	var KEY_DOWN = exports.KEY_DOWN = 1;
+	var SUSTAINED = exports.SUSTAINED = 2;
+	var KEY_DOWN_AND_SUSTAINED = exports.KEY_DOWN_AND_SUSTAINED = 3;
+
+/***/ },
+/* 21 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _midiMessageTypes = __webpack_require__(18);
+
+	Object.keys(_midiMessageTypes).forEach(function (key) {
+	  if (key === "default" || key === "__esModule") return;
+	  Object.defineProperty(exports, key, {
+	    enumerable: true,
+	    get: function get() {
+	      return _midiMessageTypes[key];
+	    }
+	  });
+	});
+
+	var _mpeMessageTypes = __webpack_require__(22);
+
+	Object.keys(_mpeMessageTypes).forEach(function (key) {
+	  if (key === "default" || key === "__esModule") return;
+	  Object.defineProperty(exports, key, {
+	    enumerable: true,
+	    get: function get() {
+	      return _mpeMessageTypes[key];
+	    }
+	  });
+	});
+
+/***/ },
+/* 22 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var TIMBRE = exports.TIMBRE = 'TIMBRE';
+	var NOTE_RELEASED = exports.NOTE_RELEASED = 'NOTE_RELEASED';
+
+/***/ },
+/* 23 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	/**
+	 * Scales 7-bit values into the 14-bit range.
+	 *
+	 * @param {uint8} input Input 7-bit integer.
+	 * @returns {uint16} Scaled 14-bit integer.
+	 */
+	var scale7To14Bit = exports.scale7To14Bit = function scale7To14Bit(input) {
+	  if (input > 127) {
+	    throw new RangeError("scale7To14Bit takes a 7-bit integer.\n" + ("scale7To14Bit(" + input + ") is invalid."));
+	  }
+	  if (input <= 64) {
+	    return input << 7;
+	  }
+	  return input / 127 * 16383;
+	};
+
+	/**
+	 * Converts one or two MIDI data bytes into normalized 14-bit values.
+	 *
+	 * @param {uint8} midiDataBytes The encoded data from a standard MIDI message.
+	 * @returns {uint16} Normalized 14-bit integer representation of the inputs.
+	 */
+	var dataBytesToUint14 = exports.dataBytesToUint14 = function dataBytesToUint14(midiDataBytes) {
+	  // Discard identifier bit.
+	  var midiDataByteContents = midiDataBytes.map(function (dataByte) {
+	    return 127 & dataByte;
+	  });
+	  switch (midiDataBytes.length) {
+	    case 1:
+	      // With one 7-bit value, scale to a 14-bit integer.
+	      return scale7To14Bit(midiDataByteContents[0]);
+	    case 2:
+	      // With two 7-bit values, combine to make one 14-bit integer
+	      return (midiDataByteContents[0] << 7) + midiDataByteContents[1];
+	  }
+	  throw new Error("midiDataToMpeValue takes one or two 8-bit integers.\n" + ("midiDataToMpeValue(" + midiDataBytes + ") is invalid."));
+	};
+
+	var int7ToUnsignedFloat = exports.int7ToUnsignedFloat = function int7ToUnsignedFloat(v) {
+	  return v <= 64 ? 0.5 * v / 64 : 0.5 + 0.5 * (v - 64) / 63;
+	};
+
+	var int14ToUnsignedFloat = exports.int14ToUnsignedFloat = function int14ToUnsignedFloat(v) {
+	  return v <= 8192 ? 0.5 * v / 8192 : 0.5 + 0.5 * (v - 8192) / 8191;
+	};
+
+	var int14ToSignedFloat = exports.int14ToSignedFloat = function int14ToSignedFloat(v) {
+	  return v <= 8192 ? v / 8192 - 1 : (v - 8192) / 8191;
+	};
+
+/***/ },
+/* 24 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var currentActiveNotes = void 0;
+
+	/* eslint-disable no-console */
+	var logger = exports.logger = function logger(formatActiveNotes) {
+	  return function (store) {
+	    return function (next) {
+	      return function (action) {
+	        var result = next(action);
+	        var previousActiveNotes = currentActiveNotes;
+	        currentActiveNotes = store.getState().activeNotes;
+	        if (currentActiveNotes !== previousActiveNotes) {
+	          console.log('active notes:', formatActiveNotes(currentActiveNotes));
+	        }
+	        return result;
+	      };
+	    };
+	  };
+	};
+	/* eslint-enable no-console */
+
+/***/ },
+/* 25 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.findActiveNoteIndexesByChannel = exports.findActiveNoteIndex = exports.convertPitchBendRange = exports.createPitchBendConverter = exports.addPitch = exports.addHelmholtzPitch = exports.addScientificPitch = exports.normalize = undefined;
+
+	var _redux = __webpack_require__(3);
+
+	var _objectUtils = __webpack_require__(26);
+
+	var _dataByteUtils = __webpack_require__(23);
+
+	var _noteNumberUtils = __webpack_require__(27);
+
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+	var NORMALIZE_NOTE_TRANSFORMATIONS = {
+	  noteOnVelocity: _dataByteUtils.int7ToUnsignedFloat,
+	  noteOffVelocity: _dataByteUtils.int7ToUnsignedFloat,
+	  pitchBend: _dataByteUtils.int14ToSignedFloat,
+	  pressure: _dataByteUtils.int14ToUnsignedFloat,
+	  timbre: _dataByteUtils.int14ToUnsignedFloat
+	};
+
+	var normalize = exports.normalize = function normalize(note) {
+	  return (0, _objectUtils.transformObject)(note, NORMALIZE_NOTE_TRANSFORMATIONS);
+	};
+
+	var addScientificPitch = exports.addScientificPitch = function addScientificPitch(action) {
+	  return typeof action.noteNumber === 'undefined' ? action : Object.assign({}, action, { pitch: (0, _noteNumberUtils.toScientificPitch)(action.noteNumber) });
+	};
+
+	var addHelmholtzPitch = exports.addHelmholtzPitch = function addHelmholtzPitch(action) {
+	  return typeof action.noteNumber === 'undefined' ? action : Object.assign({}, action, { pitch: (0, _noteNumberUtils.toHelmholtzPitch)(action.noteNumber) });
+	};
+
+	var addPitch = exports.addPitch = function addPitch(_ref) {
+	  var pitch = _ref.pitch;
+	  return pitch === 'helmholtz' ? addHelmholtzPitch : addScientificPitch;
+	};
+
+	var createPitchBendConverter = exports.createPitchBendConverter = function createPitchBendConverter(pitchBendRange, normalize) {
+	  var conversionFunctions = [pitchBendRange && function (v) {
+	    return v * parseFloat(pitchBendRange);
+	  }, !normalize && _dataByteUtils.int14ToSignedFloat].filter(function (f) {
+	    return f;
+	  });
+	  return _redux.compose.apply(undefined, _toConsumableArray(conversionFunctions));
+	};
+
+	var convertPitchBendRange = exports.convertPitchBendRange = function convertPitchBendRange(_ref2) {
+	  var pitchBendRange = _ref2.pitchBendRange,
+	      normalize = _ref2.normalize;
+	  return function (action) {
+	    return Object.assign({}, action, { pitchBend: createPitchBendConverter(pitchBendRange, normalize)(action.pitchBend) });
+	  };
+	};
+
+	var findActiveNoteIndex = exports.findActiveNoteIndex = function findActiveNoteIndex(state, action) {
+	  var channel = action.channel,
+	      noteNumber = action.noteNumber;
+
+	  return state.findIndex(function (activeNote) {
+	    return activeNote.channel === channel && activeNote.noteNumber === noteNumber;
+	  });
+	};
+
+	var findActiveNoteIndexesByChannel = exports.findActiveNoteIndexesByChannel = function findActiveNoteIndexesByChannel(state, action) {
+	  return state.reduce(function (indexes, activeNote, index) {
+	    return activeNote.channel === action.channel ? [].concat(_toConsumableArray(indexes), [index]) : indexes;
+	  }, []);
+	};
+
+/***/ },
+/* 26 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var transformObject = exports.transformObject = function transformObject(object) {
+	  var transformations = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+	  var changedValues = Object.keys(transformations).reduce(function (acc, key) {
+	    if (typeof object[key] !== 'undefined') {
+	      acc[key] = transformations[key](object[key]);
+	    }
+	    return acc;
+	  }, {});
+
+	  return Object.assign({}, object, changedValues);
+	};
+
+/***/ },
+/* 27 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var PITCH_CLASS_NUMBER_TO_PITCH_NAME = {
+	  0: 'C',
+	  1: 'C#',
+	  2: 'D',
+	  3: 'Eb',
+	  4: 'E',
+	  5: 'F',
+	  6: 'F#',
+	  7: 'G',
+	  8: 'Ab',
+	  9: 'A',
+	  10: 'Bb',
+	  11: 'B'
+	};
+
+	var toPitchClassNumber = exports.toPitchClassNumber = function toPitchClassNumber(noteNumber) {
+	  return Math.floor(noteNumber % 12);
+	};
+
+	var toOctaveNumber = exports.toOctaveNumber = function toOctaveNumber(noteNumber) {
+	  return Math.floor(noteNumber / 12) - 1;
+	};
+
+	var toPitchClassName = exports.toPitchClassName = function toPitchClassName(noteNumber) {
+	  return PITCH_CLASS_NUMBER_TO_PITCH_NAME[toPitchClassNumber(noteNumber)];
+	};
+
+	var toHelmholtzCommas = exports.toHelmholtzCommas = function toHelmholtzCommas(noteNumber) {
+	  var numCommas = Math.max(-1 * toOctaveNumber(noteNumber) + 2, 0);
+	  return new Array(numCommas).fill(',').join('');
+	};
+
+	var toHelmholtzApostrophes = exports.toHelmholtzApostrophes = function toHelmholtzApostrophes(noteNumber) {
+	  var numApostrophes = Math.max(toOctaveNumber(noteNumber) - 3, 0);
+	  return new Array(numApostrophes).fill('\'').join('');
+	};
+
+	var toHelmholtzPitchName = exports.toHelmholtzPitchName = function toHelmholtzPitchName(noteNumber) {
+	  return noteNumber >= 48 ? toPitchClassName(noteNumber).toLowerCase() : toPitchClassName(noteNumber);
+	};
+
+	var toHelmholtzPitch = exports.toHelmholtzPitch = function toHelmholtzPitch(noteNumber) {
+	  return '' + toHelmholtzPitchName(noteNumber) + toHelmholtzCommas(noteNumber) + toHelmholtzApostrophes(noteNumber);
+	};
+
+	var toScientificPitch = exports.toScientificPitch = function toScientificPitch(noteNumber) {
+	  return '' + toPitchClassName(noteNumber) + toOctaveNumber(noteNumber);
+	};
+
+/***/ },
+/* 28 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _redux = __webpack_require__(3);
+
+	var _activeNotes = __webpack_require__(29);
+
+	var _activeNotes2 = _interopRequireDefault(_activeNotes);
+
+	var _channelScopes = __webpack_require__(30);
+
+	var _channelScopes2 = _interopRequireDefault(_channelScopes);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = (0, _redux.combineReducers)({
+	  channelScopes: _channelScopes2.default,
+	  activeNotes: _activeNotes2.default
+	});
+
+/***/ },
+/* 29 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _actionTypes = __webpack_require__(21);
+
+	var types = _interopRequireWildcard(_actionTypes);
+
+	var _defaults = __webpack_require__(19);
+
+	var defaults = _interopRequireWildcard(_defaults);
+
+	var _noteStates = __webpack_require__(20);
+
+	var noteStates = _interopRequireWildcard(_noteStates);
+
+	var _activeNoteUtils = __webpack_require__(25);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+	var activeNotes = function activeNotes() {
+	  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+	  var action = arguments[1];
+
+	  if (!types[action.type]) {
+	    return state;
+	  }
+	  switch (action.type) {
+	    case types.NOTE_ON:
+	      return [].concat(_toConsumableArray(state), [activeNote({}, action)]);
+	    case types.NOTE_OFF:
+	      {
+	        var noteIndex = (0, _activeNoteUtils.findActiveNoteIndex)(state, action);
+	        return noteIndex >= 0 ? [].concat(_toConsumableArray(state.slice(0, noteIndex)), [activeNote(state[noteIndex], action)], _toConsumableArray(state.slice(noteIndex + 1))) : state;
+	      }
+	    case types.PITCH_BEND:
+	    case types.CHANNEL_PRESSURE:
+	    case types.TIMBRE:
+	      {
+	        var noteIndexes = (0, _activeNoteUtils.findActiveNoteIndexesByChannel)(state, action);
+	        noteIndexes.forEach(function (noteIndex) {
+	          state = [].concat(_toConsumableArray(state.slice(0, noteIndex)), [activeNote(state[noteIndex], action)], _toConsumableArray(state.slice(noteIndex + 1)));
+	        });
+	        return state;
+	      }
+	    case types.NOTE_RELEASED:
+	      return state.length ? state.filter(function (activeNote) {
+	        return activeNote.noteState !== noteStates.OFF;
+	      }) : state;
+	    case types.ALL_NOTES_OFF:
+	      return [];
+	  }
+	  return state;
+	};
+
+	var activeNote = function activeNote() {
+	  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : defaults.ACTIVE_NOTE;
+	  var action = arguments[1];
+	  var noteNumber = action.noteNumber,
+	      channel = action.channel,
+	      channelScope = action.channelScope,
+	      noteOnVelocity = action.noteOnVelocity,
+	      noteOffVelocity = action.noteOffVelocity,
+	      pitch = action.pitch,
+	      pitchBend = action.pitchBend,
+	      pressure = action.pressure,
+	      timbre = action.timbre;
+
+	  switch (action.type) {
+	    case types.NOTE_ON:
+	      return Object.assign({}, state, { noteNumber: noteNumber, channel: channel, noteOnVelocity: noteOnVelocity }, pitch && { pitch: pitch }, channelScope);
+	    case types.NOTE_OFF:
+	      return Object.assign({}, state, { noteOffVelocity: noteOffVelocity, noteState: noteStates.OFF });
+	    case types.PITCH_BEND:
+	      return Object.assign({}, state, { pitchBend: pitchBend });
+	    case types.CHANNEL_PRESSURE:
+	      return Object.assign({}, state, { pressure: pressure });
+	    case types.TIMBRE:
+	      return Object.assign({}, state, { timbre: timbre });
+	  }
+	  return state;
+	};
+
+	exports.default = activeNotes;
+
+/***/ },
+/* 30 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _actionTypes = __webpack_require__(21);
+
+	var types = _interopRequireWildcard(_actionTypes);
+
+	var _defaults = __webpack_require__(19);
+
+	var defaults = _interopRequireWildcard(_defaults);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+	var channelScopes = function channelScopes() {
+	  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : defaults.CHANNEL_SCOPES;
+	  var action = arguments[1];
+
+	  if (!types[action.type]) {
+	    return state;
+	  }
+	  var channel = action.channel;
+
+	  return Object.assign({}, state, _defineProperty({}, channel, channelScope(state[channel], action)));
+	};
+
+	var channelScope = function channelScope(state, action) {
+	  switch (action.type) {
+	    case types.PITCH_BEND:
+	      return Object.assign({}, state, { pitchBend: action.pitchBend });
+	    case types.CHANNEL_PRESSURE:
+	      return Object.assign({}, state, { pressure: action.pressure });
+	    case types.TIMBRE:
+	      return Object.assign({}, state, { timbre: action.timbre });
+	    case types.NOTE_ON:
+	    case types.NOTE_OFF:
+	      return defaults.CHANNEL_SCOPE;
+	  }
+	  return state;
+	};
+
+	exports.default = channelScopes;
+
+/***/ }
+/******/ ]);
 /* jslint browser: true */
 
 /* global */
@@ -16175,7 +18028,7 @@ _utter_fail_element.innerHTML = "";
         Fields.
     ************************************************************/
 
-    var _motd = '<span class="fs-date">UPDATE 11/01/2017 : </span><a class="fs-link" href="https://quiet.fsynth.com/d/9-fragment-1-0-1">Fragment 1.0.2 released with MPE support! (click for more details)</a>',
+    var _motd = '<span class="fs-date">UPDATE 18/01/2017 : </span><a class="fs-link" href="https://quiet.fsynth.com/d/10-fragment-1-0-2">Fragment 1.0.2 released with MPE support! (click for more details)</a>',
         
         _fs_state = 1,
         

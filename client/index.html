@@ -321,6 +321,8 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
             <div>
                 <div class="fs-text">
                      Fragment is a collaborative cross-platform real-time audiovisual live coding environment with a pixels based approach, the sound synthesis is powered by pixels data produced by live GLSL code.<br/><br/>
+                    
+                     The GLSL code is executed on the GPU for each pixels (more precisely : fragment), this approach allow very fast real-time manipulation of the pixels, making it a bliss to create stunning visuals or stunning sound design.<br/><br/>
 
                      Fragment interface is composed of four parts :<br/>
                         <ul>
@@ -338,23 +340,25 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                             </li>
                         </ul>
                     <br/>
-                     When a session is created for the first time, an example code is made available with a basic MIDI setup and a ~440Hz continuous tone.<br/><br/>
+                     When a session is created for the first time, an example code is made available with a basic MIDI setup and a ~440Hz continuous tone, the audio output is paused by default.<br/><br/>
                     
-                     To hear the tone, capture slices of the graphical data by right-clicking anywhere on the canvas and by clicking on the (+) icon.<br/><br/>
+                     To hear the tone, capture slices of the graphical data by right-clicking anywhere on the canvas, click on the (+) icon which appeared then click on the play button.<br/><br/>
                      
-                     Slices are just a way to capture the pixels, the captured data is then sent to the sound synthesis engine in real-time, there is two main type of synthesis, additive and granular, granular synthesis is only available with the sound server/launcher which can be downloaded on the homepage.<br/><br/>
+                     Slices capture the pixels data, the captured data is then sent to the sound synthesis engine in real-time, there is two main type of synthesis, additive and granular, granular synthesis is only available with the sound server/launcher which can be downloaded on the homepage.<br/><br/>
                     
-                     Any number of slices can be added, slices can be removed, muted or tweaked by right-clicking it.<br/><br/>
+                     Any number of slices can be added, slices can be removed, muted or tweaked by right-clicking on it.<br/><br/>
                     
                      The slices can be moved by clicking on it, holding it and by moving the cursor around.<br/><br/>
                     
                      To play a saw-like tone with a MIDI keyboard, click on the Jack plug icon on the toolbar to open the MIDI settings dialog and enable your MIDI controller.<br/><br/>
 
-                     You can experiment right away with the sound/visual by tweaking the values of this sample program, any modifications is updated in real-time as you type.<br/><br/>
+                     You can experiment right away with the sound/visual by tweaking the values of this sample program in the GLSL code editor, any modifications is updated in real-time as you type.<br/><br/>
 
+                     To learn more advanced concept of the GLSL language, <a href="https://www.fsynth.com/documentation/glsl/">read the documentation</a>.<br/><br/>
+                    
                      The sessions you joined in are saved locally and can be joined back by going to the <a href="https://www.fsynth.com">homepage</a><br/><br/>
                         
-                     You can invite friends to join your session by sharing the link shown in the adress bar.<br/><br/>
+                     You can invite friends to join your session and collaborate by sharing the link shown in the adress bar.<br/><br/>
                     
                      Need more help ?<br/>
                         <ul>
@@ -365,7 +369,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                                 Click on the ? icon on the toolbar, many code snippets and informations are available
                             </li>
                             <li>
-                                Make a post on the Fragment message board at https://quiet.fsynth.com
+                                <a href="https://quiet.fsynth.com">Make a post on the Fragment message board</a>
                             </li>
                         </ul>
 
