@@ -18591,7 +18591,7 @@ var _generateOscillatorSet = function (n, base_frequency, octaves) {
     
     for (y = n - 1; y >= 0; y -= 1) {
         frequency = base_frequency * Math.pow(2, y / octave_length);
-
+        
         phase_step = frequency / _audio_context.sampleRate * _wavetable_size;
         
         merger_node = _createMergerNode(_mst_gain_node);
@@ -22892,6 +22892,7 @@ var _createFasSettingsContent = function () {
     
     load_samples_btn.addEventListener("click", function () {
         _fasNotify(_FAS_ACTION);
+	_fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
     });
     
     fas_actions_div.style.textAlign = "center";

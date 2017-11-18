@@ -152,6 +152,7 @@ var _createFasSettingsContent = function () {
     
     load_samples_btn.addEventListener("click", function () {
         _fasNotify(_FAS_ACTION);
+        _fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
     });
     
     fas_actions_div.style.textAlign = "center";
