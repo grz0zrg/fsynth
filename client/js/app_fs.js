@@ -133,7 +133,7 @@ var FragmentSynth = function (params) {
         Fields.
     ************************************************************/
 
-    var _motd = '<span class="fs-date">UPDATE 18/01/2017 : </span><a class="fs-link" href="https://quiet.fsynth.com/d/10-fragment-1-0-2">Fragment 1.0.2 released with MPE support! (click for more details)</a>',
+    var _motd = '<span class="fs-date">UPDATE 19/11/2017 : </span><a class="fs-link" href="https://quiet.fsynth.com/d/10-fragment-1-0-2">Fragment 1.0.2 released, MPE support and enhanced granular synthesis (click for more details)</a>',
         
         _fs_state = 1,
         
@@ -306,6 +306,7 @@ var FragmentSynth = function (params) {
         _cm_highlight_matches = false,
         _cm_show_linenumbers = true,
         _cm_advanced_scrollbar = false,
+        _quickstart_on_startup = true,
         
         _clipboard,
 

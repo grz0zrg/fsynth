@@ -18028,7 +18028,7 @@ _utter_fail_element.innerHTML = "";
         Fields.
     ************************************************************/
 
-    var _motd = '<span class="fs-date">UPDATE 18/01/2017 : </span><a class="fs-link" href="https://quiet.fsynth.com/d/10-fragment-1-0-2">Fragment 1.0.2 released with MPE support! (click for more details)</a>',
+    var _motd = '<span class="fs-date">UPDATE 19/11/2017 : </span><a class="fs-link" href="https://quiet.fsynth.com/d/10-fragment-1-0-2">Fragment 1.0.2 released, MPE support and enhanced granular synthesis (click for more details)</a>',
         
         _fs_state = 1,
         
@@ -18201,6 +18201,7 @@ _utter_fail_element.innerHTML = "";
         _cm_highlight_matches = false,
         _cm_show_linenumbers = true,
         _cm_advanced_scrollbar = false,
+        _quickstart_on_startup = true,
         
         _clipboard,
 
@@ -22892,7 +22893,7 @@ var _createFasSettingsContent = function () {
     
     load_samples_btn.addEventListener("click", function () {
         _fasNotify(_FAS_ACTION);
-	_fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
+        _fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
     });
     
     fas_actions_div.style.textAlign = "center";
@@ -23395,6 +23396,7 @@ var _uiInit = function () {
         settings_ck_osc_in_elem = document.getElementById("fs_settings_ck_oscin"),
         settings_ck_slicebar_elem = document.getElementById("fs_settings_ck_slicebar"),
         settings_ck_slices_elem = document.getElementById("fs_settings_ck_slices"),
+        settings_ck_quickstart_elem = document.getElementById("fs_settings_ck_quickstart"),
         
         fs_settings_note_lifetime = localStorage.getItem('fs-note-lifetime'),
         fs_settings_max_polyphony = localStorage.getItem('fs-max-polyphony'),
@@ -23410,13 +23412,14 @@ var _uiInit = function () {
         fs_settings_monophonic = localStorage.getItem('fs-monophonic'),
         fs_settings_feedback = localStorage.getItem('fs-feedback'),
         fs_settings_osc_in = localStorage.getItem('fs-osc-in'),
-        fs_settings_osc_out = localStorage.getItem('fs-osc-out');
+        fs_settings_osc_out = localStorage.getItem('fs-osc-out'),
+        fs_settings_quickstart = localStorage.getItem('fs-quickstart');
     
     _settings_dialog = WUI_Dialog.create(_settings_dialog_id, {
             title: "Session & global settings",
 
             width: "320px",
-            height: "460px",
+            height: "470px",
 
             halign: "center",
             valign: "center",
@@ -23519,6 +23522,14 @@ var _uiInit = function () {
     if (fs_settings_xscrollbar !== null) {
         _cm_advanced_scrollbar = (fs_settings_xscrollbar === "true");
     }
+    
+    if (fs_settings_quickstart  === "true") {
+        settings_ck_quickstart_elem.checked = true;
+    } else {
+        settings_ck_quickstart_elem.checked = false;
+    }
+    
+    _quickstart_on_startup = fs_settings_quickstart;
     
     if (_cm_advanced_scrollbar) {
         settings_ck_xscrollbar_elem.checked = true;
@@ -23730,6 +23741,20 @@ var _uiInit = function () {
         
             localStorage.setItem('fs-editor-advanced-scrollbar', _cm_advanced_scrollbar);
         });
+    
+    settings_ck_quickstart_elem.addEventListener("change", function () {
+            _quickstart_on_startup = this.checked;
+        
+            localStorage.setItem('fs-quickstart', _quickstart_on_startup);
+        
+            if (!_quickstart_on_startup) {
+                WUI_Dialog.close(_quickstart_dialog);
+            }
+        });
+    
+    console.log(fs_settings_quickstart);
+    console.log(settings_ck_quickstart_elem.checked);
+    
     settings_ck_wavetable_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_oscinfos_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_polyinfos_elem.dispatchEvent(new UIEvent('change'));
@@ -23743,6 +23768,7 @@ var _uiInit = function () {
     settings_ck_osc_out_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_slicebar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_slices_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_quickstart_elem.dispatchEvent(new UIEvent('change'));
     
     _midi_settings_dialog = WUI_Dialog.create(_midi_settings_dialog_id, {
             title: "MIDI",
@@ -24006,7 +24032,7 @@ var _uiInit = function () {
             halign: "center",
             valign: "center",
 
-            open: true,
+            open: _quickstart_on_startup,
 
             detachable: true,
 

@@ -40,9 +40,11 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
         </script>
 
         <script type="x-webgl/x-fragment-shader" id="fragment-shader">
+  // Sample program : ~440Hz tone + MIDI keyboard SAW-like setup.
+  // Full documentation : https://www.fsynth.com/documentation
+
   void main () {
-    float l = 0.;
-    float r = 0.;
+    float l = 0., r = 0.;
     
     vec2 uv = gl_FragCoord.xy / resolution;
 
@@ -50,11 +52,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
 
     const float harmonics = 8.;
 
-    // 8 notes polyphony
-    // this can be increased up to the maximal polyphonic capabilities
-    // of Fragment for your platform
-    for (int k = 0; k < 8; k += 1) {
-      // we get the note-on data
+    for (int k = 0; k < 16; k += 2) {
       vec4 data = keyboard[k];
 
       float kfrq = data.x; // frequency
@@ -62,18 +60,13 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
       float ktim = data.z; // elapsed time
       float kchn = data.w; // channel
 
-      // we quit as soon as there is no more note-on data
-      // this is optional but it might help with performances
-      // so we don't compute harmonics uselessly
       if (kfrq == 0.) {
        	break;
       }
 
       for (float i = 1.; i < harmonics; i += 1.) {
-        // this apply an exponential amplitude attenuation on the higher harmonics
         float a = 1. / pow(i, attenuation_constant);
 
-        // we apply the amplitude attenuation and key velocity
         l += fline(kfrq * i) * a * kvel;
         r += fline(kfrq * i) * a * kvel;
       }
@@ -82,13 +75,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
     l += fline(440.) * 0.25;
     r += fline(440.) * 0.25;
 
-    // plot the fundamental and harmonics
-    // Fragment use the RED and GREEN component
-    // for the LEFT and RIGHT audio channel in stereophonic mode
-    // if monophonic mode is enabled, the alpha component will be used for the audio and the full RGB output is available for visuals
-    // in stereophonic mode the blue component can be used for visuals or debugging etc.
-    // NOTE : If your browser support WebGL 2, the audio and visuals output is separated thus you can do visuals alongside stereo audio by default by using fragColor (or gl_FragColor) and synthOutput
-    synthOutput = vec4(l, r, 0., 0.);
+    synthOutput = vec4(l, r, 0., 0.); // WebGL 2 only (gl_FragColor otherwise)
     gl_FragColor = vec4(l, r, 0., 1.);
   }
         </script>
@@ -322,9 +309,9 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                 <div class="fs-text">
                      Fragment is a collaborative cross-platform real-time audiovisual live coding environment with a pixels based approach, the sound synthesis is powered by pixels data produced by live GLSL code.<br/><br/>
                     
-                     The GLSL code is executed on the GPU for each pixels (more precisely : fragment), this approach allow very fast real-time manipulation of the pixels, making it a bliss to create stunning visuals or stunning sound design.<br/><br/>
+                     The GLSL code is executed on the GPU for each pixels (more precisely : <a href="https://en.wikipedia.org/wiki/Shader#Pixel_shaders">fragments</a>), this approach allow very fast real-time manipulation of the pixels, making it a bliss to create stunning visuals or stunning sound design.<br/><br/>
 
-                     Fragment interface is composed of four parts :<br/>
+                     Fragment interface is splitted in 4 parts :<br/>
                         <ul>
                             <li>
                                 info. panel/global settings (like gain) at the top
@@ -340,7 +327,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                             </li>
                         </ul>
                     <br/>
-                     When a session is created for the first time, an example code is made available with a basic MIDI setup and a ~440Hz continuous tone, the audio output is paused by default.<br/><br/>
+                     When a session is created for the first time, an example code is made available with a basic MIDI setup playing an additive synthesis SAW-like waveform and a ~440Hz continuous tone, the audio output is paused by default.<br/><br/>
                     
                      To hear the tone, capture slices of the graphical data by right-clicking anywhere on the canvas, click on the (+) icon which appeared then click on the play button.<br/><br/>
                      
@@ -350,7 +337,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                     
                      The slices can be moved by clicking on it, holding it and by moving the cursor around.<br/><br/>
                     
-                     To play a saw-like tone with a MIDI keyboard, click on the Jack plug icon on the toolbar to open the MIDI settings dialog and enable your MIDI controller.<br/><br/>
+                     To play a saw-like waveform with a MIDI keyboard, click on the Jack plug icon on the toolbar to open the MIDI settings dialog and enable your MIDI controller.<br/><br/>
 
                      You can experiment right away with the sound/visual by tweaking the values of this sample program in the GLSL code editor, any modifications is updated in real-time as you type.<br/><br/>
 
@@ -437,6 +424,10 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                             <div>Show slices bar</div>&nbsp;
                             <input id="fs_settings_ck_slicebar" type="checkbox">
                         </label>
+                        <label class="fs-ck-label">
+                            <div>Quickstart startup</div>&nbsp;
+                            <input id="fs_settings_ck_quickstart" type="checkbox" checked>
+                        </label>
                     </div>
                     <div class="fs-ck-container">
                         <label class="fs-ck-label">
@@ -454,6 +445,8 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                         <label class="fs-ck-label">
                             <div>Show slices</div>&nbsp;
                             <input id="fs_settings_ck_slices" type="checkbox" checked>
+                        </label>
+                        <label class="fs-ck-label">
                         </label>
                     </div>
                 </div>
@@ -674,16 +667,16 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                                         </ul>
                                     </li>
                                     <li>
-                                        vec4[N] <span class="fs-documentation-keyword" data-clipboard-text="keyboard">keyboard</span> :
+                                        vec4[N], vec4[N+1] <span class="fs-documentation-keyword" data-clipboard-text="keyboard">keyboard</span> :
                                         <ul>
                                             <li>
-                                                frequency, velocity, elapsed time since the key was pressed, MIDI channel
+                                                N: frequency, velocity, elapsed time since the key was pressed, MIDI channel
                                             </li>
                                             <li>
-                                                pitch bend, timbre (CC74), pressure (aftertouch), release velocity
+                                                N+1: pitch bend, timbre (CC74), pressure (aftertouch), release velocity
                                             </li>
                                             <li>
-                                                Note : MIDI note-on/note-off data
+                                                Note : MIDI note data
                                             </li>
                                         </ul>
                                     </li>
@@ -856,20 +849,12 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                                             </li>
                                         </ul>
                                     </li>
-                                    <li>
-                                        <span class="fs-documentation-keyword" data-clipboard-text="https://www.patreon.com/fsynth">Patreon (support us)</span>
-                                        <ul>
-                                            <li>
-                                                <a href="https://www.patreon.com/fsynth">https://www.patreon.com/fsynth</a>
-                                            </li>
-                                        </ul>
-                                    </li>
                                 </ul>
                                 <br/><br/>
                                 <div class="fs-about-footer">
                                     <a href="https://www.fsynth.com"><img src="data/fsynth2.png" width="297"></a>
                                     <br/><br/>
-                                    <div>Fragment © 2016 - 2017</div>
+                                    <div>Fragment © 2016 - 2018</div>
                                     <div>Made with <span style="color: #ff0000">💖</span> by Julien Verneuil</div>
                                     <div>contact <span style="color: #aaaaaa">at</span> fsynth <span style="color: #aaaaaa">dot</span> com</div>
                                 </div>
@@ -880,6 +865,16 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                             <div class="fs-documentation fs-about">
                                 <span class="fs-about-header">Fragment is a labor of love which has been free and available for everybody since more than a year.<br/>You can help us to keep it that way by donating a small amount.</span>
                                 <br/><br/><br/>
+                                <span class="fs-about-header" data-clipboard-text="https://www.patreon.com/fsynth">Patreon</span>
+                                <ul class="fs-documentation-entries">
+                                    <li>
+                                        <ul>
+                                            <li>
+                                                <a href="https://www.patreon.com/fsynth">https://www.patreon.com/fsynth</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
                                 <span class="fs-about-header">Bitcoin</span>
                                 <ul class="fs-documentation-entries">
                                     <li>
