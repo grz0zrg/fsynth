@@ -38,9 +38,9 @@ $bigtitle(Fragment)
 $title(The Collaborative Spectral Synthesizer)
 $center(by Julien Verneuil - contact@fsynth.com)
 $nl
-$ifhtml($center(This is the old HTML documentation of the Fragment synthesizer.))$ifpdf($center(This is the old documentation of the Fragment synthesizer.))
+$ifhtml($center(This is the old HTML documentation of the Fragment synthesizer which is still updated to some extent.))$ifpdf($center(This is the old documentation of the Fragment synthesizer which is still updated to some extent.))
 $ifhtml($center($big(The new documentation can be found $tlink(here)(https://www.fsynth.com/documentation))))
-$ifhtml($center(The old PDF documentation can be found $tlink(here)(https://www.fsynth.com/pdf/fragment_old_documentation.pdf)))
+$ifhtml($center(The old PDF documentation (still updated) can be found $tlink(here)(https://www.fsynth.com/pdf/fragment_old_documentation.pdf)))
 $center($tlink($ifhtml($image(580)(images/fsynth_ui.png))$ifpdf($pagewidthimage(images/fsynth_ui.png)))(https://www.fsynth.com))
 $nl
 $center($bold(Table of Contents))
@@ -116,7 +116,7 @@ Fragment may be quite hungry in term of computing resources, a dual core with hi
 
 Several methods are provided to synthesize sounds, each with performances pros and cons:
 $list(
-	$item $ref(fas)(FAS) ($bold(recommended method)): $list($item Fastest $item Has more synthesis methods like granular, FM/PM and sampler type $item Multiple output support with soundcard choice $item Many audio settings $item Can run on a dedicated computer such as a Raspberry PI $item Dedicated program which receive Fragment data over the network $item Enhanced noise modeling with band-limited noise $item Granular synthesis capability (soon))
+	$item $ref(fas)(FAS) ($bold(recommended method)): $list($item Fastest $item Has more synthesis methods like granular and sampler type $item Multiple output support with soundcard choice $item Many audio settings $item Can run on a dedicated computer such as a Raspberry PI $item Dedicated program which receive Fragment data over the network $item Enhanced noise modeling with band-limited noise $item Advanced granular synthesis)
 	$item WebAudio oscillators: $list($item Fastest with Chrome $item May not work with Firefox if the canvas is too high vertically $item Require a fast CPU $item Integrated global "release" envelope)
 	$item Wavetable $bold(not recommended): $list($item Most compatible browser method $item Will produce crackles))
 $subsubsection(GPU)

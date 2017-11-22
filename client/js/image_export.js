@@ -4,7 +4,7 @@
     Fields.
 ************************************************************/
 
-var _image_to_audio_worker = new Worker("dist/worker/image_to_audio.min.js");
+var _image_to_audio_worker = null;//new Worker("dist/worker/image_to_audio.min.js");
 
 /***********************************************************
     Functions.
@@ -24,9 +24,10 @@ var _exportImage = function (image_data) {
     
     _notification("Export in progress...", 2000);
 
-    _image_to_audio_worker.postMessage(params, [params.data.buffer]);
+    //_image_to_audio_worker.postMessage(params, [params.data.buffer]);
 };
-
+/*
 _image_to_audio_worker.addEventListener('message', function (m) {
         console.log(m);
     }, false);
+*/

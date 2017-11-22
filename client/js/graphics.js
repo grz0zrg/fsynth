@@ -495,7 +495,7 @@ var _canvasRecord = function (ndata) {
             ro = go = bo = 3;
         }
 
-        for (i = 0; i < _canvas_height_mul4; i += 4) {
+        for (i = 0; i <= _canvas_height_mul4; i += 4) {
             o = _canvas_height_mul4 - i;
 
             data[o] = _record_opts.f(data[o], temp_data[i + ro]);
