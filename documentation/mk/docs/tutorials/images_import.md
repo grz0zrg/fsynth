@@ -66,6 +66,12 @@ nearest
 
 - This is the image processed as-is, this can give a pixelated look and may sound raw with abrupt changes between amplitudes
 
+mipmap
+
+
+
+- Bilinear filtering + mipmap, mipmap are pre-calculated lower resolution representation of the image, this feature can be useful to produce cheap blur and other effects or reduce aliasing artifacts with visuals.
+
 ##### Wrap S/T
 
 When the texture is sampled and the given coordinates are outside the range of `0` to `1`. Fragment offer 3 ways of handling the resulting image

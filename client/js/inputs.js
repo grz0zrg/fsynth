@@ -35,7 +35,9 @@ var _createChannelSettingsDialog = function (input_channel_id) {
         tex_parameter,
         
         power_of_two_wrap_options = '<option value="repeat">repeat</option>' +
-                                    '<option value="mirror">mirrored repeat</option>';
+                                    '<option value="mirror">mirrored repeat</option>',
+        
+        mipmap_option = '<option value="mipmap">mipmap</option>';
     
     WUI_RangeSlider.destroy(video_playrate_element);
     WUI_RangeSlider.destroy(video_start_element);
@@ -49,6 +51,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
             fragment_input_channel.type === 1 || 
             fragment_input_channel.type === 3) {
             power_of_two_wrap_options = "";
+            mipmap_option = "";
         }
     }
     
@@ -58,6 +61,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     content_element.innerHTML = '<div><div class="fs-input-settings-label">Filter:</div>&nbsp;<select id="fs_channel_filter" class="fs-btn">' +
                                 '<option value="nearest">nearest</option>' +
                                 '<option value="linear">linear</option>' +
+                                    mipmap_option +
                                 '</select></div>' +
                                 '<div><div class="fs-input-settings-label">Wrap S:</div>&nbsp;<select id="fs_channel_wrap_s" class="fs-btn">' +
                                 '<option value="clamp">clamp</option>' +
@@ -184,7 +188,9 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     
     if (_gl.getTexParameter(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER) === _gl.NEAREST) {
         channel_filter_select.value = "nearest";
-    } else {
+    } else if (_gl.getTexParameter(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER) === _gl.LINEAR_MIPMAP_NEAREST) {
+        channel_filter_select.value = "mipmap";
+    } else if (_gl.getTexParameter(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER) === _gl.LINEAR) {
         channel_filter_select.value = "linear";
     }
     

@@ -150,6 +150,11 @@ var _setTextureFilter = function (texture, mode) {
     } else if (mode === "linear") {
         _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.LINEAR);
         _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.LINEAR);
+    } else if (mode === "mipmap") {
+        _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.LINEAR);
+        _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.LINEAR_MIPMAP_NEAREST);
+        
+        _gl.generateMipmap(_gl.TEXTURE_2D);
     }
 
     _gl.bindTexture(_gl.TEXTURE_2D, null);
