@@ -2,7 +2,9 @@
 
 Slices are an important part of Fragment, no sounds is produced if you don't add at least one slice.
 
-The purpose of slices is to capture the pixels of vertical parts of the canvas which will be fed to the audio synthesis engine, they are like turntable needles, they can be dragged around in real-time with the mouse.
+The purpose of slices is to capture the pixels of vertical parts of the canvas, then the pixels will be fed to the audio synthesis engine, they are like turntable needles, they can be dragged around in real-time with the mouse.
+
+When multiple slices are assigned to the same output channel, the pixels data is merged additively into one slice, this may result in non-wanted sounds with granular synthesis if not careful due to the addition of the Green and Alpha parameters.
 
 ## How-to
 
@@ -10,7 +12,7 @@ Slices can be moved by dragging them on the X axis, to do so, maintain the left 
 
 ![Dragging slices](gifs/dragging_slices.gif)
 
-Double-clicking on a slice open its settings dialog directly:
+Double-clicking on a slice open its settings dialog :
 
 ![Slices settings](images/slice_settings.png)
 
@@ -28,12 +30,12 @@ slice settings dialog
 - Y Shift: pitch the slice audio up or down (there is no visual representation of this)
 
 
-- Increment per frame: This allow the slice to move left or right automatically, this is the increment value per frames
+- Increment per frame: This allow the slice to move left or right by itself, this is the increment value per frames
 
 
 - [FAS](https://www.fsynth.com/documentation.html#fas) Output channel: the l/r output channel which will be used by FAS for that slice
 
-deletion
+
 
 ##### Muting a slice
 
