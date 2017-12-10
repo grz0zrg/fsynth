@@ -6362,6 +6362,10 @@ var _objSwap = function (src, dst) {
     }
 };
 
+var cloneObj = function (obj) {
+    return JSON.parse(JSON.stringify(obj));
+};
+
 var _swapArrayItem = function (arr, a, b) {
     var temp = arr[a];
     
@@ -6499,7 +6503,6 @@ var _truncateDecimals = function (num, digits) {
 };
 
 var _clipboardCopy = function (e) {
-    console.log(e.target,e.target.dataset.clipboard );
     var copy_event = new ClipboardEvent("copy", { dataType: "text/plain", data: e.target.dataset.clipboard } );
     document.dispatchEvent(copy_event);
 };
@@ -6572,6 +6575,14 @@ var _toolsInit = function () {
 };
 
 _toolsInit();
+var logScale = function (index, total, opt_base) {
+    var base = opt_base || 2, 
+        logmax = Math.log(total + 1) / Math.log(base),
+        exp = logmax * index / total;
+    
+    return Math.pow(base, exp) - 1;
+};
+
 /***********************************************************
     Fields.
 ************************************************************/
@@ -6647,7 +6658,7 @@ var _convert = function (params, data) {
         if (overlap_frame_buffer.length === hop_divisor) {
             var index = 0,
 
-                k = 0, j = 0,
+                k = 0, j = 0, n = 0,
 
                 real_final = [],
                 imag_final = [],
@@ -6655,11 +6666,14 @@ var _convert = function (params, data) {
                 avgdi, avgdr,
                 
                 stft_data_index,
+                stft_data_index2,
                 
-                im, r,
+                im, r, im1, r1, im2, r2,
                 
                 mag,
                 phase,
+                
+                ls,
                 
                 amp,
                 db;
@@ -6680,10 +6694,20 @@ var _convert = function (params, data) {
 
                 // get magnitude data
                 for (k = start; k < end; k += 1) {
+                    ls = lid + logScale(k - start, hid);
+                    
                     stft_data_index = lid + _logScale(k - start, hid);
+                    stft_data_index2 = stft_data_index + 1;
                    
-                    im = imag_final[stft_data_index],
-                    r  = real_final[stft_data_index],
+                    im1 = imag_final[stft_data_index];
+                    im2 = imag_final[stft_data_index2];
+                    r1  = real_final[stft_data_index];
+                    r2  = real_final[stft_data_index2];
+                    
+                    n = ls - stft_data_index;
+                    
+                    im = im1 + n * (im2 - im1);
+                    r = r1 + n * (r2 - r1);
                  
                     amp = (Math.sqrt(r * r + im * im) / hop_divisor);
 /*

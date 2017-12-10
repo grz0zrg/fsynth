@@ -1011,9 +1011,6 @@ var _uiInit = function () {
             }
         });
     
-    console.log(fs_settings_quickstart);
-    console.log(settings_ck_quickstart_elem.checked);
-    
     settings_ck_wavetable_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_oscinfos_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_polyinfos_elem.dispatchEvent(new UIEvent('change'));

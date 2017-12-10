@@ -455,18 +455,18 @@ var _allocateFramesData = function () {
 };
 
 var _canvasRecord = function (ndata) {
-    var min_r = 255, max_r = 0,
+    var min_r = 255, max_r = 0, 
         min_g = 255, max_g = 0,
         min_b = 255, max_b = 0,
-
+    
         ro = 0,
         go = 1,
         bo = 2,
-
+        
         i = 0, j = 0, o = 0, m = 1,
-
+        
         data, temp_data;
-
+    
     if (_record) {
         _record_position += 1;
         if (_record_position > _canvas_width) {
@@ -479,16 +479,19 @@ var _canvasRecord = function (ndata) {
         if (_read_pixels_format === _gl.FLOAT) {
             m = 255;
         }
-
+        
         for (i = 0; i < _output_channels; i += 1) {
             for (j = 0; j <= _canvas_height_mul4; j += 1) {
                 temp_data[j] += ndata[i][j] * m;
+                
+                temp_data[j] = Math.min(temp_data[j], 255);
             }
         }
-
+        
         if (_record_opts.f !== _record_opts.default)  {
             data = _record_canvas_ctx.getImageData(_record_position, 0, 1, _record_canvas.height).data;
         } else {
+            //data = new Uint8ClampedArray(_canvas_height_mul4 + 4); // with normalize
             data = new Uint8ClampedArray(_canvas_height_mul4);
         }
 
@@ -496,51 +499,55 @@ var _canvasRecord = function (ndata) {
             ro = go = bo = 3;
         }
 
-        for (i = 0; i <= _canvas_height_mul4; i += 4) {
+        
+        for (i = 0; i < _canvas_height_mul4; i += 4) {
             o = _canvas_height_mul4 - i;
 
             data[o] = _record_opts.f(data[o], temp_data[i + ro]);
             data[o + 1] = _record_opts.f(data[o + 1], temp_data[i + go]);
             //data[o + 2] = _record_opts.f(data[o + 2], temp_data[i + bo]);
             data[o + 3] = 255;
-
-            min_r = Math.min(min_r, data[i]);
-            min_g = Math.min(min_g, data[i + 1]);
-            min_b = Math.min(min_b, data[i + 2]);
-
-            max_r = Math.max(max_r, data[i]);
-            max_g = Math.max(max_g, data[i + 1]);
-            max_b = Math.max(max_b, data[i + 2]);
+/*
+            min_r = Math.min(min_r, data[o]);
+            min_g = Math.min(min_g, data[o + 1]);
+            min_b = Math.min(min_b, data[o + 2]);
+            
+            max_r = Math.max(max_r, data[o]);
+            max_g = Math.max(max_g, data[o + 1]);
+            max_b = Math.max(max_b, data[o + 2]);
+*/
         }
-
-        max_r = 255 / (max_r - min_r);
-        max_g = 255 / (max_g - min_g);
-        max_b = 255 / (max_b - min_b);
+/*
+        // normalize, work but may introduce coherency issues with added data so disabled for now.
+        max_r = 255.0 / (max_r - min_r);
+        max_g = 255.0 / (max_g - min_g);
+        max_b = 255.0 / (max_b - min_b);
 
         for (i = 0; i < _canvas_height_mul4; i += 4) {
-            data[i]     -= min_r;
+            data[i] -= min_r;
             data[i + 1] -= min_g;
             data[i + 2] -= min_b;
-
-            data[i]     *= max_r;
+            
+            data[i] *= max_r;
             data[i + 1] *= max_g;
             data[i + 2] *= max_b;
         }
 
+        _record_slice_image.data.set(data.slice(0, _canvas_height_mul4 - 1));
+*/
         _record_slice_image.data.set(data);
-
+        
         _record_canvas_ctx.putImageData(_record_slice_image, _record_position, 0);
 /*
         for (i = 0; i < _fragment_input_data.length; i += 1) {
             fragment_input = _fragment_input_data[i];
-
             if (fragment_input.type === 2) {
                 _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
                 _gl.texSubImage2D(_gl.TEXTURE_2D, 0, 0, 0, _gl.RGBA, _gl.UNSIGNED_BYTE, _record_canvas);
             }
         }
 */
-    }
+    }    
 };
 
 var _frame = function (raf_time) {

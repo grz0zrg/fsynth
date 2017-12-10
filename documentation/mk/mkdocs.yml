@@ -17,6 +17,7 @@ pages:
     - 'Envelopes': 'tutorials/env.md'
     - 'Filters': 'tutorials/filters.md'
     - 'Possibilities': 'tutorials/possibilities.md'
+    - 'Effects': 'tutorials/effects.md'
     - 'Multitimbrality': 'tutorials/multitimbrality.md'
     - 'Synthesis': 'tutorials/synthesis_methods.md'
     - 'Feedback': 'tutorials/feedback.md'
