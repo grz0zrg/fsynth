@@ -2,7 +2,7 @@
 
 Fragment provides a uniquely approach to sound synthesis and composition with the capability to generate audio and visuals in real-time and at the same time.
 
-A vast range of sound and music can be created with fine control over harmonic content and spatial dynamics. 
+A vast range of sounds and music can be created with fine control over harmonic content and spatial dynamics. 
 
 ### Visuals
 
@@ -42,8 +42,16 @@ Fragment secondary sound synthesis is granular, the grains source are based on a
 
 Just like additive synthesis, re-synthesis can be done with granular synthesis and most granular parameters can be manipulated by the user.
 
-The combination of granular synthesis and additive synthesis provide powerful sound capabilities which can sound quite organic.
+The combination of granular synthesis and additive synthesis provide powerful sound capabilities.
+
+#### Subtractive Synthesis
+
+> Subtractive synthesis start from harmonically rich waveforms which are then filtered.
+
+Subtractive synthesis was added for fun, this method is only available with the audio server, it is somewhat slow and there is only one low-pass filter (Moog type) implemented.
+
+There is three type of band-limited (no aliasing!) waveforms : sawtooth, square, triangle
 
 #### Sampler
 
-Fragment can also act like a regular sampler, this method is only available with the audio server, it is a work in progress and may work partially.
+Fragment can also act like a regular sampler through granular synthesis method.

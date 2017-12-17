@@ -1,6 +1,6 @@
 ## About
 
-Fragment has support for simultaneous additive and granular sound synthesis and an additional "sampler" method is available which is a simple sampler type synthesis.
+Fragment has support for simultaneous additive and granular sound synthesis, subtractive synthesis is also available.
 
 Granular synthesis only work with the Fragment Audio Server.
 
@@ -30,9 +30,15 @@ Maximum grain length
 
 - The maximum grain length in samples percent
 
+Drive
+
+* Moog filter drive
+
 ## How-to
 
 ### Additive synthesis
+
+Additive synthesis is a mean to generate sounds by adding sine waves together, it is an extremely powerful type of sound synthesis able to reproduce any waveforms in theory.
 
 This is the default and main sound synthesis method.
 
@@ -63,8 +69,31 @@ The parameter are
 
 Granular synthesis is recommended to be used with additive synthesis as it is able to improve the sound quality.
 
+**Note** : Monophonic mode granular synthesis is not implemented.
+
+### Subtractive synthesis
+
+Subtractive synthesis start from harmonically rich waveforms which are then filtered.
+
+This is WIP, it is somewhat slow and there is only one low-pass filter (Moog type) implemented.
+
+There is three type of band-limited (no aliasing!) waveforms : sawtooth, square, triangle
+
+The filter drive is a channel settings.
+
+The parameter are
+
+- RED : Left amplitude
+- GREEN : Right amplitude
+- BLUE : Moog filter cutoff multiplier; the cutoff is set to the fundamental frequency, 1.0 = cutoof at fundamental frequency
+- ALPHA : Moog filter resonance [0, 1] & waveform selection on integral part (0.x, 1.x, 2.x etc)
+
+Subtractive synthesis can be used with additive synthesis and granular synthesis to improve the sound richness.
+
+**Note** : The waveforms are constitued of a maximum of 64 partials
+
 ### Sampler synthesis
 
-This is the third method available, it is quite similar to granular synthesis except there is no grains.
+Granular synthesis with grain start index of 0 and min/max duration of 1/1 can be used to trigger samples as-is like a regular sampler, all samples are loaded from the `grains` folder.
 
-This is a WIP method and may work partially.
+**Note** : Monophonic mode sampler is not implemented.

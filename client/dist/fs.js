@@ -22890,12 +22890,14 @@ var _createFasSettingsContent = function () {
         granular_option,
         additive_option,
         spectral_option,
-        sampler_option,
+        subtractive_option,
         fm_option,
+        chn_drive_input,
         chn_gmin_size_input,
         chn_gmax_size_input,
         gmin = 0.01,
         gmax = 0.1,
+        drive = 1.0,
         chn_genv_type_label,
         chn_genv_type_select,
         chn_genv_option,
@@ -22949,17 +22951,20 @@ var _createFasSettingsContent = function () {
         chn_gmax_size_input = document.createElement("div");
         chn_gmax_size_input.id = "fs_chn_" + j + "_gmax";
         
+        chn_drive_input = document.createElement("div");
+        chn_drive_input.id = "fs_chn_" + j + "_drive";
+        
         granular_option = document.createElement("option");
         additive_option = document.createElement("option");
         spectral_option = document.createElement("option");
-        sampler_option = document.createElement("option");
+        subtractive_option = document.createElement("option"); 
         fm_option = document.createElement("option");
         granular_option.innerHTML = "granular";
         additive_option.innerHTML = "additive";
         spectral_option.innerHTML = "spectral";
         spectral_option.style.display = "none";
+        subtractive_option.innerHTML = "subtractive";
         fm_option.style.display = "none";
-        sampler_option.innerHTML = "sampler";
         fm_option.innerHTML = "PM/FM";
         
         chn_genv_type_label = document.createElement("label");
@@ -22999,13 +23004,13 @@ var _createFasSettingsContent = function () {
         chn_synthesis_select.appendChild(additive_option);
         chn_synthesis_select.appendChild(spectral_option);
         chn_synthesis_select.appendChild(granular_option);
-        chn_synthesis_select.appendChild(sampler_option);
+        chn_synthesis_select.appendChild(subtractive_option);
         chn_synthesis_select.appendChild(fm_option);
         
         chn_settings = _chn_settings[j];
 
         if (!chn_settings) {
-            _chn_settings[j] = [0, 0, 0, 0];
+            _chn_settings[j] = [0, 0, 0, 0, 0];
         } else {
             if (chn_settings[0] === 0) {
                 additive_option.selected = true;
@@ -23014,9 +23019,9 @@ var _createFasSettingsContent = function () {
             } else if (chn_settings[0] === 2) {
                 granular_option.selected = true;
             } else if (chn_settings[0] === 3) {
-                sampler_option.selected = true;
-            } else if (chn_settings[0] === 4) {
                 //fm_option.selected = true;
+            } else if (chn_settings[0] === 4) {
+                subtractive_option.selected = true;
             }
             
             if (chn_settings[1] !== undefined) {
@@ -23025,6 +23030,7 @@ var _createFasSettingsContent = function () {
             
             if (chn_settings[2] !== undefined) {
                 gmin = chn_settings[2];
+                drive = chn_settings[2];
             }
             
             if (chn_settings[3] !== undefined) {
@@ -23043,6 +23049,7 @@ var _createFasSettingsContent = function () {
                 this.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "none";
                 this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "none";
                 this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "none";
+                this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "none";
                 // abrupt end
 
                 if (this.value === "additive") {
@@ -23057,9 +23064,10 @@ var _createFasSettingsContent = function () {
                     this.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "";
                     this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "";
                     this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "";
-                } else if (this.value === "sampler") {
-                    value = 3;
                 } else if (this.value === "PM/FM") {
+                    value = 3;
+                } else if (this.value === "subtractive") {
+                    this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "";
                     value = 4;
                 } else {
                     value = 0;
@@ -23094,6 +23102,7 @@ var _createFasSettingsContent = function () {
         chn_div.appendChild(chn_genv_type_select);
         chn_div.appendChild(chn_gmin_size_input);
         chn_div.appendChild(chn_gmax_size_input);
+        chn_div.appendChild(chn_drive_input);
         
         chn_settings_div.appendChild(chn_div);
         main_chn_settings_div.appendChild(chn_settings_div);
@@ -23148,8 +23157,34 @@ var _createFasSettingsContent = function () {
             on_change: _onChangeGrainSize(j, 3)
         }));
         
+        _fas_content_list.push(WUI_RangeSlider.create(chn_drive_input, {
+            width: 120,
+            height: 8,
+
+            min: 0.1,
+            max: 500.0,
+
+            bar: false,
+
+            step: 0.1,
+            scroll_step: 1.,
+
+            default_value: drive,
+            value: drive,
+            
+            decimals: 2,
+
+            title: "Filter drive",
+
+            title_min_width: 140,
+            value_min_width: 88,
+
+            on_change: _onChangeGrainSize(j, 2)
+        }));
+        
         chn_gmin_size_input.style.display = "hidden";
         chn_gmax_size_input.style.display = "hidden";
+        chn_drive_input.style.display = "hidden";
         
         chn_synthesis_select.dispatchEvent(new UIEvent('change'));
         chn_genv_type_select.dispatchEvent(new UIEvent('change'));

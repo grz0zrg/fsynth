@@ -4,7 +4,7 @@ The Fragment Audio Server is a program written with the C language which is able
 
 It is recommended to use Fragment with the Fragment Audio Server enabled
 
-The advantage of using the audio server is that it provide the **best audio performances** along with **audio devices choice**, **multiple audio outputs**, sample rate choice, **granular synthesis** & sampler method, **distributed sound synthesis** over multiple machines or cores, realtime scheduling under Linux and more...
+The advantage of using the audio server is that it provide the **best audio performances** along with **audio devices choice**, **multiple audio outputs**, sample rate choice, **granular synthesis** / sampler and subtractive synthesis method, **distributed sound synthesis** over multiple machines or cores, realtime scheduling under Linux and more...
 
 The Fragment web-client communicate with FAS by sending data through the network when the FAS option (the waveform icon in the main toolbar) is enabled, FAS can run on any machines independently of the Fragment application, it gather the pixels data from Fragment in real-time, compute things and deliver the audio through the selected audio device.
 
