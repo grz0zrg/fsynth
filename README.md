@@ -13,8 +13,10 @@ Table of Contents
       * [Features](#features)
          * [Sound Synthesis](#sound-synthesis)
             * [Additive Synthesis](#additive-synthesis)
-            * [Granular Synthesis (<a href="https://github.com/grz0zrg/fas">FAS</a> only)](#granular-synthesis-fas-only)
-            * [Sampler (<a href="https://github.com/grz0zrg/fas">FAS</a> only)](#sampler-fas-only)
+            * [Granular Synthesis (<a href="https://github.com/grz0zrg/fas">FAS only)</a>](#granular-synthesis-fas-only)
+            * [Sampler (<a href="https://github.com/grz0zrg/fas">FAS only)</a>](#sampler-fas-only)
+            * [PM (<a href="https://github.com/grz0zrg/fas">FAS only)</a>](#pm-fas-only)
+            * [Subtractive (<a href="https://github.com/grz0zrg/fas">FAS only)</a>](#subtractive-fas-only)
       * [MIDI Features](#midi)
       * [OSC](#osc)
       * [Tools](#tools)
@@ -59,7 +61,7 @@ Fragment is also able to do real-time distributed sound synthesis with the sound
 
 ## Features
 
-- Complete additive, spectral, granular synthesizer powered by WebAudio oscillators (work best in Chrome), a Wavetable (slow/worst) OR a [C native audio server](https://github.com/grz0zrg/fas) (fastest/best)
+- Additive, spectral, granular, subtractive, phase modulation synthesizer powered by WebAudio oscillators (additive only, work best in Chrome), a Wavetable (additive only, slow/worst) OR a [C native audio server](https://github.com/grz0zrg/fas) (fastest/best)
 - Live coding/JIT compilation of shader code
 - Real-time, collaborative app.
 - Distributed sound synthesis, multi-machines/multi-core support (Fragment Audio Server with fas_relay)
@@ -137,19 +139,47 @@ Dynamics parameters
 
 - Red = Left amplitude
 - Green = Right amplitude
-- Blue = Grain sample (index), between [0,1], grain density if >= 2
-- Alpha = Grain index, between [0,1], play grain backward if negative, grain index randomization if >= 2
+- Blue = Sample index bounded to [0, 1] (cyclic) and grains density when > 2
+- Alpha = Grains start index bounded [0, 1] (cyclic), grains start index random 
+  [0, 1] factor when > 1, play the grain backward when negative
 
 #### Sampler ([FAS](https://github.com/grz0zrg/fas) only)
 
-Just like granular synthesis except that there is no grains. WIP.
+Granular synthesis with grain start index of 0 and min/max duration of 1/1 can be used to trigger samples as-is like a regular sampler.
+
+#### PM ([FAS](https://github.com/grz0zrg/fas) only)
+
+Phase modulation (PM) is a mean to generate sounds by modulating the phase of an oscillator (carrier) from another oscillator (modulator), it is very similar to frequency modulation (FM).
+
+PM synthesis in Fragment work by giving an oscillator index (based on image-height) to the note, this oscillator will be used as a modulator.
+
+PM synthesis use a high quality low-pass filter (Moog type).
 
 Dynamics parameters
 
-- Red = Left amplitude
-- Green = Right amplitude
-- Blue = Sample (index), between [0,1]
-- Alpha = Sample position
+- Red = Amplitude value of the LEFT channel
+- Green = Amplitude value of the RIGHT channel
+- Blue = Moog filter cutoff multiplier; the cutoff is set to the fundamental frequency, 1.0 = cutoff at fundamental frequency
+- Alpha = Moog filter resonance [0, 1] & oscillator selection on integral part (0.x, 1.x, 2.x etc), cyclic
+
+#### Subtractive ([FAS](https://github.com/grz0zrg/fas) only)
+
+Subtractive synthesis start from harmonically rich waveforms which are then filtered.
+
+It is somewhat slow due to additive synthesized waveforms and there is only one high quality low-pass filter (Moog type) implemented.
+
+There is three type of band-limited (no aliasing!) waveforms : sawtooth, square, triangle
+
+This type of synthesis may improve gradually with more waveforms (and a faster way to generate them) and more filters.
+
+**Note** : The waveforms are constitued of a maximum of 64 partials
+
+Dynamics parameters
+
+- Red = Amplitude value of the LEFT channel
+- Green = Amplitude value of the RIGHT channel
+- Blue = Moog filter cutoff multiplier; the cutoff is set to the fundamental frequency, 1.0 = cutoff at fundamental frequency
+- Alpha = Moog filter resonance [0, 1] & waveform selection on integral part (0.x, 1.x, 2.x etc)
 
 ## MIDI
 
@@ -178,8 +208,8 @@ Fragment support OSC input and output, an OSC relay which translate WebSockets d
 
 Fragment uniforms can be defined through OSC with two methods :
 
-- Message with an address starting with **i **such as */iarr*
-  - This will create/update a **float **array uniform, the message should contain an array with index to update at index 0 and the value at index 1
+- Message with an address starting with **i** such as */iarr*
+  - This will create/update a **float** array uniform, the message should contain an array with index to update at index 0 and the value at index 1
   - If the array does not exist, it will create it and grow the array as needed
 - Update whole float array with message starting with **a** address such as **/aarr**
   - This will create/update a whole **float **array uniform, the message should just contain all the array values

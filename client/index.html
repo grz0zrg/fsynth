@@ -773,7 +773,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                                         <span class="fs-documentation-keyword" data-clipboard-text="float bpf(float x, float c, float s) {&#010;return lpf(x, c, s) * hpf(x, c, s);&#010;}">BPF (band-pass filter, require LPF and HPF)</span>
                                     </li>
                                     <li>
-                                        <span class="fs-documentation-keyword" data-clipboard-text="for (int k = 0; k < 8; k += 1) {&#010;vec4 data = keyboard[k];&#010;&#010;float kfrq = data.x;&#010;float kvel = data.y;&#010;float ktim = data.z;&#010;float kchn = data.w;&#010;&#010;if (kfrq == 0.) {&#010;break;&#010;}&#010;&#010;if (uv.x < 0.25 && kchn == 1.) {&#010;&#010;} else if (uv.x > 0.25 && uv.x < 0.5 && kchn == 2.) {&#010;&#010;}">2 channels MIDI/Multitimbrality</span>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="for (int k = 0; k < 8; k += 1) {&#010;vec4 data = keyboard[k];&#010;&#010;float kfrq = data.x;&#010;float kvel = data.y;&#010;float ktim = data.z;&#010;float kchn = data.w;&#010;&#010;if (kfrq == 0.) {&#010;break;&#010;}&#010;&#010;if (uv.x < 0.25 && kchn == 0.) {&#010;&#010;} else if (uv.x > 0.25 && uv.x < 0.5 && kchn == 1.) {&#010;&#010;}">2 channels MIDI/Multitimbrality</span>
                                     </li>
                                 </ul>
                             </div>
@@ -875,17 +875,6 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                                         </ul>
                                     </li>
                                 </ul>
-                                <span class="fs-about-header">Bitcoin</span>
-                                <ul class="fs-documentation-entries">
-                                    <li>
-                                        <span class="fs-documentation-keyword" data-clipboard-text="13jcV65uSa8s4X2Vwvj1p9tPvweSWBUgX2">13jcV65uSa8s4X2Vwvj1p9tPvweSWBUgX2</span>
-                                    </li>
-                                </ul>
-                                <div class="fs-about-footer">
-                                    <div>
-                                        <img src="data/qrcode.png"/>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>
