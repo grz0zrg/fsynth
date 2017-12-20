@@ -14,9 +14,7 @@ var _notes_renderer_worker = new Worker("dist/worker/notes_renderer.min.js"),
 ************************************************************/
 
 var _exportRecord = function () {
-    var data = _record_canvas_ctx.getImageData(0, 0, _record_canvas.width, _record_canvas.height).data,
-        
-        image_data,
+    var image_data = _record_canvas_ctx.getImageData(0, 0, _record_canvas.width, _record_canvas.height),
         
         sonogram_left_boundary,
         sonogram_right_boundary,
@@ -31,25 +29,23 @@ var _exportRecord = function () {
             flipY: false
         };
     
-    sonogram_left_boundary = _getSonogramBoundary(data, _record_canvas.width, _record_canvas.height, opts.mono);
-    sonogram_right_boundary = _getSonogramBoundary(data, _record_canvas.width, _record_canvas.height, opts.mono, true);
+    sonogram_left_boundary = _getSonogramBoundary(image_data.data, _record_canvas.width, _record_canvas.height, opts.mono);
+    sonogram_right_boundary = _getSonogramBoundary(image_data.data, _record_canvas.width, _record_canvas.height, opts.mono, true);
 
     if (sonogram_left_boundary.x != -1 && sonogram_right_boundary.x != 1 && sonogram_left_boundary.x != sonogram_right_boundary.x) {
         image_data = _record_canvas_ctx.getImageData(sonogram_left_boundary.x, 0, sonogram_right_boundary.x - sonogram_left_boundary.x, _record_canvas.height);
-        
-        data = image_data.data;
     }
     
-    opts.ffreq = _getFundamentalFrequency(data, image_data.width, image_data.height, opts.mono);
+    opts.ffreq = _getFundamentalFrequency(image_data.data, image_data.width, image_data.height, opts.mono);
     
     _notification("image conversion in progress...");
     
     _notes_renderer_worker.postMessage({
-            data: data,
+            data: image_data.data,
             width: image_data.width,
             height: image_data.height,
             options: opts
-        }, [data.buffer]);
+        }, [image_data.data.buffer]);
 };
 
 var _audioRecordToWav = function (audio_buffer, filename, ffreq) {
