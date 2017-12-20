@@ -35,7 +35,7 @@ $define(title)(1)($center($big($big($1))))
 $define(em)(1)($italic($1))
 $//
 $bigtitle(Fragment)
-$title(The Collaborative Spectral Synthesizer)
+$title(The Collaborative Synthesizer)
 $center(by Julien Verneuil - contact@fsynth.com)
 $nl
 $ifhtml($center(This is the old HTML documentation of the Fragment synthesizer which is still updated to some extent.))$ifpdf($center(This is the old documentation of the Fragment synthesizer which is still updated to some extent.))
@@ -50,7 +50,7 @@ The $bold($tlink(Fragment synthesizer)(https://www.fsynth.com)) is a collaborati
 
 Fragment is stereophonic, polyphonic, multitimbral and support live coding of audio and visuals at the same time.
 
-Fragment main synthesis method is additive but granular synthesis and a simple sampler method is also available.
+Fragment main synthesis method is additive, spectral and granular, phase modulation and subtractive synthesis is also available.
 
 Fragment has many features making it a bliss to produce any kind of sounds or visuals, it is aimed at artists seeking a real-time creative environment with direct visual feedback and few limitations to experiment with, a programmable noise-of-all-kinds software.
 
@@ -73,8 +73,9 @@ After many hours spent crafting the software, the first version of Fragment was 
 $nl
 $subsection(Capabilities)
 $list(
-	$item Powerful additive/granular synthesizer
+	$item Powerful additive/spectral/granular synthesizer
 		$list($item Powered by WebAudio oscillators (additive only) $item Powered by $ref(fas)(FAS), an independent program $item Powered by a wavetable (additive only) )
+	$item Phase modulation / Subtractive synthesizer (powered by FAS, alternative methods)
 	$item Stereophonic / Monaural
 	$item Polyphonic
 		$list($item Automatically detected from the GPU capabilities $item 16 notes minimum $item 704 notes with a GeForce GTX 970 GPU)
@@ -116,7 +117,7 @@ Fragment may be quite hungry in term of computing resources, a dual core with hi
 
 Several methods are provided to synthesize sounds, each with performances pros and cons:
 $list(
-	$item $ref(fas)(FAS) ($bold(recommended method)): $list($item Fastest $item Has more synthesis methods like granular and sampler type $item Multiple output support with soundcard choice $item Many audio settings $item Can run on a dedicated computer such as a Raspberry PI $item Dedicated program which receive Fragment data over the network $item Enhanced noise modeling with band-limited noise $item Advanced granular synthesis)
+	$item $ref(fas)(FAS) ($bold(recommended method)): $list($item Fastest $item Has more synthesis methods like granular, PM and subtractive type $item Multiple output support with soundcard choice $item Many audio settings $item Can run on a dedicated computer such as a Raspberry PI $item Dedicated program which receive Fragment data over the network $item Enhanced noise modeling with band-limited noise $item Advanced granular synthesis)
 	$item WebAudio oscillators: $list($item Fastest with Chrome $item May not work with Firefox if the canvas is too high vertically $item Require a fast CPU $item Integrated global "release" envelope)
 	$item Wavetable $bold(not recommended): $list($item Most compatible browser method $item Will produce crackles))
 $subsubsection(GPU)
@@ -155,7 +156,7 @@ For example, on a Raspberry PI 3 (1.2GHz 64-bit quad-core ARMv8 CPU) ~700 oscill
 
 Actually, there is a also a hard limit which is that the frequency capture of slices cannot go beyond the refresh rate of your monitor (and this also depend on the browser implementation, commonly 60 FPS which mean ~16ms time granularity), this could however be bypassed by switching to a different monitor or disabling browser vertical synchronization.
 
-Fragment can also do other types of synthesis like granular synthesis which is only available by using the Audio Server.
+Fragment can also do other types of synthesis like granular, PM and subtractive synthesis which are only available by using the Audio Server.
 
 $nl
 $label(score)
@@ -628,13 +629,15 @@ Fragment keep track of your MIDI settings choice for particual devices per sessi
 $nl
 $label(record)
 $subsection(Recording dialog)
-The recording dialog allow to continuously record the slices output from all channels into one score that you can export to PNG by clicking on the save icon.
+The recording dialog allow to continuously record the slices output from all channels into one score that you can export to PNG or WAV file by clicking on the corresponding icon.
 
 This tool can become handy if you want to export your work and import it into an external tool or within Fragment again by clicking on the [+] icon.
 
-Can also serve for spectral analysis.
+It is also specifically handy to produce WAV samples, the exported sample filename automatically has the accurate fundamental frequency information and note name along with session name and current date.
 
-The recording dialog support mixing functions, for example by clicking on the + icon, the recording will be additive which mean that slices content will be drawn on the previous content without erasing it, a list of all the toolbar actions can be found below.
+The recording dialog can also serve for spectral analysis.
+
+The recording dialog support compositing functions, for example by clicking on the + icon, the recording will be additive which mean that slices content will be drawn on the previous content without erasing it, a list of all the toolbar actions can be found below.
 
 The recording canvas width is linked to the score width.
 
@@ -645,6 +648,7 @@ $list(
 	$item Substractive mode
 	$item Multiply mode
 	$item Add the recorded image as a new GLSL input
+	$item Save to disk as a WAV file
 	$item Export as PNG (open a new dialog))
 
 $nl

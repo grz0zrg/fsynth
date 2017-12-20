@@ -48,9 +48,17 @@ The combination of granular synthesis and additive synthesis provide powerful so
 
 > Subtractive synthesis start from harmonically rich waveforms which are then filtered.
 
-Subtractive synthesis was added for fun, this method is only available with the audio server, it is somewhat slow and there is only one low-pass filter (Moog type) implemented.
+Subtractive synthesis is only available with the audio server, it is somewhat slow and there is only one low-pass filter (Moog type) implemented.
 
 There is three type of band-limited (no aliasing!) waveforms : sawtooth, square, triangle
+
+#### Phase Modulation
+
+> Phase modulation (PM) is a mean to generate sounds by modulating the phase of an oscillator (carrier) from another oscillator (modulator), it is very similar to frequency modulation (FM).
+
+PM synthesis in Fragment work by giving an oscillator index (based on image-height) to pixel, this oscillator will be used as a modulator.
+
+PM synthesis use a high quality low-pass filter (Moog type).
 
 #### Sampler
 

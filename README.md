@@ -71,6 +71,7 @@ Fragment is also able to do real-time distributed sound synthesis with the sound
 - MIDI inputs support with [Web MIDI](https://caniuse.com/#feat=midi) compatible web browsers, MPE supported
 - Adjustable audio output channel per slices
 - Real-time frames by frames recording with export as an image or Fragment input (export back into itself, this can be used to build complex brushes for drawing canvas inputs)
+- .wav export (additive synthesis only without FAS)
 - WebGL 2.0 and GLSL 3.0 support when compatibility is detected
 - RGBA Live visuals with stereophonic sound generation (WebGL 2.0) or monophonic sound generation (WebGL 1)
 - Synthesis data processed in 32-bit precision (WebGL 2.0 & EXT_color_buffer_float extension) or 8-bit precision
@@ -317,6 +318,8 @@ Client :
  * [glsl-simulator](https://github.com/burg/glsl-simulator) the GLSL parser is based on glsl-simulator
  * [ShareDB](https://github.com/share/sharedb/) for the collaborative features
  * [mpejs](https://github.com/WeAreROLI/mpejs)
+ * [FileSaver.js](https://github.com/eligrey/FileSaver.js/)
+ * [Recorderjs](https://github.com/mattdiamond/Recorderjs)
  * [Normalize](https://necolas.github.io/normalize.css/)
  * [Skeleton](http://getskeleton.com/) for the landing page
  * [Mikola Lysenko stft (enhanced version)](https://github.com/mikolalysenko/stft)
