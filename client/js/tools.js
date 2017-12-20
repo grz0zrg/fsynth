@@ -14,6 +14,9 @@ var _fs_palette = {
         100: [255, 252, 0]
     },
     
+	_midi_notes_map = [],
+    _notes_name = [ "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" ],
+    
     _spectrum_colors = [];
 
 /***********************************************************
@@ -22,6 +25,10 @@ var _fs_palette = {
 
 var _hzToMIDINote = function (freq) {
     return 69 + 12 * Math.log2(freq / 440);
+};
+
+var _MIDINoteName = function (midi_note) {
+    return _midi_notes_map[Math.round(midi_note)];
 };
 
 var _randomInt = function (min, max) {
@@ -89,6 +96,88 @@ var _getElementOffset = function (elem) {
         left = box.left + scrollLeft - clientLeft;
 
     return { top: Math.round(top), left: Math.round(left), width: box.width, height: box.height };
+};
+
+var _getFundamentalFrequency = function (data, width, height, mono, backward) {
+    var i = 0, j = 0,
+        data_index = 0,
+        freq = -1,
+        
+        w_offset = 0;
+    
+    if (backward) {
+        w_offset = -(width - 1);
+    }
+
+    for (i = height - 1; i >= 0; i -= 1) {
+        for (j = 0; j < width; j += 1) {
+            data_index = i * (width * 4) + Math.abs(j + w_offset) * 4;
+            
+            if (mono) {
+                if (data[data_index + 3] > 0) {
+                    freq = _getFrequency(i);
+                    
+                    i = -1;
+                    break;
+                }
+            } else {
+                if (((data[data_index] + data[data_index + 1]) / 2) > 0) {
+                    freq = _getFrequency(i);
+                    
+                    i = -1;
+                    break;
+                }
+            }
+            
+        }
+    }
+    
+    return freq;
+};
+
+var _getSonogramBoundary = function (data, width, height, mono, backward) {
+    var i = 0, j = 0,
+        data_index = 0,
+
+        x = -1,
+        y = -1,
+        
+        rx = 0,
+        
+        w_offset = 0;
+
+    if (backward) {
+        w_offset = -(width - 1);
+    }
+
+    for (i = height - 1; i >= 0; i -= 1) {
+        for (j = 0; j < width; j += 1) {
+            rx = Math.abs(j + w_offset);
+            
+            data_index = i * (width * 4) + rx * 4;
+            
+            if (mono) {
+                if (data[data_index + 3] > 0) {
+                    x = rx;
+                    y = i;
+                    
+                    i = -1;
+                    break;
+                }
+            } else {
+                if (data[data_index] > 0 || data[data_index + 1] > 0) {
+                    x = rx;
+                    y = i;
+                    
+                    i = -1;
+                    break;
+                }
+            }
+            
+        }
+    }
+    
+    return { x: x, y: y };
 };
 
 var _rgbToHex = function (r, g, b) {
@@ -258,10 +347,21 @@ var _getCookie = function getCookie(name) {
 ************************************************************/
 
 var _toolsInit = function () {
-    var i = 0;
+    var i = 0, index, key, octave;
     
     for (i = 0; i < 256; i += 1) {
         _spectrum_colors.push(_getColorFromPalette(i));
+    }
+    
+    // generate notes name for MIDI to note name conversion
+	for(i = 0; i < 127; i += 1) {
+		index = i;
+        key = _notes_name[index % 12];
+        octave = ((index / 12) | 0) - 1;
+
+		key += octave;
+
+		_midi_notes_map[i] = key;
     }
 };
 

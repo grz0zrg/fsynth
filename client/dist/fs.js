@@ -17077,6 +17077,10 @@ var mpe =
 
 /***/ }
 /******/ ]);
+// https://github.com/eligrey/FileSaver.js/
+/*! @source http://purl.eligrey.com/github/FileSaver.js/blob/master/FileSaver.js */
+var saveAs=saveAs||function(e){"use strict";if(typeof e==="undefined"||typeof navigator!=="undefined"&&/MSIE [1-9]\./.test(navigator.userAgent)){return}var t=e.document,n=function(){return e.URL||e.webkitURL||e},r=t.createElementNS("http://www.w3.org/1999/xhtml","a"),o="download"in r,a=function(e){var t=new MouseEvent("click");e.dispatchEvent(t)},i=/constructor/i.test(e.HTMLElement)||e.safari,f=/CriOS\/[\d]+/.test(navigator.userAgent),u=function(t){(e.setImmediate||e.setTimeout)(function(){throw t},0)},s="application/octet-stream",d=1e3*40,c=function(e){var t=function(){if(typeof e==="string"){n().revokeObjectURL(e)}else{e.remove()}};setTimeout(t,d)},l=function(e,t,n){t=[].concat(t);var r=t.length;while(r--){var o=e["on"+t[r]];if(typeof o==="function"){try{o.call(e,n||e)}catch(a){u(a)}}}},p=function(e){if(/^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(e.type)){return new Blob([String.fromCharCode(65279),e],{type:e.type})}return e},v=function(t,u,d){if(!d){t=p(t)}var v=this,w=t.type,m=w===s,y,h=function(){l(v,"writestart progress write writeend".split(" "))},S=function(){if((f||m&&i)&&e.FileReader){var r=new FileReader;r.onloadend=function(){var t=f?r.result:r.result.replace(/^data:[^;]*;/,"data:attachment/file;");var n=e.open(t,"_blank");if(!n)e.location.href=t;t=undefined;v.readyState=v.DONE;h()};r.readAsDataURL(t);v.readyState=v.INIT;return}if(!y){y=n().createObjectURL(t)}if(m){e.location.href=y}else{var o=e.open(y,"_blank");if(!o){e.location.href=y}}v.readyState=v.DONE;h();c(y)};v.readyState=v.INIT;if(o){y=n().createObjectURL(t);setTimeout(function(){r.href=y;r.download=u;a(r);h();c(y);v.readyState=v.DONE});return}S()},w=v.prototype,m=function(e,t,n){return new v(e,t||e.name||"download",n)};if(typeof navigator!=="undefined"&&navigator.msSaveOrOpenBlob){return function(e,t,n){t=t||e.name||"download";if(!n){e=p(e)}return navigator.msSaveOrOpenBlob(e,t)}}w.abort=function(){};w.readyState=w.INIT=0;w.WRITING=1;w.DONE=2;w.error=w.onwritestart=w.onprogress=w.onwrite=w.onabort=w.onerror=w.onwriteend=null;return m}(typeof self!=="undefined"&&self||typeof window!=="undefined"&&window||this.content);if(typeof module!=="undefined"&&module.exports){module.exports.saveAs=saveAs}else if(typeof define!=="undefined"&&define!==null&&define.amd!==null){define("FileSaver.js",function(){return saveAs})}
+
 /* jslint browser: true */
 
 /* global */
@@ -17601,6 +17605,9 @@ var _fs_palette = {
         100: [255, 252, 0]
     },
     
+	_midi_notes_map = [],
+    _notes_name = [ "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" ],
+    
     _spectrum_colors = [];
 
 /***********************************************************
@@ -17609,6 +17616,10 @@ var _fs_palette = {
 
 var _hzToMIDINote = function (freq) {
     return 69 + 12 * Math.log2(freq / 440);
+};
+
+var _MIDINoteName = function (midi_note) {
+    return _midi_notes_map[Math.round(midi_note)];
 };
 
 var _randomInt = function (min, max) {
@@ -17676,6 +17687,88 @@ var _getElementOffset = function (elem) {
         left = box.left + scrollLeft - clientLeft;
 
     return { top: Math.round(top), left: Math.round(left), width: box.width, height: box.height };
+};
+
+var _getFundamentalFrequency = function (data, width, height, mono, backward) {
+    var i = 0, j = 0,
+        data_index = 0,
+        freq = -1,
+        
+        w_offset = 0;
+    
+    if (backward) {
+        w_offset = -(width - 1);
+    }
+
+    for (i = height - 1; i >= 0; i -= 1) {
+        for (j = 0; j < width; j += 1) {
+            data_index = i * (width * 4) + Math.abs(j + w_offset) * 4;
+            
+            if (mono) {
+                if (data[data_index + 3] > 0) {
+                    freq = _getFrequency(i);
+                    
+                    i = -1;
+                    break;
+                }
+            } else {
+                if (((data[data_index] + data[data_index + 1]) / 2) > 0) {
+                    freq = _getFrequency(i);
+                    
+                    i = -1;
+                    break;
+                }
+            }
+            
+        }
+    }
+    
+    return freq;
+};
+
+var _getSonogramBoundary = function (data, width, height, mono, backward) {
+    var i = 0, j = 0,
+        data_index = 0,
+
+        x = -1,
+        y = -1,
+        
+        rx = 0,
+        
+        w_offset = 0;
+
+    if (backward) {
+        w_offset = -(width - 1);
+    }
+
+    for (i = height - 1; i >= 0; i -= 1) {
+        for (j = 0; j < width; j += 1) {
+            rx = Math.abs(j + w_offset);
+            
+            data_index = i * (width * 4) + rx * 4;
+            
+            if (mono) {
+                if (data[data_index + 3] > 0) {
+                    x = rx;
+                    y = i;
+                    
+                    i = -1;
+                    break;
+                }
+            } else {
+                if (data[data_index] > 0 || data[data_index + 1] > 0) {
+                    x = rx;
+                    y = i;
+                    
+                    i = -1;
+                    break;
+                }
+            }
+            
+        }
+    }
+    
+    return { x: x, y: y };
 };
 
 var _rgbToHex = function (r, g, b) {
@@ -17845,10 +17938,21 @@ var _getCookie = function getCookie(name) {
 ************************************************************/
 
 var _toolsInit = function () {
-    var i = 0;
+    var i = 0, index, key, octave;
     
     for (i = 0; i < 256; i += 1) {
         _spectrum_colors.push(_getColorFromPalette(i));
+    }
+    
+    // generate notes name for MIDI to note name conversion
+	for(i = 0; i < 127; i += 1) {
+		index = i;
+        key = _notes_name[index % 12];
+        octave = ((index / 12) | 0) - 1;
+
+		key += octave;
+
+		_midi_notes_map[i] = key;
     }
 };
 
@@ -18223,7 +18327,7 @@ _utter_fail_element.innerHTML = "";
         _LEFT_MOUSE_BTN = 1,
         _RIGHT_MOUSE_BTN = 2,
 
-        _fps = 60,
+        _fps = 60, // FPS is fixed when using WebAudio version of Fragment TODO : find a solution to update this in real-time ?
 
         _raf,
 
@@ -19092,38 +19196,6 @@ var _loadImageFromURL = function (url, done_cb) {
     Fields.
 ************************************************************/
 
-var _image_to_audio_worker = null;//new Worker("dist/worker/image_to_audio.min.js");
-
-/***********************************************************
-    Functions.
-************************************************************/
-
-var _exportImage = function (image_data) {
-    var data = new Uint8ClampedArray(image_data.data),
-        
-        params = {
-            image_width: image_data.width,
-            image_height: image_data.height,
-            max_freq: _oscillators[0].freq,
-            note_time: _getNoteTime(120, 16),
-            sample_rate: _sample_rate,
-            data: data
-        };
-    
-    _notification("Export in progress...", 2000);
-
-    //_image_to_audio_worker.postMessage(params, [params.data.buffer]);
-};
-/*
-_image_to_audio_worker.addEventListener('message', function (m) {
-        console.log(m);
-    }, false);
-*//* jslint browser: true */
-
-/***********************************************************
-    Fields.
-************************************************************/
-
 var _audio_to_image_worker = new Worker("dist/worker/audio_to_image.min.js"),
     
     _audio_import_settings = {
@@ -19834,11 +19906,6 @@ var _canvasRecord = function (ndata) {
         data, temp_data;
     
     if (_record) {
-        _record_position += 1;
-        if (_record_position > _canvas_width) {
-            _record_position = 0;
-        }
-
         // merge all
         temp_data = new Uint8ClampedArray(_canvas_height_mul4);
 
@@ -19864,10 +19931,9 @@ var _canvasRecord = function (ndata) {
         if (_audio_infos.monophonic) {
             ro = go = bo = 3;
         }
-
         
         for (i = 0; i < _canvas_height_mul4; i += 4) {
-            o = _canvas_height_mul4 - i;
+            o = _canvas_height_mul4 - i - 4;
 
             data[o] = _record_opts.f(data[o], temp_data[i + ro]);
             data[o + 1] = _record_opts.f(data[o + 1], temp_data[i + go]);
@@ -19913,6 +19979,10 @@ var _canvasRecord = function (ndata) {
             }
         }
 */
+        _record_position += 1;
+        if (_record_position > _canvas_width) {
+            _record_position = 0;
+        }
     }    
 };
 
@@ -22756,6 +22826,138 @@ var _stop = function () {
     //_rewind();
 };/* jslint browser: true */
 
+
+/***********************************************************
+    Fields.
+************************************************************/
+
+var _notes_renderer_worker = new Worker("dist/worker/notes_renderer.min.js"),
+    _audio_renderer_worker = new Worker("dist/worker/audio_renderer.min.js"),
+    _audio_recorder_worker = new Worker("dist/worker/recorder.min.js");
+
+/***********************************************************
+    Functions.
+************************************************************/
+
+var _exportRecord = function () {
+    var data = _record_canvas_ctx.getImageData(0, 0, _record_canvas.width, _record_canvas.height).data,
+        
+        image_data,
+        
+        sonogram_left_boundary,
+        sonogram_right_boundary,
+        
+        opts = {
+            float: _audio_infos.float_data,
+            mono: _audio_infos.monophonic,
+            ffreq: 0,
+            sps: _fps,
+            octaves: _audio_infos.octaves,
+            baseFrequency: _audio_infos.base_freq,
+            flipY: false
+        };
+    
+    sonogram_left_boundary = _getSonogramBoundary(data, _record_canvas.width, _record_canvas.height, opts.mono);
+    sonogram_right_boundary = _getSonogramBoundary(data, _record_canvas.width, _record_canvas.height, opts.mono, true);
+
+    if (sonogram_left_boundary.x != -1 && sonogram_right_boundary.x != 1 && sonogram_left_boundary.x != sonogram_right_boundary.x) {
+        image_data = _record_canvas_ctx.getImageData(sonogram_left_boundary.x, 0, sonogram_right_boundary.x - sonogram_left_boundary.x, _record_canvas.height);
+        
+        data = image_data.data;
+    }
+    
+    opts.ffreq = _getFundamentalFrequency(data, image_data.width, image_data.height, opts.mono);
+    
+    _notification("image conversion in progress...");
+    
+    _notes_renderer_worker.postMessage({
+            data: data,
+            width: image_data.width,
+            height: image_data.height,
+            options: opts
+        }, [data.buffer]);
+};
+
+var _audioRecordToWav = function (audio_buffer, filename, ffreq) {
+    if (!audio_buffer) {
+        return;
+    }
+    
+    var date_now = (new Date().toLocaleDateString()).replace("/", "_");
+    
+    if (!filename) {
+        filename = "fs_" + encodeURIComponent(_getSessionName()) + "_" + date_now + "_" + _truncateDecimals(ffreq, 2) + "hz_" + _MIDINoteName(_hzToMIDINote(ffreq));
+    }
+    
+    _audio_recorder_worker.postMessage({
+            command: 'init',
+            config: {
+                sampleRate: _audio_context.sampleRate,
+                numChannels: 2,
+                gain: _audio_infos.gain
+            }
+        });
+    
+    _audio_recorder_worker.postMessage({
+        command: 'record',
+        buffer: [
+                audio_buffer.getChannelData(0), 
+                audio_buffer.getChannelData(1)
+            ]
+        });  
+    
+    _audio_recorder_worker.postMessage({
+            command: 'exportWAV',
+            type: 'audio/wav',
+            filename: filename
+        });
+};
+
+_notes_renderer_worker.addEventListener("message", function (m) {
+        var w = m.data;
+
+        w.sample_rate = _audio_context.sampleRate;
+    
+        _notification("image to sound conversion in progress...");
+
+        _audio_renderer_worker.postMessage(w);
+    }, false);
+
+_audio_renderer_worker.addEventListener("message", function (m) {
+        var w = m.data,
+
+            data_l = new Float32Array(w.data_l),
+            data_r = new Float32Array(w.data_r),
+
+            audio_buffer;
+    
+        _notification("exporting sound in progress...");
+
+        audio_buffer = _audio_context.createBuffer(2, w.length, _audio_context.sampleRate);
+
+        audio_buffer.copyToChannel(data_l, 0, 0);
+        audio_buffer.copyToChannel(data_r, 1, 0);
+    
+        _audioRecordToWav(audio_buffer, null, w.opts.ffreq);
+    }, false);
+
+_audio_recorder_worker.addEventListener("message", function (m) {
+        var wav_blob = m.data.blob,
+            
+            file = new File([wav_blob], m.data.filename + ".wav", {
+                    type: "audio/wav"
+                });
+        
+        saveAs(file);
+    
+        _notification("exporting '" + m.data.filename + ".wav'");
+        
+        _audio_recorder_worker.postMessage({
+                command: 'clear'
+            });
+    }, false);
+/* jslint browser: true */
+
 /***********************************************************
     Fields.
 ************************************************************/
@@ -23330,12 +23532,6 @@ var _saveRecord = function () {
     
     win = window.open();
     win.document.write("<img src='"+data_url+"'/>");
-};
-
-var _renderRecord = function () {
-    if (_fs_state) {
-        _exportImage(_record_canvas_ctx.getImageData(0, 0, _record_canvas.width, _record_canvas.height));
-    }
 };
 
 var _rewindRecording = function () {
@@ -24224,6 +24420,11 @@ var _uiInit = function () {
                         icon: "fs-plus-icon",
                         on_click: _addRecordInput,
                         tooltip: "Add as input"
+                    },
+                    {
+                        icon: "fs-audio-file-icon",
+                        on_click: _exportRecord,
+                        tooltip: "Export as .wav"
                     },
                     {
                         icon: "fs-save-icon",

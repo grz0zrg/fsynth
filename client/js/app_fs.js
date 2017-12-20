@@ -28,6 +28,9 @@
 // mpejs - https://github.com/WeAreROLI/mpejs
 /*#include mpe.js/mpe.js*/
 
+// https://github.com/eligrey/FileSaver.js/
+/*#include filesaver/FileSaver.min.js*/
+
 /*#include resize_throttler/resize_throttler.js*/
 
 window.onload = function() {
@@ -328,7 +331,7 @@ var FragmentSynth = function (params) {
         _LEFT_MOUSE_BTN = 1,
         _RIGHT_MOUSE_BTN = 2,
 
-        _fps = 60,
+        _fps = 60, // FPS is fixed when using WebAudio version of Fragment TODO : find a solution to update this in real-time ?
 
         _raf,
 
@@ -413,6 +416,7 @@ var FragmentSynth = function (params) {
     /*#include inputs.js*/
     /*#include editor.js*/
     /*#include transports.js*/
+    /*#include export.js*/
     /*#include ui.js*/
     /*#include controls.js*/
     /*#include slices.js*/

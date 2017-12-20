@@ -468,11 +468,6 @@ var _canvasRecord = function (ndata) {
         data, temp_data;
     
     if (_record) {
-        _record_position += 1;
-        if (_record_position > _canvas_width) {
-            _record_position = 0;
-        }
-
         // merge all
         temp_data = new Uint8ClampedArray(_canvas_height_mul4);
 
@@ -498,10 +493,9 @@ var _canvasRecord = function (ndata) {
         if (_audio_infos.monophonic) {
             ro = go = bo = 3;
         }
-
         
         for (i = 0; i < _canvas_height_mul4; i += 4) {
-            o = _canvas_height_mul4 - i;
+            o = _canvas_height_mul4 - i - 4;
 
             data[o] = _record_opts.f(data[o], temp_data[i + ro]);
             data[o + 1] = _record_opts.f(data[o + 1], temp_data[i + go]);
@@ -547,6 +541,10 @@ var _canvasRecord = function (ndata) {
             }
         }
 */
+        _record_position += 1;
+        if (_record_position > _canvas_width) {
+            _record_position = 0;
+        }
     }    
 };
 

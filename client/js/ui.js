@@ -576,12 +576,6 @@ var _saveRecord = function () {
     win.document.write("<img src='"+data_url+"'/>");
 };
 
-var _renderRecord = function () {
-    if (_fs_state) {
-        _exportImage(_record_canvas_ctx.getImageData(0, 0, _record_canvas.width, _record_canvas.height));
-    }
-};
-
 var _rewindRecording = function () {
     _record_position = 0;
     
@@ -1468,6 +1462,11 @@ var _uiInit = function () {
                         icon: "fs-plus-icon",
                         on_click: _addRecordInput,
                         tooltip: "Add as input"
+                    },
+                    {
+                        icon: "fs-audio-file-icon",
+                        on_click: _exportRecord,
+                        tooltip: "Export as .wav"
                     },
                     {
                         icon: "fs-save-icon",

@@ -9,6 +9,8 @@
         
         [y, previous_volume_left, previous_volume_right, diff_volume_left, diff_volume_right, ...]
         - 'y' is the oscillator index
+        
+    // NOTE : Same as notes_renderer.js except it can process a 1px wide slice not a whole image (and the output data is optimized)
 */
 self.onmessage = function (m) {
     "use strict";
