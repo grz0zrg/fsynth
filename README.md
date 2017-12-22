@@ -46,7 +46,7 @@ With WebGL 2 capable web browser, audio can be produced independently from the v
 
 For any questions, a message board is available [here](https://quiet.fsynth.com/)
 
-You can support this project by donating to the following Bitcoin address : 13jcV65uSa8s4X2Vwvj1p9tPvweSWBUgX2
+You can support this project through [Patreon](https://www.patreon.com/fsynth)
 
 ## Requirement
 
@@ -71,7 +71,7 @@ Fragment is also able to do real-time distributed sound synthesis with the sound
 - MIDI inputs support with [Web MIDI](https://caniuse.com/#feat=midi) compatible web browsers, MPE supported
 - Adjustable audio output channel per slices
 - Real-time frames by frames recording with export as an image or Fragment input (export back into itself, this can be used to build complex brushes for drawing canvas inputs)
-- .wav export (additive synthesis only without FAS)
+- .wav export (without FAS : additive synthesis only)
 - WebGL 2.0 and GLSL 3.0 support when compatibility is detected
 - RGBA Live visuals with stereophonic sound generation (WebGL 2.0) or monophonic sound generation (WebGL 1)
 - Synthesis data processed in 32-bit precision (WebGL 2.0 & EXT_color_buffer_float extension) or 8-bit precision
@@ -231,10 +231,11 @@ Many tools are available to enhance Fragment.
 
 
 - [SuperCollider port of the additive synthesis engine (use OSC)](https://github.com/grz0zrg/fsynth/tree/master/supercollider)
+- [Additive synthesis web. sonogram player](https://github.com/grz0zrg/splayer)
 
 ## Notes
 
-- WebAudio oscillators and the Wavetable mode can only have two output channels (L/R) due to performances issues (this may change in the future!)
+- WebAudio oscillators and the WebAudio Wavetable mode can only have two output channels (L/R) due to performances issues (this may change in the future!)
 
 
 - One of the main limitation of Fragment may be the events granularity caused by the monitor refresh rate (60 or 120 FPS), this can be solved by running the browser without VSYNC, example for Chrome with the command-line parameter **--disable-gpu-vsync**
@@ -322,6 +323,7 @@ Client :
  * [Recorderjs](https://github.com/mattdiamond/Recorderjs)
  * [Normalize](https://necolas.github.io/normalize.css/)
  * [Skeleton](http://getskeleton.com/) for the landing page
+ * [Showdown](https://github.com/showdownjs/showdown) in-app markdown
  * [Mikola Lysenko stft (enhanced version)](https://github.com/mikolalysenko/stft)
 
 Papers :
@@ -368,11 +370,13 @@ The repository for the early proof of concept can be found [here](https://github
 
 ## Fragment on social medias
 
-[Facebook](https://www.facebook.com/fsynth/)
-
 [YouTube](https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ)
 
 [Twitter](https://twitter.com/fragmentsynth)
+
+[Instagram](https://www.instagram.com/fsynthesizer/)
+
+[Facebook](https://www.facebook.com/fsynth/)
 
 [SoundCloud](https://soundcloud.com/fsynth/)
 

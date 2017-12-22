@@ -180,6 +180,17 @@ var _getSonogramBoundary = function (data, width, height, mono, backward) {
     return { x: x, y: y };
 };
 
+var _xhrContent = function (url, cb) {
+    var xmlhttp =new XMLHttpRequest();
+    xmlhttp.open("GET", url, true);
+    xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+            cb(xmlhttp.responseText);
+        }
+    }
+    xmlhttp.send();
+};
+
 var _rgbToHex = function (r, g, b) {
     return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 };

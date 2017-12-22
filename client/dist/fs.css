@@ -2212,7 +2212,7 @@ canvas {
 }
 
 .fs-link {
-    font-size: 12px;
+    /*font-size: 12px;*/
     text-decoration: none;
     color: yellow;
 }
@@ -2222,14 +2222,32 @@ canvas {
 }
 
 .fs-text {
-    padding: 8px;
+    padding: 6px;
     
     color: #ffffff;
-    font-size: 13px;
+    font-size: 15px;
+    
+    font-family: serif;
+}
+
+.fs-text h2 {
+    border-bottom: solid 1px #444444;
+    margin-top: 4px;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+}
+
+.fs-text h3 {
+    margin-top: 4px;
+    margin-bottom: 4px;
+    padding-bottom: 4px;
 }
 
 .fs-text p {
-    margin: 0;
+    padding-left: 4px;
+    line-height: 18px;
+    margin-top: 8px;
+    margin-bottom: 12px;
 }
 
 .fs-text a {
@@ -2244,6 +2262,7 @@ canvas {
 .fs-text ul {
     margin: 4px;
     padding-left: 32px;
+    margin-bottom: 16px;
 }
 
 #fs_quickstart .wui-dialog-content {

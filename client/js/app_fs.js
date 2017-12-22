@@ -18,6 +18,9 @@
 /*#include codemirror/addon/display/fullscreen.js*/
 /*#include codemirror/codemirror_glsl.js*/
 
+// showdown - https://github.com/showdownjs/showdown
+/*#include showdown/showdown.min.js*/
+
 // clipboard.js - https://github.com/zenorocha/clipboard.js
 /*#include clipboard/clipboard.min.js*/
 
@@ -136,7 +139,9 @@ var FragmentSynth = function (params) {
         Fields.
     ************************************************************/
 
-    var _motd = '<span class="fs-date">UPDATE 19/11/2017 : </span><a class="fs-link" href="https://quiet.fsynth.com/d/10-fragment-1-0-2">Fragment 1.0.2 released, MPE support and enhanced granular synthesis (click for more details)</a>',
+    var _motd = '<div id="fs_notify" class="fs-notify"><div style="width: auto;height: 11px;position: absolute;top: 0;bottom: 0;margin-top: auto;margin-bottom: auto;color: #ffffff;font-size: 10px;padding: 4px;margin-left: 8px;line-height: 13px;text-align: center;cursor: default;font-family: monospace;font-weight: bold;">26/12/2017 :</div><div style="width: auto;height: 9px;position: absolute;top: 0px;bottom: 0;margin-top: auto;margin-bottom: auto;color: #ffffff;font-size: 10px;padding: 7px;margin-left: 84px;text-align: left;font-family: monospace;line-height: 12px;"><a class="fs-link" href="https://quiet.fsynth.com/d/11-fragment-1-0-3">Fragment 1.0.3 released, additive .WAV export, audio server update etc. (click for more details)</a></div></div>',
+        
+        _showdown_converter = new showdown.Converter(),
         
         _fs_state = 1,
         

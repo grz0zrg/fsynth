@@ -670,6 +670,10 @@ var _drawBrushHelper = function () {
 ************************************************************/
 
 var _uiInit = function () {
+    _xhrContent("data/md/quickstart.md", function (md_content) {
+            document.getElementById("fs_quickstart_content").innerHTML = _showdown_converter.makeHtml(md_content);
+        });
+    
     // there is an easier way of handling this, it may don't scale at all in the future!
     var settings_ck_globaltime_elem = document.getElementById("fs_settings_ck_globaltime"),
         settings_ck_polyinfos_elem = document.getElementById("fs_settings_ck_polyinfos"),
@@ -1259,7 +1263,7 @@ var _uiInit = function () {
     _help_dialog = WUI_Dialog.create(_help_dialog_id, {
             title: "Fragment - Help",
 
-            width: "380px",
+            width: "440px",
             height: "755px",
 
             halign: "center",
@@ -1309,10 +1313,10 @@ var _uiInit = function () {
         });
     
     _quickstart_dialog = WUI_Dialog.create(_quickstart_dialog_id, {
-            title: "Welcome to the Fragment quickstart guide",
+            title: "Fragment Quickstart guide",
 
-            width: "640px",
-            height: "480px",
+            width: Math.min(Math.round(window.innerWidth * 0.9), 840) + "px",
+            height: Math.min(Math.round(window.innerHeight * 0.9), 740) + "px",
 
             halign: "center",
             valign: "center",
