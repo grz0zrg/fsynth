@@ -1,7 +1,13 @@
 .CodeMirror-fullscreen {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  height: auto;
-  z-index: 9;
-    opacity: 0.8;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: auto;
+    z-index: 3;
+}
+
+.CodeMirror-fullscreen .CodeMirror-line span {
+    background-color: rgba(0, 0, 0, 0.9);
 }

@@ -785,9 +785,24 @@ canvas {
     cursor: hand;
 }
 
+.fs-browser {
+    width: 200px;
+    height: 373px;
+    background-color: #111111;
+    position: absolute;
+}
+
 .code {
     width: 100%;
     height: calc(50% - 6px);
+    margin: auto;
+    padding: auto;
+    right: 0;
+    position: absolute;
+}
+
+body .code .CodeMirror-fullscreen {
+    background-color: rgba(21, 22, 23, 0.0) !important;
 }
 
 .fs-load-indicator {

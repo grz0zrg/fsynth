@@ -244,11 +244,35 @@ var FragmentSynth = function (params) {
             mode: "text/x-glsl",
             extraKeys: {
                 "F11": function (cm) {
-                    cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+                    var fullscreen = !cm.getOption("fullScreen");
+                    
+                    cm.setOption("fullScreen", fullscreen);
+                    
+                    // hide some UI stuff when fullscreen
+                    var mid_panel = document.getElementById("fs_middle_panel"),
+                        fs_browser = document.getElementById("fs_browser");
+                    
+                    if (fullscreen) {
+                        _code_editor.setOption("lineNumbers", false);
+                        mid_panel.style.display = "none";
+                        fs_browser.style.display = "none";
+                    } else {
+                        _code_editor.setOption("lineNumbers", _cm_show_linenumbers);
+                        mid_panel.style.display = "";
+                        fs_browser.style.display = "";
+                    }
                 },
                 "Esc": function (cm) {
                     if (cm.getOption("fullScreen")) {
                         cm.setOption("fullScreen", false);
+                        
+                        _code_editor.setOption("lineNumbers", _cm_show_linenumbers);
+                        
+                        var mid_panel = document.getElementById("fs_middle_panel"),
+                            fs_browser = document.getElementById("fs_browser");
+                        
+                        mid_panel.style.display = "";
+                        fs_browser.style.display = "";
                     }
                 }
             }

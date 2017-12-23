@@ -18253,11 +18253,35 @@ _utter_fail_element.innerHTML = "";
             mode: "text/x-glsl",
             extraKeys: {
                 "F11": function (cm) {
-                    cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+                    var fullscreen = !cm.getOption("fullScreen");
+                    
+                    cm.setOption("fullScreen", fullscreen);
+                    
+                    // hide some UI stuff when fullscreen
+                    var mid_panel = document.getElementById("fs_middle_panel"),
+                        fs_browser = document.getElementById("fs_browser");
+                    
+                    if (fullscreen) {
+                        _code_editor.setOption("lineNumbers", false);
+                        mid_panel.style.display = "none";
+                        fs_browser.style.display = "none";
+                    } else {
+                        _code_editor.setOption("lineNumbers", _cm_show_linenumbers);
+                        mid_panel.style.display = "";
+                        fs_browser.style.display = "";
+                    }
                 },
                 "Esc": function (cm) {
                     if (cm.getOption("fullScreen")) {
                         cm.setOption("fullScreen", false);
+                        
+                        _code_editor.setOption("lineNumbers", _cm_show_linenumbers);
+                        
+                        var mid_panel = document.getElementById("fs_middle_panel"),
+                            fs_browser = document.getElementById("fs_browser");
+                        
+                        mid_panel.style.display = "";
+                        fs_browser.style.display = "";
                     }
                 }
             }
@@ -22683,9 +22707,15 @@ var _updateCodeView = function () {
     var code = document.getElementById("code"),
         mid_panel = document.getElementById("fs_middle_panel"),
 
-        mid_panel_offset = _getElementOffset(mid_panel);
+        mid_panel_offset = _getElementOffset(mid_panel),
+        
+        fs_browser = document.getElementById("fs_browser"),
+        fs_browser_offset = _getElementOffset(fs_browser);
 
-    code.style.height = window.innerHeight - (mid_panel_offset.top + mid_panel_offset.height) + "px";
+    code.style.width = (window.innerWidth - (fs_browser_offset.left + fs_browser_offset.width + 2)) + "px";
+    code.style.height = (window.innerHeight - (mid_panel_offset.top + mid_panel_offset.height)) + "px";
+    
+    fs_browser.style.height = (window.innerHeight - (mid_panel_offset.top + mid_panel_offset.height)) + "px";
 
     _code_editor.refresh();
 };
@@ -22745,38 +22775,6 @@ var _detachCodeEditor = function () {
             '</body>',
         '</html>'].join(''));
     _detached_code_editor_window.document.close();
-/*    
-    // moved to proper js files due to events issues
-    new_editor_element = new_window.document.body.getElementsByClassName("fs-editor");
-    if (new_editor_element.length > 0) {
-        new_editor_element = new_editor_element[0];
-    }
-
-    new_editor = new CodeMirror(new_editor_element, _code_editor_settings);
-    new_editor.setOption("theme", _code_editor_theme);
-    new_editor.setValue(_code_editor.getValue());
-    
-    synced_cm_document = _code_editor.getDoc();
-    
-    new_editor.swapDoc(synced_cm_document.linkedDoc({
-            sharedHist: true
-        }));
-    
-    new_window.addEventListener("load", function () {
-            new_editor.refresh();
-        }, false);
-    new_window.addEventListener("resize", function () {
-            new_editor.refresh();
-        }, false);
-*/
-/*
-    // probably not needed
-    _code_editor_element.style.display = "none";
-    
-    new_window.addEventListener("beforeunload", function () {
-            _code_editor_element.style.display = "";
-        });
-*/
 };/* jslint browser: true */
 
 
