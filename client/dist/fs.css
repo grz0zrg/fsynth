@@ -1538,7 +1538,7 @@ canvas {
 }
 
 .fs-input-panel {
-    width: calc(100% - 572px - 16px);
+    width: calc(100% - 618px - 16px);
 /*
     height: 32px;   
     background-color: #111111;
@@ -1824,7 +1824,7 @@ canvas {
 }
 
 .fs-middle-toolbar {
-    width: 572px;
+    width: 618px;
     
     margin: 0;
     
@@ -2283,6 +2283,18 @@ body .code .CodeMirror-fullscreen {
     margin: 4px;
     padding-left: 32px;
     margin-bottom: 16px;
+}
+
+.fs-text code {
+    font-family: monospace,monospace;
+    font-size: 0.7em;
+    color: #ff0;
+}
+
+.fs-uniforms p {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 16px;
 }
 
 #fs_quickstart .wui-dialog-content {

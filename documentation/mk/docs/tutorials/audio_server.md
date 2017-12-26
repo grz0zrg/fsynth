@@ -23,7 +23,7 @@ The graphical launcher provide a graphical user interface to configure the audio
 1. Add a session by clicking on the [+] button (the launcher save settings per sessions)
 2. Select the created session by clicking on it
 3. Check "Start app. when server start"
-4. Click on the "Start" button to launch the session, the audio server should start and if everthing is going well, the web client should start as well
+4. Click on the "Start" button to launch the session, the audio server should start and the web client should start as well
 
 ### Manual launch
 

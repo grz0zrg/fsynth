@@ -44,6 +44,7 @@ Here is a list of Fragment pre-defined uniforms
 - `float htoy` take a frequency as argument and return its vertical position on the canvas (in pixels units)
 - `float fline` take a frequency as argument and return either 1 or 0 (shortcut to draw a horizontal line)
 - `vec4[N] keyboard`MIDI note-on/note-off events : frequency, velocity, elapsed time since the key was pressed, MIDI channel
+- `vec4[N+1] keyboard`Enhanced MIDI (MPE) : pitch bend, timbre (CC74), pressure (aftertouch), release velocity
 - `vec3[N] pKey`store the previous note-off for each channels, frequency, velocity, elapsed time since the key was pressed
 
 ### Reference cards

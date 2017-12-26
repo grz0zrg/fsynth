@@ -495,151 +495,126 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
          <div id="fs_help_dialog">
             <div>
                 <div>
-                    <div class="fs-help-content">
-                        <button id="fs_ui_doc_btn" class="fs-btn fs-btn-default">Documentation</button>
-                        <button id="fs_ui_help_btn" class="fs-btn fs-btn-default">UI Help</button>
-<!--
-                        <br/>
-                        <button id="fs_glsl_help_btn" class="fs-btn fs-btn-wide fs-btn-default">OpenGL Shading Language ES</button>
--->
-                    </div>
                     <div id="fs_help_tabs">
                         <div>
+                            <div>About</div>
                             <div>Uniforms</div>
                             <div>Snippets</div>
-                            <div>About</div>
                             <div>Support us</div>
                         </div>
                         <div>
                             <div>
-                                <div class="fs-documentation">
-                                    Pre-defined uniforms (click on a keyword to copy)
+                                <div class="fs-documentation fs-about">
+                                    <span class="fs-about-header">Infos</span>
                                     <ul class="fs-documentation-entries">
                                         <li>
-                                            vec2 <span class="fs-documentation-keyword" data-clipboard-text="resolution">resolution</span> :
+                                            WebGL 2 support
                                             <ul>
-                                                <li>
-                                                    viewport resolution (in pixels)
+                                                <li id="fs-wgl-support">
+
                                                 </li>
                                             </ul>
                                         </li>
                                         <li>
-                                            float <span class="fs-documentation-keyword" data-clipboard-text="globalTime">globalTime</span> :
+                                            32-bit float data
                                             <ul>
-                                                <li>
-                                                    playback time (in seconds)
+                                                <li id="fs-wgl-float-support">
+
                                                 </li>
                                             </ul>
                                         </li>
                                         <li>
-                                            float <span class="fs-documentation-keyword" data-clipboard-text="baseFrequency">baseFrequency</span> :
+                                            32-bit float linear filtering
+                                            <ul>
+                                                <li id="fs-wgl-lfloat-support">
+
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                    <span class="fs-about-header">Help</span>
+                                    <ul class="fs-documentation-entries">
+                                        <li>
+                                            <span class="fs-documentation-keyword" data-clipboard-text="https://www.fsynth.com/documentation">Documentation</span>
                                             <ul>
                                                 <li>
-                                                    score base frequency
+                                                    <a href="https://www.fsynth.com/documentation">https://www.fsynth.com/documentation</a>
                                                 </li>
                                             </ul>
                                         </li>
                                         <li>
-                                            float <span class="fs-documentation-keyword" data-clipboard-text="octave">octave</span> :
+                                            <span class="fs-documentation-keyword" data-clipboard-text="data/guide/fs.png">UI Help</span>
                                             <ul>
                                                 <li>
-                                                    score octave range
+                                                    <a href="data/guide/fs.png">Click to download</a>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                    <span class="fs-about-header">Social</span>
+                                    <ul class="fs-documentation-entries">
+                                        <li>
+                                            <span class="fs-documentation-keyword" data-clipboard-text="https://quiet.fsynth.com">Community</span>
+                                            <ul>
+                                                <li>
+                                                    <a href="https://quiet.fsynth.com">https://quiet.fsynth.com</a>
                                                 </li>
                                             </ul>
                                         </li>
                                         <li>
-                                            vec4 <span class="fs-documentation-keyword" data-clipboard-text="mouse">mouse</span> :
+                                            <span class="fs-documentation-keyword" data-clipboard-text="https://github.com/grz0zrg/fsynth">GitHub</span>
                                             <ul>
                                                 <li>
-                                                    normalized mouse pixel coords.
+                                                    <a href="https://github.com/grz0zrg/fsynth">https://github.com/grz0zrg/fsynth</a>
                                                 </li>
                                             </ul>
                                         </li>
                                         <li>
-                                        vec4 <span class="fs-documentation-keyword" data-clipboard-text="data">date</span> :
-                                        <ul>
-                                            <li>
-                                                year, month, day, time in seconds
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        sampler2D <span class="fs-documentation-keyword" data-clipboard-text="iInput">iInputN</span> :
-                                        <ul>
-                                            <li>
-                                                Click on the [+] icon to add N images
-                                            </li>
-                                            <li>
-                                                Typical usage : texture2D(iInput0, uv);
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        sampler2D <span class="fs-documentation-keyword" data-clipboard-text="pFrame">pFrame</span> :
-                                        <ul>
-                                            <li>
-                                                The previous frame available as a texture
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        sampler2D <span class="fs-documentation-keyword" data-clipboard-text="pFrameSynth">pFrameSynth</span> :
-                                        <ul>
-                                            <li>
-                                                The previous synth frame available as a texture (WebGL 2)
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        int <span class="fs-documentation-keyword" data-clipboard-text="frame">frame</span> :
-                                        <ul>
-                                            <li>
-                                                The current frame
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        float <span class="fs-documentation-keyword" data-clipboard-text="htoy">htoy</span> :
-                                        <ul>
-                                            <li>
-                                                take a frequency as argument and return its vertical position on the canvas (in pixels units)
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        float <span class="fs-documentation-keyword" data-clipboard-text="fline">fline</span> :
-                                        <ul>
-                                            <li>
-                                                take a frequency as argument and return either 1 or 0 (shortcut to draw a horizontal line)
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        vec4[N], vec4[N+1] <span class="fs-documentation-keyword" data-clipboard-text="keyboard">keyboard</span> :
-                                        <ul>
-                                            <li>
-                                                N: frequency, velocity, elapsed time since the key was pressed, MIDI channel
-                                            </li>
-                                            <li>
-                                                N+1: pitch bend, timbre (CC74), pressure (aftertouch), release velocity
-                                            </li>
-                                            <li>
-                                                Note : MIDI note data
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        vec3[N] <span class="fs-documentation-keyword" data-clipboard-text="pKey">pKey</span> :
-                                        <ul>
-                                            <li>
-                                                frequency, velocity, elapsed time since the key was pressed
-                                            </li>
-                                            <li>
-                                                Note : store the previous note-off for each channels
-                                            </li>
-                                        </ul>
-                                    </li>
-                                </ul>
+                                            <span class="fs-documentation-keyword" data-clipboard-text="https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ">YouTube</span>
+                                            <ul>
+                                                <li>
+                                                    <a href="https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ">https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ</a>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            <span class="fs-documentation-keyword" data-clipboard-text="https://twitter.com/fragmentsynth">Twitter</span>
+                                            <ul>
+                                                <li>
+                                                     <a href="https://twitter.com/fragmentsynth">https://twitter.com/fragmentsynth</a>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            <span class="fs-documentation-keyword" data-clipboard-text="https://www.facebook.com/fsynth/">Facebook</span>
+                                            <ul>
+                                                <li>
+                                                    <a href="https://www.facebook.com/fsynth/">https://www.facebook.com/fsynth/</a>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            <span class="fs-documentation-keyword" data-clipboard-text="https://www.facebook.com/fsynth/">Instagram</span>
+                                            <ul>
+                                                <li>
+                                                    <a href="https://www.instagram.com/fsynthesizer/">https://www.instagram.com/fsynthesizer/</a>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                    <br/>
+                                    <div class="fs-about-footer">
+                                        <a href="https://www.fsynth.com"><img src="data/fsynth2.png" width="297"></a>
+                                        <br/><br/>
+                                        <div>Fragment © 2016 - 2018</div>
+                                        <div>Made with <span style="color: #ff0000">💖</span> by Julien Verneuil</div>
+                                        <div>contact <span style="color: #aaaaaa">at</span> fsynth <span style="color: #aaaaaa">dot</span> com</div>
+                                    </div>
+                                    <br/><br/><br/>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="fs-text fs-uniforms" id="fs_documentation_uniforms">
                             </div>
                         </div>
                         <div>
@@ -727,111 +702,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                             </div>
                         </div>
                         <div>
-                            <div class="fs-documentation fs-about">
-                                <span class="fs-about-header">Infos</span>
-                                <ul class="fs-documentation-entries">
-                                    <li>
-                                        WebGL 2 support
-                                        <ul>
-                                            <li id="fs-wgl-support">
-                                                
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        32-bit float data
-                                        <ul>
-                                            <li id="fs-wgl-float-support">
-                                                
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        32-bit float linear filtering
-                                        <ul>
-                                            <li id="fs-wgl-lfloat-support">
-                                                
-                                            </li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                                <span class="fs-about-header">Social</span>
-                                <ul class="fs-documentation-entries">
-                                    <li>
-                                        <span class="fs-documentation-keyword" data-clipboard-text="https://quiet.fsynth.com">Community</span>
-                                        <ul>
-                                            <li>
-                                                <a href="https://quiet.fsynth.com">https://quiet.fsynth.com</a>
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        <span class="fs-documentation-keyword" data-clipboard-text="https://github.com/grz0zrg/fsynth">GitHub</span>
-                                        <ul>
-                                            <li>
-                                                <a href="https://github.com/grz0zrg/fsynth">https://github.com/grz0zrg/fsynth</a>
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        <span class="fs-documentation-keyword" data-clipboard-text="https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ">YouTube</span>
-                                        <ul>
-                                            <li>
-                                                <a href="https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ">https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ</a>
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        <span class="fs-documentation-keyword" data-clipboard-text="https://twitter.com/fragmentsynth">Twitter</span>
-                                        <ul>
-                                            <li>
-                                                 <a href="https://twitter.com/fragmentsynth">https://twitter.com/fragmentsynth</a>
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        <span class="fs-documentation-keyword" data-clipboard-text="https://www.facebook.com/fsynth/">Facebook</span>
-                                        <ul>
-                                            <li>
-                                                <a href="https://www.facebook.com/fsynth/">https://www.facebook.com/fsynth/</a>
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        <span class="fs-documentation-keyword" data-clipboard-text="https://www.facebook.com/fsynth/">Instagram</span>
-                                        <ul>
-                                            <li>
-                                                <a href="https://www.instagram.com/fsynthesizer/">https://www.instagram.com/fsynthesizer/</a>
-                                            </li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                                <br/><br/>
-                                <div class="fs-about-footer">
-                                    <a href="https://www.fsynth.com"><img src="data/fsynth2.png" width="297"></a>
-                                    <br/><br/>
-                                    <div>Fragment © 2016 - 2018</div>
-                                    <div>Made with <span style="color: #ff0000">💖</span> by Julien Verneuil</div>
-                                    <div>contact <span style="color: #aaaaaa">at</span> fsynth <span style="color: #aaaaaa">dot</span> com</div>
-                                </div>
-                                <br/><br/><br/>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="fs-documentation fs-about">
-                                <span class="fs-about-header">Please consider donating if you like this software.<br/><br/>Donation methods such as Paypal are available on the <a href="https://www.fsynth.com">homepage</a>.</span>
-                                <br/><br/><br/>
-                                <span class="fs-about-header" data-clipboard-text="https://www.patreon.com/fsynth">Patreon</span>
-                                <ul class="fs-documentation-entries">
-                                    <li>
-                                        <ul>
-                                            <li>
-                                                <a href="https://www.patreon.com/fsynth">https://www.patreon.com/fsynth</a>
-                                            </li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                                
+                            <div class="fs-documentation fs-about" id="fs_donation_content">
                             </div>
                         </div>
                     </div>

@@ -146,7 +146,7 @@ var _addMIDIDevice = function (midi, io_type) {
                 midi.name,
                 '<div>',
                 '    <label class="fs-ck-label">',
-                '        <div>(' + io_type_html + ') Enable</div>&nbsp;',
+                '        <div>' + io_type_html.toUpperCase() + ' Enable</div>&nbsp;',
                 '        <input id="' + midi_enabled_ck_id + '" type="checkbox" data-type="' + io_type + '" data-did="' + midi.id + '" ' + midi_device_enabled_ck + '>',
                 '    </label>',
                 '</div>'].join('');

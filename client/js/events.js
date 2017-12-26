@@ -230,20 +230,6 @@ document.addEventListener('mousemove', function (e) {
         _canvasInputPaint(e);
    });
 
-document.getElementById("fs_ui_doc_btn").addEventListener("click", function () {
-        window.open("https://www.fsynth.com/documentation", '_blank');
-    });
-
-document.getElementById("fs_ui_help_btn").addEventListener("click", function () {
-        window.open("data/guide/fs.png", '_blank');
-    });
-
-/*
-document.getElementById("fs_glsl_help_btn").addEventListener("click", function () {
-        window.open("https://www.khronos.org/registry/gles/specs/2.0/GLSL_ES_Specification_1.0.17.pdf", '_blank');
-    });
-*/
-
 var _onWindowResize = function () {
     _updateAllPlayPosition();
     

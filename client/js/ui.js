@@ -674,7 +674,15 @@ var _uiInit = function () {
             document.getElementById("fs_quickstart_content").innerHTML = _showdown_converter.makeHtml(md_content);
         });
     
-    // there is an easier way of handling this, it may don't scale at all in the future!
+    _xhrContent("data/md/uniforms.md", function (md_content) {
+            document.getElementById("fs_documentation_uniforms").innerHTML = _showdown_converter.makeHtml(md_content);
+        });
+
+    _xhrContent("data/md/support_us.md", function (md_content) {
+            document.getElementById("fs_donation_content").innerHTML = _showdown_converter.makeHtml(md_content);
+        });
+    
+    // may don't scale at all in the future!
     var settings_ck_globaltime_elem = document.getElementById("fs_settings_ck_globaltime"),
         settings_ck_polyinfos_elem = document.getElementById("fs_settings_ck_polyinfos"),
         settings_ck_oscinfos_elem = document.getElementById("fs_settings_ck_oscinfos"),
@@ -1264,7 +1272,7 @@ var _uiInit = function () {
             title: "Fragment - Help",
 
             width: "440px",
-            height: "755px",
+            height: "785px",
 
             halign: "center",
             valign: "center",
@@ -1694,18 +1702,22 @@ var _uiInit = function () {
                 },
                 {
                     icon: "fs-record-icon",
-                    //type: "toggle",
-                    //toggle_state: false,
                     on_click: _showRecordDialog,
                     tooltip: "Record"
-                },
+                }
+            ],
+            fas: [
                 {
                     icon: "fs-fas-icon",
                     type: "toggle",
                     toggle_state: _fasEnabled(),
                     on_click: _toggleFas,
-                    on_rclick: _showFasDialog,
-                    tooltip: "Enable/Disable Native audio (native application available on the homepage)"
+                    tooltip: "Enable/Disable audio server connection (the audio server is available on the homepage)"
+                },
+                {
+                    icon: "fs-gear-icon",
+                    on_click: _showFasDialog,
+                    tooltip: "Audio server settings"
                 }
             ],
             opts: [

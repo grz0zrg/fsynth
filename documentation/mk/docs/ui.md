@@ -74,7 +74,9 @@ The toolbar is a collection of tools and settings which are grouped by sections,
   - reset playback time to 0
   - play/pause
   - spectral record
-- Fragment Audio Server connection
+- audio server
+  - connect/disconnect
+  - settings
 - helpers
   - [ShaderToy](https://www.shadertoy.com/) converter
   - canvas axis details (appear when the canvas is hovered by the cursor)

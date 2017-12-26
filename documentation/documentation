@@ -374,8 +374,11 @@ $list(
   $list(
   	$item reset playback time to 0
   	$item play/pause
-  	$item $ref(record)(recording dialog)
-  	$item $ref(fas)(FAS enable/disable))
+  	$item $ref(record)(recording dialog))
+  $item Audio Server
+  $list(
+  	$item $ref(fas)(Enable/disable)
+  	$item $ref(fas)(Settings))
   $item helpers
   $list(
   	$item $tlink(ShaderToy)(https://www.shadertoy.com) converter
