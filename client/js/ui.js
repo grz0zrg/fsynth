@@ -514,7 +514,7 @@ var _showRecordDialog = function () {
 };
 
 var _onImportDialogClose = function () {
-    WUI_ToolBar.toggle(_wui_main_toolbar, 13);
+    WUI_ToolBar.toggle(_wui_main_toolbar, 14);
     
     WUI_Dialog.close(_import_dialog);
 };
@@ -1765,7 +1765,7 @@ var _uiInit = function () {
                 {
                     icon: "fs-code-icon",
                     on_click: _detachCodeEditor,
-                    tooltip: "Spawn a new editor into a separate window"
+                    tooltip: "Clone the GLSL editor into a separate window"
                 }
             ],
     /*
