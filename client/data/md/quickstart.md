@@ -1,11 +1,11 @@
 Fragment Quickstart Guide - Table of contents
-   * [About Fragment](#about-fragment)
+   * [About Fragment](#aboutfragment)
    * [Quickstart](#quickstart)
       * [Sessions](#sessions)
-      * [User interface](#user-interface)
-      * [Making sounds](#making-sounds)
+      * [User interface](#userinterface)
+      * [Making sounds](#makingsounds)
       * [MIDI](#midi)
-      * [Fragment Audio Server](#fragment-audio-server)
+      * [Fragment Audio Server](#fragmentaudioserver)
    * [Help](#help)
 
 ## About Fragment
