@@ -5,7 +5,7 @@ Fragment Quickstart Guide - Table of contents
       * [User interface](#user-interface)
       * [Making sounds](#making-sounds)
       * [MIDI](#midi)
-      * [Fragment Audio Server](fragment-audio-server)
+      * [Fragment Audio Server](#fragment-audio-server)
    * [Help](#help)
 
 ## About Fragment
