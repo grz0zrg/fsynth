@@ -48,6 +48,22 @@ var _fasNotifyFast = function (cmd, data) {
         }, output_data_buffer);
 };
 
+var _fasPause = function () {
+    if (!_fas.enabled) {
+        return;
+    }
+    
+    var data = [],
+        
+        i = 0;
+    
+    for (i = 0; i < _output_channels; i += 1) {
+        data.push(new _synth_data_array(_canvas_height_mul4));
+    }
+    
+    _fasNotifyFast(_FAS_FRAME, data);  
+};
+
 var _fasEnable = function () {
     _fasNotify(_FAS_ENABLE, {
             address: _fas.address,

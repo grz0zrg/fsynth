@@ -8,6 +8,8 @@ var _pause = function () {
     _disconnectScriptNode();
 
     _fs_state = 1;
+    
+    _fasPause();
 
     //if (_glsl_error) {
     //    return;
