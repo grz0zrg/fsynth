@@ -78,6 +78,8 @@ var _fasStatus = function (status) {
     } else {
         fs_fas_element.classList.remove("fs-server-status-on");
     }
+    
+    _fas.status = status;
 }
 
 /***********************************************************

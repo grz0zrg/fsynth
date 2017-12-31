@@ -20052,8 +20052,6 @@ var _frame = function (raf_time) {
         channel = 0,
         channel_data,
 
-        fas_enabled = _fasEnabled(),
-
         f, v, key,
 
         data,
@@ -20168,7 +20166,7 @@ var _frame = function (raf_time) {
         _gl.bindFramebuffer(_gl.FRAMEBUFFER, _main_fbo);
     }
 
-    if ((_notesWorkerAvailable() || fas_enabled) && _play_position_markers.length > 0) {
+    if ((_notesWorkerAvailable() || _fas.status) && _play_position_markers.length > 0) {
         if (_gl2) {
             _gl.bindBuffer(_gl.PIXEL_PACK_BUFFER, _pbo);
             _gl.bufferData(_gl.PIXEL_PACK_BUFFER, _pbo_size, _gl.STATIC_READ);
@@ -20273,7 +20271,7 @@ var _frame = function (raf_time) {
             }
         }
 
-        if (fas_enabled) {
+        if (_fas.status) {
             _fasNotifyFast(_FAS_FRAME, _data);
         } else {
             _notesProcessing(_data, _prev_data);
@@ -27849,6 +27847,8 @@ var _fasStatus = function (status) {
     } else {
         fs_fas_element.classList.remove("fs-server-status-on");
     }
+    
+    _fas.status = status;
 }
 
 /***********************************************************
