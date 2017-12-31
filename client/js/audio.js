@@ -86,7 +86,7 @@ var _FS_WAVETABLE = 0,
 
 var _createGainNode = function (dst, channel) {
     var gain_node = _audio_context.createGain();
-    gain_node.gain.value = 0.0;
+    gain_node.gain.setTargetAtTime(0.0, 0.0, 0.0);
     if (channel) {
         gain_node.connect(dst, 0, channel);
     } else {
@@ -193,7 +193,8 @@ var _generateOscillatorSet = function (n, base_frequency, octaves) {
         
         osc.node = _audio_context.createOscillator();
         osc.node.setPeriodicWave(_periodic_wave[Math.round(Math.random() * _periodic_wave_n)]);
-        osc.node.frequency.value = osc.freq;
+        //osc.node.frequency.value = osc.freq;
+        osc.node.frequency.setTargetAtTime(osc.freq, 0.0, 0.0);
         osc.node.connect(osc.gain_node_l);
         osc.node.connect(osc.gain_node_r);
         osc.node.start();
@@ -464,9 +465,11 @@ var _setGain = function (gain_value) {
 
     if (_mst_gain_node) {
         if (_volume) {
-            _mst_gain_node.gain.value = parseFloat(_volume);
+            _mst_gain_node.gain.setTargetAtTime(parseFloat(_volume), 0.0, 0.1);
+            //_mst_gain_node.gain.value = parseFloat(_volume);
         } else {
-            _mst_gain_node.gain.value = 0;
+            _mst_gain_node.gain.setTargetAtTime(0.0, 0.0, 0.0);
+            //_mst_gain_node.gain.value = 0;
         }
     }
     

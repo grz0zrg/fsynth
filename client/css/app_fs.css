@@ -786,7 +786,7 @@ canvas {
 }
 
 .fs-browser {
-    width: 200px;
+    width: 0px; /* 200*/
     height: 373px;
     background-color: #111111;
     position: absolute;
