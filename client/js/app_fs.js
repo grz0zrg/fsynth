@@ -726,6 +726,12 @@ var FragmentSynth = function (params) {
         
         _wgl_support_element.innerHTML = "Not supported";
         _wgl_support_element.style.color = "#ff0000";
+        
+        _wgl_lfloat_support_element.innerHTML = "Not supported";
+        _wgl_lfloat_support_element.style.color = "#ff0000";
+        
+        _wgl_float_support_element.innerHTML = "Not supported (8-bit)";
+        _wgl_float_support_element.style.color = "#ff0000";
     } else {
         _gl2 = true;
         
