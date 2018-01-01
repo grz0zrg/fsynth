@@ -18148,7 +18148,7 @@ _utter_fail_element.innerHTML = "";
         Fields.
     ************************************************************/
 
-    var _motd = '<div id="fs_notify" class="fs-notify"><div style="width: auto;height: 11px;position: absolute;top: 0;bottom: 0;margin-top: auto;margin-bottom: auto;color: #ffffff;font-size: 10px;padding: 4px;margin-left: 8px;line-height: 13px;text-align: center;cursor: default;font-family: monospace;font-weight: bold;">26/12/2017 :</div><div style="width: auto;height: 9px;position: absolute;top: 0px;bottom: 0;margin-top: auto;margin-bottom: auto;color: #ffffff;font-size: 10px;padding: 7px;margin-left: 84px;text-align: left;font-family: monospace;line-height: 12px;"><a class="fs-link" href="https://quiet.fsynth.com/d/11-fragment-1-0-3">Fragment 1.0.3 released, additive .WAV export, audio server update etc. (click for more details)</a></div></div>',
+    var _motd = '<div id="fs_notify" class="fs-notify"><div style="width: auto;height: 11px;position: absolute;top: 0;bottom: 0;margin-top: auto;margin-bottom: auto;color: #ffffff;font-size: 10px;padding: 4px;margin-left: 8px;line-height: 13px;text-align: center;cursor: default;font-family: monospace;font-weight: bold;">31/12/2017 :</div><div style="width: auto;height: 9px;position: absolute;top: 0px;bottom: 0;margin-top: auto;margin-bottom: auto;color: #ffffff;font-size: 10px;padding: 7px;margin-left: 84px;text-align: left;font-family: monospace;line-height: 12px;"><a class="fs-link" href="https://quiet.fsynth.com/d/12-fragment-1-0-3">Fragment 1.0.3 released, subtractive/PM synthesis, audio server update etc. (click for more details)</a></div></div>',
         
         _showdown_converter = new showdown.Converter(),
         
@@ -19037,7 +19037,7 @@ var _setGain = function (gain_value) {
 
     if (_mst_gain_node) {
         if (_volume) {
-            _mst_gain_node.gain.setTargetAtTime(parseFloat(_volume), 0.0, 0.0);
+            _mst_gain_node.gain.setTargetAtTime(parseFloat(_volume), 0.0, 0.1);
             //_mst_gain_node.gain.value = parseFloat(_volume);
         } else {
             _mst_gain_node.gain.setTargetAtTime(0.0, 0.0, 0.0);
@@ -20538,7 +20538,7 @@ var _glsl_compilation = function () {
     }
     
     // add htoy
-    glsl_code += "float htoy(float frequency) {return resolution.y - (resolution.y - (log(frequency / baseFrequency) / log(2.)) * round(resolution.y / octave));}";
+    glsl_code += "float htoy(float frequency) {return resolution.y - (resolution.y - (log(frequency / baseFrequency) / log(2.)) * floor(resolution.y / octave + 0.5));}"; // round(resolution.y / octave)
     
     // add htox
     //glsl_code += "float htoy(float frequency) {return resolution.x - (resolution.x - (log(frequency / baseFrequency) / log(2.)) * (resolution.x / octave));}";

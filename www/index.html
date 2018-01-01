@@ -2,15 +2,15 @@
 <html lang="en" >
     <head>
         <meta http-equiv="content-type" content="text/html; charset=utf-8">
-        
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-        
-        <title>Fragment - The Collaborative Spectral and Granular Synthesizer</title>
 
-        <meta name="Keywords" content="fragment, spectral synthesizer, granular, image-synth, pixels, sound synthesis, computer graphics, rendering, realtime, shader, webgl, glsl, audio, visual, additive, synthesizer, additive synthesizer, synth, fsynth, vjing, vj, real-time, softsynth, synthesizer, collaborative, visuals, live, coding, art, musical, instrument, musique concrète">
-        <meta name="Description" content="Web-based collaborative spectral, granular and additive live coding audio-visual synthesizer with pixels based real-time image-synth approach to sound synthesis.">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+        <title>Fragment - The Collaborative pixels-based Additive/Spectral/Granular Synthesizer</title>
+
+        <meta name="Keywords" content="fragment, spectral synthesizer, granular, subtractive, phase modulation, frequency modulation, image-synth, pixels, sound synthesis, computer graphics, rendering, realtime, shader, webgl, glsl, audio, visual, additive, synthesizer, additive synthesizer, synth, fsynth, vjing, vj, real-time, softsynth, synthesizer, collaborative, visuals, live, coding, art, musical, instrument, musique concrète">
+        <meta name="Description" content="Web-based collaborative spectral, granular, additive, subtractive, PM live coding audio-visual synthesizer with pixels based real-time image-synth approach to sound synthesis.">
         <meta name="Author" content="Julien Verneuil">
-        
+
         <meta name="google-site-verification" content="K2MJfisbFX9cJSttXAsLUqCXdKT9fKzCWNU28HePxWw" />
 
         <meta name="twitter:card" content="summary" />
@@ -148,6 +148,9 @@
                                 <a target="_blank" href="https://www.soundcloud.com/fsynth/" class="fp-social-page-scl">
                                     <i class="fa fa-soundcloud" aria-hidden="true"></i>
                                 </a>
+                                <a target="_blank" href="https://www.instagram.com/fsynthesizer/" class="fp-social-page-ins">
+                                    <i class="fa fa-instagram" aria-hidden="true"></i>
+                                </a>
                                 <a target="_blank" href="https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ" class="fp-social-page-ytl">
                                     <i class="fa fa-youtube" aria-hidden="true"></i>
                                 </a>
@@ -155,7 +158,7 @@
                         </div>
                         <div>
                             <div class="fp-center-text" style="font-size: 12px">
-                                Support us on <a href="https://www.patreon.com/fsynth">Patreon</a> or by donating <a href="bitcoin:13jcV65uSa8s4X2Vwvj1p9tPvweSWBUgX2">Bitcoin</a> 
+                                Support us on <a href="https://www.patreon.com/fsynth">Patreon</a>
                             </div>
                         </div>
                     </div>
@@ -170,9 +173,9 @@
                         </h5>
                         <hr/>
                         <div class="fp-margin fp-justify value-description">
-                            Fragment is a collaborative cross-platform audiovisual live coding environment with pixels based <strong>real-time image-synth approach to sound synthesis</strong>, the sound synthesis is powered by pixels data produced on the graphics card by live GLSL code, everything is based on pixels! 
+                            Fragment is a collaborative cross-platform audiovisual live coding environment with pixels based <strong>real-time image-synth approach to sound synthesis</strong>, the sound synthesis is powered by pixels data produced on the graphics card by live GLSL code, everything is based on pixels!
                             <br/><br/>
-                            Fragment is able to produce high-quality fast <strong>additive</strong> and <strong>granular synthesis</strong> simultaneously with <strong>re-synthesis support</strong>, it has many features making it a bliss to produce <strong>any kind of sounds or visuals</strong> and is aimed at artists seeking a creative environment with few limitations to experiment with, a programmable noise-of-all-kinds software, a fully featured visual / sound design tool.
+                            Fragment is able to produce high-quality fast <strong>additive</strong> and <strong>granular synthesis</strong> simultaneously with <strong>re-synthesis support</strong>, subtractive and PM synthesis is also supported, it has many features making it a bliss to produce <strong>any kind of sounds or visuals</strong> and is aimed at artists seeking a creative environment with few limitations to experiment with, a programmable noise-of-all-kinds software / sound design tool.
                             <br/><br/>
                             Many videos of most features are available on the <a href="https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ">official YouTube channel</a>
                             <br/><br/>
@@ -189,7 +192,7 @@
                         <div class="fp-margin fp-justify value-description">
                             <ul class="fp-features">
                                 <li>
-                                    Additive, spectral, granular synthesizer powered by WebAudio/wavetable (additive only) OR Fragment Audio Server (additive &amp; granular)
+                                    Additive, spectral, granular, subtractive, PM synthesizer powered by WebAudio/wavetable (additive only) OR Fragment Audio Server (additive, granular etc.)
                                 </li>
                                 <li>
                                     Complete audio/visuals live coding environment with <a href="https://en.wikipedia.org/wiki/Just-in-time_compilation">JIT compilation</a> of shader code
@@ -222,7 +225,7 @@
                                     OSC in/out
                                 </li>
                                 <li>
-                                    Spectral recording with export and re-import as a texture
+                                    Spectral recording with export and re-import as a texture / WAV export (additive synthesis)
                                 </li>
                                 <li>
                                     Sessions based without authentifications, able to run locally
@@ -248,6 +251,11 @@
                                 <tbody>
                                     <tr>
                                         <td style="text-align: center; border-bottom: solid 1px #f4f4f4">
+                                            31/12/2017
+                                            <br/>
+                                            &nbsp;<a href="https://quiet.fsynth.com/d/12-fragment-1-0-3">Subtractive/PM synthesis, audio server update etc. (1.0.3)</a>
+                                        </td>
+                                        <td style="text-align: center; border-bottom: solid 1px #f4f4f4">
                                             19/11/2017
                                             <br/>
                                             &nbsp;<a href="https://quiet.fsynth.com/d/10-fragment-1-0-2">MPE support, enhanced granular synthesis (1.0.2)</a>
@@ -256,11 +264,6 @@
                                             01/11/2017
                                             <br/>
                                             &nbsp;<a href="https://quiet.fsynth.com/d/9-fragment-1-0-1">Minor bug fixes update (1.0.1)</a>
-                                        </td>
-                                        <td style="text-align: center; border-bottom: solid 1px #f4f4f4">
-                                            09/07/2017
-                                            <br/>
-                                            &nbsp;<a href="https://quiet.fsynth.com/d/8-fragment-anniversary-update">Fragment 1.0 released !</a>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -289,10 +292,10 @@
                             <tbody>
                                 <tr>
                                     <td>
-                                        7bcc194ae94e33b87f95d9990a32819c
+                                        5079a210c21141dbcd0dcc386db5670f
                                     </td>
                                     <td>
-                                        <i class="fa fa-windows" aria-hidden="true"></i>&nbsp;Windows 32/64 Bits 12.7MB
+                                        <i class="fa fa-windows" aria-hidden="true"></i>&nbsp;Windows 64 Bits 12.7MB
                                     </td>
                                     <td class="fp-download">
                                         <a href="dl/fragment-launcher.zip">
@@ -302,14 +305,14 @@
                                 </tr>
                                 <tr>
                                     <td>
-                                        c1c855857f2dd6a100dd8adf27140be4
+                                        7c4b3ca9a947952846dc7a67d15123f8
                                     </td>
                                     <td>
                                         <i class="fa fa-linux" aria-hidden="true"></i>&nbsp;Linux .deb 32/64 Bits 1.4MB
                                     </td>
 
                                     <td class="fp-download">
-                                        <a href="dl/fragment_1.0.2_amd64.deb">
+                                        <a href="dl/fragment_1.0.3_amd64.deb">
                                             <i class="fa fa-download" aria-hidden="true"></i>
                                         </a>
                                     </td>
@@ -320,7 +323,7 @@
                             <strong><i class="fa fa-linux" aria-hidden="true" style="font-size: 20px"></i> &nbsp;Instructions to install the .deb package from a terminal (Ubuntu, Debian etc.)</strong>
                             <ul class="fp-features">
                                 <li>
-                                    <code>sudo dpkg -i fragment_1.0.2_amd64.deb</code>
+                                    <code>sudo dpkg -i fragment_1.0.3_amd64.deb</code>
                                 </li>
                                 <li>
                                     <code>sudo apt-get -f install</code>

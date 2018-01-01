@@ -38,9 +38,9 @@ $bigtitle(Fragment)
 $title(The Collaborative Synthesizer)
 $center(by Julien Verneuil - contact@fsynth.com)
 $nl
-$ifhtml($center(This is the old HTML documentation of the Fragment synthesizer which is still updated to some extent.))$ifpdf($center(This is the old documentation of the Fragment synthesizer which is still updated to some extent.))
+$ifhtml($center(This is the single page HTML documentation of the Fragment synthesizer.))$ifpdf($center(This is the single page HTML documentation of the Fragment synthesizer.))
 $ifhtml($center($big(The new documentation can be found $tlink(here)(https://www.fsynth.com/documentation))))
-$ifhtml($center(The old PDF documentation (still updated) can be found $tlink(here)(https://www.fsynth.com/pdf/fragment_old_documentation.pdf)))
+$ifhtml($center(The PDF documentation can be found $tlink(here)(https://www.fsynth.com/pdf/fragment_documentation.pdf)))
 $center($tlink($ifhtml($image(580)(images/fsynth_ui.png))$ifpdf($pagewidthimage(images/fsynth_ui.png)))(https://www.fsynth.com))
 $nl
 $center($bold(Table of Contents))
@@ -52,7 +52,7 @@ Fragment is stereophonic, polyphonic, multitimbral and support live coding of au
 
 Fragment main synthesis method is additive, spectral and granular, phase modulation and subtractive synthesis is also available.
 
-Fragment has many features making it a bliss to produce any kind of sounds or visuals, it is aimed at artists seeking a real-time creative environment with direct visual feedback and few limitations to experiment with, a programmable noise-of-all-kinds software.
+Fragment has many features making it a bliss to produce any kind of sounds or visuals, it is aimed at artists seeking a creative environment with direct visual feedback and few limitations to experiment with, a programmable noise-of-all-kinds software.
 
 Many videos of Fragment live sessions were recorded and are available on YouTube as a $tlink(playlist)(https://www.youtube.com/playlist?list=PLYhyS2OKJmqe_PEimydWZN1KbvCzkjgeI).
 
@@ -81,11 +81,11 @@ $list(
 		$list($item Automatically detected from the GPU capabilities $item 16 notes minimum $item 704 notes with a GeForce GTX 970 GPU)
 	$item Multitimbral
 	$item Distributed multi-machines/multi-core sound synthesis over the wire with $ref(fas)(FAS)
-	$item Spectral recording with mixing and PNG export
-	$item 8-bit or 32-bit floating point processing of pixels data for audio synthesis (WebGL 2.0 only)
+	$item Spectral recording with mixing, PNG export, WAV export (additive synthesis only)
+	$item 8-bit or 32-bit floating point processing of pixels data (WebGL 2.0 only)
 	$item Adjustable audio output channel per slices
 		$list($item Multiple audio channels are only supported with $ref(fas)(FAS))
-	$item Shader inputs, webcam, textures, audio files, canvas
+	$item Shader inputs, webcam, textures, videos, audio files, canvas
 	$item WebGL 2.0 and GLSL 3.0 support when compatibility is detected
 	$item OSC support, a $tlink(SuperCollider)(http://supercollider.github.io/) synth. which use OSC data from Fragment is also available
 	$item MIDI Enabled
@@ -99,7 +99,7 @@ $list(
 	$item Per-sessions discussion system)
 $nl
 $subsection(System requirements)
-Fragment is a special kind of additive synthesizer which require a moderate deal of processing power in order to work properly, a medium-end GPU and CPU should work fine.
+Fragment is a special kind of synthesizer which require a moderate deal of processing power in order to work properly, a medium-end GPU and CPU should work fine.
 $nl
 $subsubsection(Browser)
 Fragment require a browser with full support for ECMAScript 5, CSS3, WebAudio and WebGL.
@@ -188,11 +188,11 @@ Fragment sessions are isolated spaces which are open to all peoples who has acce
 You can join any sessions directly from your browser address bar by replacing "yoursessionname" for the URL shown below by the session name you want to join or create, session names are limited to a maximum of 100 characters and cannot use the "$$" character:
 
 $center(https://www.fsynth.com/app/$bold(yoursessionname))
-Fragment store sessions content and settings on a server which mean that any of the synchronizable actions in the session such as the code editor content, canvas settings, slices and $ref(uniformsdialog)(uniform inputs) are automatically saved $bold(if) Fragment is connected.
+Fragment store sessions content and settings on a server which mean that any of the synchronizable actions in the session such as the code editor content, canvas settings and slices are automatically saved $bold(if) Fragment is connected.
 
-Fragment synchronize the code editor content, slices, canvas settings and $ref(uniformsdialog)(uniform inputs) across all the users in the session in real-time which mean that you can jam with your friends if you share the session URL.
+Fragment synchronize the code editor content, slices and canvas settings across all the users in the session in real-time which mean that you can jam with your friends if you share the session URL.
 
-Note that MIDI note messages are not synchronized between users due to technical constraints but you can still add $ref(uniformsdialog)(uniform inputs) and assign MIDI devices to control them, their values are synchronized between users.
+Note that MIDI note messages are not synchronized between users due to technical constraints.
 
 Some settings are saved locally on your browser, some of them are global (like the username and settings related to the editor) and some of them are saved per sessions such as the MIDI settings, gain and inputs.
 

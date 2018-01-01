@@ -204,7 +204,7 @@ var _glsl_compilation = function () {
     }
     
     // add htoy
-    glsl_code += "float htoy(float frequency) {return resolution.y - (resolution.y - (log(frequency / baseFrequency) / log(2.)) * round(resolution.y / octave));}";
+    glsl_code += "float htoy(float frequency) {return resolution.y - (resolution.y - (log(frequency / baseFrequency) / log(2.)) * floor(resolution.y / octave + 0.5));}"; // round(resolution.y / octave)
     
     // add htox
     //glsl_code += "float htoy(float frequency) {return resolution.x - (resolution.x - (log(frequency / baseFrequency) / log(2.)) * (resolution.x / octave));}";
