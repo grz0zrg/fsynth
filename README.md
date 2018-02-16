@@ -133,8 +133,8 @@ Channels based parameters :
   - nutall
   - flattop
   - kaiser
-- Minimum grain length
-- Maximum grain length
+- Minimum grain length (ms)
+- Maximum grain length (ms)
 
 Dynamics parameters
 
@@ -146,7 +146,7 @@ Dynamics parameters
 
 #### Sampler ([FAS](https://github.com/grz0zrg/fas) only)
 
-Granular synthesis with grain start index of 0 and min/max duration of 1/1 can be used to trigger samples as-is like a regular sampler.
+Granular synthesis with grain start index of 0 and min/max duration of the sample duration can be used to trigger samples as-is like a regular sampler.
 
 #### PM ([FAS](https://github.com/grz0zrg/fas) only)
 
@@ -154,14 +154,14 @@ Phase modulation (PM) is a mean to generate sounds by modulating the phase of an
 
 PM synthesis in Fragment work by giving an oscillator index (based on image-height) to the note, this oscillator will be used as a modulator.
 
-PM synthesis use a high quality low-pass filter (Moog type).
+No filtering is applied.
 
 Dynamics parameters
 
 - Red = Amplitude value of the LEFT channel
 - Green = Amplitude value of the RIGHT channel
-- Blue = Moog filter cutoff multiplier; the cutoff is set to the fundamental frequency, 1.0 = cutoff at fundamental frequency
-- Alpha = Moog filter resonance [0, 1] & oscillator selection on integral part (0.x, 1.x, 2.x etc), cyclic
+- Blue = Fractionnal part : Modulator amplitude
+- Alpha = Modulator frequency
 
 #### Subtractive ([FAS](https://github.com/grz0zrg/fas) only)
 
@@ -233,12 +233,17 @@ Many tools are available to enhance Fragment.
 - [SuperCollider port of the additive synthesis engine (use OSC)](https://github.com/grz0zrg/fsynth/tree/master/supercollider)
 - [Additive synthesis web. sonogram player](https://github.com/grz0zrg/splayer)
 
+## Limitations
+
+* The main limitation of Fragment is the events granularity caused by the monitor refresh rate (60 or 120 FPS), this can be solved by running the browser without VSYNC, example for Chrome with the command-line parameter **--disable-gpu-vsync** this may be not ideal for visuals however.
+* Discrete mapping of frequencies can be seen as a limitation, especially for additive synthesis, this is mostly solved by increasing the resolution of the canvas.
+* Additive synthesis : Phases are randomly assigned
+* Many synthesis parameters cannot be mapped well due to RGBA, this is a limitation which apply mainly to PM/FM, this limit the number of algorithm for example.
+
 ## Notes
 
 - WebAudio oscillators and the WebAudio Wavetable mode can only have two output channels (L/R) due to performances issues (this may change in the future!)
 
-
-- One of the main limitation of Fragment may be the events granularity caused by the monitor refresh rate (60 or 120 FPS), this can be solved by running the browser without VSYNC, example for Chrome with the command-line parameter **--disable-gpu-vsync**
 
 ## Tips and tricks
 
