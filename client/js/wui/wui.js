@@ -147,6 +147,16 @@ var WUI_Dialog = new (function() {
         Functions.
     ************************************************************/
 
+    var _log = function (content) {
+        if (!window.WUI_Reporting) {
+            return;
+        }
+
+        if (typeof console !== "undefined") {
+            console.log(content);
+        }
+    };
+
     var _removeDetachedWindow = function (widget) {
         var i = 0;
 
@@ -531,9 +541,9 @@ var WUI_Dialog = new (function() {
             //_removeDetachedWindow(widget);
             _close(dialog, true, true, true);
 
-            /*if (widget.modal_element) {
+            if (widget.modal_element) {
                 document.body.removeChild(widget.modal_element);
-            }*/
+            }
         }, false);
 
         _detached_windows.push(child_window);
@@ -875,7 +885,7 @@ var WUI_Dialog = new (function() {
     };
 
     var _createFailed = function () {
-        console.log("WUI_RangeSlider 'create' failed, first argument not an id nor a DOM element.");
+        _log("WUI_RangeSlider 'create' failed, first argument not an id nor a DOM element.");
     };
 
     /***********************************************************
@@ -927,7 +937,7 @@ var WUI_Dialog = new (function() {
         }
 
         if (_widget_list[id] !== undefined) {
-            console.log("WUI_Dialog id '" + id + "' already created, aborting.");
+            _log("WUI_Dialog id '" + id + "' already created, aborting.");
 
             return;
         }
@@ -1127,9 +1137,7 @@ var WUI_Dialog = new (function() {
             detach_ref;
 
         if (widget === undefined) {
-            if (typeof console !== "undefined") {
-                console.log("Cannot setStatusBarContent of WUI dialog \"" + id + "\".");
-            }
+            _log("Cannot setStatusBarContent of WUI dialog \"" + id + "\".");
 
             return;
         }
@@ -1156,9 +1164,7 @@ var WUI_Dialog = new (function() {
             div, i, dialog;
 
         if (widget === undefined) {
-            if (typeof console !== "undefined") {
-                console.log("Cannot open WUI dialog \"" + id + "\".");
-            }
+            _log("Cannot open WUI dialog \"" + id + "\".");
 
             return;
         }
@@ -1205,9 +1211,7 @@ var WUI_Dialog = new (function() {
         var widget = _widget_list[id];
 
         if (widget === undefined) {
-            if (typeof console !== "undefined") {
-                console.log("Cannot focus WUI dialog \"" + id + "\".");
-            }
+            _log("Cannot focus WUI dialog \"" + id + "\".");
 
             return;
         }
@@ -1219,9 +1223,7 @@ var WUI_Dialog = new (function() {
         var widget = _widget_list[id];
 
         if (widget === undefined) {
-            if (typeof console !== "undefined") {
-                console.log("Cannot close WUI dialog \"" + id + "\".");
-            }
+            _log("Cannot close WUI dialog \"" + id + "\".");
 
             return;
         }
@@ -1235,7 +1237,7 @@ var WUI_Dialog = new (function() {
             element;
 
         if (widget === undefined) {
-            console.log("Element id '" + id + "' is not a WUI_Dialog, destroying aborted.");
+            _log("Element id '" + id + "' is not a WUI_Dialog, destroying aborted.");
 
             return;
         }
@@ -1279,7 +1281,7 @@ var WUI_Dialog = new (function() {
 
         if (widget === undefined) {
             if (dialog_id !== undefined) {
-                console.log("WUI_Dialog.getDetachedDialog: Element id '" + dialog_id + "' is not a WUI_Dialog.");
+                _log("WUI_Dialog.getDetachedDialog: Element id '" + dialog_id + "' is not a WUI_Dialog.");
             }
 
             return null;
@@ -1306,12 +1308,12 @@ var WUI_DropDown = new (function() {
 
     /***********************************************************
         Private section.
-        
+
         Fields.
     ************************************************************/
-    
+
     var _widget_list = {},
-        
+
         _class_name = {
             dropdown:   "wui-dropdown",
             item:       "wui-dropdown-item",
@@ -1320,28 +1322,38 @@ var WUI_DropDown = new (function() {
             open:       "wui-dropdown-open",
             on:         "wui-dropdown-on"
         },
-        
+
         _known_options = {
             width: "auto",
             height: 24,
-            
+
             ms_before_hiding: 2000,
-            
+
             vertical: false,
-            
+
             vspacing: 0,
-            
+
             selected_id: 0, // default item selected
-            
+
             on_item_selected: null
         };
-    
+
     /***********************************************************
         Private section.
-        
+
         Functions.
     ************************************************************/
-    
+
+    var _log = function (content) {
+        if (!window.WUI_Reporting) {
+            return;
+        }
+
+        if (typeof console !== "undefined") {
+            console.log(content);
+        }
+    };
+
     var _getElementOffset = function (element) {
         var owner_doc = element.ownerDocument,
             box = element.getBoundingClientRect(),
@@ -1349,7 +1361,7 @@ var WUI_DropDown = new (function() {
             docEl = owner_doc.documentElement,
 
             owner_win = owner_doc.defaultView || owner_doc.parentWindow,
-        
+
             scrollTop = owner_win.pageYOffset || docEl.scrollTop || body.scrollTop,
             scrollLeft = owner_win.pageXOffset || docEl.scrollLeft || body.scrollLeft,
 
@@ -1361,7 +1373,7 @@ var WUI_DropDown = new (function() {
 
         return { top: Math.round(top), left: Math.round(left) };
     };
-    
+
     var _createFloatingContent = function (doc, widget) {
         var floating_content = doc.createElement("div"),
             div_item = null,
@@ -1416,10 +1428,10 @@ var WUI_DropDown = new (function() {
         }
 
         widget.floating_content = null;
-        
+
         widget.close_timeout = null;
     };
-    
+
     var _click = function (ev) {
         ev.preventDefault();
         ev.stopPropagation();
@@ -1452,55 +1464,55 @@ var WUI_DropDown = new (function() {
         ev.stopPropagation();
 
         var current_element = ev.target,
-            
+
             widget,
-            
+
             floating_content = null,
-            
+
             floating_content_childs = null,
-            
+
             i;
-        
+
         if (current_element.classList.contains(_class_name.item)) {
             floating_content = current_element.parentElement;
-            
+
             widget = _widget_list[floating_content.dataset.linkedto];
         } else {
-            return;   
+            return;
         }
-        
+
         floating_content_childs = floating_content.getElementsByTagName('div');
 
         for (i = 0; i < floating_content_childs.length; i += 1) {
             floating_content_childs[i].classList.remove(_class_name.selected);
         }
-        
+
         current_element.classList.add(_class_name.selected);
-        
+
         widget.selected_id = parseInt(current_element.dataset.index, 10);
         widget.target_element.lastElementChild.innerHTML = current_element.textContent;
-        
+
         if (widget.element !== widget.target_element) {
             widget.element.lastElementChild.innerHTML = current_element.textContent;
         }
-        
+
         if (widget.opts.on_item_selected !== undefined) {
-            widget.opts.on_item_selected(current_element.dataset.index);  
+            widget.opts.on_item_selected(current_element.dataset.index);
         }
 
         _deleteFloatingContent(current_element.ownerDocument, widget.target_element, widget);
     };
-    
+
     var _mouseOver = function (ev) {
         ev.preventDefault();
         ev.stopPropagation();
 
         var current_element = ev.target,
-            
+
             widget = null,
-            
+
             offset = null,
-            
+
             floating_content = null,
 
             owner_doc = current_element.ownerDocument,
@@ -1508,7 +1520,7 @@ var WUI_DropDown = new (function() {
 
         if (current_element.classList.contains(_class_name.dropdown)) {
             widget = _widget_list[current_element.id];
-            
+
             if (widget.floating_content === null) {
                 current_element.classList.add(_class_name.on);
 
@@ -1532,22 +1544,22 @@ var WUI_DropDown = new (function() {
         } else {
             return;
         }
-        
+
         owner_win.clearTimeout(widget.close_timeout);
 
         current_element.addEventListener("mouseleave", _mouseLeave, false);
     };
-    
+
     var _mouseLeave = function (ev) {
         ev.preventDefault();
 
         var current_element = ev.target,
-            
+
             widget = null,
 
             owner_doc = current_element.ownerDocument,
             owner_win = owner_doc.defaultView || owner_doc.parentWindow;
-    
+
         if (current_element.classList.contains(_class_name.content)) {
             widget = _widget_list[current_element.dataset.linkedto];
         } else if (current_element.classList.contains(_class_name.item)) {
@@ -1555,19 +1567,19 @@ var WUI_DropDown = new (function() {
         } else {
             widget = _widget_list[current_element.id];
         }
-            
+
         widget.close_timeout = owner_win.setTimeout(_deleteFloatingContent, widget.opts.ms_before_hiding, owner_doc, widget.target_element, widget);
 
         current_element.removeEventListener("mouseleave", _mouseLeave, false);
     };
 
     var _createFailed = function () {
-        console.log("WUI_RangeSlider 'create' failed, first argument not an id nor a DOM element.");
+        _log("WUI_RangeSlider 'create' failed, first argument not an id nor a DOM element.");
     };
-    
+
     /***********************************************************
         Public section.
-        
+
         Functions.
     ************************************************************/
 
@@ -1575,39 +1587,39 @@ var WUI_DropDown = new (function() {
         var dropdown,
 
             opts = {},
-        
+
             key;
-        
+
         if ((typeof id) === "string") {
             dropdown = document.getElementById(id);
         } else if ((typeof id) === "object") {
             if ((typeof id.innerHTML) !== "string") {
                 _createFailed();
-                
+
                 return;
             }
-            
+
             dropdown = id;
 
             id = dropdown.id;
         } else {
             _createFailed();
-            
+
             return;
         }
-        
+
         if (_widget_list[id] !== undefined) {
-            console.log("WUI_DropDown id '" + id + "' already created, aborting.");
-            
+            _log("WUI_DropDown id '" + id + "' already created, aborting.");
+
             return;
         }
-        
+
         for (key in _known_options) {
             if (_known_options.hasOwnProperty(key)) {
                 opts[key] = _known_options[key];
             }
         }
-        
+
         if (options !== undefined) {
             for (key in options) {
                 if (options.hasOwnProperty(key)) {
@@ -1617,30 +1629,30 @@ var WUI_DropDown = new (function() {
                 }
             }
         }
-        
+
         dropdown.classList.add(_class_name.dropdown);
-        
+
         dropdown.style.width = opts.width;
         dropdown.style.height = opts.height;
-        
+
         var div_icon = document.createElement("div");
         div_icon.classList.add("wui-dropdown-icon");
 
         dropdown.appendChild(div_icon);
-        
+
         var div_button = document.createElement("div");
         div_button.classList.add("wui-dropdown-text");
-        
+
         if (content_array.length !== 0) {
             div_button.innerHTML = content_array[opts.selected_id];
         }
-        
+
         dropdown.appendChild(div_button);
-        
+
         dropdown.addEventListener("click", _click, false);
-        
+
         dropdown.addEventListener("mouseover", _mouseOver, false);
-        
+
         var dd = {
             element: dropdown,
 
@@ -1649,30 +1661,30 @@ var WUI_DropDown = new (function() {
             selected_id: opts.selected_id,
 
             content_array: content_array,
-            
+
             opts: opts,
-            
+
             button_item: div_button,
-            
+
             hover_count: 0,
-            
+
             target_element: null,
 
             close_timeout: null
         };
-        
+
         _widget_list[id] = dd;
 
         return id;
     };
-    
+
     this.destroy = function (id) {
         var widget = _widget_list[id],
 
             element;
 
         if (widget === undefined) {
-            console.log("Element id '" + id + "' is not a WUI_DropDown, destroying aborted.");
+            _log("Element id '" + id + "' is not a WUI_DropDown, destroying aborted.");
 
             return;
         }
@@ -1797,6 +1809,16 @@ var WUI_RangeSlider = new (function() {
 
         Functions.
     ************************************************************/
+
+    var _log = function (content) {
+        if (!window.WUI_Reporting) {
+            return;
+        }
+
+        if (typeof console !== "undefined") {
+            console.log(content);
+        }
+    };
 
     // find the same slider element from a detached WUI_Dialog
     var _getDetachedElement = function (id) {
@@ -2498,7 +2520,7 @@ var WUI_RangeSlider = new (function() {
     };
 
     var _createFailed = function () {
-        console.log("WUI_RangeSlider 'create' failed, first argument not an id nor a DOM element.");
+        _log("WUI_RangeSlider 'create' failed, first argument not an id nor a DOM element.");
     };
 
     /***********************************************************
@@ -2535,7 +2557,7 @@ var WUI_RangeSlider = new (function() {
         }
 
         if (_widget_list[id] !== undefined) {
-            console.log("WUI_RangeSlider id '" + id + "' already created, aborting.");
+            _log("WUI_RangeSlider id '" + id + "' already created, aborting.");
 
             return;
         }
@@ -2748,7 +2770,7 @@ var WUI_RangeSlider = new (function() {
 
                 range_slider.appendChild(midi_learn_elem);
             } else {
-                console.log("WUI_RangeSlider id '" + id + "' : Web MIDI API is disabled. (not supported by your browser?)");
+                _log("WUI_RangeSlider id '" + id + "' : Web MIDI API is disabled. (not supported by your browser?)");
             }
         }
 
@@ -2785,7 +2807,7 @@ var WUI_RangeSlider = new (function() {
             container_element;
 
         if (widget === undefined) {
-            console.log("Element id '" + id + "' is not a WUI_RangeSlider, destroying aborted.");
+            _log("Element id '" + id + "' is not a WUI_RangeSlider, destroying aborted.");
 
             return;
         }
@@ -2817,7 +2839,7 @@ var WUI_RangeSlider = new (function() {
             key;
 
         if (widget === undefined) {
-            console.log("Element id '" + id + "' is not a WUI_RangeSlider, getParameters aborted.");
+            _log("Element id '" + id + "' is not a WUI_RangeSlider, getParameters aborted.");
 
             return null;
         }
@@ -2838,7 +2860,7 @@ var WUI_RangeSlider = new (function() {
             key;
 
         if (widget === undefined) {
-            console.log("Element id '" + id + "' is not a WUI_RangeSlider, setParameters aborted.");
+            _log("Element id '" + id + "' is not a WUI_RangeSlider, setParameters aborted.");
 
             return;
         }
@@ -2872,7 +2894,7 @@ var WUI_RangeSlider = new (function() {
         var widget = _widget_list[id];
 
         if (widget === undefined) {
-            console.log("Element id '" + id + "' is not a WUI_RangeSlider, setParameters aborted.");
+            _log("Element id '" + id + "' is not a WUI_RangeSlider, setParameters aborted.");
 
             return;
         }
@@ -3025,12 +3047,12 @@ var WUI_Tabs = new (function() {
 
     /***********************************************************
         Private section.
-        
+
         Fields.
     ************************************************************/
-    
+
     var _widget_list = {},
-        
+
         _class_name = {
             enabled:      "wui-tab-enabled",
             disabled:     "wui-tab-disabled",
@@ -3041,7 +3063,7 @@ var WUI_Tabs = new (function() {
             tab_content:  "wui-tab-content",
             underline:    "wui-tabs-underline"
         },
-        
+
         _known_options = {
             on_tab_click: null,
 
@@ -3050,34 +3072,44 @@ var WUI_Tabs = new (function() {
 
     /***********************************************************
         Private section.
-        
+
         Functions.
     ************************************************************/
-    
+
+    var _log = function (content) {
+        if (!window.WUI_Reporting) {
+            return;
+        }
+
+        if (typeof console !== "undefined") {
+            console.log(content);
+        }
+    };
+
     var _onTabClick = function (ev) {
         ev.preventDefault();
         ev.stopPropagation();
 
         var tab_elem = ev.target,
-            
+
             tabs = tab_elem.parentElement,
             content = tabs.nextElementSibling.nextElementSibling,
-            
+
             widget_id = tabs.parentElement.id,
-            
+
             widget = _widget_list[widget_id],
 
             tab_index = 0,
             elem = null,
-            
+
             i = 0;
-        
+
         for (i = 0; i < tabs.childElementCount; i += 1) {
             elem = tabs.children[i];
-            
+
             elem.classList.remove(_class_name.enabled);
             elem.classList.add(_class_name.disabled);
-            
+
             widget.tabs[i].classList.remove(_class_name.enabled);
             widget.tabs[i].classList.add(_class_name.disabled);
 
@@ -3088,9 +3120,9 @@ var WUI_Tabs = new (function() {
 
         for (i = 0; i < content.childElementCount; i += 1) {
             elem = content.children[i];
-            
+
             elem.classList.remove(_class_name.display_none);
-            
+
             widget.contents[i].classList.remove(_class_name.display_none);
 
             if (tab_index !== i) {
@@ -3099,7 +3131,7 @@ var WUI_Tabs = new (function() {
                 widget.contents[i].classList.add(_class_name.display_none);
             }
         }
-        
+
         widget.tabs[tab_index].classList.remove(_class_name.disabled);
         widget.tabs[tab_index].classList.add(_class_name.enabled);
 
@@ -3110,14 +3142,14 @@ var WUI_Tabs = new (function() {
             widget.opts.on_tab_click(tab_index);
         }
     };
-    
+
     var _createFailed = function () {
-        console.log("WUI_RangeSlider 'create' failed, first argument not an id nor a DOM element.");
+        _log("WUI_RangeSlider 'create' failed, first argument not an id nor a DOM element.");
     };
-    
+
     /***********************************************************
         Public section.
-        
+
         Functions.
     ************************************************************/
 
@@ -3128,54 +3160,54 @@ var WUI_Tabs = new (function() {
      */
     this.create = function (id, options) {
         var element,
-            
+
             tabs,
             underline = document.createElement("div"),
             content,
-            
+
             first_tab,
-            
+
             opts = {},
-            
+
             key,
 
             i = 0;
-        
+
         if ((typeof id) === "string") {
             element = document.getElementById(id);
         } else if ((typeof id) === "object") {
             if ((typeof id.innerHTML) !== "string") {
                 _createFailed();
-                
+
                 return;
             }
-            
+
             element = id;
 
             id = element.id;
         } else {
             _createFailed();
-            
+
             return;
         }
-        
+
         tabs = element.firstElementChild;
         content = tabs.nextElementSibling;
-            
+
         first_tab = tabs.children[0];
-        
+
         if (_widget_list[id] !== undefined) {
-            console.log("WUI_Tabs id '" + id + "' already created, aborting.");
-            
+            _log("WUI_Tabs id '" + id + "' already created, aborting.");
+
             return;
         }
-        
+
         for (key in _known_options) {
             if (_known_options.hasOwnProperty(key)) {
                 opts[key] = _known_options[key];
             }
         }
-        
+
         if (options !== undefined) {
             for (key in options) {
                 if (options.hasOwnProperty(key)) {
@@ -3185,61 +3217,61 @@ var WUI_Tabs = new (function() {
                 }
             }
         }
-        
+
         element.style.overflow = "hidden";
 
         underline.className = "wui-tabs-underline";
-        
+
         element.insertBefore(underline, content);
-        
+
         // style tabs
         tabs.classList.add(_class_name.tabs);
-        
+
         var tab_count = tabs.childElementCount,
             tab_elems = [];
-        
+
         for (i = 0; i < tab_count; i += 1) {
             var tab = tabs.children[i];
-            
+
             tab.classList.add("wui-tab");
-            
+
             if (tab !== first_tab) {
                 tab.classList.add(_class_name.disabled);
             }
-            
+
             tab.addEventListener("click", _onTabClick, false);
             tab.addEventListener("touchstart", _onTabClick, false);
 
             tab_elems.push(tab);
         }
-        
+
         first_tab.classList.add(_class_name.enabled);
         first_tab.classList.add("wui-first-tab");
-        
+
         // style tabs content
         content.classList.add("wui-tabs-content");
-        
+
         var tab_content_count = content.childElementCount,
             content_elems = [content.children[0]];
-        
+
         content.style.height = opts.height;
-        
-        content.children[0].classList.add(_class_name.tab_content);  
-        
+
+        content.children[0].classList.add(_class_name.tab_content);
+
         for (i = 1; i < tab_content_count; i += 1) {
             var tab_content = content.children[i];
-            
+
             tab_content.classList.add(_class_name.tab_content);
             tab_content.classList.add(_class_name.display_none);
 
             content_elems.push(tab_content);
         }
-        
+
         _widget_list[id] = { element: element, tabs: tab_elems, contents: content_elems, opts : opts };
-        
+
         return id;
     };
-    
+
     /**
      * Get tab content element from a widget id and tab id
      * @param   {String} id     Widget id
@@ -3249,20 +3281,20 @@ var WUI_Tabs = new (function() {
     this.getContentElement = function (id, tab_id) {
         var element = document.getElementById(id);
         var content = element.firstElementChild.nextElementSibling.nextElementSibling;
-        
+
         return content.children[tab_id];
     };
-    
+
     /**
      * Get a tab name from a widget id and tab id
      * @param   {String} id     Widget id
      * @param   {Number} tab_id Tab id
      * @returns {String} Tab name
      */
-    
+
     this.getTabName = function (id, tab_id) {
         var content = this.getContentElement(id, tab_id);
-        
+
         return content.getAttribute("data-group-name");
     };
 
@@ -3276,7 +3308,7 @@ var WUI_Tabs = new (function() {
             i;
 
         if (widget === undefined) {
-            console.log("Element id '" + id + "' is not a WUI_Tabs, destroying aborted.");
+            _log("Element id '" + id + "' is not a WUI_Tabs, destroying aborted.");
 
             return;
         }
@@ -3356,13 +3388,21 @@ var WUI_ToolBar = new (function() {
         Functions.
     ************************************************************/
 
+    var _log = function (content) {
+        if (!window.WUI_Reporting) {
+            return;
+        }
+
+        if (typeof console !== "undefined") {
+            console.log(content);
+        }
+    };
+
     var _getWidget = function (toolbar_id) {
         var widget = _widget_list[toolbar_id];
 
         if (widget === undefined) {
-            if (typeof console !== "undefined") {
-                console.log("_getWidget failed, the element id \"" + toolbar_id + "\" is not a WUI_ToolBar.");
-            }
+            _log("_getWidget failed, the element id \"" + toolbar_id + "\" is not a WUI_ToolBar.");
 
             return null;
         }
@@ -3757,7 +3797,7 @@ var WUI_ToolBar = new (function() {
     };
 
     var _createFailed = function () {
-        console.log("WUI_RangeSlider 'create' failed, first argument not an id nor a DOM element.");
+        _log("WUI_RangeSlider 'create' failed, first argument not an id nor a DOM element.");
     };
 
     /***********************************************************
@@ -3807,7 +3847,7 @@ var WUI_ToolBar = new (function() {
         }
 
         if (_widget_list[id] !== undefined) {
-            console.log("WUI_Toolbar id '" + id + "' already created, aborting.");
+            _log("WUI_Toolbar id '" + id + "' already created, aborting.");
 
             return;
         }
@@ -4116,7 +4156,7 @@ var WUI_ToolBar = new (function() {
             i;
 
         if (widget === undefined) {
-            console.log("Element id '" + id + "' is not a WUI_ToolBar, destroying aborted.");
+            _log("Element id '" + id + "' is not a WUI_ToolBar, destroying aborted.");
 
             return;
         }
