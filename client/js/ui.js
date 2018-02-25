@@ -108,7 +108,7 @@ var _fasNotifyChnInfos = function () {
     _fasNotify(_FAS_CHN_INFOS, _chn_settings);  
 };
 
-var _onChangeGrainSize = function (channel, channel_data_index) {
+var _onChangeChannelSettings = function (channel, channel_data_index) {
     return function (value) {
         _chn_settings[channel][channel_data_index] = value;
 
@@ -136,12 +136,12 @@ var _createFasSettingsContent = function () {
         spectral_option,
         subtractive_option,
         fm_option,
-        chn_drive_input,
+        chn_gden_input,
         chn_gmin_size_input,
         chn_gmax_size_input,
         gmin = 0.01,
         gmax = 0.1,
-        drive = 1.0,
+        gden = 0.00001,
         chn_genv_type_label,
         chn_genv_type_select,
         chn_genv_option,
@@ -195,8 +195,8 @@ var _createFasSettingsContent = function () {
         chn_gmax_size_input = document.createElement("div");
         chn_gmax_size_input.id = "fs_chn_" + j + "_gmax";
         
-        chn_drive_input = document.createElement("div");
-        chn_drive_input.id = "fs_chn_" + j + "_drive";
+        chn_gden_input = document.createElement("div");
+        chn_gden_input.id = "fs_chn_" + j + "_drive";
         
         granular_option = document.createElement("option");
         additive_option = document.createElement("option");
@@ -274,27 +274,29 @@ var _createFasSettingsContent = function () {
             
             if (chn_settings[2] !== undefined) {
                 gmin = chn_settings[2];
-                drive = chn_settings[2];
             }
             
             if (chn_settings[3] !== undefined) {
                 gmax = chn_settings[3];
+            }
+            
+            if (chn_settings[4] !== undefined) {
+                gden = chn_settings[4];
             }
         }
         
         chn_synthesis_select.addEventListener("change", function() {
                 var j = parseInt(this.dataset.chnId, 10),
                     i = 0,
+                    e = null,
                     value;
             
-                // F U N
-                this.nextElementSibling.style.display = "none";
-                this.nextElementSibling.nextElementSibling.style.display = "none";
-                this.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "none";
-                this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "none";
-                this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "none";
-                //this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "none";
-                // abrupt end
+                e = this.nextElementSibling;
+                for (i = 0; i < 6; i += 1) {
+                    e.style.display = "none";
+                    
+                    e = e.nextElementSibling;
+                }
 
                 if (this.value === "additive") {
                     value = 0;
@@ -303,11 +305,12 @@ var _createFasSettingsContent = function () {
                 } else if (this.value === "granular") {
                     value = 2;
                     
-                    this.nextElementSibling.style.display = "";
-                    this.nextElementSibling.nextElementSibling.style.display = "";
-                    this.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "";
-                    this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "";
-                    this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "";
+                    e = this.nextElementSibling;
+                    for (i = 0; i < 6; i += 1) {
+                        e.style.display = "";
+
+                        e = e.nextElementSibling;
+                    }
                 } else if (this.value === "PM/FM") {
                     value = 3;
                 } else if (this.value === "subtractive") {
@@ -346,7 +349,7 @@ var _createFasSettingsContent = function () {
         chn_div.appendChild(chn_genv_type_select);
         chn_div.appendChild(chn_gmin_size_input);
         chn_div.appendChild(chn_gmax_size_input);
-        //chn_div.appendChild(chn_drive_input);
+        chn_div.appendChild(chn_gden_input);
         
         chn_settings_div.appendChild(chn_div);
         main_chn_settings_div.appendChild(chn_settings_div);
@@ -373,7 +376,7 @@ var _createFasSettingsContent = function () {
             title_min_width: 140,
             value_min_width: 88,
 
-            on_change: _onChangeGrainSize(j, 2)
+            on_change: _onChangeChannelSettings(j, 2)
         }));
         
         _fas_content_list.push(WUI_RangeSlider.create(chn_gmax_size_input, {
@@ -398,37 +401,37 @@ var _createFasSettingsContent = function () {
             title_min_width: 140,
             value_min_width: 88,
 
-            on_change: _onChangeGrainSize(j, 3)
+            on_change: _onChangeChannelSettings(j, 3)
         }));
-/*
-        _fas_content_list.push(WUI_RangeSlider.create(chn_drive_input, {
+
+        _fas_content_list.push(WUI_RangeSlider.create(chn_gden_input, {
             width: 120,
             height: 8,
 
-            min: 0.1,
-            max: 500.0,
+            min: 0.0,
+            max: 1.0,
 
             bar: false,
 
-            step: 0.1,
-            scroll_step: 1.,
+            step: 0.00001,
+            scroll_step: 0.01,
 
-            default_value: drive,
-            value: drive,
+            default_value: gden,
+            value: gden,
             
-            decimals: 2,
+            decimals: 5,
 
-            title: "Filter drive",
+            title: "Spread",
 
             title_min_width: 140,
             value_min_width: 88,
 
-            on_change: _onChangeGrainSize(j, 2)
+            on_change: _onChangeChannelSettings(j, 4)
         }));
-*/
+
         chn_gmin_size_input.style.display = "hidden";
         chn_gmax_size_input.style.display = "hidden";
-//        chn_drive_input.style.display = "hidden";
+        chn_gden_input.style.display = "hidden";
         
         chn_synthesis_select.dispatchEvent(new UIEvent('change'));
         chn_genv_type_select.dispatchEvent(new UIEvent('change'));

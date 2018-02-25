@@ -100,9 +100,11 @@ var _addMessage = function (userid, data) {
         li = document.createElement("li"),
         detached_discuss_element,
         
+        date_now = new Date(),
+        
         detached_dialog;
 
-    li.title = new Date().toLocaleString();
+    li.title = date_now.toLocaleString();
     li.innerHTML = "&lt;" + user_li.innerHTML + "&gt; " + data;
     
     if (userid === "self") {

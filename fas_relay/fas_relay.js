@@ -25,12 +25,12 @@ const SYNTH_SETTINGS = 0,
       CHN_SETTINGS = 3;
 
 // distribution methods of pixels value, see simulation.html to watch and interact with all those algorithms
-const DSPLIT = 0, // split the slices in equals chunks for each servers, this is the naive algorithm
+const DSPLIT = 0, // split the slices in equals chunks for each servers, this is a naive algorithm
       // interleaved processing
       // this will distribute data over each servers in a linear & cyclical fashion, it has very good performances
       DINTER = 1,
       // smart distribution of load over each servers
-      // this is the best algorithm, it distribute data equally to all servers, it, it work great
+      // this is the best algorithm, it distribute data equally to all servers, work great
       DSMART = 2;
 
 var WebSocket = require("ws"),
@@ -91,7 +91,7 @@ if (distribution_method === DSPLIT) {
 
 function sendError(error) {
     if (error) {
-        logger.error("Error: %s", error);
+        logger.error(error);
     }
 }
 
