@@ -373,9 +373,9 @@ _glsl_parser_worker.onmessage = function(m) {
             elem.innerHTML = '<span class="fs-outline-item-type">' + statement.returnType.name + "</span> " + statement.name + " (" + tmp.join(", ") + ")";
             elem.title = "line: " + statement.position.start.line;
                 
-            elem.addEventListener("click", setCursorCb(statement.position));
-
             _outline_element.appendChild(elem);
+            
+            elem.addEventListener("click", setCursorCb(statement.position));
         } else if (statement.type === "declarator") {
             elem = document.createElement("div");
             
@@ -383,10 +383,10 @@ _glsl_parser_worker.onmessage = function(m) {
             
             elem.innerHTML = '<span class="fs-outline-item-type">' + statement.returnType + "</span> " + statement.name;
             elem.title = "line: " + statement.position.start.line;
-                
-            elem.addEventListener("click", setCursorCb(statement.position));
 
             _outline_element.appendChild(elem);
+            
+            elem.addEventListener("click", setCursorCb(statement.position));
         } else if (statement.type === "preprocessor") {
             elem = document.createElement("div");
             
@@ -394,10 +394,10 @@ _glsl_parser_worker.onmessage = function(m) {
             
             elem.innerHTML = statement.name + " = " + statement.value;
             elem.title = "line: " + statement.position.start.line;
-                
-            elem.addEventListener("click", setCursorCb(statement.position));
 
             _outline_element.appendChild(elem);
+            
+            elem.addEventListener("click", setCursorCb(statement.position));
         }
     }
 };
