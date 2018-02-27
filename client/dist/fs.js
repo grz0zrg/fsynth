@@ -23150,6 +23150,7 @@ var _createFasSettingsContent = function () {
         additive_option,
         spectral_option,
         subtractive_option,
+        physical_modelling_option,
         fm_option,
         chn_gden_input,
         chn_gmin_size_input,
@@ -23216,13 +23217,15 @@ var _createFasSettingsContent = function () {
         granular_option = document.createElement("option");
         additive_option = document.createElement("option");
         spectral_option = document.createElement("option");
-        subtractive_option = document.createElement("option"); 
+        subtractive_option = document.createElement("option");
+        physical_modelling_option = document.createElement("option"); 
         fm_option = document.createElement("option");
         granular_option.innerHTML = "granular";
         additive_option.innerHTML = "additive";
         spectral_option.innerHTML = "spectral";
         spectral_option.style.display = "none";
         subtractive_option.innerHTML = "subtractive";
+        physical_modelling_option.innerHTML = "phys. modelling";
         //fm_option.style.display = "none";
         fm_option.innerHTML = "PM/FM";
         
@@ -23264,6 +23267,7 @@ var _createFasSettingsContent = function () {
         chn_synthesis_select.appendChild(spectral_option);
         chn_synthesis_select.appendChild(granular_option);
         chn_synthesis_select.appendChild(subtractive_option);
+        chn_synthesis_select.appendChild(physical_modelling_option);
         chn_synthesis_select.appendChild(fm_option);
         
         chn_settings = _chn_settings[j];
@@ -23281,6 +23285,8 @@ var _createFasSettingsContent = function () {
                 fm_option.selected = true;
             } else if (chn_settings[0] === 4) {
                 subtractive_option.selected = true;
+            } else if (chn_settings[0] === 5) {
+                physical_modelling_option.selected = true;
             }
             
             if (chn_settings[1] !== undefined) {
@@ -23331,6 +23337,8 @@ var _createFasSettingsContent = function () {
                 } else if (this.value === "subtractive") {
                     //this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "";
                     value = 4;
+                } else if (this.value === "phys. modelling") {
+                    value = 5;
                 } else {
                     value = 0;
                 }
