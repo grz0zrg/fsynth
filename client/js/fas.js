@@ -120,6 +120,8 @@ var _fasInit = function () {
             var data = m.data;
 
             if (data.status === "open") {
+                _stopOscillators(); // TODO: move this somewhere else...
+                
                 _fasStatus(true);
 
                 _fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
