@@ -688,10 +688,6 @@ var _uiInit = function () {
     _xhrContent("data/md/uniforms.md", function (md_content) {
             document.getElementById("fs_documentation_uniforms").innerHTML = _showdown_converter.makeHtml(md_content);
         });
-
-    _xhrContent("data/md/support_us.md", function (md_content) {
-            document.getElementById("fs_donation_content").innerHTML = _showdown_converter.makeHtml(md_content);
-        });
     
     // may don't scale at all in the future!
     var settings_ck_globaltime_elem = document.getElementById("fs_settings_ck_globaltime"),
@@ -1283,7 +1279,7 @@ var _uiInit = function () {
             title: "Fragment - Help",
 
             width: "440px",
-            height: "785px",
+            height: "800px",
 
             halign: "center",
             valign: "center",

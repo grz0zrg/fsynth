@@ -18188,7 +18188,7 @@ _utter_fail_element.innerHTML = "";
         Fields.
     ************************************************************/
 
-    var _motd = '<div id="fs_notify" class="fs-notify"><div style="width: auto;height: 11px;position: absolute;top: 0;bottom: 0;margin-top: auto;margin-bottom: auto;color: #ffffff;font-size: 10px;padding: 4px;margin-left: 8px;line-height: 13px;text-align: center;cursor: default;font-family: monospace;font-weight: bold;">31/12/2017 :</div><div style="width: auto;height: 9px;position: absolute;top: 0px;bottom: 0;margin-top: auto;margin-bottom: auto;color: #ffffff;font-size: 10px;padding: 7px;margin-left: 84px;text-align: left;font-family: monospace;line-height: 12px;"><a class="fs-link" href="https://quiet.fsynth.com/d/12-fragment-1-0-3">Fragment 1.0.3 released, subtractive/PM synthesis, audio server update etc. (click for more details)</a></div></div>',
+    var _motd = '<div id="fs_notify" class="fs-notify"><div class="fs-status-bar-date">31/12/2017 :</div><div class="fs-status-bar-content"><a class="fs-link" href="https://quiet.fsynth.com/d/12-fragment-1-0-3">Fragment 1.0.3 released, subtractive/PM synthesis, audio server update etc. (click for more details)</a></div></div>',
         
         _showdown_converter = new showdown.Converter(),
         
@@ -18298,17 +18298,17 @@ _utter_fail_element.innerHTML = "";
                     cm.setOption("fullScreen", fullscreen);
                     
                     // hide some UI stuff when fullscreen
-                    var mid_panel = document.getElementById("fs_middle_panel"),
-                        fs_browser = document.getElementById("fs_browser");
+                    var mid_panel = document.getElementById("fs_middle_panel");/*,
+                        fs_browser = document.getElementById("fs_browser");*/
                     
                     if (fullscreen) {
                         _code_editor.setOption("lineNumbers", false);
                         mid_panel.style.display = "none";
-                        fs_browser.style.display = "none";
+                        //fs_browser.style.display = "none";
                     } else {
                         _code_editor.setOption("lineNumbers", _cm_show_linenumbers);
                         mid_panel.style.display = "";
-                        fs_browser.style.display = "";
+                        //fs_browser.style.display = "";
                     }
                 },
                 "Esc": function (cm) {
@@ -18317,11 +18317,11 @@ _utter_fail_element.innerHTML = "";
                         
                         _code_editor.setOption("lineNumbers", _cm_show_linenumbers);
                         
-                        var mid_panel = document.getElementById("fs_middle_panel"),
-                            fs_browser = document.getElementById("fs_browser");
+                        var mid_panel = document.getElementById("fs_middle_panel");/*,
+                            fs_browser = document.getElementById("fs_browser");*/
                         
                         mid_panel.style.display = "";
-                        fs_browser.style.display = "";
+                        //fs_browser.style.display = "";
                     }
                 }
             }
@@ -22750,15 +22750,15 @@ var _updateCodeView = function () {
     var code = document.getElementById("code"),
         mid_panel = document.getElementById("fs_middle_panel"),
 
-        mid_panel_offset = _getElementOffset(mid_panel),
+        mid_panel_offset = _getElementOffset(mid_panel);/*,
         
         fs_browser = document.getElementById("fs_browser"),
-        fs_browser_offset = _getElementOffset(fs_browser);
+        fs_browser_offset = _getElementOffset(fs_browser);*/
 
-    code.style.width = (window.innerWidth - (fs_browser_offset.left + fs_browser_offset.width + 2)) + "px";
+    code.style.width = (window.innerWidth /*- (fs_browser_offset.left + fs_browser_offset.width + 2)*/) + "px";
     code.style.height = (window.innerHeight - (mid_panel_offset.top + mid_panel_offset.height)) + "px";
     
-    fs_browser.style.height = (window.innerHeight - (mid_panel_offset.top + mid_panel_offset.height)) + "px";
+    //fs_browser.style.height = (window.innerHeight - (mid_panel_offset.top + mid_panel_offset.height)) + "px";
 
     _code_editor.refresh();
 };
@@ -23703,10 +23703,6 @@ var _uiInit = function () {
     _xhrContent("data/md/uniforms.md", function (md_content) {
             document.getElementById("fs_documentation_uniforms").innerHTML = _showdown_converter.makeHtml(md_content);
         });
-
-    _xhrContent("data/md/support_us.md", function (md_content) {
-            document.getElementById("fs_donation_content").innerHTML = _showdown_converter.makeHtml(md_content);
-        });
     
     // may don't scale at all in the future!
     var settings_ck_globaltime_elem = document.getElementById("fs_settings_ck_globaltime"),
@@ -24298,7 +24294,7 @@ var _uiInit = function () {
             title: "Fragment - Help",
 
             width: "440px",
-            height: "785px",
+            height: "800px",
 
             halign: "center",
             valign: "center",
@@ -27947,7 +27943,7 @@ var _fasInit = function () {
             var data = m.data;
 
             if (data.status === "open") {
-                _stopOscillators(); // move this somewhere else...
+                _stopOscillators(); // TODO: move this somewhere else...
                 
                 _fasStatus(true);
 

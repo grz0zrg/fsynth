@@ -2300,3 +2300,39 @@ body .code .CodeMirror-fullscreen {
 #fs_quickstart .wui-dialog-content {
     overflow: auto;
 }
+
+.fs-status-bar-date {
+    width: auto;
+    height: 11px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin-top: auto;
+    margin-bottom: auto;
+    color: #ffffff;
+    font-size: 10px;
+    padding: 4px;
+    margin-left: 8px;
+    line-height: 13px;
+    text-align: center;
+    cursor: default;
+    font-family: monospace;
+    font-weight: bold;
+}
+
+.fs-status-bar-content {
+    width: auto;
+    height: 9px;
+    position: absolute;
+    top: 0px;
+    bottom: 0;
+    margin-top: auto;
+    margin-bottom: auto;
+    color: #ffffff;
+    font-size: 10px;
+    padding: 7px;
+    margin-left: 84px;
+    text-align: left;
+    font-family: monospace;
+    line-height: 12px;
+}

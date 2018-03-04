@@ -53,15 +53,15 @@ var _updateCodeView = function () {
     var code = document.getElementById("code"),
         mid_panel = document.getElementById("fs_middle_panel"),
 
-        mid_panel_offset = _getElementOffset(mid_panel),
+        mid_panel_offset = _getElementOffset(mid_panel);/*,
         
         fs_browser = document.getElementById("fs_browser"),
-        fs_browser_offset = _getElementOffset(fs_browser);
+        fs_browser_offset = _getElementOffset(fs_browser);*/
 
-    code.style.width = (window.innerWidth - (fs_browser_offset.left + fs_browser_offset.width + 2)) + "px";
+    code.style.width = (window.innerWidth /*- (fs_browser_offset.left + fs_browser_offset.width + 2)*/) + "px";
     code.style.height = (window.innerHeight - (mid_panel_offset.top + mid_panel_offset.height)) + "px";
     
-    fs_browser.style.height = (window.innerHeight - (mid_panel_offset.top + mid_panel_offset.height)) + "px";
+    //fs_browser.style.height = (window.innerHeight - (mid_panel_offset.top + mid_panel_offset.height)) + "px";
 
     _code_editor.refresh();
 };
