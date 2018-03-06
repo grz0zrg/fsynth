@@ -17663,6 +17663,10 @@ var _hzToMIDINote = function (freq) {
     return 69 + 12 * Math.log2(freq / 440);
 };
 
+var _hzToOscillator = function (f, bf, o, h) {
+    return (h-(Math.log(f / bf) / Math.log(2.0)) * Math.floor(h / o + 0.5));
+}
+
 var _MIDINoteName = function (midi_note) {
     return _midi_notes_map[Math.round(midi_note)];
 };
@@ -18146,7 +18150,7 @@ _utter_fail_element.innerHTML = "";
         window.indexedDB = window.webkitIndexedDB || window.mozIndexedDB || window.OIndexedDB || window.msIndexedDB;
         
         if (!window.indexedDB) {
-            _notification("The IndexedDB API is not available, inputs will not be saved.", 10000);
+            _notification("The IndexedDB API is not available, imported data will not be saved.", 10000);
         } else {
             window.indexedDB = {
                 open: function () { return null; }   
@@ -18446,7 +18450,7 @@ _utter_fail_element.innerHTML = "";
         
         _midi_out_f,
         _midi_out = true,
-
+        
         _quad_vertex_buffer,
         
         _program,
@@ -23169,7 +23173,7 @@ var _createFasSettingsContent = function () {
     load_samples_btn.className = "fs-btn fs-btn-default";
     
     load_samples_btn.addEventListener("click", function () {
-        _fasNotify(_FAS_ACTION);
+        _fasNotify(_FAS_ACTION, { type: 0 });
         _fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
     });
     
@@ -27677,17 +27681,28 @@ var _onMIDIMessage = function (midi_message) {
 // MPE/MIDI messages (provided by mpejs)
 var _mpeMIDIMessage = function (notes) {
     var i = 0,
-        data, note, key, d;
+        data, note, key, chn, d;
     
     for (i = 0; i < notes.length; i += 1) {
         data = notes[i];
+        chn = data.channel - 1;
 
-        key = (data.channel - 1) + "_" + data.noteNumber;
+        key = chn + "_" + data.noteNumber;
         note = _keyboard.pressed[key];
 
         if (data.noteState !== 0) {
             if (!data.frq) {
                 data.frq = _frequencyFromNoteNumber(data.noteNumber);
+            }
+            
+            if (_fasEnabled()) {
+                // re-trigger on FAS side for physical modelling (because this type of synthesis require it)
+                if (_chn_settings[chn][0] === 5 && note) {
+                    if (note.noteoff) {
+                        var osc = _hzToOscillator(data.frq, _audio_infos.base_freq, _audio_infos.octaves, _audio_infos.h);
+                        _fasNotify(_FAS_ACTION, { type: 1, note: osc, chn: chn + 1 });
+                    }
+                }
             }
             
             if (note) { // note update / re-trigger
@@ -27739,7 +27754,7 @@ var _mpeMIDIMessage = function (notes) {
                         timbre: data.timbre,
                         pressure: data.pressure,
                         time: Date.now(),
-                        channel: data.channel - 1,
+                        channel: chn,
                         noteoff: false,
                         noteoff_time: 0,
                         id: _keyboard.data.length

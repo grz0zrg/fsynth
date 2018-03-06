@@ -154,7 +154,7 @@ var _createFasSettingsContent = function () {
     load_samples_btn.className = "fs-btn fs-btn-default";
     
     load_samples_btn.addEventListener("click", function () {
-        _fasNotify(_FAS_ACTION);
+        _fasNotify(_FAS_ACTION, { type: 0 });
         _fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
     });
     

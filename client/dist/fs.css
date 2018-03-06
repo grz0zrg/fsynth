@@ -1226,6 +1226,7 @@ span.CodeMirror-selectedtext { background: none; }
 
 .wui-rangeslider-input:invalid {
     background-color: #800000 !important;
+    -webkit-box-shadow: 0px 0px 4px 1px #ff0000;
     box-shadow: 0px 0px 4px 1px #ff0000;
     border: none;
 }
@@ -1427,6 +1428,7 @@ canvas {
 }
 
 .fs-opacity-transition {
+    -webkit-transition: opacity 2s;
     transition: opacity 2s;
 }
 
@@ -1534,6 +1536,9 @@ canvas {
 
 .fs-middle-panel {
     border-top: solid 1px #333;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
     user-select: none;
 }
 
@@ -1654,11 +1659,8 @@ canvas {
 
 .fs-controls-group-elems {
     display: -webkit-box;
-    display: -webkit-flex;
     display: -ms-flexbox;
     display: flex;
-    
-    -webkit-flex-wrap: wrap;
     -ms-flex-wrap: wrap;
     flex-wrap: wrap;
     
@@ -1675,23 +1677,18 @@ canvas {
     padding: 12px;
     
     display: -webkit-box;
-    display: -webkit-flex;
     display: -ms-flexbox;
     display: flex;
-    -webkit-flex-wrap: wrap;
     -ms-flex-wrap: wrap;
     flex-wrap: wrap;
     -webkit-box-pack: start;
-    -webkit-justify-content: center;
     -ms-flex-pack: start;
     justify-content: center;
     -webkit-box-align: center;
-    -webkit-align-items: center;
     -ms-flex-align: center;
     align-items: center;
     -webkit-box-orient: horizontal;
     -webkit-box-direction: normal;
-    -webkit-flex-direction: row;
     -ms-flex-direction: row;
     flex-direction: row;
 }
@@ -1921,7 +1918,9 @@ canvas {
     height: 100%;
     z-index: 99999;
     position: absolute;
+    -webkit-transition: opacity 2s;
     transition: opacity 2s;
+    -webkit-transition-timing-function: ease-in;
     transition-timing-function: ease-in;
     opacity: 1;
     pointer-events: none;
@@ -1954,6 +1953,9 @@ canvas {
     padding: 6px;
     font-size: 12px;
     background-color: #111111;
+    height: -webkit-fill-available;
+    height: -moz-available;
+    height: fill-available;
 }
 
 .fs-documentation a {
@@ -2120,6 +2122,9 @@ body .code .CodeMirror-fullscreen {
     margin-right: 4px;
     
     font-size: 11px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
     user-select: none;
     
     height: calc(100% - 196px);
@@ -2291,10 +2296,16 @@ body .code .CodeMirror-fullscreen {
     color: #ff0;
 }
 
+.fs-uniforms {
+    background-color: #111;
+    height: -webkit-fill-available;
+    height: -moz-available;
+    height: fill-available;
+}
+
 .fs-uniforms p {
-    margin-top: 0;
-    margin-bottom: 0;
-    font-size: 16px;
+    padding: 0;
+    margin: 0;
 }
 
 #fs_quickstart .wui-dialog-content {

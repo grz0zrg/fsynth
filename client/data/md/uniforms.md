@@ -26,11 +26,11 @@
 
 `sampler2D iInputN`
 
-​	import data access, typical usage : `texture2D(iInput0, uv);`
+​	imported data access, typical usage : `texture2D(iInput0, uv);`
 
 `sampler2D pFrame` 
 
-​	previous frame available as a texture
+​	previous frame available as a texture (feedback fx)
 
 `sampler2D pFrameSynth`
 
@@ -42,11 +42,11 @@
 
 `float htoy` 
 
-​	take a frequency as argument and return its vertical position on the canvas (pixels)
+​	function with frequency as argument which return its vertical position on the canvas (pixels)
 
 `float fline` 
 
-​	take a frequency as argument and return either 1 or 0 (shortcut to draw horizontal line)
+​	function with frequency as argument which return 1 or 0 (shortcut to draw a horizontal line)
 
 `vec4[N] keyboard`
 

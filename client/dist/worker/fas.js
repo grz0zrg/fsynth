@@ -21,7 +21,10 @@ var _fas = false,
     _FAS_GAIN_INFOS = 3,
     _FAS_FRAME = 4,
     _FAS_CHN_INFOS = 5,
-    _FAS_ACTION = 6;
+    _FAS_ACTION = 6,
+    
+    _FAS_ACTION_RELOAD = 0,
+    _FAS_ACTION_RETRIGGER = 1;
 
 /***********************************************************
     Functions.
@@ -99,11 +102,26 @@ var _sendAction = function (action) {
         return;
     }
     
-    var action_buffer = new ArrayBuffer(8 + 8),
+    var action_buffer,
+        uint8_view,
+        uint32_view;
+    
+    if (action.type === _FAS_ACTION_RELOAD) {
+        action_buffer = new ArrayBuffer(8 + 8);
         uint8_view = new Uint8Array(action_buffer, 0, 2);
 
-    uint8_view[0] = 4;
-    uint8_view[1] = 0;
+        uint8_view[0] = 4;
+        uint8_view[1] = action.type;
+    } else if (action.type === _FAS_ACTION_RETRIGGER) {
+        action_buffer = new ArrayBuffer(8 + 8 + 8 + 8);
+        uint8_view = new Uint8Array(action_buffer, 0, 2);
+        uint32_view = new Uint32Array(action_buffer, 8, 2);
+
+        uint8_view[0] = 4;
+        uint8_view[1] = action.type;
+        uint32_view[0] = action.chn;
+        uint32_view[1] = action.note;
+    }
     
     if (_fas_ws.readyState !== 1) {
         setTimeout(_sendAction, 1000, action);

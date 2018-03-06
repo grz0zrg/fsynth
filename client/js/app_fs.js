@@ -97,7 +97,7 @@ var FragmentSynth = function (params) {
         window.indexedDB = window.webkitIndexedDB || window.mozIndexedDB || window.OIndexedDB || window.msIndexedDB;
         
         if (!window.indexedDB) {
-            _notification("The IndexedDB API is not available, inputs will not be saved.", 10000);
+            _notification("The IndexedDB API is not available, imported data will not be saved.", 10000);
         } else {
             window.indexedDB = {
                 open: function () { return null; }   
@@ -397,7 +397,7 @@ var FragmentSynth = function (params) {
         
         _midi_out_f,
         _midi_out = true,
-
+        
         _quad_vertex_buffer,
         
         _program,

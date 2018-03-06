@@ -379,17 +379,28 @@ var _onMIDIMessage = function (midi_message) {
 // MPE/MIDI messages (provided by mpejs)
 var _mpeMIDIMessage = function (notes) {
     var i = 0,
-        data, note, key, d;
+        data, note, key, chn, d;
     
     for (i = 0; i < notes.length; i += 1) {
         data = notes[i];
+        chn = data.channel - 1;
 
-        key = (data.channel - 1) + "_" + data.noteNumber;
+        key = chn + "_" + data.noteNumber;
         note = _keyboard.pressed[key];
 
         if (data.noteState !== 0) {
             if (!data.frq) {
                 data.frq = _frequencyFromNoteNumber(data.noteNumber);
+            }
+            
+            if (_fasEnabled()) {
+                // re-trigger on FAS side for physical modelling (because this type of synthesis require it)
+                if (_chn_settings[chn][0] === 5 && note) {
+                    if (note.noteoff) {
+                        var osc = _hzToOscillator(data.frq, _audio_infos.base_freq, _audio_infos.octaves, _audio_infos.h);
+                        _fasNotify(_FAS_ACTION, { type: 1, note: osc, chn: chn + 1 });
+                    }
+                }
             }
             
             if (note) { // note update / re-trigger
@@ -441,7 +452,7 @@ var _mpeMIDIMessage = function (notes) {
                         timbre: data.timbre,
                         pressure: data.pressure,
                         time: Date.now(),
-                        channel: data.channel - 1,
+                        channel: chn,
                         noteoff: false,
                         noteoff_time: 0,
                         id: _keyboard.data.length
