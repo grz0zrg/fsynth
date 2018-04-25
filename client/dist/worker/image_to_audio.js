@@ -4033,7 +4033,7 @@ var _hzToMIDINote = function (freq) {
 };
 
 var _hzToOscillator = function (f, bf, o, h) {
-    return Math.round(h-(Math.log(f / bf) / Math.log(2.0)) * Math.floor(h / o + 0.5));
+    return (h-(Math.log(f / bf) / Math.log(2.0)) * Math.floor(h / o + 0.5));
 }
 
 var _MIDINoteName = function (midi_note) {

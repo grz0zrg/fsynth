@@ -1,6 +1,5 @@
 /* jslint browser: true */
 
-
 /*
     Simple double notifications system
     

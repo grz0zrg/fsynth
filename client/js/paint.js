@@ -79,7 +79,7 @@ var _paint = function (ctx, brush, mode, x, y, scale_x, scale_y, angle, opacity)
     dx = _pvx - x;
     dy = _pvy - y;
 
-    if(Math.abs(dx) > Math.abs(dy)) {
+    if (Math.abs(dx) > Math.abs(dy)) {
         step = Math.abs(dx);
     } else {
         step = Math.abs(dy);

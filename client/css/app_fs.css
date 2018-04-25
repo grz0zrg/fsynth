@@ -326,7 +326,7 @@ canvas {
 }
 
 .fs-middle-panel {
-    border-top: solid 1px #333;
+    border-top: solid 1px #282828;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -334,7 +334,7 @@ canvas {
 }
 
 .fs-input-panel {
-    width: calc(100% - 618px - 16px);
+    width: calc(100% - 619px - 16px);
 /*
     height: 32px;   
     background-color: #111111;
@@ -612,7 +612,7 @@ canvas {
 }
 
 .fs-middle-toolbar {
-    width: 618px;
+    width: 619px;
     
     margin: 0;
     

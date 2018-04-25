@@ -3,9 +3,9 @@
     <head>
         <meta http-equiv="content-type" content="text/html; charset=utf-8">
 
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes">
 
-        <title>Fragment - The Collaborative pixels-based Additive/Spectral/Granular Synthesizer</title>
+        <title>Fragment - Collaborative pixels-based Additive/Spectral/Granular Synthesizer</title>
 
         <meta name="Keywords" content="fragment, spectral synthesizer, granular, subtractive, phase modulation, frequency modulation, physical, modelling, karplus-strong, image-synth, pixels, sound synthesis, computer graphics, rendering, realtime, shader, webgl, glsl, audio, visual, additive, synthesizer, additive synthesizer, synth, fsynth, vjing, vj, real-time, softsynth, synthesizer, collaborative, visuals, live, coding, art, musical, instrument, musique concrète">
         <meta name="Description" content="Web-based collaborative spectral, granular, additive, subtractive, physical modelling, PM live coding audio-visual synthesizer with pixels based real-time image-synth approach to sound synthesis.">
@@ -32,6 +32,35 @@
 
         <script type="text/javascript" src="dist/fp.min.js" defer></script>
 
+        <style>
+          body {
+              font-family: "OpenSans", Helvetica, Arial, sans-serif;
+              font-style: normal;
+              font-weight: normal;
+              color: #222;
+              font-size: 1.6em;
+          }
+
+          @font-face {
+              font-family: "OpenSans";
+              src: url('../data/OpenSans-Regular.ttf');
+          }
+
+          @font-face {
+              font-family: "OpenSans";
+              src: url('../data/OpenSans-Italic.ttf');
+              font-weight: normal;
+              font-style: italic;
+          }
+
+          @font-face {
+              font-family: "OpenSans";
+              src: url('../data/OpenSans-Bold.ttf');
+              font-weight: bold;
+              font-style: normal;
+          }
+        </style>
+
         <!-- Piwik -->
         <script type="text/javascript">
           var _paq = _paq || [];
@@ -49,7 +78,7 @@
     </head>
     <body>
         <noscript><p><img src="//piwik.fsynth.com/piwik.php?idsite=1&rec=1" style="border:0;" alt="" /></p></noscript>
-        <a class="fp-fork-me" href="https://github.com/grz0zrg/fsynth"><img src="data/fork_me.png" alt="Fork me on GitHub" data-canonical-src="data/fork_me.png"></a>
+        <a class="fp-fork-me" href="https://github.com/grz0zrg/fsynth" rel="noopener"><img src="data/fork_me.png" alt="Fork me on GitHub" data-canonical-src="data/fork_me.png"></a>
         <div class="section hero">
             <div class="container">
                 <nav class="navbar">
@@ -70,12 +99,12 @@
                                 </a>
                             </li>
                             <li class="navbar-item">
-                                <a class="navbar-link" href="https://www.fsynth.com/documentation">
+                                <a class="navbar-link" href="https://www.fsynth.com/documentation" rel="noopener">
                                     Documentation
                                 </a>
                             </li>
                             <li class="navbar-item">
-                                <a class="navbar-link" href="https://quiet.fsynth.com">
+                                <a class="navbar-link" href="https://quiet.fsynth.com" rel="noopener">
                                     <i class="fa fa-comments-o" aria-hidden="true"></i>
                                     Forum
                                 </a>
@@ -139,31 +168,31 @@
                         </p>
                         <div>
                             <div class="fp-center-text">
-                                <a target="_blank" href="https://www.facebook.com/fsynth/" class="fp-social-page-fbl">
+                                <a target="_blank" title="Official Facebook page" href="https://www.facebook.com/fsynth/" rel="noopener" class="fp-social-page-fbl">
                                     <i class="fa fa-facebook-official" aria-hidden="true"></i>
                                 </a>
-                                <a target="_blank" href="https://twitter.com/fragmentsynth" class="fp-social-page-twl">
+                                <a target="_blank" title="Official Twitter account" href="https://twitter.com/fragmentsynth" rel="noopener" class="fp-social-page-twl">
                                     <i class="fa fa-twitter" aria-hidden="true"></i>
                                 </a>
-                                <a target="_blank" href="https://www.soundcloud.com/fsynth/" class="fp-social-page-scl">
+                                <a target="_blank" title="Official SoundCloud" href="https://www.soundcloud.com/fsynth/" rel="noopener" class="fp-social-page-scl">
                                     <i class="fa fa-soundcloud" aria-hidden="true"></i>
                                 </a>
-                                <a target="_blank" href="https://www.instagram.com/fsynthesizer/" class="fp-social-page-ins">
+                                <a target="_blank" title="Official Instagram account" href="https://www.instagram.com/fsynthesizer/" rel="noopener" class="fp-social-page-ins">
                                     <i class="fa fa-instagram" aria-hidden="true"></i>
                                 </a>
-                                <a target="_blank" href="https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ" class="fp-social-page-ytl">
+                                <a target="_blank" title="Official YouTube channel" href="https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ" rel="noopener" class="fp-social-page-ytl">
                                     <i class="fa fa-youtube" aria-hidden="true"></i>
                                 </a>
                             </div>
                         </div>
                         <div>
                             <div class="fp-center-text" style="font-size: 12px">
-                                Support us on <a href="https://www.patreon.com/fsynth">Patreon</a>
+                                Support us on <a href="https://www.patreon.com/fsynth" rel="noopener">Patreon</a>
                             </div>
                         </div>
                     </div>
                     <div class="one-half column value fp-video-wrapper">
-                        <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/videoseries?list=PLYhyS2OKJmqe_PEimydWZN1KbvCzkjgeI" frameborder="0" allowfullscreen></iframe>
+                        <iframe title="All Fragment videos on the official YouTube playlist" width="560" height="315" src="https://www.youtube-nocookie.com/embed/videoseries?list=PLYhyS2OKJmqe_PEimydWZN1KbvCzkjgeI" allow="autoplay; encrypted-media" frameborder="0" allowfullscreen></iframe>
                     </div>
                 </div>
                 <div id="about" class="fp-anchor row">
@@ -177,9 +206,9 @@
                             <br/><br/>
                             Fragment is able to produce high-quality fast <strong>additive</strong> and <strong>granular synthesis</strong> simultaneously with <strong>re-synthesis support</strong>, subtractive, frequency/phase modulation and physical modelling synthesis is also supported, it has many features making it a bliss to produce <strong>any kind of sounds or visuals</strong> and is aimed at artists seeking a creative environment with few limitations to experiment with, a programmable noise-of-all-kinds software / sound design tool.
                             <br/><br/>
-                            Many videos of most features are available on the <a href="https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ">official YouTube channel</a>
+                            Many videos of most features are available on the <a href="https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ" rel="noopener">official YouTube channel</a>
                             <br/><br/>
-                            If you have any questions or require help, a <a href="https://www.fsynth.com/documentation">documentation</a> and a <a href="https://quiet.fsynth.com">discussion board</a> is available.
+                            If you have any questions or require help, a <a href="https://www.fsynth.com/documentation" rel="noopener">documentation</a> and a <a href="https://quiet.fsynth.com" rel="noopener">discussion board</a> is available.
                         </div>
                     </div>
                 </div>
@@ -195,7 +224,7 @@
                                     Additive, spectral, granular, subtractive, PM synthesizer powered by WebAudio/wavetable (additive only) OR Fragment Audio Server (additive, granular etc.)
                                 </li>
                                 <li>
-                                    Complete audio/visuals live coding environment with <a href="https://en.wikipedia.org/wiki/Just-in-time_compilation">JIT compilation</a> of shader code
+                                    Complete audio/visuals live coding environment with <a href="https://en.wikipedia.org/wiki/Just-in-time_compilation" rel="noopener">JIT compilation</a> of shader code
                                 </li>
                                 <li>
                                     Real-time, collaborative app.
@@ -231,7 +260,7 @@
                                     Sessions based without authentifications, able to run locally
                                 </li>
                                 <li>
-                                    Distributed sound synthesis, multi-machines/multi-core support (Audio Server with <a href="https://github.com/grz0zrg/fsynth/tree/master/fas_relay">fas_relay</a>)
+                                    Distributed sound synthesis, multi-machines/multi-core support (Audio Server with <a href="https://github.com/grz0zrg/fsynth/tree/master/fas_relay" rel="noopener">fas_relay</a>)
                                 </li>
                                 <li>
                                     Free, cross-platform, open-source software (Simplified BSD License)
@@ -253,17 +282,17 @@
                                         <td style="text-align: center; border-bottom: solid 1px #f4f4f4">
                                             31/12/2017
                                             <br/>
-                                            &nbsp;<a href="https://quiet.fsynth.com/d/12-fragment-1-0-3">Subtractive/PM synthesis, audio server update etc. (1.0.3)</a>
+                                            &nbsp;<a href="https://quiet.fsynth.com/d/12-fragment-1-0-3" rel="noopener">Subtractive/PM synthesis, audio server update etc. (1.0.3)</a>
                                         </td>
                                         <td style="text-align: center; border-bottom: solid 1px #f4f4f4">
                                             19/11/2017
                                             <br/>
-                                            &nbsp;<a href="https://quiet.fsynth.com/d/10-fragment-1-0-2">MPE support, enhanced granular synthesis (1.0.2)</a>
+                                            &nbsp;<a href="https://quiet.fsynth.com/d/10-fragment-1-0-2" rel="noopener">MPE support, enhanced granular synthesis (1.0.2)</a>
                                         </td>
                                         <td style="text-align: center; border-bottom: solid 1px #f4f4f4">
                                             01/11/2017
                                             <br/>
-                                            &nbsp;<a href="https://quiet.fsynth.com/d/9-fragment-1-0-1">Minor bug fixes update (1.0.1)</a>
+                                            &nbsp;<a href="https://quiet.fsynth.com/d/9-fragment-1-0-1" rel="noopener">Minor bug fixes update (1.0.1)</a>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -298,7 +327,7 @@
                                         <i class="fa fa-windows" aria-hidden="true"></i>&nbsp;Windows 64 Bits 12.7MB
                                     </td>
                                     <td class="fp-download">
-                                        <a href="dl/fragment-launcher.zip">
+                                        <a href="dl/fragment-launcher.zip" title="Download Fragment launcher for Windows 64 Bits (12.7MB)" rel="noopener">
                                             <i class="fa fa-download" aria-hidden="true"></i>
                                         </a>
                                     </td>
@@ -312,7 +341,7 @@
                                     </td>
 
                                     <td class="fp-download">
-                                        <a href="dl/fragment_1.0.3_amd64.deb">
+                                        <a href="dl/fragment_1.0.3_amd64.deb" title="Download Fragment launcher for Linux as a .deb 32/64 Bits (1.4MB)" rel="noopener">
                                             <i class="fa fa-download" aria-hidden="true"></i>
                                         </a>
                                     </td>
@@ -332,7 +361,7 @@
                                     launch with <code>fas_launcher</code> command or through the app. menu of your system
                                 </li>
                                 <li>
-                                    <a href="https://www.fsynth.com/documentation/tutorials/audio_server/">more details about the launcher</a>
+                                    <a href="https://www.fsynth.com/documentation/tutorials/audio_server/" rel="noopener">more details about the launcher</a>
                                 </li>
                             </ul>
                         </div>
@@ -346,16 +375,16 @@
                                     launch <strong>fas_launcher.exe</strong>
                                 </li>
                                 <li>
-                                    <a href="https://www.fsynth.com/documentation/tutorials/audio_server/">more details about the launcher</a>
+                                    <a href="https://www.fsynth.com/documentation/tutorials/audio_server/" rel="noopener">more details about the launcher</a>
                                 </li>
                             </ul>
                         </div>
                         <div class="fp-margin fp-right value-description">
                             <strong>Fragment source-code</strong>
                             <ul class="fp-features">
-                                <li>Web. Application &amp; tools : <a href="https://github.com/grz0zrg/fsynth">GitHub</a></li>
-                                <li>C Audio Server : <a href="https://github.com/grz0zrg/fas">GitHub</a></li>
-                                <li>wxWidgets launcher : <a href="https://github.com/grz0zrg/fas_launcher">GitHub</a></li>
+                                <li>Web. Application &amp; tools : <a href="https://github.com/grz0zrg/fsynth" rel="noopener">GitHub</a></li>
+                                <li>C Audio Server : <a href="https://github.com/grz0zrg/fas" rel="noopener">GitHub</a></li>
+                                <li>wxWidgets launcher : <a href="https://github.com/grz0zrg/fas_launcher" rel="noopener">GitHub</a></li>
                             </ul>
                         </div>
                         Note : The audio server binary can be found within the .zip file and .deb package, the audio server can be used from the command-line.<br/><br/>
@@ -407,23 +436,23 @@
                     </div>
                     Fragment © 2016 - 2018
                     <br/>
-                    Made with <span style="color: #ff0000"><i class="fa fa-heart" aria-hidden="true"></i></span> by <a href="https://github.com/grz0zrg">Julien Verneuil</a>
+                    Made with <span style="color: #ff0000"><i class="fa fa-heart" aria-hidden="true"></i></span> by <a href="https://github.com/grz0zrg" rel="noopener">Julien Verneuil</a>
                     <br/>
                     <span style="font-size: 9pt">The Collaborative Spectral Synthesizer</span>
                     <br/>
                     <span style="font-size: 10pt; color: #004344; font-weight: bold">contact<span style="display:none">i</span> at <span style="display:none">love</span>fsynth dot com</span>
                     <br/><br/>
-                    <div><a href="https://www.patreon.com/fsynth"><img src="data/patron.png" alt="Support Fragment via our Patreon page."></a></div>
+                    <div><a href="https://www.patreon.com/fsynth" rel="noopener"><img src="data/patron.png" alt="Support Fragment via our Patreon page."></a></div>
                         </div>
                     </div>
-                    <a href="https://github.com/grz0zrg/fsynth" style="font-size: 24px;"><i class="fa fa-github-alt" aria-hidden="true"></i></a>
+                    <a href="https://github.com/grz0zrg/fsynth" title="Fragment official GitHub repository" rel="noopener" style="font-size: 24px;"><i class="fa fa-github-alt" aria-hidden="true"></i></a>
         </div>
         <div class="fp-social-sticky">
             <div style="text-align: center;font-size: 8pt; width: 48px; padding-right: 2px; background-color: #ffffff">Share on</div>
-            <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://www.fsynth.com" class="fp-social fp-social-facebook"></a>
-            <a target="_blank" href="https://www.twitter.com/share?url=https://www.fsynth.com" class="fp-social fp-social-twitter"></a>
-            <a target="_blank" href="https://plus.google.com/share?url=https://www.fsynth.com" class="fp-social fp-social-gplus"></a>
-            <a target="_blank" href="https://www.tumblr.com/share/link?url=https://www.fsynth.com" class="fp-social fp-social-tumblr"></a>
+            <a target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u=https://www.fsynth.com" class="fp-social fp-social-facebook"></a>
+            <a target="_blank" rel="noopener" href="https://www.twitter.com/share?url=https://www.fsynth.com" class="fp-social fp-social-twitter"></a>
+            <a target="_blank" rel="noopener" href="https://plus.google.com/share?url=https://www.fsynth.com" class="fp-social fp-social-gplus"></a>
+            <a target="_blank" rel="noopener" href="https://www.tumblr.com/share/link?url=https://www.fsynth.com" class="fp-social fp-social-tumblr"></a>
         </div>
         <a id="back_to_top" href="#" class="fp-back-to-top" style="display: none">
             <i class="fa fa-arrow-circle-up"></i>

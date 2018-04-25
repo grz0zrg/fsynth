@@ -4,8 +4,7 @@
     Fields.
 ************************************************************/
 
-var _FS_WAVETABLE = 0,
-    _FS_OSC_NODES = 1,
+var _FS_OSC_NODES = 1,
     
     _audio_context = new window.AudioContext(),
     
@@ -16,27 +15,13 @@ var _FS_WAVETABLE = 0,
     _sample_rate = _audio_context.sampleRate,
     
     _volume = 0.05,
-
-    // wavetable
-    _wavetable_size = 4096,
-    _wavetable = (function (wsize) {
-            var wavetable = new Float32Array(wsize),
-
-                wave_phase = 0,
-                wave_phase_step = 2 * Math.PI / wsize,
-
-                s = 0;
-
-            for (s = 0; s < wsize; s += 1) {
-                wavetable[s] = Math.sin(wave_phase);
-
-                wave_phase += wave_phase_step;
-            }
-
-            return wavetable;
-        })(_wavetable_size),
     
-    _osc_mode = _isFireFox() ? _FS_WAVETABLE : _FS_OSC_NODES,
+    _fragment_worklet_node = null,
+    _fragment_worklet_busy = false,
+    
+    _wavetable_size = 4096,
+    
+    _osc_mode = _FS_OSC_NODES,
     _osc_fadeout = 0.25,
     
     _oscillators,
@@ -50,20 +35,12 @@ var _FS_WAVETABLE = 0,
     _note_time_samples = Math.round(_note_time * _sample_rate),
     
     _lerp_t_step = 1 / _note_time_samples,
-
-    _notes_worker = new Worker("dist/worker/notes_buffer.min.js"),
-    _notes_worker_available = true,
-    
-    _curr_notes_data = [],
-    _next_notes_data = [],
     
     _amp_divisor = 255.0,
 
     _curr_sample = 0,
         
     _lerp_t = 0,
-    
-    _data_switch = false,
     
     _audio_infos = { 
             h: 0,
@@ -74,15 +51,44 @@ var _FS_WAVETABLE = 0,
             float_data: false
         },
     
-    _is_script_node_connected = false,
+    _worklet_settings_timeout,
+    
     _is_analyser_node_connected = false,
     
-    _mst_gain_node,
-    _script_node;
+    _mst_gain_node;
 
 /***********************************************************
     Functions.
 ************************************************************/
+
+var _postWorkletSettings = function (data, tdata, clear) {
+    if (!_fragment_worklet_node) {
+        if (clear) {
+            clearTimeout(_worklet_settings_timeout);
+        }
+        _worklet_settings_timeout = setTimeout(_postWorkletSettings, 2000, data, tdata, clear);
+    } else {
+        _fragment_worklet_node.port.postMessage(data, tdata);
+    }
+};
+
+var _workletReady = function (wnode) {
+    _fragment_worklet_node = wnode;
+    
+    _fragment_worklet_node.port.onmessage = function (event) {
+        if (event.data.done) {
+            _fragment_worklet_busy = false;
+        }
+    };
+};
+
+var _pauseWorklet = function () {
+    _postWorkletSettings({ type: 1 });
+};
+
+var _playWorklet = function () {
+    _postWorkletSettings({ type: 2 });
+};
 
 var _createGainNode = function (dst, channel) {
     var gain_node = _audio_context.createGain();
@@ -151,7 +157,8 @@ var _generateOscillatorSet = function (n, base_frequency, octaves) {
         gain_node_l = null,
         gain_node_r = null,
         octave_length = n / octaves,
-        osc_obj;
+        osc_obj,
+        worklet_obj = [];
     
     if (_oscillators) {
         for (y = 0; y < _oscillators.length; y += 1) {
@@ -191,6 +198,12 @@ var _generateOscillatorSet = function (n, base_frequency, octaves) {
             phase_step: phase_step
         };
         
+        var wosc = {
+            freq: frequency,
+            phase_index: Math.random() * _wavetable_size,
+            phase_step: phase_step
+        };
+        
         osc.node = _audio_context.createOscillator();
         osc.node.setPeriodicWave(_periodic_wave[Math.round(Math.random() * _periodic_wave_n)]);
         //osc.node.frequency.value = osc.freq;
@@ -200,11 +213,20 @@ var _generateOscillatorSet = function (n, base_frequency, octaves) {
         osc.node.start();
         
         _oscillators.push(osc);
+        worklet_obj.push(wosc);
     }
     
     _audio_infos.h = n;
     _audio_infos.base_freq = base_frequency;
     _audio_infos.octaves = octaves;
+    
+    _postWorkletSettings({
+            oscillators: worklet_obj,
+            wsize: _wavetable_size,
+            nts: _note_time_samples,
+            lts: _lerp_t_step,
+            type: 0
+        }, [], true);
 };
 
 var _stopOscillatorsCheck = function () {
@@ -248,10 +270,6 @@ var _stopOscillators = function () {
             osc.gain_node_r.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
         }
     }
-    
-    // osc. gain values will be checked to stop them cleanly
-    //window.clearTimeout(_stop_oscillators_timeout);
-    //_stop_oscillators_timeout = window.setTimeout(_stopOscillatorsCheck, 2000);
 };
 
 var _onOscillatorEnded = function () {
@@ -319,32 +337,31 @@ var _playSlice = function (pixels_data) {
     }
 };
 
-var _notesWorkerAvailable = function () {
-    return _notes_worker_available;
-};
-
-var _notesProcessing = function (arr, prev_arr) {   
+var _notesProcessing = function (arr) {   
     var worker_obj,
         
         i = 0;
     
-    if (_osc_mode === _FS_WAVETABLE) {
-        if (_notes_worker_available) {
-            _notes_worker.postMessage({
-                    score_height: _canvas_height,
-                    data: arr[0].buffer,
-                    prev_data: prev_arr[0].buffer,
-                    mono: _audio_infos.monophonic,
-                    float: _audio_infos.float_data
-                }, [arr[0].buffer, prev_arr[0].buffer]);
-
-            _notes_worker_available = false;
+    if (_fragment_worklet_node) {
+        if (_fragment_worklet_busy) {
+            return;
         }
+        
+        _fragment_worklet_node.port.postMessage({
+                data: arr[0].buffer,
+                score_height: _canvas_height,
+                mono: _audio_infos.monophonic,
+                float: _audio_infos.float_data,
+                type: 500
+            }, [arr[0].buffer]);
+        
+        _fragment_worklet_busy = true;
     } else if (_osc_mode === _FS_OSC_NODES) {
         _playSlice(arr[0]);
     }
 };
 
+/*
 var _audioProcess = function (audio_processing_event) {
     var output_buffer = audio_processing_event.outputBuffer,
 
@@ -427,6 +444,7 @@ var _audioProcess = function (audio_processing_event) {
     
     _curr_sample = curr_sample;
 };
+*/
 
 var _connectAnalyserNode = function () {
     if (!_is_analyser_node_connected) {
@@ -444,22 +462,6 @@ var _disconnectAnalyserNode = function () {
     }
 };
 
-var _connectScriptNode = function () {
-    if (_script_node && !_is_script_node_connected) {
-        _script_node.connect(_mst_gain_node);
-        
-        _is_script_node_connected = true;
-    }
-};
-
-var _disconnectScriptNode = function () {
-    if (_script_node && _is_script_node_connected) {
-        _script_node.disconnect(_mst_gain_node);
-
-        _is_script_node_connected = false;
-    }
-};
-
 var _setGain = function (gain_value) {
     _volume = gain_value;
 
@@ -474,16 +476,6 @@ var _setGain = function (gain_value) {
     }
     
     _audio_infos.gain = _volume;  
-};
-
-var _disableNotesProcessing = function () {
-    _notes_worker_available = false;
-    
-    _curr_notes_data = [];
-};
-
-var _enableNotesProcessing = function () {
-    _notes_worker_available = true;
 };
 
 var _computeOutputChannels = function () {
@@ -542,23 +534,22 @@ var _audioInit = function () {
     
     _generatePeriodicWaves(16);
     _generateOscillatorSet(_canvas_height, 16.34, 10);
+    
+    try {
+        var aw = new Function("readyCb", "audio_ctx", "mst_gain_node", "" +
+            "class FragmentWorkletNode extends AudioWorkletNode {" +
+            "    constructor(context) {" +
+            "        super(context, 'fragment-worklet-processor');" +
+            "    }" +
+            "}" +
+            "audio_ctx.audioWorklet.addModule('dist/worker/fragment_worklet.js').then(() => {" +
+            "    let node = new FragmentWorkletNode(audio_ctx);" +
+            "    node.connect(mst_gain_node);" +
+            "    readyCb(node);" +
+            "});");
 
-    _script_node = _audio_context.createScriptProcessor(0, 0, 2);
-    _script_node.onaudioprocess = _audioProcess;
-
-    if (!_fasEnabled() && _osc_mode === _FS_WAVETABLE) {
-        _script_node.connect(_mst_gain_node);
-        
-        _is_script_node_connected = true;
+        aw(_workletReady, _audio_context, _mst_gain_node);
+    } catch (e) {
+        console.log("AudioWorklet unavailable... switching to OSC. mode.");
     }
-
-    _notes_worker.addEventListener('message', function (w) {
-            if (!_data_switch) {
-                _next_notes_data.push(w.data.d); 
-            }
-            
-            _notes_worker_available = true;
-
-            _data_switch = true;
-        }, false);
 };

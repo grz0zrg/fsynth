@@ -132,6 +132,7 @@ var _createFasSettingsContent = function () {
         chn_synthesis_label,
         chn_synthesis_select,
         granular_option,
+        wavetable_option,
         additive_option,
         spectral_option,
         subtractive_option,
@@ -202,11 +203,13 @@ var _createFasSettingsContent = function () {
         granular_option = document.createElement("option");
         additive_option = document.createElement("option");
         spectral_option = document.createElement("option");
+        wavetable_option = document.createElement("option");
         subtractive_option = document.createElement("option");
         physical_modelling_option = document.createElement("option"); 
         fm_option = document.createElement("option");
         granular_option.innerHTML = "granular";
         additive_option.innerHTML = "additive";
+        wavetable_option.innerHTML = "wavetable";
         spectral_option.innerHTML = "spectral";
         spectral_option.style.display = "none";
         subtractive_option.innerHTML = "subtractive";
@@ -251,6 +254,7 @@ var _createFasSettingsContent = function () {
         chn_synthesis_select.appendChild(additive_option);
         chn_synthesis_select.appendChild(spectral_option);
         chn_synthesis_select.appendChild(granular_option);
+        chn_synthesis_select.appendChild(wavetable_option);
         chn_synthesis_select.appendChild(subtractive_option);
         chn_synthesis_select.appendChild(physical_modelling_option);
         chn_synthesis_select.appendChild(fm_option);
@@ -258,7 +262,7 @@ var _createFasSettingsContent = function () {
         chn_settings = _chn_settings[j];
 
         if (!chn_settings) {
-            _chn_settings[j] = [0, 0, 0, 0, 0];
+            _chn_settings[j] = [0, 0, 0, 0, 0, 0];
         } else {
             if (chn_settings[0] === 0) {
                 additive_option.selected = true;
@@ -272,6 +276,8 @@ var _createFasSettingsContent = function () {
                 subtractive_option.selected = true;
             } else if (chn_settings[0] === 5) {
                 physical_modelling_option.selected = true;
+            } else if (chn_settings[0] === 6) {
+                wavetable_option.selected = true;
             }
             
             if (chn_settings[1] !== undefined) {
@@ -320,10 +326,11 @@ var _createFasSettingsContent = function () {
                 } else if (this.value === "PM/FM") {
                     value = 3;
                 } else if (this.value === "subtractive") {
-                    //this.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling.style.display = "";
                     value = 4;
                 } else if (this.value === "phys. modelling") {
                     value = 5;
+                } else if (this.value === "wavetable") {
+                    value = 6;
                 } else {
                     value = 0;
                 }
@@ -460,16 +467,10 @@ var _toggleFas = function (toggle_ev) {
         _fasEnable();
         
         _stopOscillators();
-        
-        _disconnectScriptNode();
     } else {
         document.getElementById("fs_fas_status").style = "display: none";
         
         _fasDisable();
-
-        if (_fs_state === 0) {
-            _connectScriptNode();
-        }
     }
 };
 
@@ -696,7 +697,6 @@ var _uiInit = function () {
         settings_ck_hlmatches_elem = document.getElementById("fs_settings_ck_hlmatches"),
         settings_ck_lnumbers_elem = document.getElementById("fs_settings_ck_lnumbers"),
         settings_ck_xscrollbar_elem = document.getElementById("fs_settings_ck_xscrollbar"),
-        settings_ck_wavetable_elem = document.getElementById("fs_settings_ck_wavetable"),
         settings_ck_monophonic_elem = document.getElementById("fs_settings_ck_monophonic"),
         settings_ck_feedback_elem = document.getElementById("fs_settings_ck_feedback"),
         settings_ck_osc_out_elem = document.getElementById("fs_settings_ck_oscout"),
@@ -715,7 +715,6 @@ var _uiInit = function () {
         fs_settings_hlmatches = localStorage.getItem('fs-editor-hl-matches'),
         fs_settings_lnumbers = localStorage.getItem('fs-editor-show-linenumbers'),
         fs_settings_xscrollbar = localStorage.getItem('fs-editor-advanced-scrollbar'),
-        fs_settings_wavetable = localStorage.getItem('fs-use-wavetable'),
         fs_settings_monophonic = localStorage.getItem('fs-monophonic'),
         fs_settings_feedback = localStorage.getItem('fs-feedback'),
         fs_settings_osc_in = localStorage.getItem('fs-osc-in'),
@@ -726,7 +725,7 @@ var _uiInit = function () {
             title: "Session & global settings",
 
             width: "320px",
-            height: "470px",
+            height: "auto",
 
             halign: "center",
             valign: "center",
@@ -792,14 +791,6 @@ var _uiInit = function () {
     
     if (fs_settings_note_lifetime) {
         _keyboard.note_lifetime = _parseInt10(fs_settings_note_lifetime);
-    }
-    
-    if (fs_settings_wavetable === "true") {
-        _osc_mode = _FS_WAVETABLE;
-        settings_ck_wavetable_elem.checked = true;
-    } else {
-        _osc_mode = _FS_OSC_NODES;
-        settings_ck_wavetable_elem.checked = false;
     }
     
     if (fs_settings_show_globaltime !== null) {
@@ -930,19 +921,6 @@ var _uiInit = function () {
             _buildFeedback();
         });
     
-    settings_ck_wavetable_elem.addEventListener("change", function () {
-            if (this.checked) {
-                _osc_mode = _FS_WAVETABLE;
-                _stopOscillators();
-                _connectScriptNode();
-            } else {
-                _osc_mode = _FS_OSC_NODES;
-                _disconnectScriptNode();
-            }
-        
-            localStorage.setItem('fs-use-wavetable', this.checked);
-        });
-    
     settings_ck_oscinfos_elem.addEventListener("change", function () {
             _show_oscinfos = this.checked;
         
@@ -1059,7 +1037,6 @@ var _uiInit = function () {
             }
         });
     
-    settings_ck_wavetable_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_oscinfos_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_polyinfos_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_globaltime_elem.dispatchEvent(new UIEvent('change'));
@@ -1078,7 +1055,9 @@ var _uiInit = function () {
             title: "MIDI",
 
             width: "320px",
-            height: "520px",
+            height: "auto",
+        
+            min_height: "120px",
 
             halign: "center",
             valign: "center",
@@ -1145,7 +1124,9 @@ var _uiInit = function () {
             title: "FAS Settings",
 
             width: "340px",
-            height: "480px",
+            height: "auto",
+        
+            min_height: "180px",
 
             halign: "center",
             valign: "center",
@@ -1175,7 +1156,7 @@ var _uiInit = function () {
             title: "Import dialog (images etc.)",
 
             width: "380px",
-            height: "500px",
+            height: "502px",
 
             halign: "center",
             valign: "center",
@@ -1241,7 +1222,9 @@ var _uiInit = function () {
             title: "GLSL Outline",
 
             width: "380px",
-            height: "700px",
+            height: "auto",
+        
+            min_height: "400px",
 
             halign: "center",
             valign: "center",
@@ -1656,17 +1639,19 @@ var _uiInit = function () {
         });
 
     _wui_main_toolbar = WUI_ToolBar.create("fs_middle_toolbar", {
-            allow_groups_minimize: false
+            allow_groups_minimize: false,
+            show_groups_title: false,
+            groups_title_orientation: "n"
         },
         {
-            help: [
+            "Help": [
                 {
                     icon: "fs-help-icon",
                     on_click: _showHelpDialog,
                     tooltip: "Help"
                 }
             ],
-            social: [
+            "Social": [
                 {
                     icon: "fs-discuss-icon",
                     on_click: function () {
@@ -1682,7 +1667,7 @@ var _uiInit = function () {
                     tooltip: "Message board"
                 }
             ],
-            settings: [
+            "Settings": [
                 {
                     icon: "fs-gear-icon",
                     on_click: _showSettingsDialog,
@@ -1694,7 +1679,7 @@ var _uiInit = function () {
                     tooltip: "MIDI Settings"
                 }
             ],
-            audio: [
+            "Transport": [
                 {
                     icon: "fs-reset-icon",
                     on_click: _rewind,
@@ -1713,7 +1698,7 @@ var _uiInit = function () {
                     tooltip: "Record"
                 }
             ],
-            fas: [
+            "FAS": [
                 {
                     icon: "fs-fas-icon",
                     type: "toggle",
@@ -1727,7 +1712,7 @@ var _uiInit = function () {
                     tooltip: "Audio server settings"
                 }
             ],
-            opts: [
+            "Tools": [
                 {
                     icon: "fs-shadertoy-icon",
 
@@ -1784,7 +1769,7 @@ var _uiInit = function () {
                 },
             ],
     */
-            inputs: [
+            "Import": [
 /*
                 {
                     icon: "fs-controls-icon",

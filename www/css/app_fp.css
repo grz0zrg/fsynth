@@ -6,12 +6,6 @@
 
 /*#include icons.css*/
 
-body {
-    font-family: "OpenSans", Helvetica, Arial, sans-serif;
-    font-style: normal;
-    font-weight: normal;
-}
-
 .button {
     border-radius: 100px;
 }
@@ -24,33 +18,6 @@ hr {
     margin-top: 1rem;
     margin-bottom: 2rem;
 }
-
-@font-face {
-/*    font-family: "Raleway-Regular";
-    src: url('../data/Raleway-Regular.ttf');
-*/
-    font-family: "OpenSans";
-    src: url('../data/OpenSans-Regular.ttf');
-/*
-    font-family: "Charter-Bitstream";
-    src: url('../data/charter_regular-webfont.ttf');
-  */
-}
-
-@font-face {
-    font-family: "OpenSans";
-    src: url('../data/OpenSans-Italic.ttf');
-    font-weight: normal;
-    font-style: italic;
-}
-
-@font-face {
-    font-family: "OpenSans";
-    src: url('../data/OpenSans-Bold.ttf');
-    font-weight: bold;
-    font-style: normal;
-}
-
 
 ::-webkit-input-placeholder {
    text-align: center;
@@ -647,147 +614,6 @@ hr {
         font-size: 15px;
     }
 }
-
-/* Bigger than 550 */
-/*
-@media (min-width: 550px) {
-    .fp-header {
-        height: 78px;
-        text-align: left;
-    }
-
-    .section {
-        padding: 12rem 0 11rem;
-    }
-    .hero {
-        text-align: left;
-    }
-    .offset-by-one.column {
-        margin-left: 4.66666666667%;
-    }
-
-    .logo {
-        position: relative;
-        max-width: 70%;
-        margin: 3rem auto -8rem;
-    }
-    .logo-right {
-        position: fixed;
-        max-width: 100%;
-        margin: 0;
-        top: auto;
-        left: auto;
-        right: auto;
-    }
-    .logo + .logo {
-    }
-    .hero-heading {
-        font-size: 2.4rem;
-    }
-    .fp-dl-table th:first-child, td:first-child {
-        display: table-cell;
-    }
-    .fp-session-form input {
-        width: 100%;
-    }
-    .navbar,
-    .navbar-spacer {
-        display: block;
-    }
-
-    .fp-social {
-        padding: 7px;
-    }
-
-    .fp-social-sticky {
-        display: block;
-    }
-
-    .fp-anchor {
-        padding-top: 19px;
-        margin-top: -19px;
-    }
-
-    .fp-features li {
-        margin-bottom: 0;
-    }
-
-    .fp-features li:before {
-        font-family: 'FontAwesome';
-        content: "\f00c";
-        margin:0 5px 0 -15px;
-    }
-
-    .navbar + .docs-section {
-        border-top-width: 0;
-    }
-
-    .navbar,
-    .navbar-spacer {
-        display: block;
-        width: 80%;
-        position: fixed;
-        height: 6.5rem;
-        background: #fff;
-        z-index: 99;
-        border-bottom: 1px solid #e3e3e3;
-    }
-
-    .navbar-spacer {
-        display: none;
-    }
-
-    .navbar > .container {
-        width: 100%;
-    }
-
-    .navbar-list {
-        float: right;
-        list-style: none;
-        text-align: left;
-        margin-bottom: 0;
-    }
-
-    .navbar-item {
-        position: relative;
-        float: left;
-        margin-bottom: 0;
-    }
-
-    .navbar-link {
-        text-transform: uppercase;
-        font-size: 9px;
-        font-weight: 600;
-        letter-spacing: .2rem;
-        margin-left: 22px;
-        text-decoration: none;
-        line-height: 9.5rem;
-        color: #222;
-    }
-
-    .navbar-link.active {
-        color: #33C3F0;
-    }
-
-    .has-docked-nav .navbar {
-        position: fixed;
-        top: 0;
-        left: 0;
-    }
-
-    .has-docked-nav .navbar-spacer {
-        display: block;
-    }
-
-    .has-docked-nav .navbar > .container {
-        width: 80%;
-    }
-
-    .one-half.column {
-        width: auto;
-    }
-}*/
-
 
 /* Bigger than 750 */
 

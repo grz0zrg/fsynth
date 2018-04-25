@@ -25,11 +25,6 @@ var _updateSliceSettingsDialog = function (slice_obj, show) {
     
     slice_settings_container.style = "";
     
-    
-    //WUI_RangeSlider.setValue("fs_slice_shift_input", _selected_slice.shift);
-    //WUI_RangeSlider.setValue("fs_slice_min_input", _selected_slice.min);
-    //WUI_RangeSlider.setValue("fs_slice_max_input", _selected_slice.max);
-    
     if (show) {
         WUI_Dialog.open(_slice_settings_dialog);
     }
@@ -92,13 +87,7 @@ var _setPlayPosition = function (play_position_marker_id, x, y, submit, dont_upd
     play_position_marker.x = x;
 
     play_position_marker.element.style.left = (parseInt(x, 10) + canvas_offset.left + 1) + "px";
-/*
-    if (y !== undefined) {
-        bottom = y + height;
 
-        play_position_marker.y = y;
-    }
-*/  
     if (dont_update_slider === undefined) {
         WUI_RangeSlider.setValue("fs_slice_settings_x_input_" + play_position_marker.id, x);
     }
@@ -163,12 +152,6 @@ var _updatePlayMarker = function (id, obj) {
         
         WUI_RangeSlider.setValue("fs_slice_settings_channel_input_" + slice.id, slice.output_channel);
     }
-    /*
-    if (obj.synthesis_type) {
-        slice.synthesis_type = _parseInt10(obj.synthesis_type);
-        
-        document.getElementById("fs_slice_settings_synthesis_select" + slice.id).options[slice.synthesis_type].selected = "selected";
-    }*/
 };
 
 var _removePlayPositionMarker = function (marker_id, force, submit) {
@@ -406,13 +389,11 @@ var _submitSliceUpdate = function (tid, id, obj) {
 };
 
 var _submitAddSlice = function (x, shift, mute) {
-    //clearTimeout(_add_slice_timeout);
-    /*_add_slice_timeout = */setTimeout(_sendAddSlice, 500, x, shift, mute);
+    setTimeout(_sendAddSlice, 500, x, shift, mute);
 };
 
 var _submitRemoveSlice = function (id) {
-    //clearTimeout(_remove_slice_timeout);
-    /*_remove_slice_timeout = */setTimeout(_sendRemoveSlice, 500, id);
+    setTimeout(_sendRemoveSlice, 500, id);
 };
 
 var _muteSlice = function (slice_obj, submit) {
@@ -421,8 +402,6 @@ var _muteSlice = function (slice_obj, submit) {
     
     slice_obj.mute = true;
     slice_obj.element.style.backgroundColor = "#555555";
-    //play_position_top_hook_element.style.borderTopColor = "#555555";
-    //play_position_bottom_hook_element.style.borderBottomColor = "#555555";
     
     if (submit) {
         _submitSliceUpdate(2, slice_obj.element.dataset.slice, { mute : true }); 
@@ -435,9 +414,7 @@ var _unmuteSlice = function (slice_obj, submit) {
 
     slice_obj.mute = false;
     slice_obj.element.style.backgroundColor = "";
-    //play_position_top_hook_element.style.borderTopColor = "";
-    //play_position_bottom_hook_element.style.borderBottomColor = "";
-    
+
     if (submit) {
         _submitSliceUpdate(2, slice_obj.element.dataset.slice, { mute : false });
     }
@@ -464,8 +441,6 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, synthesis
         is_mute = false;
     } else {
         play_position_marker_element.style.backgroundColor = "#555555";
-        //play_position_top_hook_element.style.borderTopColor = "#555555";
-        //play_position_bottom_hook_element.style.borderBottomColor = "#555555";
     }
 
     play_position_marker_element.dataset.slice = play_position_marker_id;
@@ -490,10 +465,6 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, synthesis
     if (output_channel !== undefined) {
         play_position_marker.output_channel = output_channel;
     }
-    /*
-    if (synthesis_type !== undefined) {
-        play_position_marker.synthesis_type = synthesis_type;
-    }*/
     
     _computeOutputChannels();
     
@@ -516,21 +487,7 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, synthesis
             _setSlicePositionFromAbsolute(element.dataset.slice, x, y);
         });
     WUI.lockDraggable(play_position_marker_element, 'y');
-/*
-    play_position_marker_element.addEventListener('click', function (ev) {
-            var i = 0, slice;
-        
-            _selected_slice_marker = play_position_marker;
-        
-            for (i = 0; i < _play_position_markers.length; i += 1) {
-                slice = _play_position_markers[i];
 
-                slice.element.classList.remove("fs-selected-slice");
-            }
-        
-            _selected_slice_marker.element.classList.add("fs-selected-slice");
-        });
-*/  
     play_position_marker_element.addEventListener('dblclick', function (ev) {
             _updateSliceSettingsDialog(play_position_marker, true);
         });

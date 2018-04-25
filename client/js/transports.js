@@ -1,20 +1,16 @@
 /* jslint browser: true */
 
-
 var _pause = function () {
     window.cancelAnimationFrame(_raf);
-
+    
     _stopOscillators();
-    _disconnectScriptNode();
 
     _fs_state = 1;
     
     _fasPause();
-
-    //if (_glsl_error) {
-    //    return;
-    //}
-
+    
+    _pauseWorklet();
+    
     _pause_time = performance.now();
 };
 
@@ -25,10 +21,6 @@ var _play = function (update_global_time) {
         return;
     }
 
-    if (!_fasEnabled() && _osc_mode === _FS_WAVETABLE) {
-        _connectScriptNode();
-    }
-
     window.cancelAnimationFrame(_raf);
     _raf = window.requestAnimationFrame(_frame);
 
@@ -36,6 +28,7 @@ var _play = function (update_global_time) {
         _time += (performance.now() - _pause_time);
     }
     
+    _playWorklet();
 };
 
 var _rewind = function () {
@@ -58,11 +51,5 @@ var _stop = function () {
     
     window.cancelAnimationFrame(_raf);
 
-    _disconnectScriptNode();
-
     _pause_time = performance.now();
-
-    //_fs_state = 1;
-
-    //_rewind();
 };

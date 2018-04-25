@@ -113,7 +113,7 @@ var _sendAction = function (action) {
         uint8_view[0] = 4;
         uint8_view[1] = action.type;
     } else if (action.type === _FAS_ACTION_RETRIGGER) {
-        action_buffer = new ArrayBuffer(8 + 8 + 8 + 8);
+        action_buffer = new ArrayBuffer(8 + 8 + 4 + 4);
         uint8_view = new Uint8Array(action_buffer, 0, 2);
         uint32_view = new Uint32Array(action_buffer, 8, 2);
 

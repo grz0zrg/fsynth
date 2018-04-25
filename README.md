@@ -17,6 +17,8 @@ Table of Contents
             * [Sampler (<a href="https://github.com/grz0zrg/fas">FAS only)</a>](#sampler-fas-only)
             * [PM (<a href="https://github.com/grz0zrg/fas">FAS only)</a>](#pm-fas-only)
             * [Subtractive (<a href="https://github.com/grz0zrg/fas">FAS only)</a>](#subtractive-fas-only)
+            * [Wavetable synthesis (<a href="https://github.com/grz0zrg/fas">FAS only)</a>](#wavetable-synthesis-fas-only)
+            * [Physical modelling (<a href="https://github.com/grz0zrg/fas">FAS only)</a>](#Physical-modelling-synthesis-fas-only)
       * [MIDI Features](#midi)
       * [OSC](#osc)
       * [Tools](#tools)
@@ -61,7 +63,7 @@ Fragment is also able to do real-time distributed sound synthesis with the sound
 
 ## Features
 
-- Additive, spectral, granular, subtractive, phase modulation synthesizer powered by WebAudio oscillators (additive only, work best in Chrome), a Wavetable (additive only, slow/worst) OR a [C native audio server](https://github.com/grz0zrg/fas) (fastest/best)
+- Additive, spectral, granular, subtractive, wavetable, phase modulation synthesizer powered by WebAudio oscillators (additive only, work best in Chrome), a Wavetable with AudioWorklet (additive only, probably the best) OR a [C native audio server](https://github.com/grz0zrg/fas) (fastest/best)
 - Live coding/JIT compilation of shader code
 - Real-time, collaborative app.
 - Distributed sound synthesis, multi-machines/multi-core support (Fragment Audio Server with fas_relay)
@@ -167,20 +169,52 @@ Dynamics parameters
 
 Subtractive synthesis start from harmonically rich waveforms which are then filtered.
 
-It is somewhat slow due to additive synthesized waveforms and there is only one high quality low-pass filter (Moog type) implemented.
+It is fast, can use additive synthesized waveforms or Poly BLEP waveforms, there is only one high quality low-pass filter (Moog type) implemented.
 
-There is three type of band-limited (no aliasing!) waveforms : sawtooth, square, triangle
+There is four type of waveforms : sawtooth, square, triangle, noise
 
-This type of synthesis may improve gradually with more waveforms (and a faster way to generate them) and more filters.
-
-**Note** : The waveforms are constitued of a maximum of 64 partials
+**Note** : The waveforms are constitued of a maximum of 64 partials with additive synthesis
 
 Dynamics parameters
 
 - Red = Amplitude value of the LEFT channel
 - Green = Amplitude value of the RIGHT channel
-- Blue = Moog filter cutoff multiplier; the cutoff is set to the fundamental frequency, 1.0 = cutoff at fundamental frequency
+- Blue = Moog filter cutoff parameter
 - Alpha = Moog filter resonance [0, 1] & waveform selection on integral part (0.x, 1.x, 2.x etc)
+
+#### Wavetable synthesis ([FAS](https://github.com/grz0zrg/fas) only)
+
+Wavetable synthesis is a sound synthesis technique that employs arbitrary periodic waveforms in the production of musical tones or notes.
+
+Wavetable synthesis use single cycle waveforms / samples loaded from the grains folder.
+
+The wavetable can be switched with the alpha channel (integral part), a linear interpolation will happen between current & next wavetable upon switch.
+
+Wavetable synthesis is fast.
+
+There is only one high quality low-pass filter (Moog type) implemented.
+
+Dynamics parameters
+
+- Red = Amplitude value of the LEFT channel
+- Green = Amplitude value of the RIGHT channel
+- Blue = Filter cutoff parameter
+- Alpha = Filter resonance [0, 1] & wavetable selection on integral part (0.x, 1.x, 2.x etc)
+
+#### Physical modelling synthesis ([FAS](https://github.com/grz0zrg/fas) only)
+
+Physical modelling synthesis refers to sound synthesis methods in which the waveform of the sound to be generated is computed using a mathematical model, a set of equations and algorithms to simulate a physical source of sound, usually a musical instrument.
+
+Physical modelling in Fragment use Karplus-Strong string synthesis (for now).
+
+This is a fast method which generate pleasant string-like sounds.
+
+Dynamics parameters
+
+- Red = Amplitude value of the LEFT channel
+- Green = Amplitude value of the RIGHT channel
+- Blue = Noise wavetable cutoff lp filter / fractional part : stretching factor
+- Alpha = Noise wavetable res. lp filter
 
 ## MIDI
 
@@ -242,7 +276,7 @@ Many tools are available to enhance Fragment.
 
 ## Notes
 
-- WebAudio oscillators and the WebAudio Wavetable mode can only have two output channels (L/R) due to performances issues (this may change in the future!)
+- WebAudio oscillators and the WebAudio Worklet Wavetable mode can only have two output channels (L/R) due to performances issues (this may change in the future!)
 
 
 ## Tips and tricks

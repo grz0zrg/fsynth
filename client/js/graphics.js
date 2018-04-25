@@ -686,7 +686,7 @@ var _frame = function (raf_time) {
         _gl.bindFramebuffer(_gl.FRAMEBUFFER, _main_fbo);
     }
 
-    if ((_notesWorkerAvailable() || _fas.status) && _play_position_markers.length > 0) {
+    if (_play_position_markers.length > 0) {
         if (_gl2) {
             _gl.bindBuffer(_gl.PIXEL_PACK_BUFFER, _pbo);
             _gl.bufferData(_gl.PIXEL_PACK_BUFFER, _pbo_size, _gl.STATIC_READ);
@@ -788,21 +788,17 @@ var _frame = function (raf_time) {
                 }
 
                 _oscNotifyFast(_OSC_FRAME_DATA, buffer_osc);
+                
+                for (i = 0; i < _output_channels; i += 1) {
+                    _prev_data[i] = new _synth_data_array(buffer[i]);
+                }
             }
         }
 
         if (_fas.status) {
             _fasNotifyFast(_FAS_FRAME, _data);
         } else {
-            _notesProcessing(_data, _prev_data);
-            /*
-            if (_osc_mode === _FS_WAVETABLE) {
-                _data = buffer;
-            }*/
-        }
-
-        for (i = 0; i < _output_channels; i += 1) {
-            _prev_data[i] = new _synth_data_array(buffer[i]);
+            _notesProcessing(_data);
         }
 
         _data = buffer;

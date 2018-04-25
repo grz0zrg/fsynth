@@ -395,10 +395,12 @@ var _mpeMIDIMessage = function (notes) {
             
             if (_fasEnabled()) {
                 // re-trigger on FAS side for physical modelling (because this type of synthesis require it)
-                if (_chn_settings[chn][0] === 5 && note) {
-                    if (note.noteoff) {
-                        var osc = _hzToOscillator(data.frq, _audio_infos.base_freq, _audio_infos.octaves, _audio_infos.h);
-                        _fasNotify(_FAS_ACTION, { type: 1, note: osc, chn: chn + 1 });
+                if (_chn_settings[chn] !== undefined) {
+                    if ((_chn_settings[chn][0] === 5) && note) {
+                        if (note.noteoff) {
+                            var osc = _hzToOscillator(data.frq, _audio_infos.base_freq, _audio_infos.octaves, _audio_infos.h);
+                            _fasNotify(_FAS_ACTION, { type: 1, note: osc, chn: chn + 1 });
+                        }
                     }
                 }
             }
@@ -493,20 +495,11 @@ var _midiAccessSuccess = function (midi_access) {
     
     _mpe_instrument.subscribe(_mpeMIDIMessage);
     
-    //midi_settings_element.innerHTML = '<div class="fs-midi-settings-section">I/O</div>';
-    
     _midi_access.inputs.forEach(
         function (midi_in) {
             _addMIDIDevice(midi_in, midi_in.type);
         }
     );
-/*
-    _midi_access.outputs.forEach(
-        function (midi_out) {
-            _addMIDIDevice(midi_out, midi_out.type);
-        }
-    );
-*/
     
     _midi_access.onstatechange = _onMIDIAccessChange;
 };
@@ -524,11 +517,7 @@ var _midiInit = function () {
         midi_settings_element = document.getElementById(_midi_settings_dialog_id).lastElementChild;
 
     _keyboard.data = [0, 0, 0, 0, 0, 0, 0, 0];
-/*
-    for (i = 0; i < _keyboard.polyphony_max; i += 1) {
-        _keyboard.data[i] = 0;
-    }
-*/
+
     if (_webMIDISupport()) {
         navigator.requestMIDIAccess().then(_midiAccessSuccess, _midiAccessFailure);
     } else {

@@ -530,8 +530,6 @@ var FragmentSynth = function (params) {
             octave = update_obj.octave;
         }
 
-        _disableNotesProcessing();
-        
         _stopOscillators();
 
         if (update_obj.height) {
@@ -589,8 +587,6 @@ var FragmentSynth = function (params) {
         _updateAllPlayPosition();
 
         _fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
-
-        _enableNotesProcessing();
 
         WUI_RangeSlider.setValue("fs_score_width_input", _canvas_width);
         WUI_RangeSlider.setValue("fs_score_height_input", _canvas_height);

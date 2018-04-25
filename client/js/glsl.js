@@ -227,17 +227,7 @@ var _glsl_compilation = function () {
             glsl_code += "uniform sampler2D " + _input_channel_prefix + "" + i + ";" + " uniform float " + _input_video_prefix + "" + i + ";";
         }
     }
-    
-    // inputs uniform from controllers
-/*
-    for (ctrl_name in _controls) { 
-        if (_controls.hasOwnProperty(ctrl_name)) {
-           ctrl_obj = _controls[ctrl_name];
 
-           glsl_code += "uniform " + ((ctrl_obj.comps !== undefined) ? ctrl_obj.type + ctrl_obj.comps : ctrl_obj.type) + " " + ctrl_name + ((ctrl_obj.count > 1) ? "[" + ctrl_obj.count + "]" : "") + ";";
-        }
-    }
-*/  
     // inputs uniform from OSC
     for (ctrl_name in _osc.inputs) { 
         ctrl_arr = _osc.inputs[ctrl_name];
@@ -245,14 +235,6 @@ var _glsl_compilation = function () {
         glsl_code += "uniform " + ((ctrl_arr.comps !== undefined) ? ctrl_arr.type + ctrl_arr.comps : ctrl_arr.type) + " " + ctrl_name + ((ctrl_arr.count > 1) ? "[" + ctrl_arr.count + "]" : "") + ";";
     }
 
-/* // Recent controller
-    for (i = 0; i < _controls.length; i += 1) {
-        ctrl_obj_uniform = _controls[i].uniform;
-        
-        glsl_code += "uniform " + ((ctrl_obj_uniform.comps !== undefined) ? ctrl_obj_uniform.type + ctrl_obj_uniform.comps : ctrl_obj_uniform.type) + " " + _controls[i].name + ((ctrl_obj_uniform.count > 1) ? "[" + ctrl_obj_uniform.count + "]" : "") + ";";
-    }
-*/
-    
     // add user fragment code
     glsl_code += editor_value;
 
@@ -280,28 +262,12 @@ var _glsl_compilation = function () {
         
         _setUniforms(_gl, "vec", _program, "keyboard", _keyboard.data, _keyboard.data_components);
         
-        // set uniforms to value from controllers
-/*
-        for (i = 0; i < _controls.length; i += 1) {
-            ctrl_obj_uniform = _controls[i].uniform;
-            
-            _setUniforms(_gl, ctrl_obj_uniform.type, _program, _controls[i].name, _controls[i].values, ctrl_obj_uniform.comps);
-        }
-*/
         for (ctrl_name in _osc.inputs) { 
             ctrl_arr = _osc.inputs[ctrl_name];
 
             _setUniforms(_gl, ctrl_arr.type, _program, ctrl_name, ctrl_arr.data, ctrl_arr.comps);
         }
-/*
-        for(ctrl_name in _controls) { 
-            if (_controls.hasOwnProperty(ctrl_name)) {
-                ctrl_obj = _controls[ctrl_name];
-                
-                _setUniforms(_gl, ctrl_obj.type, _program, ctrl_name, ctrl_obj.values, ctrl_obj.comps);
-            }
-        }
-*/
+
         
         if (_gl2) {
             _gl.bindBuffer(_gl.ARRAY_BUFFER, _quad_vertex_buffer);
@@ -321,8 +287,6 @@ var _glsl_compilation = function () {
         }
     } else {
         _glsl_error = true;
-
-        //_stop();
     }
 };
 

@@ -3,8 +3,9 @@
 */
 
 .wui-toolbar-toggle-on {
+    -webkit-box-shadow: none !important;
     box-shadow: none !important;
-    background-color: #00545d !important;
+    background-color: #003b5d !important;
 }
 
 .wui-dialog-minimized {
@@ -39,6 +40,12 @@
     border-left: none !important;
     border-right: none !important;
     line-height: 20px !important;
+}
+
+.wui-toolbar-group-title {
+    font-size: 7px !important;
+    padding-top: 1px;
+    padding-bottom: 3px;
 }
 
 .wui-tab-content {

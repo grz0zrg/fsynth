@@ -11,6 +11,7 @@
         - 'y' is the oscillator index
         
     // NOTE : Same as notes_renderer.js except it can process a 1px wide slice not a whole image (and the output data is optimized)
+    // DEPRECATION NOTE : This code is unused & not loaded, it was made for WebAudio script processor wavetable, check fragment_worklet.js now
 */
 self.onmessage = function (m) {
     "use strict";
