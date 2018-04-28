@@ -32,8 +32,8 @@ var _exportRecord = function () {
     sonogram_left_boundary = _getSonogramBoundary(image_data.data, _record_canvas.width, _record_canvas.height, opts.mono);
     sonogram_right_boundary = _getSonogramBoundary(image_data.data, _record_canvas.width, _record_canvas.height, opts.mono, true);
 
-    if (sonogram_left_boundary.x != -1 && sonogram_right_boundary.x != 1 && sonogram_left_boundary.x != sonogram_right_boundary.x) {
-        image_data = _record_canvas_ctx.getImageData(sonogram_left_boundary.x, 0, sonogram_right_boundary.x - sonogram_left_boundary.x, _record_canvas.height);
+    if (sonogram_left_boundary != -1 && sonogram_right_boundary != 1 && sonogram_left_boundary != sonogram_right_boundary) {
+        image_data = _record_canvas_ctx.getImageData(sonogram_left_boundary, 0, sonogram_right_boundary - sonogram_left_boundary, _record_canvas.height);
     }
     
     opts.ffreq = _getFundamentalFrequency(image_data.data, image_data.width, image_data.height, opts.mono);

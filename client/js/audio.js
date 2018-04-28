@@ -4,7 +4,8 @@
     Fields.
 ************************************************************/
 
-var _FS_OSC_NODES = 1,
+var _FS_WORKLET = 0,
+    _FS_OSC_NODES = 1,
     
     _audio_context = new window.AudioContext(),
     
@@ -18,6 +19,7 @@ var _FS_OSC_NODES = 1,
     
     _fragment_worklet_node = null,
     _fragment_worklet_busy = false,
+    _fragment_worklet_connected = false,
     
     _wavetable_size = 4096,
     
@@ -88,6 +90,33 @@ var _pauseWorklet = function () {
 
 var _playWorklet = function () {
     _postWorkletSettings({ type: 2 });
+};
+
+var _disconnectWorklet = function () {
+    if (_fragment_worklet_node) {
+        if (_fragment_worklet_connected) {
+            _fragment_worklet_node.disconnect(_mst_gain_node);
+
+            _fragment_worklet_busy = false;
+        }
+        
+        _pauseWorklet();
+        
+        _fragment_worklet_connected = false;
+    }
+};
+
+var _connectWorklet = function () {
+    console.log(_fragment_worklet_node, _fragment_worklet_connected);
+    if (_fragment_worklet_node && _osc_mode === _FS_WORKLET) {
+        if (!_fragment_worklet_connected) {
+            _fragment_worklet_node.connect(_mst_gain_node);
+        }
+        
+        _playWorklet();
+        
+        _fragment_worklet_connected = true;
+    }
 };
 
 var _createGainNode = function (dst, channel) {
@@ -342,7 +371,7 @@ var _notesProcessing = function (arr) {
         
         i = 0;
     
-    if (_fragment_worklet_node) {
+    if (_fragment_worklet_node && _osc_mode === _FS_WORKLET) {
         if (_fragment_worklet_busy) {
             return;
         }
@@ -549,7 +578,13 @@ var _audioInit = function () {
             "});");
 
         aw(_workletReady, _audio_context, _mst_gain_node);
+        
+        _osc_mode = _FS_WORKLET;
+        
+        _fragment_worklet_connected = true;
     } catch (e) {
         console.log("AudioWorklet unavailable... switching to OSC. mode.");
+        
+        _fragment_worklet_connected = false;
     }
 };

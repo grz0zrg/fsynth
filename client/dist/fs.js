@@ -18429,34 +18429,22 @@ var _getElementOffset = function (elem) {
     return { top: Math.round(top), left: Math.round(left), width: box.width, height: box.height };
 };
 
-var _getFundamentalFrequency = function (data, width, height, mono, backward) {
+var _getFundamentalFrequency = function (data, width, height, mono) {
     var i = 0, j = 0,
         data_index = 0,
-        freq = -1,
-        
-        w_offset = 0;
-    
-    if (backward) {
-        w_offset = -(width - 1);
-    }
+        freq = Infinity;
 
     for (i = height - 1; i >= 0; i -= 1) {
         for (j = 0; j < width; j += 1) {
-            data_index = i * (width * 4) + Math.abs(j + w_offset) * 4;
+            data_index = i * (width * 4) + j * 4;
             
             if (mono) {
                 if (data[data_index + 3] > 0) {
-                    freq = _getFrequency(i);
-                    
-                    i = -1;
-                    break;
+                    freq = Math.min(freq, _getFrequency(i));
                 }
             } else {
                 if (((data[data_index] + data[data_index + 1]) / 2) > 0) {
-                    freq = _getFrequency(i);
-                    
-                    i = -1;
-                    break;
+                    freq = Math.min(freq, _getFrequency(i));
                 }
             }
             
@@ -18470,45 +18458,45 @@ var _getSonogramBoundary = function (data, width, height, mono, backward) {
     var i = 0, j = 0,
         data_index = 0,
 
-        x = -1,
-        y = -1,
+        x = width,
         
         rx = 0,
+        
+        f = Math.min,
         
         w_offset = 0;
 
     if (backward) {
         w_offset = -(width - 1);
+        
+        f = Math.max;
+        
+        x = 0;
     }
 
     for (i = height - 1; i >= 0; i -= 1) {
         for (j = 0; j < width; j += 1) {
             rx = Math.abs(j + w_offset);
-            
+
             data_index = i * (width * 4) + rx * 4;
             
             if (mono) {
                 if (data[data_index + 3] > 0) {
-                    x = rx;
-                    y = i;
+                    x = f(x, rx);
                     
-                    i = -1;
                     break;
                 }
             } else {
                 if (data[data_index] > 0 || data[data_index + 1] > 0) {
-                    x = rx;
-                    y = i;
-                    
-                    i = -1;
+                    x = f(x, rx);
+
                     break;
                 }
-            }
-            
+            }   
         }
     }
     
-    return { x: x, y: y };
+    return x;
 };
 
 var _xhrContent = function (url, cb) {
@@ -19310,7 +19298,8 @@ var _initDb = function () {
     Fields.
 ************************************************************/
 
-var _FS_OSC_NODES = 1,
+var _FS_WORKLET = 0,
+    _FS_OSC_NODES = 1,
     
     _audio_context = new window.AudioContext(),
     
@@ -19324,6 +19313,7 @@ var _FS_OSC_NODES = 1,
     
     _fragment_worklet_node = null,
     _fragment_worklet_busy = false,
+    _fragment_worklet_connected = false,
     
     _wavetable_size = 4096,
     
@@ -19394,6 +19384,33 @@ var _pauseWorklet = function () {
 
 var _playWorklet = function () {
     _postWorkletSettings({ type: 2 });
+};
+
+var _disconnectWorklet = function () {
+    if (_fragment_worklet_node) {
+        if (_fragment_worklet_connected) {
+            _fragment_worklet_node.disconnect(_mst_gain_node);
+
+            _fragment_worklet_busy = false;
+        }
+        
+        _pauseWorklet();
+        
+        _fragment_worklet_connected = false;
+    }
+};
+
+var _connectWorklet = function () {
+    console.log(_fragment_worklet_node, _fragment_worklet_connected);
+    if (_fragment_worklet_node && _osc_mode === _FS_WORKLET) {
+        if (!_fragment_worklet_connected) {
+            _fragment_worklet_node.connect(_mst_gain_node);
+        }
+        
+        _playWorklet();
+        
+        _fragment_worklet_connected = true;
+    }
 };
 
 var _createGainNode = function (dst, channel) {
@@ -19648,7 +19665,7 @@ var _notesProcessing = function (arr) {
         
         i = 0;
     
-    if (_fragment_worklet_node) {
+    if (_fragment_worklet_node && _osc_mode === _FS_WORKLET) {
         if (_fragment_worklet_busy) {
             return;
         }
@@ -19855,8 +19872,14 @@ var _audioInit = function () {
             "});");
 
         aw(_workletReady, _audio_context, _mst_gain_node);
+        
+        _osc_mode = _FS_WORKLET;
+        
+        _fragment_worklet_connected = true;
     } catch (e) {
         console.log("AudioWorklet unavailable... switching to OSC. mode.");
+        
+        _fragment_worklet_connected = false;
     }
 };
 /* jslint browser: true */
@@ -23471,8 +23494,8 @@ var _exportRecord = function () {
     sonogram_left_boundary = _getSonogramBoundary(image_data.data, _record_canvas.width, _record_canvas.height, opts.mono);
     sonogram_right_boundary = _getSonogramBoundary(image_data.data, _record_canvas.width, _record_canvas.height, opts.mono, true);
 
-    if (sonogram_left_boundary.x != -1 && sonogram_right_boundary.x != 1 && sonogram_left_boundary.x != sonogram_right_boundary.x) {
-        image_data = _record_canvas_ctx.getImageData(sonogram_left_boundary.x, 0, sonogram_right_boundary.x - sonogram_left_boundary.x, _record_canvas.height);
+    if (sonogram_left_boundary != -1 && sonogram_right_boundary != 1 && sonogram_left_boundary != sonogram_right_boundary) {
+        image_data = _record_canvas_ctx.getImageData(sonogram_left_boundary, 0, sonogram_right_boundary - sonogram_left_boundary, _record_canvas.height);
     }
     
     opts.ffreq = _getFundamentalFrequency(image_data.data, image_data.width, image_data.height, opts.mono);
@@ -28389,6 +28412,8 @@ var _fasEnable = function () {
         });
     
     _fas.enabled = true;
+    
+    _disconnectWorklet();
 };
 
 var _fasDisable = function () {
@@ -28397,6 +28422,8 @@ var _fasDisable = function () {
     _fas_stream_load.textContent = "";
     
     _fas.enabled = false;
+    
+    _connectWorklet();
 };
 
 var _fasEnabled = function () {
@@ -28408,8 +28435,12 @@ var _fasStatus = function (status) {
     
     if (status) {
         fs_fas_element.classList.add("fs-server-status-on");
+        
+        _disconnectWorklet();
     } else {
         fs_fas_element.classList.remove("fs-server-status-on");
+        
+        _connectWorklet();
     }
     
     _fas.status = status;

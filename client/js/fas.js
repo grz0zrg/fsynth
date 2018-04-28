@@ -72,6 +72,8 @@ var _fasEnable = function () {
         });
     
     _fas.enabled = true;
+    
+    _disconnectWorklet();
 };
 
 var _fasDisable = function () {
@@ -80,6 +82,8 @@ var _fasDisable = function () {
     _fas_stream_load.textContent = "";
     
     _fas.enabled = false;
+    
+    _connectWorklet();
 };
 
 var _fasEnabled = function () {
@@ -91,8 +95,12 @@ var _fasStatus = function (status) {
     
     if (status) {
         fs_fas_element.classList.add("fs-server-status-on");
+        
+        _disconnectWorklet();
     } else {
         fs_fas_element.classList.remove("fs-server-status-on");
+        
+        _connectWorklet();
     }
     
     _fas.status = status;
