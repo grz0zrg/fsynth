@@ -595,21 +595,9 @@ var _rewindRecording = function () {
 };
 
 var _addRecordInput = function () {
-    var img = new Image(),
-        
-        tmp_canvas = document.createElement('canvas'),
-        tmp_canvas_context = tmp_canvas.getContext('2d'),
-        
-        tmp_image_data;
-    
-    tmp_canvas.width  = _record_canvas.width;
-    tmp_canvas.height = _record_canvas.height;
+    var tmp_image_data;
 
-    tmp_canvas_context.translate(0, _record_canvas.height);
-    tmp_canvas_context.scale(1, -1);
-    tmp_canvas_context.drawImage(_record_canvas, 0, 0, tmp_canvas.width, tmp_canvas.height);
-    
-    tmp_image_data = tmp_canvas_context.getImageData(0, 0, tmp_canvas.width, tmp_canvas.height);
+    tmp_image_data = _record_canvas_ctx.getImageData(0, 0, _record_canvas.width, _record_canvas.height);
     
     _imageDataToInput(tmp_image_data);
 };
@@ -1155,8 +1143,8 @@ var _uiInit = function () {
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
             title: "Import dialog (images etc.)",
 
-            width: "380px",
-            height: "502px",
+            width: "480px",
+            height: "524px",
 
             halign: "center",
             valign: "center",
@@ -1208,6 +1196,12 @@ var _uiInit = function () {
                         on_click: (function () { _addFragmentInput("camera"); }),
                         tooltip: "Webcam",
                         text: "Cam"
+                    },
+                    {
+                        icon: "fs-record-icon",
+                        on_click: (function (ev) { _addFragmentInput("rec"); }),
+                        tooltip: "Recording",
+                        text: "Rec"
                     },
                     {
                         icon: "fs-canvas-icon",
@@ -1262,7 +1256,7 @@ var _uiInit = function () {
             title: "Fragment - Help",
 
             width: "440px",
-            height: "800px",
+            height: "820px",
 
             halign: "center",
             valign: "center",
@@ -1781,34 +1775,7 @@ var _uiInit = function () {
                     icon: _icon_class.plus,
                     type: "toggle",
                     on_click: _showImportDialog,
-                    tooltip: "Import input"
-/*
-                    icon: _icon_class.plus,
-    //                on_click: (function () { _loadImage(); }),
-                    tooltip: "Add image",
-
-                    type: "dropdown",
-
-                    orientation: "s",
-
-                    items: [
-                        {
-                            title: "Webcam",
-
-                            on_click: (function () { _addFragmentInput("camera"); })
-                        },
-                        {
-                            title: "Image",
-
-                            on_click: _loadFile("image")
-                        },
-                        {
-                            title: "Audio",
-
-                            on_click: _loadFile("audio")
-                        }
-                    ]
-*/
+                    tooltip: "Import Fragment input"
                 }
             ]
         });

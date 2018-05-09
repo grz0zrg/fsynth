@@ -71,8 +71,7 @@ var _createShader = function (shader_type, shader_code) {
             elem = document.createElement("span");
             elem.classList.add("fs-shader-error");
             elem.innerHTML = "  <strong>" + parse_result[i].line + "</strong>: " + parse_result[i].msg + "\n";
-            // TODO
-            //elem.addEventListener("click", setCursorCb({ start: { line: parse_result[i].line, column: 0 }}));
+
             container.appendChild(elem);
         }
         
@@ -220,8 +219,9 @@ var _glsl_compilation = function () {
         fragment_input = _fragment_input_data[i];
 
         if (fragment_input.type === 0 ||
-           fragment_input.type === 1 ||
-           fragment_input.type === 2) { // 2D texture from either image, webcam, canvas
+            fragment_input.type === 1 ||
+            fragment_input.type === 2 ||
+            fragment_input.type === 404) { // 2D texture from either image, webcam, canvas
             glsl_code += "uniform sampler2D " + _input_channel_prefix + "" + i + ";";
         } else if (fragment_input.type === 3) { // video type
             glsl_code += "uniform sampler2D " + _input_channel_prefix + "" + i + ";" + " uniform float " + _input_video_prefix + "" + i + ";";

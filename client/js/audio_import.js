@@ -16,6 +16,7 @@ var _audio_to_image_worker = new Worker("dist/worker/audio_to_image.min.js"),
         height: 0,
         minfreq: 0,
         maxfreq: 0,
+        interpolation: false,
         videotrack_import: false
     };
 
@@ -125,8 +126,7 @@ _audio_to_image_worker.addEventListener('message', function (m) {
             };
 
         // now image processing step...
-        //_imageProcessor(image_data, _imageProcessingDone);
-        _imageDataToInput(image_data);
+        _imageDataToInput(image_data, { flip: true });
     
         _notification("Audio file converted to " + image_data.width + "x" + image_data.height + "px image.")
     }, false);

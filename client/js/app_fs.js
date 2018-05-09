@@ -441,6 +441,7 @@ var FragmentSynth = function (params) {
     /*#include discuss.js*/
     /*#include paint.js*/
     /*#include brushes.js*/
+    /*#include canvas_input.js*/
     /*#include inputs.js*/
     /*#include editor.js*/
     /*#include transports.js*/
@@ -566,7 +567,7 @@ var FragmentSynth = function (params) {
         }
         
         if (update_obj.width || update_obj.height) {
-            _updateCanvasInputDimensions(update_obj.width, update_obj.height);
+            _canvasInputDimensionsUpdate(update_obj.width, update_obj.height);
         }
         
         // detached canvas
@@ -796,6 +797,8 @@ var FragmentSynth = function (params) {
 
     _gl.viewport(0, 0, _canvas.width, _canvas.height);
 
+    _gl.pixelStorei(_gl.UNPACK_FLIP_Y_WEBGL, true);
+
     _compile();
 
     _loadLocalSessionSettings();
@@ -833,7 +836,7 @@ var FragmentSynth = function (params) {
     
     _buildFeedback();
     
-    _initDb();
+    _initDb("fs" + _getSessionName());
     
     _clipboard = new Clipboard(".fs-documentation-keyword");
 };

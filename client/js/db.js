@@ -1,5 +1,11 @@
 /* jslint browser: true */
 
+/**
+ * IndexedDB initialization & interface
+ * 
+ * Manage Fragment inputs storage (all except videos)
+ */
+
 /***********************************************************
     Fields.
 ************************************************************/
@@ -38,6 +44,16 @@ var _dbRemoveInput = function (name) {
     object_store.delete(name);
 };
 
+var _dbClear = function () {
+    if (!_db) {
+        return;
+    }
+
+    var object_store = _db.transaction(["inputs"], "readwrite").objectStore("inputs");
+
+    object_store.clear();
+};
+
 var _dbUpdateInput = function (name, input_data) {
     if (!_db) {
         return;
@@ -48,6 +64,19 @@ var _dbUpdateInput = function (name, input_data) {
     
     request.onsuccess = function (event) {
         object_store.put(input_data, name);
+    };
+};
+
+var _dbRestoreInput = function (name, obj) {
+    if (!_db) {
+        return;
+    }
+
+    var object_store = _db.transaction(["inputs"], "readwrite").objectStore("inputs"),
+        request = object_store.get(name);    
+
+    request.onsuccess = function (event) {
+        obj.db_obj = event.target.result;
     };
 };
 
@@ -72,15 +101,15 @@ var _dbGetInputs = function (cb) {
     Init.
 ************************************************************/
 
-var _initDb = function () {
-    _request = indexedDB.open("fs" + _getSessionName(), 1);
+var _initDb = function (db_name) {
+    _request = indexedDB.open(db_name, 1);
     
     if (_request !== null) {
         _request.onsuccess = function (event) {
             _db = _request.result;
 
-            _db.onerror = function (event) {
-                console.log(event);
+            _db.onerror = function (ev) {
+                _notification("IndexedDB error '" + ev.error + "'");
             };
 
             _dbGetInputs(function (name, value) {
@@ -91,7 +120,7 @@ var _initDb = function () {
                 }
 
                 if (value.type === "image" ||
-                   value.type === "canvas") {
+                    value.type === "canvas") {
                     if (value.data.length === 0) {
                         _addFragmentInput(value.type);
                         
@@ -109,6 +138,7 @@ var _initDb = function () {
                         _addFragmentInput(value.type, image_element, value.settings);
                     };
                 } else if (value.type === "video") {
+                    _addFragmentInput(value.type);
                 } else {
                     _addFragmentInput(value.type);
                 }

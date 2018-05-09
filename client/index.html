@@ -40,7 +40,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
         </script>
 
         <script type="x-webgl/x-fragment-shader" id="fragment-shader">
-  // Sample program : ~440Hz tone + MIDI keyboard SAW-like setup.
+  // Sample program : ~440Hz tone + MIDI keyboard additive synthesis SAW-like setup.
   // Full documentation : https://www.fsynth.com/documentation
 
   void main () {
@@ -424,7 +424,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                         </label>
                     </div>
                 </div>
-                <div style="fs-spacer"></div>
+                <div class="fs-spacer"></div>
                 <div style="text-align: center">
                     <label class="fs-input-label" for="fs_select_editor_themes">Editor theme:</label>
                     <select id="fs_select_editor_themes" class="fs-btn">
@@ -693,7 +693,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                                         <span class="fs-documentation-keyword" data-clipboard-text="float bpf(float x, float c, float s) {&#010;return lpf(x, c, s) * hpf(x, c, s);&#010;}">BPF (band-pass filter, require LPF and HPF)</span>
                                     </li>
                                     <li>
-                                        <span class="fs-documentation-keyword" data-clipboard-text="for (int k = 0; k < 8; k += 1) {&#010;vec4 data = keyboard[k];&#010;&#010;float kfrq = data.x;&#010;float kvel = data.y;&#010;float ktim = data.z;&#010;float kchn = data.w;&#010;&#010;if (kfrq == 0.) {&#010;break;&#010;}&#010;&#010;if (uv.x < 0.25 && kchn == 0.) {&#010;&#010;} else if (uv.x > 0.25 && uv.x < 0.5 && kchn == 1.) {&#010;&#010;}">2 channels MIDI/Multitimbrality</span>
+                                        <span class="fs-documentation-keyword" data-clipboard-text="for (int k = 0; k &#60; 8; k += 1) {&#010;vec4 data = keyboard[k];&#010;&#010;float kfrq = data.x;&#010;float kvel = data.y;&#010;float ktim = data.z;&#010;float kchn = data.w;&#010;&#010;if (kfrq == 0.) {&#010;break;&#010;}&#010;&#010;if (uv.x &#60; 0.25 &amp;&amp; kchn == 0.) {&#010;&#010;} else if (uv.x > 0.25 &amp;&amp; uv.x &#60; 0.5 &amp;&amp; kchn == 1.) {&#010;&#010;}">2 channels MIDI/Multitimbrality</span>
                                     </li>
                                 </ul>
                             </div>
@@ -709,12 +709,6 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
         </div>
 
         <div id="fs_controls_dialog">
-<!-- // Recent controllers
-            <div>
-                <div id="fs_controls_toolbar" class="fs-controls-toolbar"></div>
-                <canvas id="fs_controllers"></canvas>
-            </div>
--->
             <div>
                 <div class="fs-settings">
                     <div class="fs-settings-panel">
@@ -773,25 +767,6 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                         <br/>
                         <button id="fs_vectors_ctrl_add" class="fs-btn fs-controls-add-ctrl">Add</button>
                     </div>
-<!--
-                    <div class="fs-settings-panel">
-                        Matrices
-                        <br/>
-                        <label class="fs-input-label" for="fs_ctrl_name">Input name:</label>
-                        <input id="fs_matrices_ctrl_name" class="wui-rangeslider-input fs-controls-add-ctrl">
-                        <br/>
-                        <label class="fs-input-label" for="fs_ctrl_cols">Columns:</label>
-                        <input id="fs_matrices_ctrl_cols" type="number" class="wui-rangeslider-input fs-controls-add-ctrl">
-                        <br/>
-                        <label class="fs-input-label" for="fs_ctrl_rows">Rows:</label>
-                        <input id="fs_matrices_ctrl_rows" type="number" class="wui-rangeslider-input fs-controls-add-ctrl">
-                        <br/>
-                        <label class="fs-input-label" for="fs_ctrl_array_size">Count:</label>
-                        <input id="fs_matrices_ctrl_array_size" type="number" value="1" class="wui-rangeslider-input fs-controls-add-ctrl">
-                        <br/>
-                        <button id="fs_matrices_ctrl_add" class="fs-btn fs-controls-add-ctrl">Add</button>
-                    </div>
--->
                 </div>
                 <div id="fs_controls_panel" class="fs-controls-panel">
                 </div>
@@ -811,20 +786,13 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                 <input id="fs_discuss_input" type="text" placeholder="..." class="wui-rangeslider-input fs-discuss-input">
             </div>
         </div>
-<!--
-        <div id="fs_analysis_dialog">
-            <div>
-
-            </div>
-        </div>
--->
         <div id="fs_import_dialog">
             <div>
                 <div class="fs-audio-import-settings">
-                    <div style="font-size: 11px; margin-top: 5px; margin-left: 5px;">Audio import settings</div>
+                    <div style="font-size: 13px; margin-top: 5px; margin-left: 5px;">Audio import settings</div>
                     <div class="fs-spacer"></div>
                     <div>
-                        <label class="fs-input-label" for="fs_import_audio_window_settings">Window type</label>
+                        <label style="font-size: 9pt" class="fs-input-label" for="fs_import_audio_window_settings">Window type</label>
                         <select id="fs_import_audio_window_settings" class="fs-btn">
                             <option>hann</option>
                             <option>triangular</option>
@@ -850,6 +818,12 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                     <div id="fs_import_audio_minfreq_settings"></div>
                     <div id="fs_import_audio_maxfreq_settings"></div>
                     <div class="fs-spacer"></div>
+                    <div class="fs-ck-container" style="width: 100%;">
+                        <label style="font-size: 12px; margin-right: 4px;" class="fs-ck-label">
+                                <div>Bins: linear interpolation</div>&nbsp;
+                                <input id="fs_import_audio_ck_interpolation" type="checkbox">
+                        </label>
+                    </div>
                     <div class="fs-ck-container" style="width: 100%;">
                         <label style="font-size: 12px; margin-right: 4px;" class="fs-ck-label">
                             <div>Import mov. audio</div>&nbsp;

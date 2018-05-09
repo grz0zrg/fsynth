@@ -94,6 +94,10 @@ This settings can be used to alter the frequency mapping of the resulting image.
 
 A value of 0 will automatically assign the score defined maximum frequency
 
+##### Bins: linear interpolation
+
+Enable linear interpolation between bins.
+
 ##### Import movie audio
 
 This settings is used for the videos import, if checked, Fragment will import the audio channel independently of the visual channel, this mean that there will be two images generate from a single movie file

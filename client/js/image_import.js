@@ -10,7 +10,7 @@
     Functions.
 ************************************************************/
 
-var _imageProcessingDone = function (image_ready_cb) {
+var _imageProcessingDone = function (image_ready_cb, options) {
     return function (mdata) {
         var tmp_canvas = document.createElement('canvas'),
             tmp_canvas_context = tmp_canvas.getContext('2d'),
@@ -34,69 +34,62 @@ var _imageProcessingDone = function (image_ready_cb) {
         image_element.onload = function () {
             image_element.onload = null;
             
-            image_ready_cb(image_element);
+            if (options) {
+                if (options.flip) {
+                    tmp_canvas_context.clearRect(0, 0, tmp_canvas.width, tmp_canvas.height);
+                    tmp_canvas_context.translate(0, tmp_canvas.height);
+                    tmp_canvas_context.scale(1, -1);
+                    tmp_canvas_context.drawImage(image_element, 0, 0, tmp_canvas.width, tmp_canvas.height);
+
+                    image_element.src = tmp_canvas.toDataURL();
+
+                    image_element.onload = function () {
+                        image_element.onload = null;
+
+                        image_ready_cb(image_element);
+                    };
+                }
+            } else {
+                image_ready_cb(image_element);
+            }
         };
     }
 };
 
-var _imageDataToInput = function (data) {
+var _imageDataToInput = function (data, options) {
     _notification("image processing in progress...");
         
     _imageProcessor(data, _imageProcessingDone(function (image_element) {
             _addFragmentInput("image", image_element);
-        }));
+        }, options));
 };
 
 var _loadImageFromFile = function (file) {
-    var img = new Image(),
-        
-        tmp_canvas = document.createElement('canvas'),
-        tmp_canvas_context = tmp_canvas.getContext('2d'),
-        
-        tmp_image_data;
+    var img = new Image();
 
     _notification("loading image '" + file.name + "' (" + file.size + ")");
-    
-    img.onload = function () {
-        tmp_canvas.width  = img.naturalWidth;
-        tmp_canvas.height = img.naturalHeight;
 
-        tmp_canvas_context.translate(0, tmp_canvas.height);
-        tmp_canvas_context.scale(1, -1);
-        tmp_canvas_context.drawImage(img, 0, 0, tmp_canvas.width, tmp_canvas.height);
-
-        tmp_image_data = tmp_canvas_context.getImageData(0, 0, tmp_canvas.width, tmp_canvas.height);
-
-        _imageDataToInput(tmp_image_data);
+    img.onload = _fnToImageData(img, function (image_data) {
+        _imageDataToInput(image_data);
         
+        window.URL.revokeObjectURL(img.src);
+
         img.onload = null;
         img = null;
-    };
+    });
+    
     img.src = window.URL.createObjectURL(file);
 };
 
 var _loadImageFromURL = function (url, done_cb) {
-    var img = new Image(),
-        
-        tmp_canvas = document.createElement('canvas'),
-        tmp_canvas_context = tmp_canvas.getContext('2d'),
-        
-        tmp_image_data;
+    var img = new Image();
     
-    img.onload = function () {
-        tmp_canvas.width  = img.naturalWidth;
-        tmp_canvas.height = img.naturalHeight;
-
-        tmp_canvas_context.translate(0, tmp_canvas.height);
-        tmp_canvas_context.scale(1, -1);
-        tmp_canvas_context.drawImage(img, 0, 0, tmp_canvas.width, tmp_canvas.height);
-
-        tmp_image_data = tmp_canvas_context.getImageData(0, 0, tmp_canvas.width, tmp_canvas.height);
-
-        _imageProcessor(tmp_image_data, _imageProcessingDone(done_cb));
+    img.onload = _fnToImageData(img, function (image_data) {
+        _imageProcessor(image_data, _imageProcessingDone(done_cb));
         
         img.onload = null;
         img = null;
-    };
+    });
+        
     img.src = url;
 };

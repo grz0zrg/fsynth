@@ -6411,34 +6411,22 @@ var _getElementOffset = function (elem) {
     return { top: Math.round(top), left: Math.round(left), width: box.width, height: box.height };
 };
 
-var _getFundamentalFrequency = function (data, width, height, mono, backward) {
+var _getFundamentalFrequency = function (data, width, height, mono) {
     var i = 0, j = 0,
         data_index = 0,
-        freq = -1,
-        
-        w_offset = 0;
-    
-    if (backward) {
-        w_offset = -(width - 1);
-    }
+        freq = Infinity;
 
     for (i = height - 1; i >= 0; i -= 1) {
         for (j = 0; j < width; j += 1) {
-            data_index = i * (width * 4) + Math.abs(j + w_offset) * 4;
+            data_index = i * (width * 4) + j * 4;
             
             if (mono) {
                 if (data[data_index + 3] > 0) {
-                    freq = _getFrequency(i);
-                    
-                    i = -1;
-                    break;
+                    freq = Math.min(freq, _getFrequency(i));
                 }
             } else {
                 if (((data[data_index] + data[data_index + 1]) / 2) > 0) {
-                    freq = _getFrequency(i);
-                    
-                    i = -1;
-                    break;
+                    freq = Math.min(freq, _getFrequency(i));
                 }
             }
             
@@ -6452,49 +6440,49 @@ var _getSonogramBoundary = function (data, width, height, mono, backward) {
     var i = 0, j = 0,
         data_index = 0,
 
-        x = -1,
-        y = -1,
+        x = width,
         
         rx = 0,
+        
+        f = Math.min,
         
         w_offset = 0;
 
     if (backward) {
         w_offset = -(width - 1);
+        
+        f = Math.max;
+        
+        x = 0;
     }
 
     for (i = height - 1; i >= 0; i -= 1) {
         for (j = 0; j < width; j += 1) {
             rx = Math.abs(j + w_offset);
-            
+
             data_index = i * (width * 4) + rx * 4;
             
             if (mono) {
                 if (data[data_index + 3] > 0) {
-                    x = rx;
-                    y = i;
+                    x = f(x, rx);
                     
-                    i = -1;
                     break;
                 }
             } else {
                 if (data[data_index] > 0 || data[data_index + 1] > 0) {
-                    x = rx;
-                    y = i;
-                    
-                    i = -1;
+                    x = f(x, rx);
+
                     break;
                 }
-            }
-            
+            }   
         }
     }
     
-    return { x: x, y: y };
+    return x;
 };
 
 var _xhrContent = function (url, cb) {
-    var xmlhttp =new XMLHttpRequest();
+    var xmlhttp = new XMLHttpRequest();
     xmlhttp.open("GET", url, true);
     xmlhttp.onreadystatechange = function() {
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
@@ -6666,6 +6654,30 @@ var _getCookie = function getCookie(name) {
     return "";
 };
 
+var _fnFlipImage = function (img, done) {
+    return function () {
+        var tmp_canvas = document.createElement('canvas'),
+            tmp_canvas_context = tmp_canvas.getContext('2d'),
+        
+            tmp_image_data;
+        
+        tmp_canvas.width  = img.naturalWidth;
+        tmp_canvas.height = img.naturalHeight;
+
+        tmp_canvas_context.translate(0, tmp_canvas.height);
+        tmp_canvas_context.scale(1, -1);
+        tmp_canvas_context.drawImage(img, 0, 0, tmp_canvas.width, tmp_canvas.height);
+
+        tmp_image_data = tmp_canvas_context.getImageData(0, 0, tmp_canvas.width, tmp_canvas.height);
+
+        done(tmp_image_data);
+    };
+};
+
+var _flipImage = function (img, done) {
+    _fnFlipImage(img, done)();
+};
+
 /***********************************************************
     Init.
 ************************************************************/
@@ -6764,8 +6776,6 @@ var _convert = function (params, data) {
     }
     
     STFT.initializeForwardWindow(window_size, window_type, window_alpha);
-    
-    //var bark = _barkScale(end - start, params.sample_rate, window_size);
 
     stft = STFT.forward(window_size, function (real, imag) {
         overlap_frame_buffer.push({ r: real, i: imag });
@@ -6808,39 +6818,56 @@ var _convert = function (params, data) {
                 }
 
                 // get magnitude data
-                for (k = start; k < end; k += 1) {
-                    ls = lid + logScale(k - start, hid);
+                if (params.interpolation) {
+                    for (k = start; k < end; k += 1) {
+                        ls = lid + logScale(k - start, hid);
+                        
+                        stft_data_index = lid + _logScale(k - start, hid);
+                        stft_data_index2 = stft_data_index + 1;
                     
-                    stft_data_index = lid + _logScale(k - start, hid);
-                    stft_data_index2 = stft_data_index + 1;
-                   
-                    im1 = imag_final[stft_data_index];
-                    im2 = imag_final[stft_data_index2];
-                    r1  = real_final[stft_data_index];
-                    r2  = real_final[stft_data_index2];
+                        im1 = imag_final[stft_data_index];
+                        im2 = imag_final[stft_data_index2];
+                        r1 = real_final[stft_data_index];
+                        r2 = real_final[stft_data_index2];
+                        
+                        n = ls - stft_data_index;
+                        
+                        im = im1 + n * (im2 - im1);
+                        r = r1 + n * (r2 - r1);
                     
-                    n = ls - stft_data_index;
-                    
-                    im = im1 + n * (im2 - im1);
-                    r = r1 + n * (r2 - r1);
-                 
-                    amp = (Math.sqrt(r * r + im * im) / hop_divisor);
-/*
-                    db = 20 * Math.log10(amp);
+                        amp = (Math.sqrt(r * r + im * im) / hop_divisor);
+        
+                        mag = Math.round(amp * 255);
+                        phase = Math.round(Math.atan2(mag, r) * 180 / Math.PI) / hop_divisor * 255;
+                        
+                        index = Math.round((((k - start) / hid * image_height))) * image_width * 4 + frame;
 
-                    if (db < -40) {
-                        amp = 0.0;
+                        image_data[index] = mag;
+                        image_data[index + 1] = mag;
+                        image_data[index + 2] = mag;
+                        image_data[index + 3] = phase;
                     }
-*/                      
-                    mag = Math.round(amp * 255);
-                    phase = Math.round(Math.atan2(mag,r) * 180 / Math.PI) / hop_divisor * 255;
+                } else {
+                    for (k = start; k < end; k += 1) {
+                        ls = lid + logScale(k - start, hid);
+                        
+                        stft_data_index = lid + _logScale(k - start, hid);
                     
-                    index = Math.round((((k - start) / hid * image_height))) * image_width * 4 + frame;
+                        im = imag_final[stft_data_index];
+                        r = real_final[stft_data_index];
+                    
+                        amp = (Math.sqrt(r * r + im * im) / hop_divisor);
+        
+                        mag = Math.round(amp * 255);
+                        phase = Math.round(Math.atan2(mag, r) * 180 / Math.PI) / hop_divisor * 255;
+                        
+                        index = Math.round((((k - start) / hid * image_height))) * image_width * 4 + frame;
 
-                    image_data[index    ] = mag;
-                    image_data[index + 1] = mag;
-                    image_data[index + 2] = mag;
-                    image_data[index + 3] = phase;
+                        image_data[index] = mag;
+                        image_data[index + 1] = mag;
+                        image_data[index + 2] = mag;
+                        image_data[index + 3] = phase;
+                    }
                 }
             
                 frame += 4;

@@ -28,6 +28,10 @@
 
 ​	imported data access, typical usage : `texture2D(iInput0, uv);`
 
+`float fvidN`
+
+​	video current position (0 - 1 range)
+
 `sampler2D pFrame` 
 
 ​	previous frame available as a texture (feedback fx)

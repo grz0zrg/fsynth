@@ -154,7 +154,7 @@ document.getElementById("fs_remove_spaces").addEventListener('click', function (
 document.addEventListener('mouseup', function (e) {
     _mouse_btn = 0;
     
-    _canvasInputStopPainting();
+    _canvasInputPaintStop();
     
     // controller
     //_hit_curr = null;

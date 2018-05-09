@@ -98,8 +98,6 @@ var _convert = function (params, data) {
     }
     
     STFT.initializeForwardWindow(window_size, window_type, window_alpha);
-    
-    //var bark = _barkScale(end - start, params.sample_rate, window_size);
 
     stft = STFT.forward(window_size, function (real, imag) {
         overlap_frame_buffer.push({ r: real, i: imag });
@@ -142,39 +140,56 @@ var _convert = function (params, data) {
                 }
 
                 // get magnitude data
-                for (k = start; k < end; k += 1) {
-                    ls = lid + logScale(k - start, hid);
+                if (params.interpolation) {
+                    for (k = start; k < end; k += 1) {
+                        ls = lid + logScale(k - start, hid);
+                        
+                        stft_data_index = lid + _logScale(k - start, hid);
+                        stft_data_index2 = stft_data_index + 1;
                     
-                    stft_data_index = lid + _logScale(k - start, hid);
-                    stft_data_index2 = stft_data_index + 1;
-                   
-                    im1 = imag_final[stft_data_index];
-                    im2 = imag_final[stft_data_index2];
-                    r1  = real_final[stft_data_index];
-                    r2  = real_final[stft_data_index2];
+                        im1 = imag_final[stft_data_index];
+                        im2 = imag_final[stft_data_index2];
+                        r1 = real_final[stft_data_index];
+                        r2 = real_final[stft_data_index2];
+                        
+                        n = ls - stft_data_index;
+                        
+                        im = im1 + n * (im2 - im1);
+                        r = r1 + n * (r2 - r1);
                     
-                    n = ls - stft_data_index;
-                    
-                    im = im1 + n * (im2 - im1);
-                    r = r1 + n * (r2 - r1);
-                 
-                    amp = (Math.sqrt(r * r + im * im) / hop_divisor);
-/*
-                    db = 20 * Math.log10(amp);
+                        amp = (Math.sqrt(r * r + im * im) / hop_divisor);
+        
+                        mag = Math.round(amp * 255);
+                        phase = Math.round(Math.atan2(mag, r) * 180 / Math.PI) / hop_divisor * 255;
+                        
+                        index = Math.round((((k - start) / hid * image_height))) * image_width * 4 + frame;
 
-                    if (db < -40) {
-                        amp = 0.0;
+                        image_data[index] = mag;
+                        image_data[index + 1] = mag;
+                        image_data[index + 2] = mag;
+                        image_data[index + 3] = phase;
                     }
-*/                      
-                    mag = Math.round(amp * 255);
-                    phase = Math.round(Math.atan2(mag,r) * 180 / Math.PI) / hop_divisor * 255;
+                } else {
+                    for (k = start; k < end; k += 1) {
+                        ls = lid + logScale(k - start, hid);
+                        
+                        stft_data_index = lid + _logScale(k - start, hid);
                     
-                    index = Math.round((((k - start) / hid * image_height))) * image_width * 4 + frame;
+                        im = imag_final[stft_data_index];
+                        r = real_final[stft_data_index];
+                    
+                        amp = (Math.sqrt(r * r + im * im) / hop_divisor);
+        
+                        mag = Math.round(amp * 255);
+                        phase = Math.round(Math.atan2(mag, r) * 180 / Math.PI) / hop_divisor * 255;
+                        
+                        index = Math.round((((k - start) / hid * image_height))) * image_width * 4 + frame;
 
-                    image_data[index    ] = mag;
-                    image_data[index + 1] = mag;
-                    image_data[index + 2] = mag;
-                    image_data[index + 3] = phase;
+                        image_data[index] = mag;
+                        image_data[index + 1] = mag;
+                        image_data[index + 2] = mag;
+                        image_data[index + 3] = phase;
+                    }
                 }
             
                 frame += 4;
