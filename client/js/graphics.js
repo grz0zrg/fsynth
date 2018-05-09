@@ -1,5 +1,9 @@
 /* jslint browser: true */
 
+/**
+ * Manage graphics stuff.
+ */
+
 var _main_program = null,
     _main_attch0 = null,
     _main_attch1 = null,

@@ -12,9 +12,6 @@ var _icon_class = {
     
     _brush_helper_timeout,
     
-    _slice_settings_dialog_id = "fs_slice_settings_dialog",
-    _slice_settings_dialog,
-    
     _midi_out_editor,
     
     _midi_out_dialog_id = "fs_midi_out_dialog",
@@ -1143,7 +1140,7 @@ var _uiInit = function () {
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
             title: "Import dialog (images etc.)",
 
-            width: "480px",
+            width: "420px",
             height: "524px",
 
             halign: "center",
@@ -1196,12 +1193,6 @@ var _uiInit = function () {
                         on_click: (function () { _addFragmentInput("camera"); }),
                         tooltip: "Webcam",
                         text: "Cam"
-                    },
-                    {
-                        icon: "fs-record-icon",
-                        on_click: (function (ev) { _addFragmentInput("rec"); }),
-                        tooltip: "Recording",
-                        text: "Rec"
                     },
                     {
                         icon: "fs-canvas-icon",
@@ -1331,33 +1322,6 @@ var _uiInit = function () {
                 }
             ]
     });
-
-    _slice_settings_dialog = WUI_Dialog.create(_slice_settings_dialog_id, {
-            title: "Slice settings",
-
-            width: "320px",
-            height: "200px",
-
-            halign: "center",
-            valign: "center",
-
-            open: false,
-
-            detachable: false,
-
-            status_bar: true,
-            draggable: true,
-        
-            header_btn: [
-                {
-                    title: "Help",
-                    on_click: function () {
-                        window.open(_documentation_link + "tutorials/slices/"); 
-                    },
-                    class_name: "fs-help-icon"
-                }
-            ]
-        });
 
     _controls_dialog = WUI_Dialog.create(_controls_dialog_id, {
             title: "Controllers",

@@ -4,6 +4,618 @@
 
 // WUI - https://github.com/grz0zrg/wui
 /* jslint browser: true */
+/* jshint globalstrict: false */
+
+var WUI_Form = new (function() {
+    "use strict";
+
+    /***********************************************************
+        Private section.
+
+        Fields.
+    ************************************************************/
+
+    var _widget_list = {},
+
+        _class_name = {
+            form: "wui-form",
+            main_group: "wui-form-main-group",
+            sub_group: "wui-form-sub-group",
+            sub_group_div: "wui-form-sub-group-div",
+            tn: "wui-form-tn",
+            sm: "wui-form-sm",
+            md: "wui-form-md",
+            xl: "wui-form-xl",
+            align_right: "wui-form-align-right",
+            inline: "wui-form-inline"
+        },
+
+        _known_options = {
+            width: "auto",
+            on_change: null
+        },
+
+        _identifier_patterns = {
+            wui_item: "wui_form_item_",
+            std_item: "wui_form_std_item_"
+        },
+
+        // this is the type="" (value) mapped to a HTML element (key)
+        _form_type_table = {
+            "checkbox": "input",
+            "text": "input",
+            "color": "input",
+            "date": "input",
+            "datetime-local": "input",
+            "email": "input",
+            "file": "input",
+            "hidden": "input",
+            "image": "input",
+            "month": "input",
+            "number": "input",
+            "radio": "input",
+            "range": "input",
+            "reset": "input",
+            "search": "input",
+            "submit": "input",
+            "tel": "input",
+            "time": "input",
+            "url": "input",
+            "week": "input",
+            "password": "input"
+        },
+
+        _allowed_form_items = [
+            "button",
+            "datalist",
+            "input",
+            "label",
+            "legend",
+            "meter",
+            "select",
+            "textarea",
+
+            // <input> see _form_type_table
+            "checkbox",
+            "text",
+            "color",
+            "date",
+            "datetime-local",
+            "email",
+            "file",
+            "hidden",
+            "image",
+            "month",
+            "number",
+            "radio",
+            "range",
+            "reset",
+            "search",
+            "submit",
+            "tel",
+            "time",
+            "url",
+            "week",
+            "password"
+        ],
+
+        _allowed_wui_items = [
+            "WUI_RangeSlider", "WUI_Input", "WUI_DropDown"
+        ];
+
+    /***********************************************************
+        Private section.
+
+        Functions.
+    ************************************************************/
+
+    var _log = function (content) {
+        if (!window.WUI_Reporting) {
+            return;
+        }
+
+        if (typeof console !== "undefined") {
+            console.log(content);
+        }
+    };
+
+    var _copyAttributes = function (src, dst) {
+        var key;
+
+        for (key in src) {
+            if (src.hasOwnProperty(key)) {
+                dst.setAttribute(key, src[key]);
+            }
+        }
+    };
+
+    var _getOnChange = function (obj, cb, cb2) {
+        return function (ev) {
+            // we keep track of the data
+            if (ev.target) {
+                if (obj["name"]) {
+                    if (obj.type === "checkbox") {
+                        _widget_list[obj.wid].sitems[obj.name].value = ev.target.checked;
+
+                        obj.value = ev.target.checked;
+                    } else {
+                        _widget_list[obj.wid].sitems[obj.name].value = ev.target.value;
+
+                        obj.value = ev.target.value;
+                    }
+                } else {
+                    if (obj.type === "checkbox") {
+                        obj.value = ev.target.checked;
+                    } else {
+                        obj.value = ev.target.value;
+                    }
+                }
+            } else {
+                if (obj["name"]) {
+                    _widget_list[obj.wid].sitems[obj.name].value = ev;
+                }
+
+                obj.value = ev;
+            }
+
+            if (cb !== undefined) {
+                cb(obj.value, ev, obj);
+            }
+
+            if (cb2 !== undefined) {
+                cb2(obj.value, ev, obj);
+            }
+        };
+    }
+
+    var _addFormItems = function (id, legend_name, attr_list, element, frame_object, index, opts) {
+        var i = 0,
+            j = 0,
+
+            key,
+
+            fields_count = index,
+
+            frame_elem,
+            frame_item,
+            frame_legend,
+            wui_form_elem,
+
+            div_elem,
+            form_elem,
+            label_elem,
+            option_elem,
+            option_parent,
+            opt_group_elem,
+            datalist_input_elem,
+            sub_group_attr,
+
+            final_elem,
+
+            option;
+
+        if (legend_name === undefined) {
+            frame_elem = document.createElement("div");
+            frame_legend = document.createElement("legend");
+        } else {
+            frame_elem = document.createElement("fieldset");
+            frame_legend = document.createElement("legend");
+            frame_legend.innerHTML = legend_name;
+        }
+
+        if (attr_list !== undefined) {
+            _copyAttributes(attr_list, frame_elem);
+        }
+
+        frame_elem.appendChild(frame_legend);
+
+        for (i = 0; i < frame_object.length; i += 1) {
+            frame_item = frame_object[i];
+
+            if (frame_item["type"]) {
+                if (_allowed_form_items.indexOf(frame_item.type) !== -1) { // standard HTML form items
+                    div_elem = null;
+
+                    if (_form_type_table[frame_item.type]) {
+                        form_elem = document.createElement(_form_type_table[frame_item.type]);
+                        form_elem.type = frame_item.type;
+
+                        final_elem = form_elem;
+                    } else {
+                        form_elem = document.createElement(frame_item.type);
+                        final_elem = form_elem;
+                    }
+
+                    if (frame_item["wrap"]) {
+                        div_elem = document.createElement("div");
+                        div_elem.appendChild(form_elem);
+                        final_elem = div_elem;
+                    }
+
+                    form_elem.id = _identifier_patterns.std_item + fields_count + "_" + id;
+
+                    if (frame_item["group"]) {
+                        form_elem.name = frame_item.group;
+                    }
+
+                    if (frame_item["name"]) {
+                        _widget_list[id].items[frame_item.name] = { elem: form_elem };
+                        _widget_list[id].sitems[frame_item.name] = { value: 0 };
+                    }
+
+                    if (frame_item.type === "textarea" || frame_item.type === "text") {
+                        form_elem.addEventListener("input", _getOnChange({wid: id, name: frame_item["name"], type: frame_item.type}, opts["on_change"]));
+                    } else if (frame_item.type === "button") {
+                        form_elem.addEventListener("click", _getOnChange({wid: id, name: frame_item["name"], type: frame_item.type}, opts["on_change"]));
+                    } else {
+                        form_elem.addEventListener("change", _getOnChange({wid: id, name: frame_item["name"], type: frame_item.type}, opts["on_change"]));
+                    }
+
+                    if (frame_item["content"]) {
+                        form_elem.innerHTML = frame_item["content"];
+                    }
+
+                    if (frame_item["label"]) {
+                        label_elem = document.createElement("label");
+                        label_elem.setAttribute("for", form_elem.id);
+
+                        label_elem.innerHTML = frame_item.label;
+
+                        if (div_elem === null) {
+                            frame_elem.appendChild(label_elem);
+                        } else {
+                            final_elem.insertBefore(label_elem, form_elem);
+                        }
+
+                        if (frame_item.type === "input") {
+                            label_elem.appendChild(form_elem);
+                            final_elem = label_elem;
+                        }
+                    }
+
+                    if (frame_item["attr"]) {
+                        _copyAttributes(frame_item.attr, form_elem);
+                    }
+
+                    if (frame_item.type === "select" || frame_item.type === "datalist") {
+                        if (frame_item.type === "datalist") {
+                            datalist_input_elem = document.createElement("input");
+                            datalist_input_elem.setAttribute("list", form_elem.id);
+
+                            if (frame_item["id"]) {
+                                datalist_input_elem.setAttribute("id", frame_item.id);
+                            }
+
+                            if (frame_item["name"]) {
+                                datalist_input_elem.setAttribute("name", frame_item.name);
+                            }
+
+                            final_elem.appendChild(datalist_input_elem);
+                        }
+
+                        if (frame_item["options"]) {
+                            option_parent = form_elem;
+
+                            for (j = 0; j < frame_item.options.length; j += 1) {
+                                option = frame_item.options[j];
+
+                                if ((typeof option) === "object") {
+                                    if (option["group"]) {
+                                        option_parent = document.createElement("optgroup");
+                                        option_parent.setAttribute("label", option.group);
+                                        if (option["group_attr"]) {
+                                            _copyAttributes(option.group_attr, option_parent);
+                                        }
+                                        form_elem.appendChild(option_parent);
+                                    }
+                                }
+
+                                option_elem = document.createElement("option");
+
+                                if ((typeof option) === "string") {
+                                    option_elem.innerHTML = option;
+                                    option_parent.appendChild(option_elem);
+                                } else if ((typeof option) === "object") {
+                                    if (option["name"]) {
+                                        option_elem.innerHTML = option.name;
+                                        option_parent.appendChild(option_elem);
+
+                                        if (option["label"]) {
+                                            option_elem.setAttribute("label", option.label);
+                                        }
+
+                                        if ((typeof option["disabled"]) === "booleans") {
+                                            option_elem.setAttribute("disabled", option.disabled);
+                                        }
+
+                                        if ((typeof option["selected"]) === "booleans") {
+                                            option_elem.setAttribute("selected", option.selected);
+                                        }
+
+                                        if (option["value"]) {
+                                            option_elem.setAttribute("value", option.value);
+                                        }
+
+                                        if (option["attr"]) {
+                                            _copyAttributes(option.attr, option_elem);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (frame_item["value"]) {
+                        form_elem.value = frame_item.value;
+
+                        //_widget_list[id]
+                    }
+
+                    frame_elem.appendChild(final_elem);
+
+                    fields_count += 1;
+                } else if (_allowed_wui_items.indexOf(frame_item.type) !== -1) { // WUI items
+                    if (window[frame_item.type]) {
+                        wui_form_elem = document.createElement("div");
+                        wui_form_elem.id = _identifier_patterns.wui_item + fields_count;
+
+                        if (frame_item["name"]) {
+                            _widget_list[id].items[frame_item.name] = { elem: wui_form_elem };
+                            _widget_list[id].sitems[frame_item.name] = { value: 0 };
+                        }
+
+                        // wrap detected events to keep tracks of data
+                        if (frame_item["opts"]) {
+                            if (frame_item.opts.on_change) {
+                                frame_item.opts.on_change = _getOnChange({wid: id, name: frame_item["name"]}, frame_item.opts.on_change, opts["on_change"]);
+                            }
+
+                            if (frame_item.opts.on_item_selected) {
+                                frame_item.opts.on_item_selected = _getOnChange({wid: id, name: frame_item["name"]}, frame_item.opts.on_item_selected, opts["on_change"]);
+                            }
+                        }
+
+                        window[frame_item.type].create(wui_form_elem, frame_item["opts"], frame_item["items"]);
+
+                        frame_elem.appendChild(wui_form_elem);
+
+                        fields_count += 1;
+                    }
+                } else if (frame_item.type === "fieldset") {
+                    if (frame_item["items"]) {
+                        sub_group_attr = {
+                            "style": ""
+                        };
+
+                        if (frame_item["class"]) {
+                            sub_group_attr["class"] = frame_item.class;
+                            sub_group_attr["class"] += " " + _class_name.sub_group;
+                        } else {
+                            sub_group_attr["class"] = _class_name.sub_group;
+                        }
+
+                        if (frame_item["style"]) {
+                            sub_group_attr.style += frame_item.style;
+                        }
+
+                        if (frame_item["width"]) {
+                            sub_group_attr.style += "width: " + frame_item["width"];
+                        }
+
+                        if (frame_item["height"]) {
+                            sub_group_attr.style += "height: " + frame_item["height"];
+                        }
+
+                        if (frame_item["content_align"] === "right") {
+                            sub_group_attr["class"] += " " + _class_name.align_right;
+                        }
+
+                        if (frame_item["inline"]) {
+                            sub_group_attr["class"] += " " + _class_name.inline;
+                        }
+
+                        if (frame_item["items_size"]) {
+                            if (frame_item.items_size === "tn") {
+                              sub_group_attr["class"] += " " + _class_name.tn;
+                            } else if (frame_item.items_size === "sm") {
+                                sub_group_attr["class"] += " " + _class_name.sm;
+                            } else if (frame_item.items_size === "md") {
+                                sub_group_attr["class"] += " " + _class_name.md;
+                            } else if (frame_item.items_size === "xl") {
+                                sub_group_attr["class"] += " " + _class_name.xl;
+                            }
+                        } else {
+                            sub_group_attr["class"] += " " + _class_name.sm;
+                        }
+
+                        if (frame_item["name"] === undefined) {
+                            sub_group_attr["class"] += " " + _class_name.sub_group_div;
+                        }
+
+                        fields_count = _addFormItems(id, frame_item["name"], sub_group_attr, frame_elem, frame_item.items, fields_count, opts);
+                    }
+                }
+            }
+        }
+
+        element.appendChild(frame_elem);
+
+
+
+        return fields_count;
+    };
+
+    var _createFailed = function () {
+        _log("WUI_Form 'create' failed, first argument not an id nor a DOM element.");
+    };
+
+    /***********************************************************
+        Public section.
+
+        Functions.
+    ************************************************************/
+
+    this.create = function (id, options, items) {
+        var element,
+
+            frame,
+
+            frame_elem,
+
+            total_items = 0,
+
+            opts = {},
+
+            key,
+
+            i = 0;
+
+        if ((typeof id) === "string") {
+            element = document.getElementById(id);
+        } else if ((typeof id) === "object") {
+            if ((typeof id.innerHTML) !== "string") {
+                _createFailed();
+
+                return;
+            }
+
+            element = id;
+
+            id = element.id;
+        } else {
+            _createFailed();
+
+            return;
+        }
+
+        if (_widget_list[id] !== undefined) {
+            _log("WUI_Form id '" + id + "' already created, aborting.");
+
+            return;
+        }
+
+        for (key in _known_options) {
+            if (_known_options.hasOwnProperty(key)) {
+                opts[key] = _known_options[key];
+            }
+        }
+
+        if (options !== undefined) {
+            for (key in options) {
+                if (options.hasOwnProperty(key)) {
+                    if (_known_options[key] !== undefined) {
+                        opts[key] = options[key];
+                    }
+                }
+            }
+        }
+
+        _widget_list[id] = {
+            element: element,
+            total_items: total_items,
+            items: {}, // items reference
+            sitems: {}, // serializable item data
+            opts : opts
+        };
+
+        for (key in items) {
+            if (items.hasOwnProperty(key)) {
+                frame = items[key];
+
+                total_items += _addFormItems(id, key, { "class": _class_name.main_group }, element, frame, total_items, opts);
+            }
+        }
+
+        _widget_list[id].total_items = total_items;
+
+        element.style.width = opts.width;
+
+        element.classList.add(_class_name.form);
+
+        return id;
+    };
+
+    this.destroy = function (id) {
+        var widget = _widget_list[id],
+
+            element,
+
+            wui_form_item,
+
+            i, j;
+
+        if (widget === undefined) {
+            _log("Element id '" + id + "' is not a WUI_Form, destroying aborted.");
+
+            return;
+        }
+
+        element = widget.element;
+
+        // delete WUI form items
+        for (i = 0; i < widget.total_items; i += 1) {
+            wui_form_item = document.getElementById(_identifier_patterns.wui_item + i + "_" + element.id);
+            if (wui_form_item) {
+                for (j = 0; j < _allowed_wui_items.length; j += 1) {
+                    window[_allowed_wui_items[j]].destroy(wui_form_item);
+                }
+            }
+        }
+
+        delete _widget_list[id];
+    };
+
+    this.getParameters = function (id) {
+        var widget = _widget_list[id],
+            parameters = { },
+            key;
+
+        if (widget === undefined) {
+            _log("Element id '" + id + "' is not a WUI_Form, getParameters aborted.");
+
+            return null;
+        }
+
+        for (key in widget.sitems) {
+            if (widget.sitems.hasOwnProperty(key)) {
+                parameters[key] = widget.sitems[key];
+            }
+        }
+
+        return parameters;
+    };
+
+    this.setParameters = function (id, parameters, trigger_on_change) {
+        var widget = _widget_list[id],
+            ev,
+            key;
+
+        if (widget === undefined) {
+            _log("Element id '" + id + "' is not a WUI_Form, setParameters aborted.");
+
+            return;
+        }
+
+        if (!parameters) {
+            return;
+        }
+
+        for (key in parameters) {
+            if (parameters.hasOwnProperty(key)) {
+                if (widget.items[key]) {
+                    widget.sitems[key] = parameters[key];
+
+                    if (trigger_on_change) {
+                        widget.items[key].elem.value = parameters[key].value;
+                        widget.items[key].elem.checked = parameters[key].checked;
+                    }
+                }
+            }
+        }
+    };
+})();
+
+/* jslint browser: true */
 
 var WUI_Dialog = new (function() {
     "use strict";
@@ -49,7 +661,8 @@ var WUI_Dialog = new (function() {
             transition:     "wui-dialog-transition",
             dim_transition: "wui-dialog-dim-transition",
             modal:          "wui-dialog-modal",
-            status_bar:     "wui-dialog-status-bar"
+            status_bar:     "wui-dialog-status-bar",
+            title_wrapper:  "wui-dialog-title-wrapper"
         },
 
         _known_options = {
@@ -769,6 +1382,8 @@ var WUI_Dialog = new (function() {
         owner_win.addEventListener('mouseup', _onStopResize, false);
         owner_win.addEventListener('touchend', _onStopResize, false);
 
+        _focus(dialog);
+
         _resized_dialog = dialog;
     };
 
@@ -995,6 +1610,7 @@ var WUI_Dialog = new (function() {
             header_title = document.createElement("div");
 
             header_title_wrapper.style.display = "inline-block";
+            header_title_wrapper.className = _class_name.title_wrapper;
 
             header_title.className = "wui-dialog-title";
             header_title_wrapper.innerHTML = opts.title;
@@ -1111,6 +1727,8 @@ var WUI_Dialog = new (function() {
                                 resize_handler: resize_handler,
 
                                 header_minimaxi_btn: header_minimaxi_btn,
+                                
+                                header_title: header_title_wrapper,
 
                                 opts: opts,
 
@@ -1132,6 +1750,49 @@ var WUI_Dialog = new (function() {
         }
 
         return id;
+    };
+
+    this.getTitle = function (id) {
+        var widget = _widget_list[id];
+
+        if (widget === undefined) {
+            _log("Cannot getTitle of WUI dialog \"" + id + "\".");
+
+            return;
+        }
+
+        if (widget.header_title) {
+            return widget.header_title.innerHTML;
+        }
+    };
+
+    this.setTitle = function (id, content) {
+        var widget = _widget_list[id],
+
+            title_bar,
+
+            detach_ref;
+
+        if (widget === undefined) {
+            _log("Cannot setTitle of WUI dialog \"" + id + "\".");
+
+            return;
+        }
+
+        if (widget.header_title) {
+            widget.header_title.innerHTML = content;
+
+            detach_ref = widget.detachable_ref;
+            if (detach_ref) {
+                if (!detach_ref.closed) {
+                    title_bar = detach_ref.document.body.getElementsByClassName(_class_name.title_wrapper);
+
+                    if (title_bar.length > 0) {
+                        title_bar[0].innerHTML = content;
+                    }
+                }
+            }
+        }
     };
 
     this.setStatusBarContent = function (id, content) {
@@ -3354,18 +4015,20 @@ var WUI_ToolBar = new (function() {
     var _widget_list = {},
 
         _class_name = {
-            minimize_icon:  "wui-toolbar-minimize-icon",
-            maximize_icon:  "wui-toolbar-maximize-icon",
-            button:         "wui-toolbar-button",
-            minimize_group: "wui-toolbar-minimize-group",
-            minimize_gr_v:  "wui-toolbar-minimize-group-vertical",
-            toggle:         "wui-toolbar-toggle",
-            toggle_on:      "wui-toolbar-toggle-on",
-            item:           "wui-toolbar-item",
-            group:          "wui-toolbar-group",
-            vertical_group: "wui-toolbar-group-vertical",
-            group_title:    "wui-toolbar-group-title",
-            tb:             "wui-toolbar",
+            minimize_icon:          "wui-toolbar-minimize-icon",
+            maximize_icon:          "wui-toolbar-maximize-icon",
+            button:                 "wui-toolbar-button",
+            minimize_group:         "wui-toolbar-minimize-group",
+            minimize_gr_v:          "wui-toolbar-minimize-group-vertical",
+            toggle:                 "wui-toolbar-toggle",
+            toggle_on:              "wui-toolbar-toggle-on",
+            item:                   "wui-toolbar-item",
+            group:                  "wui-toolbar-group",
+            vertical_group:         "wui-toolbar-group-vertical",
+            group_title:            "wui-toolbar-group-title",
+            group_title_vertical:   "wui-toolbar-group-title-vertical",
+            group_title_vertical_s: "wui-toolbar-group-title-vertical-s",
+            tb:                     "wui-toolbar",
 
             // dropdown
             dd_content:     "wui-toolbar-dropdown-content",
@@ -4060,11 +4723,17 @@ var WUI_ToolBar = new (function() {
 
                 if (opts.show_groups_title) {
                     var group_title = document.createElement("div");
-                    group_title.classList.add(_class_name.group_title);
+
+                    if (opts.vertical) {
+                        group_title.classList.add(_class_name.group_title_vertical);
+                    } else {
+                        group_title.classList.add(_class_name.group_title);
+                    }
                     group_title.innerHTML = index;
 
                     if (opts.groups_title_orientation === "s") {
                         group_element.appendChild(group_title);
+                        group_title.classList.add(_class_name.group_title_vertical_s);
                     } else {
                         group_element.insertBefore(group_title, group_element.firstChild);
                     }
@@ -20309,6 +20978,10 @@ _import_dropzone_elem.addEventListener("dragenter", function (e) {
     e.target.style = "outline: dashed 1px #00ff00; background-color: #444444";
 });/* jslint browser: true */
 
+/**
+ * Manage graphics stuff.
+ */
+
 var _main_program = null,
     _main_attch0 = null,
     _main_attch1 = null,
@@ -21684,6 +22357,8 @@ var _fssConnect = function () {
                 }
             } catch (e) {
                 _notification('JSON message parsing failed : ' + e);
+
+                console.log(e);
             }
         };
     
@@ -21892,7 +22567,7 @@ var _initNetwork = function () {
 
 
 /*
-    Simple discussion system
+    Simple discussions window
 */
 
 /***********************************************************
@@ -21919,7 +22594,12 @@ var _addUser = function (id, name, hex_color, bold) {
 
     li.innerHTML = name;
     li.id = "user" + id;
-    li.title = name;
+
+    if (id === "self") {
+        li.title = "You!";
+    } else {
+        li.title = name;
+    }
     
     if (hex_color) {
         li.style.color = hex_color;
@@ -22016,6 +22696,22 @@ var _addMessage = function (userid, data) {
     discuss_element.scrollTop = discuss_element.scrollHeight;
 };
 
+var _chatKeypress = function (e) {
+    if (e.which === 13 || e.keyCode === 13) {
+        if (e.target.value.length <= 0) {
+            return true;
+        }
+        
+        _sendMessage(e.target.value);
+        
+        e.target.value = "";
+         
+        return false;
+    }
+
+    return true;
+};
+
 /***********************************************************
     Init.
 ************************************************************/
@@ -22041,21 +22737,7 @@ _right_dialog = WUI_Dialog.create(_discuss_dialog_id, {
 
 _setUsersList([]);
 
-_discuss_input.addEventListener("keypress", function (e) {
-        if (e.which === 13 || e.keyCode === 13) {
-            if (e.target.value.length <= 0) {
-                return true;
-            }
-            
-            _sendMessage(e.target.value);
-            
-            e.target.value = "";
-             
-            return false;
-        }
-    
-        return true;
-    });/* jslint browser: true */
+_discuss_input.addEventListener("keypress", _chatKeypress);/* jslint browser: true */
 
 /***********************************************************
     Fields.
@@ -22501,6 +23183,12 @@ var _canvasInputDimensionsUpdate = function (new_width, new_height) {
 };
 /* jslint browser: true */
 
+/**
+ * Manage all Fragment inputs.
+ * 
+ * This need a severe lifting!
+ */
+
 /***********************************************************
     Fields.
 ************************************************************/
@@ -22546,7 +23234,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     
         channel_settings_dialog,
         
-        dialog_height = "230px",
+        dialog_height = "200px",
 
         vflip_style = "",
         
@@ -22847,7 +23535,17 @@ var _imageProcessor = function (image_data, image_processing_done_cb) {
     worker.postMessage({ img_width: image_data.width, img_height: image_data.height, buffer: image_data.data.buffer }, [image_data.data.buffer]);
 };
 
+var _cbChannelSettings = function (input_id) {
+    return function (e) {
+        e.preventDefault();
+
+        _createChannelSettingsDialog(input_id);
+    };
+};
+
 var _inputThumbMenu = function (e) {
+    e.preventDefault();
+
     var input_id = _parseInt10(e.target.dataset.inputId),
         input = _fragment_input_data[input_id],
         dom_image = input.elem,
@@ -23159,6 +23857,22 @@ var _fnReplaceInputTexture = function (input_id) {
     };
 };
 
+var _addNoneInput = function (type, input_id) {
+    var data = _create2DTexture({ empty: true }, false, false);
+
+    _fragment_input_data.push({
+            type: 404,
+            texture: data.texture,
+            db_obj: null
+        });
+    
+    _dbRestoreInput(input_id, _fragment_input_data[input_id]);
+    
+    _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/"+type+"_none.png");
+
+    _compile();
+};
+
 var _addFragmentInput = function (type, input, settings) {
     var input_thumb,
 
@@ -23214,6 +23928,8 @@ var _addFragmentInput = function (type, input, settings) {
 
         _fragment_input_data[input_id].elem = _createInputThumb(input_id, input_thumb, _input_channel_prefix + input_id);
 
+        _fragment_input_data[input_id].elem.addEventListener("contextmenu", _cbChannelSettings(input_id));
+
         _compile();
     } else if (type === "camera" || type === "video") {
         video_element = document.createElement('video');
@@ -23264,7 +23980,9 @@ var _addFragmentInput = function (type, input, settings) {
                                 db_obj: db_obj
                             });
 
-                        _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/camera.png" );
+                        _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/camera.png");
+                        
+                        _fragment_input_data[input_id].elem.addEventListener("contextmenu", _cbChannelSettings(input_id));
 
                         _compile();
                     }, function (e) {
@@ -23276,19 +23994,7 @@ var _addFragmentInput = function (type, input, settings) {
         } else { // Video
             // a "video without data" Fragment input; a dummy image basically which tell the user that a video was here
             if (!input) {
-                data = _create2DTexture({ empty: true }, false, false);
-
-                _fragment_input_data.push({
-                        type: 404,
-                        texture: data.texture,
-                        db_obj: null
-                    });
-                
-                _dbRestoreInput(input_id, _fragment_input_data[input_id]);
-                
-                _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/video_none.png");
-        
-                _compile();
+                _addNoneInput(type, input_id);
 
                 return;
             }
@@ -23336,7 +24042,9 @@ var _addFragmentInput = function (type, input, settings) {
 
             _fragment_input_data.push(input_obj);
 
-            _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/video.png" );
+            _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/video.png");
+            
+            _fragment_input_data[input_id].elem.addEventListener("contextmenu", _cbChannelSettings(input_id));
 
             _compile();
             
@@ -23776,9 +24484,6 @@ var _icon_class = {
     _selected_slice,
     
     _brush_helper_timeout,
-    
-    _slice_settings_dialog_id = "fs_slice_settings_dialog",
-    _slice_settings_dialog,
     
     _midi_out_editor,
     
@@ -24908,7 +25613,7 @@ var _uiInit = function () {
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
             title: "Import dialog (images etc.)",
 
-            width: "480px",
+            width: "420px",
             height: "524px",
 
             halign: "center",
@@ -24961,12 +25666,6 @@ var _uiInit = function () {
                         on_click: (function () { _addFragmentInput("camera"); }),
                         tooltip: "Webcam",
                         text: "Cam"
-                    },
-                    {
-                        icon: "fs-record-icon",
-                        on_click: (function (ev) { _addFragmentInput("rec"); }),
-                        tooltip: "Recording",
-                        text: "Rec"
                     },
                     {
                         icon: "fs-canvas-icon",
@@ -25096,33 +25795,6 @@ var _uiInit = function () {
                 }
             ]
     });
-
-    _slice_settings_dialog = WUI_Dialog.create(_slice_settings_dialog_id, {
-            title: "Slice settings",
-
-            width: "320px",
-            height: "200px",
-
-            halign: "center",
-            valign: "center",
-
-            open: false,
-
-            detachable: false,
-
-            status_bar: true,
-            draggable: true,
-        
-            header_btn: [
-                {
-                    title: "Help",
-                    on_click: function () {
-                        window.open(_documentation_link + "tutorials/slices/"); 
-                    },
-                    class_name: "fs-help-icon"
-                }
-            ]
-        });
 
     _controls_dialog = WUI_Dialog.create(_controls_dialog_id, {
             title: "Controllers",
@@ -27409,6 +28081,12 @@ _controllers_canvas.addEventListener("mousedown", function (e) {
 });
 *//* jslint browser: true */
 
+/**
+ * All things related to slices.
+ * 
+ * This need a severe lifting!
+ */
+
 var _selected_slice_marker = null;
 
 /***********************************************************
@@ -27416,26 +28094,12 @@ var _selected_slice_marker = null;
 ************************************************************/
 
 var _updateSliceSettingsDialog = function (slice_obj, show) {
-    var slice_settings_container = document.getElementById("slice_settings_container_" + slice_obj.element.dataset.slice),
-        
-        fs_slice_settings_dialog_content_div = document.getElementById("fs_slice_settings_dialog"),
-        
-        slice_settings_nodes = fs_slice_settings_dialog_content_div.querySelectorAll('*[id^="slice_settings_container_"]'),
-        
-        i = 0;
-    
-    WUI_Dialog.setStatusBarContent(_slice_settings_dialog, "Slice " + slice_obj.element.dataset.slice);
+    var i = 0;
     
     _selected_slice = slice_obj;
     
-    for (i = 0; i < slice_settings_nodes.length; i += 1) {
-        slice_settings_nodes[i].style = "display: none";
-    }
-    
-    slice_settings_container.style = "";
-    
     if (show) {
-        WUI_Dialog.open(_slice_settings_dialog);
+        WUI_Dialog.open("fs_slice_settings_dialog" + slice_obj.id);
     }
 };
 
@@ -27565,11 +28229,8 @@ var _updatePlayMarker = function (id, obj) {
 
 var _removePlayPositionMarker = function (marker_id, force, submit) {
     var play_position_marker = _play_position_markers[parseInt(marker_id, 10)],
-        slice_settings_container = document.getElementById("slice_settings_container_" + marker_id),
         i;
     
-    slice_settings_container.parentElement.removeChild(slice_settings_container);
-
     WUI.undraggable(play_position_marker.element);
     WUI.undraggable(play_position_marker.element.firstElementChild);
     WUI.undraggable(play_position_marker.element.lastElementChild);
@@ -27580,16 +28241,13 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
     WUI_RangeSlider.destroy("fs_slice_settings_shift_input_" + marker_id);
     WUI_RangeSlider.destroy("fs_slice_settings_channel_input_" + marker_id);
     WUI_RangeSlider.destroy("fs_slice_settings_bpm_" + marker_id);
+    WUI_Dialog.destroy("fs_slice_settings_dialog" + marker_id);
 
     _play_position_markers.splice(marker_id, 1);
 
     for (i = 0; i < _play_position_markers.length; i += 1) {
-        slice_settings_container = document.getElementById("slice_settings_container_" + _play_position_markers[i].id);
-        
         _play_position_markers[i].element.dataset.slice = i;
         _play_position_markers[i].id = i;
-        
-        slice_settings_container.id = "slice_settings_container_" + i;
     }
     
     if (_play_position_markers.length === 0) {
@@ -27603,15 +28261,31 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
     _computeOutputChannels();
 };
 
+var _cbMarkerSettingsChange = function (mobj, cb) {
+    return function (value) {
+        cb(value, mobj);
+    };
+};
+
 var _createMarkerSettings = function (marker_obj) {
-    var fs_slice_settings_dialog_content_div = document.getElementById("fs_slice_settings_dialog").getElementsByClassName("wui-dialog-content")[0],
-        
-        fs_slice_settings_container = document.createElement("div"),
+    var dialog_id = "fs_slice_settings_dialog" + marker_obj.id;
+
+    if (document.getElementById(dialog_id)) {
+        WUI_Dialog.open(dialog_id);
+
+        return;
+    }
+
+    var fs_slice_settings_container = document.createElement("div"),
         fs_slice_settings_x_input = document.createElement("div"),
         fs_slice_settings_shift_input = document.createElement("div"),
         fs_slice_settings_channel_input = document.createElement("div"),
         fs_slice_settings_synthesis_select = document.createElement("select"),
         fs_slice_settings_bpm = document.createElement("div"),
+
+        dialog_element = document.createElement("div"),
+        content_element = document.createElement("div"),
+
         synthesis_option;
     
     fs_slice_settings_x_input.id = "fs_slice_settings_x_input_" + marker_obj.id;
@@ -27619,6 +28293,8 @@ var _createMarkerSettings = function (marker_obj) {
     fs_slice_settings_channel_input.id = "fs_slice_settings_channel_input_" + marker_obj.id;
     fs_slice_settings_synthesis_select.id = "fs_slice_settings_synthesis_select" + marker_obj.id;
     fs_slice_settings_bpm.id = "fs_slice_settings_bpm_" + marker_obj.id;
+
+    dialog_element.id = dialog_id;
     
     WUI_RangeSlider.create(fs_slice_settings_x_input, {
             width: 120,
@@ -27642,9 +28318,9 @@ var _createMarkerSettings = function (marker_obj) {
             title_min_width: 140,
             value_min_width: 88,
 
-            on_change: function (value) {
+            on_change: _cbMarkerSettingsChange(marker_obj, function (value, marker_obj) {
                 _setPlayPosition(marker_obj.element.dataset.slice, _parseInt10(value), 0, true);
-            }
+            })
         });
 
     WUI_RangeSlider.create(fs_slice_settings_shift_input, {
@@ -27667,13 +28343,13 @@ var _createMarkerSettings = function (marker_obj) {
             title_min_width: 140,
             value_min_width: 88,
 
-            on_change: function (value) {
+            on_change: _cbMarkerSettingsChange(marker_obj, function (value, marker_obj) {
                 var slice = _getSlice(marker_obj.element.dataset.slice);
                 
                 slice.shift = _parseInt10(value);
                 
                 _submitSliceUpdate(1, marker_obj.element.dataset.slice, { shift : value });
-            }
+            })
         });
     
     WUI_RangeSlider.create(fs_slice_settings_channel_input, {
@@ -27698,7 +28374,7 @@ var _createMarkerSettings = function (marker_obj) {
             title_min_width: 140,
             value_min_width: 88,
 
-            on_change: function (value) {
+            on_change: _cbMarkerSettingsChange(marker_obj, function (value, marker_obj) {
                 if (value <= 0) {
                     value = 1;
                 }
@@ -27710,7 +28386,7 @@ var _createMarkerSettings = function (marker_obj) {
                 _submitSliceUpdate(3, marker_obj.element.dataset.slice, { output_channel : value });
                 
                 _computeOutputChannels();
-            }
+            })
         });
     
     WUI_RangeSlider.create(fs_slice_settings_bpm, {
@@ -27735,22 +28411,49 @@ var _createMarkerSettings = function (marker_obj) {
             title_min_width: 140,
             value_min_width: 88,
 
-            on_change: function (value) {
+            on_change: _cbMarkerSettingsChange(marker_obj, function (value, marker_obj) {
                 var slice = _getSlice(marker_obj.element.dataset.slice);
                 
                 slice.frame_increment = parseFloat(value);
-            }
+            })
         });
-
+    
     fs_slice_settings_container.appendChild(fs_slice_settings_x_input);
     fs_slice_settings_container.appendChild(fs_slice_settings_shift_input);
     fs_slice_settings_container.appendChild(fs_slice_settings_bpm);
     fs_slice_settings_container.appendChild(fs_slice_settings_channel_input);
     
-    fs_slice_settings_container.id = "slice_settings_container_" + marker_obj.id;
-    fs_slice_settings_container.style = "display: none";
+    content_element.appendChild(fs_slice_settings_container);
+    dialog_element.appendChild(content_element);
+
+    document.body.appendChild(dialog_element);
     
-    fs_slice_settings_dialog_content_div.appendChild(fs_slice_settings_container);
+    WUI_Dialog.create(dialog_element, {
+        title: "Slice '"+marker_obj.id+"' settings",
+
+        width: "320px",
+        height: "auto",
+
+        halign: "center",
+        valign: "center",
+
+        open: false,
+
+        detachable: false,
+
+        status_bar: false,
+        draggable: true,
+    
+        header_btn: [
+            {
+                title: "Help",
+                on_click: function () {
+                    window.open(_documentation_link + "tutorials/slices/"); 
+                },
+                class_name: "fs-help-icon"
+            }
+        ]
+    });
 };
 
 var _setSlicePositionFromAbsolute = function (play_position_marker_id, x, y) {
@@ -27784,8 +28487,7 @@ var _submitSliceSettingsFn = function () {
                 x: play_position_marker.x,
                 shift: play_position_marker.shift,
                 mute: play_position_marker.mute,
-                output_channel: play_position_marker.output_channel,
-                //synthesis_type: play_position_marker.synthesis_type
+                output_channel: play_position_marker.output_channel
             });
     }
 

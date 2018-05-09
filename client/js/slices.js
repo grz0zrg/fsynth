@@ -1,5 +1,11 @@
 /* jslint browser: true */
 
+/**
+ * All things related to slices.
+ * 
+ * This need a severe lifting!
+ */
+
 var _selected_slice_marker = null;
 
 /***********************************************************
@@ -7,26 +13,12 @@ var _selected_slice_marker = null;
 ************************************************************/
 
 var _updateSliceSettingsDialog = function (slice_obj, show) {
-    var slice_settings_container = document.getElementById("slice_settings_container_" + slice_obj.element.dataset.slice),
-        
-        fs_slice_settings_dialog_content_div = document.getElementById("fs_slice_settings_dialog"),
-        
-        slice_settings_nodes = fs_slice_settings_dialog_content_div.querySelectorAll('*[id^="slice_settings_container_"]'),
-        
-        i = 0;
-    
-    WUI_Dialog.setStatusBarContent(_slice_settings_dialog, "Slice " + slice_obj.element.dataset.slice);
+    var i = 0;
     
     _selected_slice = slice_obj;
     
-    for (i = 0; i < slice_settings_nodes.length; i += 1) {
-        slice_settings_nodes[i].style = "display: none";
-    }
-    
-    slice_settings_container.style = "";
-    
     if (show) {
-        WUI_Dialog.open(_slice_settings_dialog);
+        WUI_Dialog.open("fs_slice_settings_dialog" + slice_obj.id);
     }
 };
 
@@ -156,11 +148,8 @@ var _updatePlayMarker = function (id, obj) {
 
 var _removePlayPositionMarker = function (marker_id, force, submit) {
     var play_position_marker = _play_position_markers[parseInt(marker_id, 10)],
-        slice_settings_container = document.getElementById("slice_settings_container_" + marker_id),
         i;
     
-    slice_settings_container.parentElement.removeChild(slice_settings_container);
-
     WUI.undraggable(play_position_marker.element);
     WUI.undraggable(play_position_marker.element.firstElementChild);
     WUI.undraggable(play_position_marker.element.lastElementChild);
@@ -171,16 +160,13 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
     WUI_RangeSlider.destroy("fs_slice_settings_shift_input_" + marker_id);
     WUI_RangeSlider.destroy("fs_slice_settings_channel_input_" + marker_id);
     WUI_RangeSlider.destroy("fs_slice_settings_bpm_" + marker_id);
+    WUI_Dialog.destroy("fs_slice_settings_dialog" + marker_id);
 
     _play_position_markers.splice(marker_id, 1);
 
     for (i = 0; i < _play_position_markers.length; i += 1) {
-        slice_settings_container = document.getElementById("slice_settings_container_" + _play_position_markers[i].id);
-        
         _play_position_markers[i].element.dataset.slice = i;
         _play_position_markers[i].id = i;
-        
-        slice_settings_container.id = "slice_settings_container_" + i;
     }
     
     if (_play_position_markers.length === 0) {
@@ -194,15 +180,31 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
     _computeOutputChannels();
 };
 
+var _cbMarkerSettingsChange = function (mobj, cb) {
+    return function (value) {
+        cb(value, mobj);
+    };
+};
+
 var _createMarkerSettings = function (marker_obj) {
-    var fs_slice_settings_dialog_content_div = document.getElementById("fs_slice_settings_dialog").getElementsByClassName("wui-dialog-content")[0],
-        
-        fs_slice_settings_container = document.createElement("div"),
+    var dialog_id = "fs_slice_settings_dialog" + marker_obj.id;
+
+    if (document.getElementById(dialog_id)) {
+        WUI_Dialog.open(dialog_id);
+
+        return;
+    }
+
+    var fs_slice_settings_container = document.createElement("div"),
         fs_slice_settings_x_input = document.createElement("div"),
         fs_slice_settings_shift_input = document.createElement("div"),
         fs_slice_settings_channel_input = document.createElement("div"),
         fs_slice_settings_synthesis_select = document.createElement("select"),
         fs_slice_settings_bpm = document.createElement("div"),
+
+        dialog_element = document.createElement("div"),
+        content_element = document.createElement("div"),
+
         synthesis_option;
     
     fs_slice_settings_x_input.id = "fs_slice_settings_x_input_" + marker_obj.id;
@@ -210,6 +212,8 @@ var _createMarkerSettings = function (marker_obj) {
     fs_slice_settings_channel_input.id = "fs_slice_settings_channel_input_" + marker_obj.id;
     fs_slice_settings_synthesis_select.id = "fs_slice_settings_synthesis_select" + marker_obj.id;
     fs_slice_settings_bpm.id = "fs_slice_settings_bpm_" + marker_obj.id;
+
+    dialog_element.id = dialog_id;
     
     WUI_RangeSlider.create(fs_slice_settings_x_input, {
             width: 120,
@@ -233,9 +237,9 @@ var _createMarkerSettings = function (marker_obj) {
             title_min_width: 140,
             value_min_width: 88,
 
-            on_change: function (value) {
+            on_change: _cbMarkerSettingsChange(marker_obj, function (value, marker_obj) {
                 _setPlayPosition(marker_obj.element.dataset.slice, _parseInt10(value), 0, true);
-            }
+            })
         });
 
     WUI_RangeSlider.create(fs_slice_settings_shift_input, {
@@ -258,13 +262,13 @@ var _createMarkerSettings = function (marker_obj) {
             title_min_width: 140,
             value_min_width: 88,
 
-            on_change: function (value) {
+            on_change: _cbMarkerSettingsChange(marker_obj, function (value, marker_obj) {
                 var slice = _getSlice(marker_obj.element.dataset.slice);
                 
                 slice.shift = _parseInt10(value);
                 
                 _submitSliceUpdate(1, marker_obj.element.dataset.slice, { shift : value });
-            }
+            })
         });
     
     WUI_RangeSlider.create(fs_slice_settings_channel_input, {
@@ -289,7 +293,7 @@ var _createMarkerSettings = function (marker_obj) {
             title_min_width: 140,
             value_min_width: 88,
 
-            on_change: function (value) {
+            on_change: _cbMarkerSettingsChange(marker_obj, function (value, marker_obj) {
                 if (value <= 0) {
                     value = 1;
                 }
@@ -301,7 +305,7 @@ var _createMarkerSettings = function (marker_obj) {
                 _submitSliceUpdate(3, marker_obj.element.dataset.slice, { output_channel : value });
                 
                 _computeOutputChannels();
-            }
+            })
         });
     
     WUI_RangeSlider.create(fs_slice_settings_bpm, {
@@ -326,22 +330,49 @@ var _createMarkerSettings = function (marker_obj) {
             title_min_width: 140,
             value_min_width: 88,
 
-            on_change: function (value) {
+            on_change: _cbMarkerSettingsChange(marker_obj, function (value, marker_obj) {
                 var slice = _getSlice(marker_obj.element.dataset.slice);
                 
                 slice.frame_increment = parseFloat(value);
-            }
+            })
         });
-
+    
     fs_slice_settings_container.appendChild(fs_slice_settings_x_input);
     fs_slice_settings_container.appendChild(fs_slice_settings_shift_input);
     fs_slice_settings_container.appendChild(fs_slice_settings_bpm);
     fs_slice_settings_container.appendChild(fs_slice_settings_channel_input);
     
-    fs_slice_settings_container.id = "slice_settings_container_" + marker_obj.id;
-    fs_slice_settings_container.style = "display: none";
+    content_element.appendChild(fs_slice_settings_container);
+    dialog_element.appendChild(content_element);
+
+    document.body.appendChild(dialog_element);
     
-    fs_slice_settings_dialog_content_div.appendChild(fs_slice_settings_container);
+    WUI_Dialog.create(dialog_element, {
+        title: "Slice '"+marker_obj.id+"' settings",
+
+        width: "320px",
+        height: "auto",
+
+        halign: "center",
+        valign: "center",
+
+        open: false,
+
+        detachable: false,
+
+        status_bar: false,
+        draggable: true,
+    
+        header_btn: [
+            {
+                title: "Help",
+                on_click: function () {
+                    window.open(_documentation_link + "tutorials/slices/"); 
+                },
+                class_name: "fs-help-icon"
+            }
+        ]
+    });
 };
 
 var _setSlicePositionFromAbsolute = function (play_position_marker_id, x, y) {
@@ -375,8 +406,7 @@ var _submitSliceSettingsFn = function () {
                 x: play_position_marker.x,
                 shift: play_position_marker.shift,
                 mute: play_position_marker.mute,
-                output_channel: play_position_marker.output_channel,
-                //synthesis_type: play_position_marker.synthesis_type
+                output_channel: play_position_marker.output_channel
             });
     }
 

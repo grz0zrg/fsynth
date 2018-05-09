@@ -1,5 +1,11 @@
 /* jslint browser: true */
 
+/**
+ * Manage all Fragment inputs.
+ * 
+ * This need a severe lifting!
+ */
+
 /***********************************************************
     Fields.
 ************************************************************/
@@ -45,7 +51,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     
         channel_settings_dialog,
         
-        dialog_height = "230px",
+        dialog_height = "200px",
 
         vflip_style = "",
         
@@ -346,7 +352,17 @@ var _imageProcessor = function (image_data, image_processing_done_cb) {
     worker.postMessage({ img_width: image_data.width, img_height: image_data.height, buffer: image_data.data.buffer }, [image_data.data.buffer]);
 };
 
+var _cbChannelSettings = function (input_id) {
+    return function (e) {
+        e.preventDefault();
+
+        _createChannelSettingsDialog(input_id);
+    };
+};
+
 var _inputThumbMenu = function (e) {
+    e.preventDefault();
+
     var input_id = _parseInt10(e.target.dataset.inputId),
         input = _fragment_input_data[input_id],
         dom_image = input.elem,
@@ -658,6 +674,22 @@ var _fnReplaceInputTexture = function (input_id) {
     };
 };
 
+var _addNoneInput = function (type, input_id) {
+    var data = _create2DTexture({ empty: true }, false, false);
+
+    _fragment_input_data.push({
+            type: 404,
+            texture: data.texture,
+            db_obj: null
+        });
+    
+    _dbRestoreInput(input_id, _fragment_input_data[input_id]);
+    
+    _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/"+type+"_none.png");
+
+    _compile();
+};
+
 var _addFragmentInput = function (type, input, settings) {
     var input_thumb,
 
@@ -713,6 +745,8 @@ var _addFragmentInput = function (type, input, settings) {
 
         _fragment_input_data[input_id].elem = _createInputThumb(input_id, input_thumb, _input_channel_prefix + input_id);
 
+        _fragment_input_data[input_id].elem.addEventListener("contextmenu", _cbChannelSettings(input_id));
+
         _compile();
     } else if (type === "camera" || type === "video") {
         video_element = document.createElement('video');
@@ -763,7 +797,9 @@ var _addFragmentInput = function (type, input, settings) {
                                 db_obj: db_obj
                             });
 
-                        _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/camera.png" );
+                        _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/camera.png");
+                        
+                        _fragment_input_data[input_id].elem.addEventListener("contextmenu", _cbChannelSettings(input_id));
 
                         _compile();
                     }, function (e) {
@@ -775,19 +811,7 @@ var _addFragmentInput = function (type, input, settings) {
         } else { // Video
             // a "video without data" Fragment input; a dummy image basically which tell the user that a video was here
             if (!input) {
-                data = _create2DTexture({ empty: true }, false, false);
-
-                _fragment_input_data.push({
-                        type: 404,
-                        texture: data.texture,
-                        db_obj: null
-                    });
-                
-                _dbRestoreInput(input_id, _fragment_input_data[input_id]);
-                
-                _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/video_none.png");
-        
-                _compile();
+                _addNoneInput(type, input_id);
 
                 return;
             }
@@ -835,7 +859,9 @@ var _addFragmentInput = function (type, input, settings) {
 
             _fragment_input_data.push(input_obj);
 
-            _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/video.png" );
+            _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/video.png");
+            
+            _fragment_input_data[input_id].elem.addEventListener("contextmenu", _cbChannelSettings(input_id));
 
             _compile();
             

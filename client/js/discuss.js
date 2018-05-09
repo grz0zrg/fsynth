@@ -2,7 +2,7 @@
 
 
 /*
-    Simple discussion system
+    Simple discussions window
 */
 
 /***********************************************************
@@ -29,7 +29,12 @@ var _addUser = function (id, name, hex_color, bold) {
 
     li.innerHTML = name;
     li.id = "user" + id;
-    li.title = name;
+
+    if (id === "self") {
+        li.title = "You!";
+    } else {
+        li.title = name;
+    }
     
     if (hex_color) {
         li.style.color = hex_color;
@@ -126,6 +131,22 @@ var _addMessage = function (userid, data) {
     discuss_element.scrollTop = discuss_element.scrollHeight;
 };
 
+var _chatKeypress = function (e) {
+    if (e.which === 13 || e.keyCode === 13) {
+        if (e.target.value.length <= 0) {
+            return true;
+        }
+        
+        _sendMessage(e.target.value);
+        
+        e.target.value = "";
+         
+        return false;
+    }
+
+    return true;
+};
+
 /***********************************************************
     Init.
 ************************************************************/
@@ -151,18 +172,4 @@ _right_dialog = WUI_Dialog.create(_discuss_dialog_id, {
 
 _setUsersList([]);
 
-_discuss_input.addEventListener("keypress", function (e) {
-        if (e.which === 13 || e.keyCode === 13) {
-            if (e.target.value.length <= 0) {
-                return true;
-            }
-            
-            _sendMessage(e.target.value);
-            
-            e.target.value = "";
-             
-            return false;
-        }
-    
-        return true;
-    });
+_discuss_input.addEventListener("keypress", _chatKeypress);
