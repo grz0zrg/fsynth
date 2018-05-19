@@ -27,9 +27,21 @@ var _hzToMIDINote = function (freq) {
     return 69 + 12 * Math.log2(freq / 440);
 };
 
+var _hzFromMIDI = function (midi_note) {
+    return 440 * Math.pow(2, (midi_note - 69) / 12);
+};
+
+var _getMIDIPan = function (l, r) {
+    return Math.min(Math.abs(Math.round((1. - (l - r))*64)), 127);
+};
+
+var _getMIDIBend = function (f1, fn) {
+    return Math.round(8192 + 4096 * 12 * Math.log2(f1 / _hzFromMIDI(fn)));
+};
+
 var _hzToOscillator = function (f, bf, o, h) {
-    return (h-(Math.log(f / bf) / Math.log(2.0)) * Math.floor(h / o + 0.5));
-}
+    return (h - (Math.log(f / bf) / Math.log(2.0)) * Math.floor(h / o + 0.5));
+};
 
 var _MIDINoteName = function (midi_note) {
     return _midi_notes_map[Math.round(midi_note)];

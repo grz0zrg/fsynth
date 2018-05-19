@@ -73,9 +73,9 @@ Enable/disable monophonic mode
 - If monophonic is enabled, only the alpha value is used by 
   the synthesis engine, the full RGB output can then be used for visuals
 
-Wavetable
+AudioWorklet
 
-- Enable/disable the synthesis engine wavetable feature (uglier audio output but may be the ess CPU intensive mode)
+- Enable/disable WebAudio AudioWorklet, a fast in-browser additive synthesis engine (enabled by default if supported, this may require a recent browsers)
 
 OSC IN
 

@@ -2,8 +2,6 @@
 
 /**
  * Manage all Fragment inputs.
- * 
- * This need a severe lifting!
  */
 
 /***********************************************************

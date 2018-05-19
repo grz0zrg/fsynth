@@ -29,7 +29,7 @@ A high amount of memory is needed to load many samples/distributed sound synthes
 
 Fragment has excellent performances with a modern multi-core system and a browser such as Chromium.
 
-If you experience crackles or need advanced audio features, it is recommended that you use the audio server available as a download on the homepage.
+If you experience crackles or need advanced audio features, it is recommended that you use the audio server available on the homepage.
 
 The audio server is able to provide fast sound synthesis, it also provide many settings such as audio device selection, sample rate settings etc.
 

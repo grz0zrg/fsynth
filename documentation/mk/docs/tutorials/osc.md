@@ -1,6 +1,6 @@
 ## About
 
-> **L'Open Sound Control** est un format de transmission de données entre ordinateurs, synthétiseurs, robots ou tout autre matériel ou logiciel compatible, conçu pour le contrôle en temps réel. Il utilise le réseau au travers des protocoles [UDP](https://fr.wikipedia.org/wiki/UDP) ou [TCP](https://fr.wikipedia.org/wiki/TCP) et apporte des améliorations en termes de rapidité et flexibilité par rapport à l'ancienne norme [MIDI](https://fr.wikipedia.org/wiki/MIDI).
+> Open Sound Control (OSC) is a protocol for networking sound synthesizers, computers, and other multimedia devices for purposes such as musical performance or show control. OSC's advantages include interoperability, accuracy, flexibility and enhanced organization and documentation.
 
 Fragment has OSC in/out support through a WebSocket connection.
 

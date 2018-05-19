@@ -383,6 +383,8 @@ var FragmentSynth = function (params) {
         _prev_data = [],
         _temp_data = new Uint8Array(_canvas_height_mul4),
         _data = [],
+        _prev_midi_data = [],
+        _midi_data = [],
         _output_channels = 1,
 
         _analysis_canvas,
@@ -508,7 +510,8 @@ var FragmentSynth = function (params) {
         } else {
             _local_session_settings = {
                 gain: _volume,
-                chn_settings: []
+                chn_settings: [],
+                markers: []
             };
         }
     };
@@ -803,9 +806,6 @@ var FragmentSynth = function (params) {
 
     _loadLocalSessionSettings();
 
-    //_addPlayPositionMarker(_canvas_width / 4);
-    //_addPlayPositionMarker(_canvas_width - _canvas_width / 4);
-
     _allocateFramesData();
     
     _uiInit();
@@ -817,8 +817,6 @@ var FragmentSynth = function (params) {
     _oscInit();
 
     _initNetwork();
-    
-    //_play();
     
     /*#include events.js*/
     

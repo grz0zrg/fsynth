@@ -74,7 +74,7 @@ $nl
 $subsection(Capabilities)
 $list(
 	$item Powerful additive/spectral/granular synthesizer
-		$list($item Powered by WebAudio oscillators (additive only) $item Powered by $ref(fas)(FAS), an independent program $item Powered by a wavetable (additive only) )
+		$list($item Powered by WebAudio oscillators (additive only) $item Powered by $ref(fas)(FAS), an independent program $item Powered by WebAudio AudioWorklet (fast, additive only) )
 	$item Phase modulation / Subtractive synthesizer (powered by FAS, alternative methods)
 	$item Stereophonic / Monaural
 	$item Polyphonic
@@ -88,7 +88,7 @@ $list(
 	$item Shader inputs, webcam, textures, videos, audio files, canvas
 	$item WebGL 2.0 and GLSL 3.0 support when compatibility is detected
 	$item OSC support, a $tlink(SuperCollider)(http://supercollider.github.io/) synth. which use OSC data from Fragment is also available
-	$item MIDI Enabled
+	$item MIDI IN/OUT Enabled
 		$list($item Only with WebMIDI API enabled browsers (Google Chrome) $item Hot plugging of MIDI devices is supported $item Multidimensional Polyphonic Expression (MPE) support)
 	$item Collaborative app.
 		$list($item MIDI and shader inputs are not synchronized between users)
@@ -119,7 +119,7 @@ Several methods are provided to synthesize sounds, each with performances pros a
 $list(
 	$item $ref(fas)(FAS) ($bold(recommended method)): $list($item Fastest $item Has more synthesis methods like granular, PM and subtractive type $item Multiple output support with soundcard choice $item Many audio settings $item Can run on a dedicated computer such as a Raspberry PI $item Dedicated program which receive Fragment data over the network $item Enhanced noise modeling with band-limited noise $item Advanced granular synthesis)
 	$item WebAudio oscillators: $list($item Fastest with Chrome $item May not work with Firefox if the canvas is too high vertically $item Require a fast CPU $item Integrated global "release" envelope)
-	$item Wavetable $bold(not recommended): $list($item Most compatible browser method $item Will produce crackles))
+	$item AudioWorklet $bold(recommended): $list($item Fast, additive only, may require recent browser))
 $subsubsection(GPU)
 Fragment was developed and tested with a NVIDIA GeForce GTX 970 GPU, a powerful GPU may be required if:
 $list(
@@ -350,6 +350,7 @@ $list(
 		$item Y Shift: pitch the slice audio up or down (there is no visual representation of this)
 		$item Increment per frame: This allow the slice to move left or right automatically, this is the increment value per frames
 		$item $ref(fas)(FAS) Output channel: the l/r output channel which will be used by FAS for that slice)
+    $item MIDI out device: The MIDI device which will receive MIDI data from pixels data. (see MIDI)
 	$item deletion)
 Here is how you can mute a slice:
 $pagewidthgif(mute_slice)
@@ -621,7 +622,7 @@ $label(midisettingsdialog)
 $subsection(MIDI settings dialog)
 $tlink($center($image(325)(images/midi_settings.png)))(images/midi_settings.png)
 $nl
-The MIDI settings dialog show all the MIDI input devices found at this time, by default there is no MIDI input devices enabled, you can enable MIDI devices by checking the checkbox below the MIDI device name.
+The MIDI settings dialog show all the MIDI input and output devices found at this time, by default there is no MIDI input devices enabled and all MIDI output enabled, you can enable MIDI devices by checking the checkbox below the MIDI device name.
 
 Once enabled, Fragment will receive any MIDI messages from that device.
 

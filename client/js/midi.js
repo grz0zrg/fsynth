@@ -19,13 +19,32 @@ var _midi_access = null,
     
     _mpe_instrument,
     
-    _midi_notes = [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
+    _midi_notes = [],
     
     _midi_device_uid = 0;
 
 /***********************************************************
     Functions.
 ************************************************************/
+
+var _midiDeviceIOUpdate = function () {
+    var key;
+
+    _midi_devices.i_total_active = 0;
+    _midi_devices.o_total_active = 0;
+    
+    for(key in _midi_devices.input) { 
+        if(_midi_devices.input[key].enabled) {
+            _midi_devices.i_total_active += 1;
+        }
+    }
+    
+    for(key in _midi_devices.output) { 
+        if(_midi_devices.output[key].enabled) {
+            _midi_devices.o_total_active += 1;
+        }
+    }
+};
 
 var _loadMIDISettings = function (midi_settings_json) {
     var midi_settings_obj,
@@ -53,6 +72,8 @@ var _loadMIDISettings = function (midi_settings_json) {
                     enabled: midi_device.enabled
                 };
         }
+
+        _midiDeviceIOUpdate();
     } catch (e) {
         _notification('_loadMIDISettings JSON message parsing failed : ' + e);
     }
@@ -98,30 +119,19 @@ var _MIDIDeviceCheckboxChange = function () {
         document.getElementById(midi_enabled_ck_id).removeAttribute("checked");
     }
     
-    _midi_devices.i_total_active = 0;
-    _midi_devices.o_total_active = 0;
-    
-    for(key in _midi_devices.input) { 
-        if(_midi_devices.input[key].enabled) {
-            _midi_devices.i_total_active += 1;
-        }
-    }
-    
-    for(key in _midi_devices.output) { 
-        if(_midi_devices.output[key].enabled) {
-            _midi_devices.o_total_active += 1;
-        }
-    }
+    _midiDeviceIOUpdate();
 };
 
 var _addMIDIDevice = function (midi, io_type) {
     var midi_element = document.createElement("div"),
         midi_enabled_ck_id = "fs_midi_settings_ck_" + _midi_device_uid,
         midi_settings_element = document.getElementById(_midi_settings_dialog_id).lastElementChild,
-        midi_device_enabled = false,
+        midi_device_enabled = (io_type === "output"),
         midi_device_enabled_ck = "",
         
         tmp_element = null,
+
+        i = 0,
         
         detached_dialog = WUI_Dialog.getDetachedDialog(_midi_settings_dialog),
         detached_dialog_midi_settings_element = null,
@@ -183,6 +193,14 @@ var _addMIDIDevice = function (midi, io_type) {
     }
     
     _midi_device_uid += 1;
+
+    _midiDeviceIOUpdate();
+
+    for (i = 0; i < 16; i += 1) {
+        _midiSendToDevice([0xC0 + i, 0x00], "output", midi.id);
+    }
+
+    _rebuildMarkersMIDIDevices();
 };
 
 var _deleteMIDIDevice = function (id, type) {
@@ -207,14 +225,21 @@ var _deleteMIDIDevice = function (id, type) {
         }
     }
     
-    delete _midi_devices[type][id]
+    delete _midi_devices[type][id];
+
+    _midiDeviceIOUpdate();
+
+    _rebuildMarkersMIDIDevices();
+};
+
+var _getMIDIDevices = function (io_type) {
+    return _midi_devices[io_type];
 };
 
 var _onMIDIAccessChange = function (connection_event) {
     var device = connection_event.port;
 
-    // only inputs are supported at the moment
-    if (device.type !== "input"/* && device.type !== "output"*/) {
+    if (device.type !== "input" && device.type !== "output") {
         return;
     }
 
@@ -237,64 +262,152 @@ var _midiSendAllActive = function (msg_arr) {
     }
 };
 
-var _midiDataOut = function (pixels_data, prev_pixels_data) {
+var _midiSendToDevice = function (msg_arr, device_type, device_uid) {
+    var midi_device = _midi_devices[device_type][device_uid];
+
+    if (!midi_device) {
+        return;
+    }
+        
+    if (midi_device.enabled) {
+        midi_device.obj.send(msg_arr);
+    }
+};
+
+var _getMIDINoteObj = function (chn, note) {
+    if (!_midi_notes[chn][note]) {
+        _midi_notes[chn][note] = { on: false, chn: 0 };
+    }
+    
+    return _midi_notes[chn][note];
+};
+
+var _midiDataOut = function (pixels_data) {
+    if (_midi_devices.o_total_active === 0 && pixels_data.length > 1) {
+        return;
+    }
+
     var data_length,
+        buffer = [],
         data,
         prev_data,
         osc = null,
         l = 0, pl = 0,
         r = 0, pr = 0,
-        y = _oscillators.length - 1,
+        y = 0,
         li = 0,
         ri = 1,
         i = 0,
         k = 0,
+        j = 0,
+        chn,
 
-        midi_note = 0;
+        midi_chn_data_index = _output_channels,
+
+        notes,
+
+        inv_full_brightness = 1,
+
+        midi_volume,
+        midi_panning,
+        
+        midi_bend = 0,
+
+        midi_note = 0,
+        midi_note_fractional = 0,
+        midi_note_obj;
+    
+    if (!_audio_infos.float_data) {
+        inv_full_brightness = 1 / 255.0;
+    }
     
     if (_audio_infos.monophonic) {
         li = 3;
         ri = 3;
     }
-    
-    for (k = 0; k < pixels_data.length; k += 4) {
+
+    for (i = 0; i < _output_channels; i += 1) {
+        buffer.push(new _synth_data_array(_canvas_height_mul4));
+    }
+
+    for (k = 0; k < midi_chn_data_index; k += 1) {
         data = pixels_data[k];
-        prev_data = prev_pixels_data[k];
-        data_length = data.length;
+        prev_data = _prev_midi_data[k];
+        data_length = data.length - 1;
+
+        y = _oscillators.length - 1;
         
         for (i = 0; i < data_length; i += 4) {
             l = data[i + li];
             r = data[i + ri];
             
-            pl = data[i + li];
-            pr = data[i + ri];
+            pl = prev_data[i + li];
+            pr = prev_data[i + ri];
             
             osc = _oscillators[y];
-            midi_note = _hzToMIDINote(osc.freq);
-            
-            if (!_midi_notes[k][midi_note]) {
-                _midi_notes[k][midi_note] = { on: false };
-            }
-            
-            midi_note = _midi_notes[k][midi_note];
-            
+
             if (l > 0 || r > 0) {
-                if (pl <= 0 || pr <= 0) {
-                    _midiSendAllActive([0x90 + k, midi_note, 127]);
-                    midi_note.on = true;
+                l *= inv_full_brightness;
+                r *= inv_full_brightness;
+                pl *= inv_full_brightness;
+                pr *= inv_full_brightness;
+
+                midi_note_fractional = _hzToMIDINote(osc.freq);
+                midi_note = Math.min(Math.round(midi_note_fractional), 127);
+                
+                midi_note_obj = _getMIDINoteObj(k, midi_note_fractional);
+
+                midi_volume = Math.min(Math.round((l + r) / 2 * 127), 127);
+
+                if ((pl <= 0 || pr <= 0) && !midi_note_obj.on) {
+                    chn = 0;
+                    notes = Infinity;
+
+                    for (j = 0; j < 16; j += 1) {
+                        if (_midi_notes[j].notes === 0) {
+                            chn = j;
+                            break;
+                        }
+
+                        if (_midi_notes[j].notes < notes) {
+                            chn = j;
+                            notes = _midi_notes[chn].notes;
+                        }
+                    }
+
+                    _midi_notes[chn].notes += 1;
+
+                    midi_bend = _getMIDIBend(osc.freq, midi_note);
+
+                    midi_panning = _getMIDIPan(l, r);
+
+                    //_midiSendToDevice([0xB0 + chn, 0x07, 100], "output", pixels_data[midi_chn_data_index + k]);
+                    //_midiSendToDevice([0xB0 + chn, 0x64, 0x0, 0xB0, 0x06, 0x1], "output", pixels_data[midi_chn_data_index + k]);
+                    _midiSendToDevice([0xE0 + chn, midi_bend & 0x7F, (midi_bend >> 7),
+                                       0xB0 + chn, 0x0A, midi_panning,
+                                       0x90 + chn, midi_note, midi_volume], "output", pixels_data[midi_chn_data_index + k]);
+                    midi_note_obj.on = true;
+                    midi_note_obj.chn = chn;
                 }
                 
                 if (pl !== l || pr !== r) {
-                    if (midi_note.on) {
-                        _midiSendAllActive([0xB0 + k, 0x07, Math.floor((l + r) / 4)]);
-                        _midiSendAllActive([0xB0 + k, 0x08, Math.floor(64 + (l - r) / 4)]);
+                    if (midi_note_obj.on && _midi_notes[midi_note_obj.chn].notes <= 1) {
+                        //_midiSendToDevice([0xB0 +  midi_note_obj.chn, 0x07, midi_volume, 0xB0 + midi_note_obj.chn, 0x0A, midi_panning], "output", pixels_data[midi_chn_data_index + k]);
                     }
                 }
             } else {
                 if (pl > 0 || pr > 0) {
-                    if (midi_note.on) {
-                        _midiSendAllActive([0x80 + k, midi_note, 127.]);
-                        midi_note.on = false;
+                    midi_note_fractional = _hzToMIDINote(osc.freq);
+                    midi_note = Math.min(Math.round(midi_note_fractional), 127);
+                    
+                    midi_note_obj = _getMIDINoteObj(k, midi_note_fractional);
+
+                    if (midi_note_obj.on) {
+                        _midi_notes[midi_note_obj.chn].notes -= 1;
+
+                        _midiSendToDevice([0x80 + midi_note_obj.chn, midi_note, 127], "output", pixels_data[midi_chn_data_index + k]);
+                        
+                        midi_note_obj.on = false;
                     }
                 }
             }
@@ -302,6 +415,12 @@ var _midiDataOut = function (pixels_data, prev_pixels_data) {
             y -= 1;
         }
     }
+
+    for (i = 0; i < _output_channels; i += 1) {
+        _prev_midi_data[i] = pixels_data[i];
+    }
+
+    _midi_data = buffer;
 };
 
 var _MIDInotesCleanup = function () {
@@ -359,7 +478,7 @@ var _MIDInotesUpdate = function (date) {
         _keyboard.data[v.id + 2] = et / 1000;
     }
 
-    _keyboard.polyphony = _keyboard.data.length / _keyboard.data_components;
+    _keyboard.polyphony = _keyboard.data.length / _keyboard.data_components - 1;
 }
 
 // general MIDI messages processing
@@ -500,6 +619,12 @@ var _midiAccessSuccess = function (midi_access) {
             _addMIDIDevice(midi_in, midi_in.type);
         }
     );
+
+    _midi_access.outputs.forEach(
+        function (midi_out) {
+            _addMIDIDevice(midi_out, midi_out.type);
+        }
+    );
     
     _midi_access.onstatechange = _onMIDIAccessChange;
 };
@@ -519,6 +644,10 @@ var _midiInit = function () {
     _keyboard.data = [0, 0, 0, 0, 0, 0, 0, 0];
 
     if (_webMIDISupport()) {
+        for (i = 0; i < 16; i += 1) {
+            _midi_notes[i] = { notes: 0 };
+        }
+
         navigator.requestMIDIAccess().then(_midiAccessSuccess, _midiAccessFailure);
     } else {
         midi_settings_element.innerHTML = "<center>WebMIDI API is not enabled/supported by this browser, please use a <a href=\"https://caniuse.com/#search=midi\">compatible browser</a>.</center>";

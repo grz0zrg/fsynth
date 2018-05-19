@@ -1040,7 +1040,7 @@ var _uiInit = function () {
             title: "MIDI",
 
             width: "320px",
-            height: "auto",
+            height: "480px",
         
             min_height: "120px",
 

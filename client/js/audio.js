@@ -8,6 +8,8 @@ var _FS_WORKLET = 0,
     _FS_OSC_NODES = 1,
     
     _audio_context = new window.AudioContext(),
+
+    _notes_worker = new Worker("dist/worker/notes_buffer.min.js"),
     
     _analyser_node,// = _audio_context.createAnalyser(),
     _analyser_fftsize = 16384,
@@ -107,7 +109,6 @@ var _disconnectWorklet = function () {
 };
 
 var _connectWorklet = function () {
-    console.log(_fragment_worklet_node, _fragment_worklet_connected);
     if (_fragment_worklet_node && _osc_mode === _FS_WORKLET) {
         if (!_fragment_worklet_connected) {
             _fragment_worklet_node.connect(_mst_gain_node);
@@ -366,7 +367,7 @@ var _playSlice = function (pixels_data) {
     }
 };
 
-var _notesProcessing = function (arr) {   
+var _notesProcessing = function (prev_arr, arr) {   
     var worker_obj,
         
         i = 0;
@@ -375,14 +376,14 @@ var _notesProcessing = function (arr) {
         if (_fragment_worklet_busy) {
             return;
         }
-        
-        _fragment_worklet_node.port.postMessage({
-                data: arr[0].buffer,
-                score_height: _canvas_height,
-                mono: _audio_infos.monophonic,
-                float: _audio_infos.float_data,
-                type: 500
-            }, [arr[0].buffer]);
+
+        _notes_worker.postMessage({
+            data: arr[0].buffer,
+            prev_data: prev_arr[0].buffer,
+            score_height: _canvas_height,
+            mono: _audio_infos.monophonic,
+            float: _audio_infos.float_data,
+        }, [arr[0].buffer, prev_arr[0].buffer]);
         
         _fragment_worklet_busy = true;
     } else if (_osc_mode === _FS_OSC_NODES) {
@@ -563,7 +564,7 @@ var _audioInit = function () {
     
     _generatePeriodicWaves(16);
     _generateOscillatorSet(_canvas_height, 16.34, 10);
-    
+
     try {
         var aw = new Function("readyCb", "audio_ctx", "mst_gain_node", "" +
             "class FragmentWorkletNode extends AudioWorkletNode {" +
@@ -583,8 +584,19 @@ var _audioInit = function () {
         
         _fragment_worklet_connected = true;
     } catch (e) {
+        _notification("AudioWorklet unavailable... switching to OSC. mode.");
+
         console.log("AudioWorklet unavailable... switching to OSC. mode.");
         
         _fragment_worklet_connected = false;
     }
+
+    _notes_worker.addEventListener("message", function (m) {
+        var data = m.data;
+    
+        _fragment_worklet_node.port.postMessage({
+            d: data.d,
+            type: 500
+        }, [data.d]);
+    }, false);
 };

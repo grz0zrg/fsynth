@@ -70,7 +70,7 @@ share.use('receive', function (request, next) {
             collection_name = "";
 
         // Reject collection names which do not begin with an underscore and have not allowed character to avoid issues with reserved mongodb names
-        // this is an ugly solution as it force the collection to be a "_trashbin" collection if it doesn't meet the requirement... but who care with proper client-side verifications? anyway... until a better solution is found
+        // ugly solution as it force the collection to be a "_trashbin" collection if it doesn't meet the requirement... but who care with proper client-side verifications? anyway... until a better solution is found
         if (request['collection'] !== undefined) {
             if (request.collection.indexOf("_") !== 0 || collection_name_regexp.test(request.collection)) {
                 collection_name = request.collection

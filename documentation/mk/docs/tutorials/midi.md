@@ -1,14 +1,14 @@
 ## MIDI inputs
 
-*You must have a WebMIDI supported browser (such as Chrome or Opera) to use Fragment MIDI inputs.*
+*You must have a WebMIDI supported browser (such as Chrome or Opera) to use Fragment MIDI.*
 
-Fragment support MIDI inputs, it has built-in support for MIDI **keyboards** (see OSC for controllers).
+Fragment support MIDI inputs and output, it has built-in support for MIDI **keyboards** (see OSC for controllers).
 
 Fragment has complete support for *Multidimensional Polyphonic Expression* aka MPE which apply to a new class of controllers like the LinnStrument, Eigenharp and Roli RISE/SeaBoard allowing full per-note expressive support.
 
 Once your MIDI keyboard is plugged in, it can be found and enabled in the Fragment MIDI devices dialog.
 
-The MIDI data of the keyboard will now be available in a pre-defined **vec4 array** named **keyboard**, the array length * 2 is the actual polyphony capability of Fragment, the array contain a series of vec4 items, a note is constitued by two vec4 items which contain
+The MIDI data of the keyboard will now be available in a pre-defined **vec4 array** named **keyboard**, the array length * 2 is the actual polyphony capability of Fragment, the array contain a series of vec4 items, a note is constitued by two vec4 items containing
 
 - the note frequency
 - the note velocity
@@ -146,7 +146,13 @@ See OSC section to use more controllers.
 
 ## MIDI output
 
-Fragment has no support yet for MIDI output.
+- Features
+  - MIDI devices can be assigned to each slices through the slice settings
+  - user-defined MIDI messages interpretation of RGBA values through the slice settings
+  - polyphony/stereo panning through 16 channels
+  - microtonal capabilities (frequency mapping is respected)
+
+External synths can be triggered from pixels data via MIDI OUT, a MIDI device can be assigned to one or more slice (must have different output channels to work), RGBA channels can be assigned to user-defined MIDI messages from the slice settings, Fragment has limited MPE support (non-standard for now) to support polyphony through 16 channels, every sounding note is temporarily assigned to its own MIDI channel, allowing microtonal, individual stereo panning and polyphonic capabilities.
 
 ## Note
 

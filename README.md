@@ -70,7 +70,7 @@ Fragment is also able to do real-time distributed sound synthesis with the sound
 - Stereophonic or monaural
 - Polyphonic
 - Multitimbral
-- MIDI inputs support with [Web MIDI](https://caniuse.com/#feat=midi) compatible web browsers, MPE supported
+- MIDI IN/OUT support with [Web MIDI](https://caniuse.com/#feat=midi) compatible web browsers, MPE supported
 - Adjustable audio output channel per slices
 - Real-time frames by frames recording with export as an image or Fragment input (export back into itself, this can be used to build complex brushes for drawing canvas inputs)
 - .wav export (without FAS : additive synthesis only)
@@ -218,7 +218,7 @@ Dynamics parameters
 
 ## MIDI
 
-Fragment support MIDI inputs.
+Fragment support MIDI inputs and MIDI outputs with compatible browsers.
 
 ##### Features
 
@@ -234,6 +234,13 @@ Fragment support MIDI inputs.
 - Polyphony is automatically detected from the GPU capabilities (704 notes with a GeForce GTX 970 GPU, 16 notes is the minimum, maximum notes depend on the GPU capability/shader complexity)
 - Multidimensional Polyphonic Expression (MPE) support
 - Hot plugging of MIDI devices
+- MIDI output
+  - MIDI devices can be assigned to each slices
+  - user-defined MIDI messages interpretation of RGBA values
+  - polyphony/stereo panning through 16 channels
+  - microtonal capabilities (frequency mapping is respected)
+
+External synths can be triggered from pixels data via MIDI OUT, a MIDI device can be assigned to one or more slice, RGBA channels can be assigned to user-defined MIDI messages from the slice settings, Fragment has limited MPE support (non-standard for now) to support polyphony through 16 channels, every sounding note is temporarily assigned to its own MIDI channel, allowing microtonal, individual stereo panning and polyphonic capabilities.
 
 If you need to control more parameters, see OSC below.
 
@@ -247,7 +254,7 @@ Fragment uniforms can be defined through OSC with two methods :
   - This will create/update a **float** array uniform, the message should contain an array with index to update at index 0 and the value at index 1
   - If the array does not exist, it will create it and grow the array as needed
 - Update whole float array with message starting with **a** address such as **/aarr**
-  - This will create/update a whole **float **array uniform, the message should just contain all the array values
+  - This will create/update a whole **float** array uniform, the message should just contain all the array values
 
 You can send a message to the **/clear** address to clear all OSC defined uniforms
 

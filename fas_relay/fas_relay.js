@@ -30,7 +30,7 @@ const DSPLIT = 0, // split the slices in equals chunks for each servers, this is
       // this will distribute data over each servers in a linear & cyclical fashion, it has very good performances
       DINTER = 1,
       // smart distribution of load over each servers
-      // this is the best algorithm, it distribute data equally to all servers, work great
+      // this is the best algorithm, it distribute data equally to all servers, work with distribution weights
       DSMART = 2;
 
 var WebSocket = require("ws"),
@@ -50,6 +50,7 @@ var WebSocket = require("ws"),
         ]
     }),
 
+    // default distribution method
     distribution_method = DSMART,
 
     client_socket,
@@ -198,7 +199,6 @@ function websocketConnect() {
                             ws_obj.data = data.slice(0);
 
                             frame_data = new frame_array_type(ws_obj.data, 16);
-                            //frame_data.fill(0);
 
                             for (j = 0; j < frame_length; j += 1) {
                                 start = data_length_rgba * j + fi;
@@ -220,7 +220,6 @@ function websocketConnect() {
                             ws_obj.data = data.slice(0);
 
                             frame_data = new frame_array_type(ws_obj.data, 16);
-                            //frame_data.fill(0);
 
                             for (j = (i * 4); j < frame_data.length; j += (fas_wss_count * 4)) {
                                 frame_data[j] = data_view[j];
@@ -318,8 +317,6 @@ function websocketConnect() {
 
                                         f.data_view[index]     = 0;
                                         f.data_view[index + 1] = 0;
-                                        //f.data_view[index + 2] = 0;
-                                        //f.data_view[index + 3] = 0;
                                         f.count -= fas_weight[pii];
                                     }
                                 }

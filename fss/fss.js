@@ -360,20 +360,6 @@ redisClient.on('connect', function() {
                             }
                         }); 
                 }
-                
-                /*} else if (msg.type === "slices") {
-                    var client = fs.clients[ws.uid];
-                    
-                    if (client === undefined) {
-                        logger.error('Cannot find client id "%s"', ws.uid);
-
-                        return;
-                    }
-                    
-                    redisSettingsClient.set(client.session, JSON.stringify(msg.data));
-                    
-                    clusterWideBroadcast(ws, prepareMessage("slices", { data: msg.data }), client.session);
-                }*/
             } catch (e) {
                 logger.error('Client connection closed due to occuring exception for payload "%s" %s', message, e.message);
                 

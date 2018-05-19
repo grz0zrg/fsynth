@@ -10,7 +10,6 @@ class FragmentWorkletProcessor extends AudioWorkletProcessor {
         this.note_buffer = [];
         this.next_note_buffer = [];
         this.wavetable = [];
-        this.prev_data = null;
         this.note_time_samples = 0;
         this.lerp_t_step = 0;
         this.lerp_t = 0;
@@ -36,7 +35,10 @@ class FragmentWorkletProcessor extends AudioWorkletProcessor {
                 volume_l, volume_r,
                 index = 0,
                 li = 0,
-                ri = 1;
+                ri = 1,
+                
+                ili = 0,
+                iri = 0;
             
             if (w.type === 0) { // initialization
                 this.oscillators = w.oscillators;
@@ -67,81 +69,7 @@ class FragmentWorkletProcessor extends AudioWorkletProcessor {
             } else if (w.type === 2) {
                 this.play = true;
             } else { // pixels data
-                score_height = w.score_height;
-                note_buffer = new Float32Array(score_height * 5);
-                
-                y = score_height - 1;
-                
-                if (w.float) {
-                    data = new Float32Array(w.data);
-
-                    inv_full_brightness = 1;
-                    
-                    if (!this.prev_data) {
-                        this.prev_data = new Float32Array(score_height * 4);
-                    }
-                } else {
-                    data = new Uint8ClampedArray(w.data);
-
-                    inv_full_brightness = 1 / 255.0;
-                    
-                    if (!this.prev_data) {
-                        this.prev_data = new Uint8ClampedArray(score_height * 4);
-                    }
-                }
-                
-                dlen = data.length;
-
-                if (w.mono) {
-                    li = 3;
-                    ri = 3;
-                }
-
-                for (i = 0; i < dlen; i += 4) {
-                    pr = this.prev_data[i + li];
-                    pg = this.prev_data[i + ri];
-
-                    r = data[i + li];
-                    g = data[i + ri];
-
-                    if (r > 0 || g > 0) {
-                        volume_l = r * inv_full_brightness;
-                        volume_r = g * inv_full_brightness;
-
-                        pvl = pr * inv_full_brightness;
-                        pvr = pg * inv_full_brightness;
-
-                        note_buffer[index] = y;
-                        note_buffer[index + 1] = pvl;
-                        note_buffer[index + 2] = pvr;
-                        note_buffer[index + 3] = volume_l - pvl;
-                        note_buffer[index + 4] = volume_r - pvr;
-                    } else {
-                        if (pr > 0 || pg > 0) {
-                            pvl = pr * inv_full_brightness;
-                            pvr = pg * inv_full_brightness;
-
-                            note_buffer[index] = y;
-                            note_buffer[index + 1] = pvl;
-                            note_buffer[index + 2] = pvr;
-                            note_buffer[index + 3] = -pvl;
-                            note_buffer[index + 4] = -pvr;
-                        } else {
-                            y -= 1;
-                            continue;
-                        }
-                    }
-
-                    y -= 1;
-
-                    index += 5;
-                }
-                
-                this.prev_data = data;
-                
-                this.next_note_buffer = note_buffer;
-                
-                this.port.postMessage({ done: true });
+                this.next_note_buffer = new Float32Array(w.d);
             }
         };
     }
@@ -203,16 +131,19 @@ class FragmentWorkletProcessor extends AudioWorkletProcessor {
                 output_r += (previous_volume_r + diff_volume_r * lerp_t) * s;
 
                 osc.phase_index += osc.phase_step;
-
+/*
                 if (osc.phase_index >= wavetable_size) {
                     osc.phase_index -= wavetable_size;
                 }
+*/
+                osc.phase_index &= wavetable_size_m1;
             }
 
             output_data_l[i] = output_l;
             output_data_r[i] = output_r;
             
-            lerp_t += lerp_t_step;
+            lerp_t += lerp_t_step * 1.0;
+            lerp_t = Math.min(lerp_t, 1.0);
             
             curr_sample += 1;
             
@@ -226,6 +157,10 @@ class FragmentWorkletProcessor extends AudioWorkletProcessor {
                     lerp_t_step = 1 / this.note_time_samples;
                     
                     this.note_buffer = this.next_note_buffer;
+
+                    note_buffer = this.note_buffer;
+
+                    this.port.postMessage({ done: true });
                 }
             }
         }

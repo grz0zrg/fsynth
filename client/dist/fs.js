@@ -19023,9 +19023,21 @@ var _hzToMIDINote = function (freq) {
     return 69 + 12 * Math.log2(freq / 440);
 };
 
+var _hzFromMIDI = function (midi_note) {
+    return 440 * Math.pow(2, (midi_note - 69) / 12);
+};
+
+var _getMIDIPan = function (l, r) {
+    return Math.min(Math.abs(Math.round((1. - (l - r))*64)), 127);
+};
+
+var _getMIDIBend = function (f1, fn) {
+    return Math.round(8192 + 4096 * 12 * Math.log2(f1 / _hzFromMIDI(fn)));
+};
+
 var _hzToOscillator = function (f, bf, o, h) {
-    return (h-(Math.log(f / bf) / Math.log(2.0)) * Math.floor(h / o + 0.5));
-}
+    return (h - (Math.log(f / bf) / Math.log(2.0)) * Math.floor(h / o + 0.5));
+};
 
 var _MIDINoteName = function (midi_note) {
     return _midi_notes_map[Math.round(midi_note)];
@@ -19838,6 +19850,8 @@ _utter_fail_element.innerHTML = "";
         _prev_data = [],
         _temp_data = new Uint8Array(_canvas_height_mul4),
         _data = [],
+        _prev_midi_data = [],
+        _midi_data = [],
         _output_channels = 1,
 
         _analysis_canvas,
@@ -20056,6 +20070,8 @@ var _FS_WORKLET = 0,
     _FS_OSC_NODES = 1,
     
     _audio_context = new window.AudioContext(),
+
+    _notes_worker = new Worker("dist/worker/notes_buffer.min.js"),
     
     _analyser_node,// = _audio_context.createAnalyser(),
     _analyser_fftsize = 16384,
@@ -20155,7 +20171,6 @@ var _disconnectWorklet = function () {
 };
 
 var _connectWorklet = function () {
-    console.log(_fragment_worklet_node, _fragment_worklet_connected);
     if (_fragment_worklet_node && _osc_mode === _FS_WORKLET) {
         if (!_fragment_worklet_connected) {
             _fragment_worklet_node.connect(_mst_gain_node);
@@ -20414,7 +20429,7 @@ var _playSlice = function (pixels_data) {
     }
 };
 
-var _notesProcessing = function (arr) {   
+var _notesProcessing = function (prev_arr, arr) {   
     var worker_obj,
         
         i = 0;
@@ -20423,14 +20438,14 @@ var _notesProcessing = function (arr) {
         if (_fragment_worklet_busy) {
             return;
         }
-        
-        _fragment_worklet_node.port.postMessage({
-                data: arr[0].buffer,
-                score_height: _canvas_height,
-                mono: _audio_infos.monophonic,
-                float: _audio_infos.float_data,
-                type: 500
-            }, [arr[0].buffer]);
+
+        _notes_worker.postMessage({
+            data: arr[0].buffer,
+            prev_data: prev_arr[0].buffer,
+            score_height: _canvas_height,
+            mono: _audio_infos.monophonic,
+            float: _audio_infos.float_data,
+        }, [arr[0].buffer, prev_arr[0].buffer]);
         
         _fragment_worklet_busy = true;
     } else if (_osc_mode === _FS_OSC_NODES) {
@@ -20611,7 +20626,7 @@ var _audioInit = function () {
     
     _generatePeriodicWaves(16);
     _generateOscillatorSet(_canvas_height, 16.34, 10);
-    
+
     try {
         var aw = new Function("readyCb", "audio_ctx", "mst_gain_node", "" +
             "class FragmentWorkletNode extends AudioWorkletNode {" +
@@ -20631,10 +20646,21 @@ var _audioInit = function () {
         
         _fragment_worklet_connected = true;
     } catch (e) {
+        _notification("AudioWorklet unavailable... switching to OSC. mode.");
+
         console.log("AudioWorklet unavailable... switching to OSC. mode.");
         
         _fragment_worklet_connected = false;
     }
+
+    _notes_worker.addEventListener("message", function (m) {
+        var data = m.data;
+    
+        _fragment_worklet_node.port.postMessage({
+            d: data.d,
+            type: 500
+        }, [data.d]);
+    }, false);
 };
 /* jslint browser: true */
 
@@ -21429,10 +21455,14 @@ var _allocateFramesData = function () {
 
     _data = [];
     _prev_data = [];
+    _midi_data = [];
+    _prev_midi_data = [];
 
     for (i = 0; i < _output_channels; i += 1) {
         _data.push(new _synth_data_array(_canvas_height_mul4));
         _prev_data.push(new _synth_data_array(_canvas_height_mul4));
+        _midi_data.push(new _synth_data_array(_canvas_height_mul4));
+        _prev_midi_data.push(new _synth_data_array(_canvas_height_mul4));
     }
 };
 
@@ -21494,7 +21524,7 @@ var _canvasRecord = function (ndata) {
 */
         }
 /*
-        // normalize, work but may introduce coherency issues with added data so disabled for now.
+        // normalize, work but may introduce coherence issues with added data so disabled for now.
         max_r = 255.0 / (max_r - min_r);
         max_g = 255.0 / (max_g - min_g);
         max_b = 255.0 / (max_b - min_b);
@@ -21536,8 +21566,6 @@ var _frame = function (raf_time) {
         play_position_marker,
         play_position_marker_x = 0,
 
-        fsas_data,
-
         fragment_input,
 
         current_frame,
@@ -21548,6 +21576,8 @@ var _frame = function (raf_time) {
         global_time = (raf_time - _time) / 1000,
 
         iglobal_time,
+
+        target_data,
 
         date = new Date(),
 
@@ -21681,7 +21711,15 @@ var _frame = function (raf_time) {
 
         if (play_position_marker.mute) {
             _data[channel] = new _synth_data_array(_canvas_height_mul4);
+            _midi_data[channel] = new _synth_data_array(_canvas_height_mul4);
         } else {
+            if (play_position_marker.midi_out_device_uid === "-1") {
+                target_data = _data[channel];
+            } else {
+                target_data = _midi_data[channel];
+                _midi_data[_output_channels + channel] = play_position_marker.midi_out_device_uid;
+            }
+
             if (play_position_marker.frame_increment != 0) {
                 _setPlayPosition(play_position_marker.id, play_position_marker.x + play_position_marker.frame_increment, play_position_marker.y, false, true);
             }
@@ -21690,12 +21728,12 @@ var _frame = function (raf_time) {
 
             if (_gl2) {
                 _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _read_pixels_format, 0);
-                _gl.getBufferSubData(_gl.PIXEL_PACK_BUFFER, 0, _data[channel]);
+                _gl.getBufferSubData(_gl.PIXEL_PACK_BUFFER, 0, target_data);
             } else {
-                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _read_pixels_format, _data[channel]);
+                _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _read_pixels_format, target_data);
             }
 
-            _transformData(play_position_marker, _data[channel]);
+            _transformData(play_position_marker, target_data);
         }
 
         for (i = 1; i < _play_position_markers.length; i += 1) {
@@ -21722,10 +21760,15 @@ var _frame = function (raf_time) {
 
             _transformData(play_position_marker, _temp_data);
 
-            channel_data = _data[channel];
+            if (play_position_marker.midi_out_device_uid === "-1") {
+                channel_data = _data[channel];
+            } else {
+                channel_data = _midi_data[channel];
+                _midi_data[_output_channels + channel] = play_position_marker.midi_out_device_uid;
+            }
 
             // merge slices data
-            for (j = 0; j <= _canvas_height_mul4; j += 1) {
+            for (j = 0; j < _canvas_height_mul4; j += 1) {
                 channel_data[j] = channel_data[j] + _temp_data[j];
             }
         }
@@ -21739,12 +21782,8 @@ var _frame = function (raf_time) {
             for (j = 0; j < _output_channels; j += 1) {
                 var c = 0;
 
-                for (i = 0; i <= _canvas_height_mul4; i += 4) {
-                    if (_data[j][i] > 0) {
-                        c += 1;
-                    } else if (_data[j][i + 1] > 0) {
-                        c += 1;
-                    }
+                for (i = 0; i < _canvas_height_mul4; i += 4) {
+                    c += (_midi_data[j][i] > 0 || _midi_data[j][i + 1] > 0 || _data[j][i] > 0 || _data[j][i + 1] > 0);
                 }
 
                 arr_infos.push(c);
@@ -21771,8 +21810,10 @@ var _frame = function (raf_time) {
 
                 _oscNotifyFast(_OSC_FRAME_DATA, buffer_osc);
                 
-                for (i = 0; i < _output_channels; i += 1) {
-                    _prev_data[i] = new _synth_data_array(buffer[i]);
+                if (_fas.status) {
+                    for (i = 0; i < _output_channels; i += 1) {
+                        _prev_data[i] = new _synth_data_array(_data[i]);
+                    }
                 }
             }
         }
@@ -21780,12 +21821,19 @@ var _frame = function (raf_time) {
         if (_fas.status) {
             _fasNotifyFast(_FAS_FRAME, _data);
         } else {
-            _notesProcessing(_data);
+            var tmp_buffer = [];
+            for (i = 0; i < _output_channels; i += 1) {
+                tmp_buffer.push(new _synth_data_array(_data[i]));
+            }
+
+            _notesProcessing(_prev_data, _data);
+
+            for (i = 0; i < _output_channels; i += 1) {
+                _prev_data[i] = tmp_buffer[i];
+            }
         }
 
         _data = buffer;
-
-        //_midiDataOut(_data, _prev_data);
 
         // detached canvas (by a double click) TODO : Optimizations
 /*
@@ -21824,6 +21872,8 @@ var _frame = function (raf_time) {
     _globalFrame += 1;
 
     _MIDInotesCleanup();
+
+    _midiDataOut(_midi_data);
 
     _raf = window.requestAnimationFrame(_frame);
 };
@@ -23185,8 +23235,6 @@ var _canvasInputDimensionsUpdate = function (new_width, new_height) {
 
 /**
  * Manage all Fragment inputs.
- * 
- * This need a severe lifting!
  */
 
 /***********************************************************
@@ -25513,7 +25561,7 @@ var _uiInit = function () {
             title: "MIDI",
 
             width: "320px",
-            height: "auto",
+            height: "480px",
         
             min_height: "120px",
 
@@ -28106,7 +28154,11 @@ var _updateSliceSettingsDialog = function (slice_obj, show) {
 var _saveMarkersSettings = function () {
     _local_session_settings.markers = [];
     _play_position_markers.forEach(function (obj) {
-            _local_session_settings.markers.push({ m: obj.mute, p: obj.percent });
+            var marker_settings = {  };
+            if (obj.midi_out_device_uid !== "-1") {
+                marker_settings["midi_out_device"] = obj.midi_out_device_uid;
+            }
+            _local_session_settings.markers.push(marker_settings);
         });
     _saveLocalSessionSettings();  
 };
@@ -28259,12 +28311,74 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
     }
     
     _computeOutputChannels();
+
+    _saveMarkersSettings();
 };
 
 var _cbMarkerSettingsChange = function (mobj, cb) {
     return function (value) {
-        cb(value, mobj);
+        cb(this, value, mobj);
     };
+};
+
+var _buildMarkerMIDIDevices = function (marker_obj, midi_dev_list) {
+    var i = 0,
+        midi_devices,
+        midi_dev_option,
+        key;
+    
+    midi_dev_list.innerHTML = "";
+
+    midi_devices = _getMIDIDevices("output");
+
+    // first choice is "none"
+    midi_dev_option = document.createElement("option");
+    midi_dev_option.selected = true;
+    midi_dev_option.value = -1;
+    midi_dev_option.innerHTML = "none";
+    midi_dev_option.dataset.uid = -1;
+    midi_dev_option.id = "fs_slice_settings_midi_device_opt_" + marker_obj.id + "_" + i;
+    midi_dev_list.appendChild(midi_dev_option);
+
+    if (!(marker_obj.midi_out_device_uid in midi_devices) && marker_obj.midi_out_device_uid !== "-1") {
+        marker_obj.midi_out_device_uid = "-1";
+
+        _notification("Slice '" + marker_obj.id + "' MIDI out device does not exist anymore, defaulted to 'none'.");
+    }
+
+    for (key in midi_devices) {
+        if (!midi_devices[key].id) {
+            continue;
+        }
+        
+        i += 1;
+
+        midi_dev_option = document.createElement("option");
+        midi_dev_option.innerHTML = midi_devices[key].name;
+        midi_dev_option.dataset.uid = midi_devices[key].id;
+        midi_dev_option.value = midi_devices[key].id;
+        midi_dev_option.id = "fs_slice_settings_midi_device_opt_" + marker_obj.id + "_" + i;
+
+        midi_dev_list.appendChild(midi_dev_option);
+    }
+
+    midi_dev_list.value = marker_obj.midi_out_device_uid;
+};
+
+var _rebuildMarkersMIDIDevices = function () {
+    var i = 0,
+
+        play_position_marker,
+        
+        midi_dev_list;
+
+    for (i = 0; i < _play_position_markers.length; i += 1) {
+        play_position_marker = _play_position_markers[i];
+
+        midi_dev_list = document.getElementById("fs_slice_settings_midi_device_" + play_position_marker.id);
+
+        _buildMarkerMIDIDevices(play_position_marker, midi_dev_list);
+    }
 };
 
 var _createMarkerSettings = function (marker_obj) {
@@ -28283,10 +28397,44 @@ var _createMarkerSettings = function (marker_obj) {
         fs_slice_settings_synthesis_select = document.createElement("select"),
         fs_slice_settings_bpm = document.createElement("div"),
 
+        // MIDI device
+        midi_dev_list_container = document.createElement("div"),
+        midi_dev_list_label = document.createElement("div"),
+        midi_dev_list = document.createElement("select"),
+        midi_dev_option,
+
+        midi_devices,
+
         dialog_element = document.createElement("div"),
         content_element = document.createElement("div"),
 
-        synthesis_option;
+        synthesis_option,
+
+        key,
+        
+        i = 0;
+    
+    midi_dev_list_label.className = "fs-input-label";
+    midi_dev_list_label.htmlFor = "fs_slice_settings_midi_device_" + marker_obj.id;
+    midi_dev_list_label.innerHTML = "MIDI out device";
+    midi_dev_list.id = "fs_slice_settings_midi_device_" + marker_obj.id;
+    midi_dev_list.className = "fs-btn";
+
+    midi_dev_list_container.appendChild(midi_dev_list_label);
+    midi_dev_list_container.innerHTML += "&nbsp;";
+    midi_dev_list_container.appendChild(midi_dev_list);
+    midi_dev_list_container.style = "text-align: center;";
+
+    _buildMarkerMIDIDevices(marker_obj, midi_dev_list);
+
+    midi_dev_list.addEventListener("change", _cbMarkerSettingsChange(marker_obj, function (self, value, marker_obj) {
+        var option_id = self.selectedIndex,
+            option_elem = document.getElementById("fs_slice_settings_midi_device_opt_" + marker_obj.id + "_" + option_id);
+        
+        marker_obj.midi_out_device_uid = option_elem.dataset.uid;
+
+        _saveMarkersSettings();
+    }));    
     
     fs_slice_settings_x_input.id = "fs_slice_settings_x_input_" + marker_obj.id;
     fs_slice_settings_shift_input.id = "fs_slice_settings_shift_input_" + marker_obj.id;
@@ -28318,7 +28466,7 @@ var _createMarkerSettings = function (marker_obj) {
             title_min_width: 140,
             value_min_width: 88,
 
-            on_change: _cbMarkerSettingsChange(marker_obj, function (value, marker_obj) {
+            on_change: _cbMarkerSettingsChange(marker_obj, function (self, value, marker_obj) {
                 _setPlayPosition(marker_obj.element.dataset.slice, _parseInt10(value), 0, true);
             })
         });
@@ -28343,7 +28491,7 @@ var _createMarkerSettings = function (marker_obj) {
             title_min_width: 140,
             value_min_width: 88,
 
-            on_change: _cbMarkerSettingsChange(marker_obj, function (value, marker_obj) {
+            on_change: _cbMarkerSettingsChange(marker_obj, function (self, value, marker_obj) {
                 var slice = _getSlice(marker_obj.element.dataset.slice);
                 
                 slice.shift = _parseInt10(value);
@@ -28369,12 +28517,12 @@ var _createMarkerSettings = function (marker_obj) {
             default_value: 0,
             value: marker_obj.output_channel,
 
-            title: "FAS Output channel",
+            title: "Output channel",
 
             title_min_width: 140,
             value_min_width: 88,
 
-            on_change: _cbMarkerSettingsChange(marker_obj, function (value, marker_obj) {
+            on_change: _cbMarkerSettingsChange(marker_obj, function (self, value, marker_obj) {
                 if (value <= 0) {
                     value = 1;
                 }
@@ -28411,7 +28559,7 @@ var _createMarkerSettings = function (marker_obj) {
             title_min_width: 140,
             value_min_width: 88,
 
-            on_change: _cbMarkerSettingsChange(marker_obj, function (value, marker_obj) {
+            on_change: _cbMarkerSettingsChange(marker_obj, function (self, value, marker_obj) {
                 var slice = _getSlice(marker_obj.element.dataset.slice);
                 
                 slice.frame_increment = parseFloat(value);
@@ -28422,6 +28570,7 @@ var _createMarkerSettings = function (marker_obj) {
     fs_slice_settings_container.appendChild(fs_slice_settings_shift_input);
     fs_slice_settings_container.appendChild(fs_slice_settings_bpm);
     fs_slice_settings_container.appendChild(fs_slice_settings_channel_input);
+    fs_slice_settings_container.appendChild(midi_dev_list_container);
     
     content_element.appendChild(fs_slice_settings_container);
     dialog_element.appendChild(content_element);
@@ -28431,7 +28580,7 @@ var _createMarkerSettings = function (marker_obj) {
     WUI_Dialog.create(dialog_element, {
         title: "Slice '"+marker_obj.id+"' settings",
 
-        width: "320px",
+        width: "340px",
         height: "auto",
 
         halign: "center",
@@ -28539,6 +28688,8 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, synthesis
 
         play_position_top_hook_element = play_position_marker_element.firstElementChild,
         play_position_bottom_hook_element = play_position_marker_element.lastElementChild,
+
+        local_session_marker,
         
         i = 0,
         
@@ -28568,10 +28719,20 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, synthesis
             synthesis_type: 0,
             y: 0,
             height: _canvas_height,
-            id: play_position_marker_id
+            id: play_position_marker_id,
+            midi_out_device_uid: "-1"
         });
     
     play_position_marker = _play_position_markers[play_position_marker_id];
+
+    if (_local_session_settings["markers"]) {
+        local_session_marker = _local_session_settings.markers[play_position_marker_id];
+        if (local_session_marker) {
+            if (local_session_marker["midi_out_device"]) {
+                play_position_marker.midi_out_device_uid = local_session_marker["midi_out_device"];
+            }
+        }
+    }    
     
     if (output_channel !== undefined) {
         play_position_marker.output_channel = output_channel;
@@ -28678,13 +28839,32 @@ var _midi_access = null,
     
     _mpe_instrument,
     
-    _midi_notes = [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
+    _midi_notes = [],
     
     _midi_device_uid = 0;
 
 /***********************************************************
     Functions.
 ************************************************************/
+
+var _midiDeviceIOUpdate = function () {
+    var key;
+
+    _midi_devices.i_total_active = 0;
+    _midi_devices.o_total_active = 0;
+    
+    for(key in _midi_devices.input) { 
+        if(_midi_devices.input[key].enabled) {
+            _midi_devices.i_total_active += 1;
+        }
+    }
+    
+    for(key in _midi_devices.output) { 
+        if(_midi_devices.output[key].enabled) {
+            _midi_devices.o_total_active += 1;
+        }
+    }
+};
 
 var _loadMIDISettings = function (midi_settings_json) {
     var midi_settings_obj,
@@ -28712,6 +28892,8 @@ var _loadMIDISettings = function (midi_settings_json) {
                     enabled: midi_device.enabled
                 };
         }
+
+        _midiDeviceIOUpdate();
     } catch (e) {
         _notification('_loadMIDISettings JSON message parsing failed : ' + e);
     }
@@ -28757,30 +28939,19 @@ var _MIDIDeviceCheckboxChange = function () {
         document.getElementById(midi_enabled_ck_id).removeAttribute("checked");
     }
     
-    _midi_devices.i_total_active = 0;
-    _midi_devices.o_total_active = 0;
-    
-    for(key in _midi_devices.input) { 
-        if(_midi_devices.input[key].enabled) {
-            _midi_devices.i_total_active += 1;
-        }
-    }
-    
-    for(key in _midi_devices.output) { 
-        if(_midi_devices.output[key].enabled) {
-            _midi_devices.o_total_active += 1;
-        }
-    }
+    _midiDeviceIOUpdate();
 };
 
 var _addMIDIDevice = function (midi, io_type) {
     var midi_element = document.createElement("div"),
         midi_enabled_ck_id = "fs_midi_settings_ck_" + _midi_device_uid,
         midi_settings_element = document.getElementById(_midi_settings_dialog_id).lastElementChild,
-        midi_device_enabled = false,
+        midi_device_enabled = (io_type === "output"),
         midi_device_enabled_ck = "",
         
         tmp_element = null,
+
+        i = 0,
         
         detached_dialog = WUI_Dialog.getDetachedDialog(_midi_settings_dialog),
         detached_dialog_midi_settings_element = null,
@@ -28842,6 +29013,14 @@ var _addMIDIDevice = function (midi, io_type) {
     }
     
     _midi_device_uid += 1;
+
+    _midiDeviceIOUpdate();
+
+    for (i = 0; i < 16; i += 1) {
+        _midiSendToDevice([0xC0 + i, 0x00], "output", midi.id);
+    }
+
+    _rebuildMarkersMIDIDevices();
 };
 
 var _deleteMIDIDevice = function (id, type) {
@@ -28866,14 +29045,21 @@ var _deleteMIDIDevice = function (id, type) {
         }
     }
     
-    delete _midi_devices[type][id]
+    delete _midi_devices[type][id];
+
+    _midiDeviceIOUpdate();
+
+    _rebuildMarkersMIDIDevices();
+};
+
+var _getMIDIDevices = function (io_type) {
+    return _midi_devices[io_type];
 };
 
 var _onMIDIAccessChange = function (connection_event) {
     var device = connection_event.port;
 
-    // only inputs are supported at the moment
-    if (device.type !== "input"/* && device.type !== "output"*/) {
+    if (device.type !== "input" && device.type !== "output") {
         return;
     }
 
@@ -28896,64 +29082,152 @@ var _midiSendAllActive = function (msg_arr) {
     }
 };
 
-var _midiDataOut = function (pixels_data, prev_pixels_data) {
+var _midiSendToDevice = function (msg_arr, device_type, device_uid) {
+    var midi_device = _midi_devices[device_type][device_uid];
+
+    if (!midi_device) {
+        return;
+    }
+        
+    if (midi_device.enabled) {
+        midi_device.obj.send(msg_arr);
+    }
+};
+
+var _getMIDINoteObj = function (chn, note) {
+    if (!_midi_notes[chn][note]) {
+        _midi_notes[chn][note] = { on: false, chn: 0 };
+    }
+    
+    return _midi_notes[chn][note];
+};
+
+var _midiDataOut = function (pixels_data) {
+    if (_midi_devices.o_total_active === 0 && pixels_data.length > 1) {
+        return;
+    }
+
     var data_length,
+        buffer = [],
         data,
         prev_data,
         osc = null,
         l = 0, pl = 0,
         r = 0, pr = 0,
-        y = _oscillators.length - 1,
+        y = 0,
         li = 0,
         ri = 1,
         i = 0,
         k = 0,
+        j = 0,
+        chn,
 
-        midi_note = 0;
+        midi_chn_data_index = _output_channels,
+
+        notes,
+
+        inv_full_brightness = 1,
+
+        midi_volume,
+        midi_panning,
+        
+        midi_bend = 0,
+
+        midi_note = 0,
+        midi_note_fractional = 0,
+        midi_note_obj;
+    
+    if (!_audio_infos.float_data) {
+        inv_full_brightness = 1 / 255.0;
+    }
     
     if (_audio_infos.monophonic) {
         li = 3;
         ri = 3;
     }
-    
-    for (k = 0; k < pixels_data.length; k += 4) {
+
+    for (i = 0; i < _output_channels; i += 1) {
+        buffer.push(new _synth_data_array(_canvas_height_mul4));
+    }
+
+    for (k = 0; k < midi_chn_data_index; k += 1) {
         data = pixels_data[k];
-        prev_data = prev_pixels_data[k];
-        data_length = data.length;
+        prev_data = _prev_midi_data[k];
+        data_length = data.length - 1;
+
+        y = _oscillators.length - 1;
         
         for (i = 0; i < data_length; i += 4) {
             l = data[i + li];
             r = data[i + ri];
             
-            pl = data[i + li];
-            pr = data[i + ri];
+            pl = prev_data[i + li];
+            pr = prev_data[i + ri];
             
             osc = _oscillators[y];
-            midi_note = _hzToMIDINote(osc.freq);
-            
-            if (!_midi_notes[k][midi_note]) {
-                _midi_notes[k][midi_note] = { on: false };
-            }
-            
-            midi_note = _midi_notes[k][midi_note];
-            
+
             if (l > 0 || r > 0) {
-                if (pl <= 0 || pr <= 0) {
-                    _midiSendAllActive([0x90 + k, midi_note, 127]);
-                    midi_note.on = true;
+                l *= inv_full_brightness;
+                r *= inv_full_brightness;
+                pl *= inv_full_brightness;
+                pr *= inv_full_brightness;
+
+                midi_note_fractional = _hzToMIDINote(osc.freq);
+                midi_note = Math.min(Math.round(midi_note_fractional), 127);
+                
+                midi_note_obj = _getMIDINoteObj(k, midi_note_fractional);
+
+                midi_volume = Math.min(Math.round((l + r) / 2 * 127), 127);
+
+                if ((pl <= 0 || pr <= 0) && !midi_note_obj.on) {
+                    chn = 0;
+                    notes = Infinity;
+
+                    for (j = 0; j < 16; j += 1) {
+                        if (_midi_notes[j].notes === 0) {
+                            chn = j;
+                            break;
+                        }
+
+                        if (_midi_notes[j].notes < notes) {
+                            chn = j;
+                            notes = _midi_notes[chn].notes;
+                        }
+                    }
+
+                    _midi_notes[chn].notes += 1;
+
+                    midi_bend = _getMIDIBend(osc.freq, midi_note);
+
+                    midi_panning = _getMIDIPan(l, r);
+
+                    //_midiSendToDevice([0xB0 + chn, 0x07, 100], "output", pixels_data[midi_chn_data_index + k]);
+                    //_midiSendToDevice([0xB0 + chn, 0x64, 0x0, 0xB0, 0x06, 0x1], "output", pixels_data[midi_chn_data_index + k]);
+                    _midiSendToDevice([0xE0 + chn, midi_bend & 0x7F, (midi_bend >> 7),
+                                       0xB0 + chn, 0x0A, midi_panning,
+                                       0x90 + chn, midi_note, midi_volume], "output", pixels_data[midi_chn_data_index + k]);
+                    midi_note_obj.on = true;
+                    midi_note_obj.chn = chn;
                 }
                 
                 if (pl !== l || pr !== r) {
-                    if (midi_note.on) {
-                        _midiSendAllActive([0xB0 + k, 0x07, Math.floor((l + r) / 4)]);
-                        _midiSendAllActive([0xB0 + k, 0x08, Math.floor(64 + (l - r) / 4)]);
+                    if (midi_note_obj.on && _midi_notes[midi_note_obj.chn].notes <= 1) {
+                        //_midiSendToDevice([0xB0 +  midi_note_obj.chn, 0x07, midi_volume, 0xB0 + midi_note_obj.chn, 0x0A, midi_panning], "output", pixels_data[midi_chn_data_index + k]);
                     }
                 }
             } else {
                 if (pl > 0 || pr > 0) {
-                    if (midi_note.on) {
-                        _midiSendAllActive([0x80 + k, midi_note, 127.]);
-                        midi_note.on = false;
+                    midi_note_fractional = _hzToMIDINote(osc.freq);
+                    midi_note = Math.min(Math.round(midi_note_fractional), 127);
+                    
+                    midi_note_obj = _getMIDINoteObj(k, midi_note_fractional);
+
+                    if (midi_note_obj.on) {
+                        _midi_notes[midi_note_obj.chn].notes -= 1;
+
+                        _midiSendToDevice([0x80 + midi_note_obj.chn, midi_note, 127], "output", pixels_data[midi_chn_data_index + k]);
+                        
+                        midi_note_obj.on = false;
                     }
                 }
             }
@@ -28961,6 +29235,12 @@ var _midiDataOut = function (pixels_data, prev_pixels_data) {
             y -= 1;
         }
     }
+
+    for (i = 0; i < _output_channels; i += 1) {
+        _prev_midi_data[i] = pixels_data[i];
+    }
+
+    _midi_data = buffer;
 };
 
 var _MIDInotesCleanup = function () {
@@ -29018,7 +29298,7 @@ var _MIDInotesUpdate = function (date) {
         _keyboard.data[v.id + 2] = et / 1000;
     }
 
-    _keyboard.polyphony = _keyboard.data.length / _keyboard.data_components;
+    _keyboard.polyphony = _keyboard.data.length / _keyboard.data_components - 1;
 }
 
 // general MIDI messages processing
@@ -29159,6 +29439,12 @@ var _midiAccessSuccess = function (midi_access) {
             _addMIDIDevice(midi_in, midi_in.type);
         }
     );
+
+    _midi_access.outputs.forEach(
+        function (midi_out) {
+            _addMIDIDevice(midi_out, midi_out.type);
+        }
+    );
     
     _midi_access.onstatechange = _onMIDIAccessChange;
 };
@@ -29178,6 +29464,10 @@ var _midiInit = function () {
     _keyboard.data = [0, 0, 0, 0, 0, 0, 0, 0];
 
     if (_webMIDISupport()) {
+        for (i = 0; i < 16; i += 1) {
+            _midi_notes[i] = { notes: 0 };
+        }
+
         navigator.requestMIDIAccess().then(_midiAccessSuccess, _midiAccessFailure);
     } else {
         midi_settings_element.innerHTML = "<center>WebMIDI API is not enabled/supported by this browser, please use a <a href=\"https://caniuse.com/#search=midi\">compatible browser</a>.</center>";
@@ -29580,7 +29870,8 @@ var _oscInit = function () {
         } else {
             _local_session_settings = {
                 gain: _volume,
-                chn_settings: []
+                chn_settings: [],
+                markers: []
             };
         }
     };
@@ -29875,9 +30166,6 @@ var _oscInit = function () {
 
     _loadLocalSessionSettings();
 
-    //_addPlayPositionMarker(_canvas_width / 4);
-    //_addPlayPositionMarker(_canvas_width - _canvas_width / 4);
-
     _allocateFramesData();
     
     _uiInit();
@@ -29889,8 +30177,6 @@ var _oscInit = function () {
     _oscInit();
 
     _initNetwork();
-    
-    //_play();
     
 /* jslint browser: true */
 

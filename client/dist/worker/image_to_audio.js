@@ -4350,6 +4350,37 @@ var _getCookie = function getCookie(name) {
     return "";
 };
 
+var _fnToImageData = function (img, done) {
+    return function () {
+        var tmp_canvas = document.createElement('canvas'),
+            tmp_canvas_context = tmp_canvas.getContext('2d'),
+        
+            tmp_image_data;
+        
+        tmp_canvas.width  = img.naturalWidth;
+        tmp_canvas.height = img.naturalHeight;
+
+        tmp_canvas_context.drawImage(img, 0, 0, tmp_canvas.width, tmp_canvas.height);
+
+        tmp_image_data = tmp_canvas_context.getImageData(0, 0, tmp_canvas.width, tmp_canvas.height);
+
+        done(tmp_image_data);
+    };
+};
+
+var _fnCanvasToImage = function (tmp_canvas, done) {
+    var image_element = document.createElement("img");
+    image_element.src = tmp_canvas.toDataURL();
+    image_element.width = tmp_canvas.width;
+    image_element.height = tmp_canvas.height;
+
+    image_element.onload = function () {
+        image_element.onload = null;
+
+        done(image_element);
+    };
+};
+
 var _fnFlipImage = function (img, done) {
     return function () {
         var tmp_canvas = document.createElement('canvas'),
@@ -4366,7 +4397,7 @@ var _fnFlipImage = function (img, done) {
 
         tmp_image_data = tmp_canvas_context.getImageData(0, 0, tmp_canvas.width, tmp_canvas.height);
 
-        done(tmp_image_data);
+        done({ canvas: tmp_canvas, image_data: tmp_image_data });
     };
 };
 

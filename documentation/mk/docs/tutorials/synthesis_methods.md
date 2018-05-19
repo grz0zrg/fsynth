@@ -30,10 +30,6 @@ Maximum grain length
 
 - The maximum grain length in samples percent
 
-Drive
-
-* Moog filter drive
-
 ## How-to
 
 ### Additive synthesis
