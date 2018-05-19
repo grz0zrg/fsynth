@@ -22357,6 +22357,83 @@ var _shareDBConnect = function () {
         
         _sharedb_doc_ready = true;
     });
+
+    _sharedb_ctrl_doc = _sharedb_connection.get("_" + _session, "ctrls");
+    _sharedb_ctrl_doc.on('error', _sharedbDocError);
+    
+    _sharedb_ctrl_doc.subscribe(function(err) {
+        var i = 0,
+            
+            s;
+        
+        if (err) {
+            _notification(err, 5000);
+        }
+        
+        if (!_sharedb_ctrl_doc.data) {
+            _sharedb_ctrl_doc.create({ ctrls: {}, score_settings: [] });
+        } else {
+            _buildControls(_sharedb_ctrl_doc.data.ctrls);
+
+            if (_sharedb_ctrl_doc.data.score_settings.length === 4) {
+                _updateScore({
+                        width: parseInt(_sharedb_ctrl_doc.data.score_settings[0], 10),
+                        height: parseInt(_sharedb_ctrl_doc.data.score_settings[1], 10),
+                        octave: parseInt(_sharedb_ctrl_doc.data.score_settings[2], 10),
+                        base_freq: parseFloat(_sharedb_ctrl_doc.data.score_settings[3])
+                    });
+            }
+        }
+        
+        _sharedb_ctrl_doc.on('op', function(op, source) {
+            var i = 0,
+                operation;
+            
+            if (source === false) { // only changes from the server
+                for (i = 0; i < op.length; i += 1) {
+                    operation = op[i];
+                    
+                    if (operation["oi"]) {
+                        var ctrl_window = WUI_Dialog.getDetachedDialog(_controls_dialog);
+                        if (!ctrl_window) {
+                            ctrl_window = window;
+                        }
+
+                        operation.oi.nosync = "";
+
+                        _addControls(operation.oi.type, ctrl_window, operation.oi, null);
+                    } else if (operation["od"]) {
+                        _deleteControlsFn(operation.od.name, operation.od.ids)();
+                    } else if (operation["ld"] && operation["li"] && operation["p"]) {
+                        if (operation.p[0] === "score_settings") {
+                            if (operation.p[1] === 0) {
+                                _updateScore({
+                                        width: parseInt(operation.li, 10)
+                                    });
+                            } else if (operation.p[1] === 1) {
+                                _updateScore({
+                                        height: parseInt(operation.li, 10)
+                                    });
+                            } else if (operation.p[1] === 2) {
+                                _updateScore({
+                                        octave: parseInt(operation.li, 10)
+                                    });
+                            } else if (operation.p[1] === 3) {
+                                _updateScore({
+                                        base_freq: parseFloat(operation.li)
+                                    });
+                            }
+                        } else if (operation.p[0] === "ctrls") {
+                            _setControlsValue(operation.p[1], operation.p[3], operation.li);
+                        }
+                    }
+                }
+            }
+        });
+  
+        _sharedb_ctrl_doc_ready = true;
+
+    });
 };
 
 var _prepareMessage = function (type, obj) {
@@ -25210,6 +25287,7 @@ var _uiInit = function () {
         settings_ck_slicebar_elem = document.getElementById("fs_settings_ck_slicebar"),
         settings_ck_slices_elem = document.getElementById("fs_settings_ck_slices"),
         settings_ck_quickstart_elem = document.getElementById("fs_settings_ck_quickstart"),
+        settings_ck_worklet_elem = document.getElementById("fs_settings_ck_audioworklet"),
         
         fs_settings_note_lifetime = localStorage.getItem('fs-note-lifetime'),
         fs_settings_max_polyphony = localStorage.getItem('fs-max-polyphony'),
@@ -25225,7 +25303,8 @@ var _uiInit = function () {
         fs_settings_feedback = localStorage.getItem('fs-feedback'),
         fs_settings_osc_in = localStorage.getItem('fs-osc-in'),
         fs_settings_osc_out = localStorage.getItem('fs-osc-out'),
-        fs_settings_quickstart = localStorage.getItem('fs-quickstart');
+        fs_settings_quickstart = localStorage.getItem('fs-quickstart'),
+        fs_settings_worklet = localStorage.getItem('fs-worklet');
     
     _settings_dialog = WUI_Dialog.create(_settings_dialog_id, {
             title: "Session & global settings",
@@ -25251,7 +25330,19 @@ var _uiInit = function () {
                     class_name: "fs-help-icon"
                 }
             ]
-        });
+    });
+    
+    if (_osc_mode !== _FS_WORKLET) {
+        settings_ck_worklet_elem.checked = false;
+        settings_ck_worklet_elem.disabled = true;
+    } else {
+        if (fs_settings_worklet === "true" || fs_settings_worklet === undefined) {
+            settings_ck_worklet_elem.checked = true;
+        } else {
+            _osc_mode = _FS_OSC_NODES;
+            settings_ck_worklet_elem.checked = false;
+        }
+    }
     
     if (fs_settings_monophonic === "true") {
         _audio_infos.monophonic = true;
@@ -25543,6 +25634,19 @@ var _uiInit = function () {
             }
         });
     
+    settings_ck_worklet_elem.addEventListener("change", function () {
+        if (this.checked) {
+            _osc_mode = _FS_WORKLET;
+            _stopOscillators();
+            _connectWorklet();
+        } else {
+            _osc_mode = _FS_OSC_NODES;
+            _disconnectWorklet();
+        }
+    
+        localStorage.setItem('fs-worklet', this.checked);
+    });
+    
     settings_ck_oscinfos_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_polyinfos_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_globaltime_elem.dispatchEvent(new UIEvent('change'));
@@ -25556,6 +25660,7 @@ var _uiInit = function () {
     settings_ck_slicebar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_slices_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_quickstart_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_worklet_elem.dispatchEvent(new UIEvent('change'));
     
     _midi_settings_dialog = WUI_Dialog.create(_midi_settings_dialog_id, {
             title: "MIDI",

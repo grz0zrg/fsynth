@@ -689,6 +689,7 @@ var _uiInit = function () {
         settings_ck_slicebar_elem = document.getElementById("fs_settings_ck_slicebar"),
         settings_ck_slices_elem = document.getElementById("fs_settings_ck_slices"),
         settings_ck_quickstart_elem = document.getElementById("fs_settings_ck_quickstart"),
+        settings_ck_worklet_elem = document.getElementById("fs_settings_ck_audioworklet"),
         
         fs_settings_note_lifetime = localStorage.getItem('fs-note-lifetime'),
         fs_settings_max_polyphony = localStorage.getItem('fs-max-polyphony'),
@@ -704,7 +705,8 @@ var _uiInit = function () {
         fs_settings_feedback = localStorage.getItem('fs-feedback'),
         fs_settings_osc_in = localStorage.getItem('fs-osc-in'),
         fs_settings_osc_out = localStorage.getItem('fs-osc-out'),
-        fs_settings_quickstart = localStorage.getItem('fs-quickstart');
+        fs_settings_quickstart = localStorage.getItem('fs-quickstart'),
+        fs_settings_worklet = localStorage.getItem('fs-worklet');
     
     _settings_dialog = WUI_Dialog.create(_settings_dialog_id, {
             title: "Session & global settings",
@@ -730,7 +732,19 @@ var _uiInit = function () {
                     class_name: "fs-help-icon"
                 }
             ]
-        });
+    });
+    
+    if (_osc_mode !== _FS_WORKLET) {
+        settings_ck_worklet_elem.checked = false;
+        settings_ck_worklet_elem.disabled = true;
+    } else {
+        if (fs_settings_worklet === "true" || fs_settings_worklet === undefined) {
+            settings_ck_worklet_elem.checked = true;
+        } else {
+            _osc_mode = _FS_OSC_NODES;
+            settings_ck_worklet_elem.checked = false;
+        }
+    }
     
     if (fs_settings_monophonic === "true") {
         _audio_infos.monophonic = true;
@@ -1022,6 +1036,19 @@ var _uiInit = function () {
             }
         });
     
+    settings_ck_worklet_elem.addEventListener("change", function () {
+        if (this.checked) {
+            _osc_mode = _FS_WORKLET;
+            _stopOscillators();
+            _connectWorklet();
+        } else {
+            _osc_mode = _FS_OSC_NODES;
+            _disconnectWorklet();
+        }
+    
+        localStorage.setItem('fs-worklet', this.checked);
+    });
+    
     settings_ck_oscinfos_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_polyinfos_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_globaltime_elem.dispatchEvent(new UIEvent('change'));
@@ -1035,6 +1062,7 @@ var _uiInit = function () {
     settings_ck_slicebar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_slices_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_quickstart_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_worklet_elem.dispatchEvent(new UIEvent('change'));
     
     _midi_settings_dialog = WUI_Dialog.create(_midi_settings_dialog_id, {
             title: "MIDI",
