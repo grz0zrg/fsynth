@@ -24428,6 +24428,8 @@ var _pause = function () {
     _pauseWorklet();
     
     _pause_time = performance.now();
+
+    _resetMIDIDevice();
 };
 
 var _play = function (update_global_time) {
@@ -24468,6 +24470,8 @@ var _stop = function () {
     window.cancelAnimationFrame(_raf);
 
     _pause_time = performance.now();
+
+    _resetMIDIDevice();
 };/* jslint browser: true */
 
 
@@ -28540,7 +28544,7 @@ var _createMarkerSettings = function (marker_obj) {
         
         i = 0;
     
-    midi_custom_message_area.innerHTML = '// User-defined MIDI messages\n// Usable arguments : l, r, b, a, c\n\nif (type === "on") {\n    on = [];\n} else if (type === "change") {\n    change = [];\n} else if (type === "off") {\n    off = [];\n}';
+    midi_custom_message_area.innerHTML = '// User-defined MIDI messages\n// Usable arguments ([0,1] float data except the channel) : l, r, b, a, c\n\nif (type === "on") {\n    on = [];\n} else if (type === "change") {\n    change = [];\n} else if (type === "off") {\n    off = [];\n}';
     midi_custom_message_area.style.width = "94%";
     midi_custom_message_area.style.height = "180px";
     midi_custom_message_area.className = "fs-textarea";
@@ -28554,7 +28558,7 @@ var _createMarkerSettings = function (marker_obj) {
             marker_obj.midi_out.custom_midi_message = self.value;
         
             clearTimeout(_marker_midi_message_timeout);
-            _marker_midi_message_timeout = setTimeout(_compileMarkerMIDIData, 2000, marker_obj, self);
+            _marker_midi_message_timeout = setTimeout(_compileMarkerMIDIData, 1000, marker_obj, self);
         
             _saveMarkersSettings();
         }));
@@ -29107,6 +29111,14 @@ var _MIDIDeviceCheckboxChange = function () {
     _midiDeviceIOUpdate();
 };
 
+var _resetMIDIDevice = function () {
+    var i = 0;
+
+    for (i = 0; i < 16; i += 1) {
+        _midiSendAllActive([0xB0 + i, 0x7B, 0x0, 0xB0 + i, 0x78, 0x0]);
+    }    
+};
+
 var _addMIDIDevice = function (midi, io_type) {
     var midi_element = document.createElement("div"),
         midi_enabled_ck_id = "fs_midi_settings_ck_" + _midi_device_uid,
@@ -29181,7 +29193,7 @@ var _addMIDIDevice = function (midi, io_type) {
 
     _midiDeviceIOUpdate();
 
-    // program changes for every channels
+    // re-initialize MIDI device, default program change
     for (i = 0; i < 16; i += 1) {
         _midiSendToDevice([0xC0 + i, 0x00], "output", midi.id);
     }
@@ -29243,7 +29255,9 @@ var _midiSendAllActive = function (msg_arr) {
         midi_device = _midi_devices.output[key];
         
         if (midi_device.enabled) {
-            midi_device.obj.send(msg_arr);
+            if (midi_device.obj) {
+                midi_device.obj.send(msg_arr);
+            }    
         }
     }
 };
@@ -29389,13 +29403,15 @@ var _midiDataOut = function (pixels_data) {
 
                     midi_panning = _getMIDIPan(l, r);
 
-                    midi_message = [0xE0 + chn, midi_bend & 0x7F, (midi_bend >> 7),
-                                    0xB0 + chn, 0x0A, midi_panning,
-                                    0x90 + chn, midi_note, midi_volume];
+                    midi_message = [];
 
                     if (midi_obj.custom_midi_message_fn) {
-                        midi_message = midi_message.concat(midi_obj.custom_midi_message_fn("on", l, r, b, a, k).on);
+                        midi_message = midi_obj.custom_midi_message_fn("on", l, r, b, a, k).on;
                     }
+
+                    midi_message = midi_message.concat([0xE0 + chn, midi_bend & 0x7F, (midi_bend >> 7),
+                        0xB0 + chn, 0x0A, midi_panning,
+                        0x90 + chn, midi_note, midi_volume]);
                     
                     _midiSendToDevice(midi_message, "output", midi_obj.device_uids);
 

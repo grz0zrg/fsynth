@@ -12,6 +12,8 @@ var _pause = function () {
     _pauseWorklet();
     
     _pause_time = performance.now();
+
+    _resetMIDIDevice();
 };
 
 var _play = function (update_global_time) {
@@ -52,4 +54,6 @@ var _stop = function () {
     window.cancelAnimationFrame(_raf);
 
     _pause_time = performance.now();
+
+    _resetMIDIDevice();
 };

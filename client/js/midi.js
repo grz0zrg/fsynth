@@ -122,6 +122,14 @@ var _MIDIDeviceCheckboxChange = function () {
     _midiDeviceIOUpdate();
 };
 
+var _resetMIDIDevice = function () {
+    var i = 0;
+
+    for (i = 0; i < 16; i += 1) {
+        _midiSendAllActive([0xB0 + i, 0x7B, 0x0, 0xB0 + i, 0x78, 0x0]);
+    }    
+};
+
 var _addMIDIDevice = function (midi, io_type) {
     var midi_element = document.createElement("div"),
         midi_enabled_ck_id = "fs_midi_settings_ck_" + _midi_device_uid,
@@ -196,7 +204,7 @@ var _addMIDIDevice = function (midi, io_type) {
 
     _midiDeviceIOUpdate();
 
-    // program changes for every channels
+    // re-initialize MIDI device, default program change
     for (i = 0; i < 16; i += 1) {
         _midiSendToDevice([0xC0 + i, 0x00], "output", midi.id);
     }
@@ -258,7 +266,9 @@ var _midiSendAllActive = function (msg_arr) {
         midi_device = _midi_devices.output[key];
         
         if (midi_device.enabled) {
-            midi_device.obj.send(msg_arr);
+            if (midi_device.obj) {
+                midi_device.obj.send(msg_arr);
+            }    
         }
     }
 };
@@ -404,13 +414,15 @@ var _midiDataOut = function (pixels_data) {
 
                     midi_panning = _getMIDIPan(l, r);
 
-                    midi_message = [0xE0 + chn, midi_bend & 0x7F, (midi_bend >> 7),
-                                    0xB0 + chn, 0x0A, midi_panning,
-                                    0x90 + chn, midi_note, midi_volume];
+                    midi_message = [];
 
                     if (midi_obj.custom_midi_message_fn) {
-                        midi_message = midi_message.concat(midi_obj.custom_midi_message_fn("on", l, r, b, a, k).on);
+                        midi_message = midi_obj.custom_midi_message_fn("on", l, r, b, a, k).on;
                     }
+
+                    midi_message = midi_message.concat([0xE0 + chn, midi_bend & 0x7F, (midi_bend >> 7),
+                        0xB0 + chn, 0x0A, midi_panning,
+                        0x90 + chn, midi_note, midi_volume]);
                     
                     _midiSendToDevice(midi_message, "output", midi_obj.device_uids);
 

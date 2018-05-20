@@ -306,7 +306,7 @@ var _createMarkerSettings = function (marker_obj) {
         
         i = 0;
     
-    midi_custom_message_area.innerHTML = '// User-defined MIDI messages\n// Usable arguments : l, r, b, a, c\n\nif (type === "on") {\n    on = [];\n} else if (type === "change") {\n    change = [];\n} else if (type === "off") {\n    off = [];\n}';
+    midi_custom_message_area.innerHTML = '// User-defined MIDI messages\n// Usable arguments ([0,1] float data except the channel) : l, r, b, a, c\n\nif (type === "on") {\n    on = [];\n} else if (type === "change") {\n    change = [];\n} else if (type === "off") {\n    off = [];\n}';
     midi_custom_message_area.style.width = "94%";
     midi_custom_message_area.style.height = "180px";
     midi_custom_message_area.className = "fs-textarea";
@@ -320,7 +320,7 @@ var _createMarkerSettings = function (marker_obj) {
             marker_obj.midi_out.custom_midi_message = self.value;
         
             clearTimeout(_marker_midi_message_timeout);
-            _marker_midi_message_timeout = setTimeout(_compileMarkerMIDIData, 2000, marker_obj, self);
+            _marker_midi_message_timeout = setTimeout(_compileMarkerMIDIData, 1000, marker_obj, self);
         
             _saveMarkersSettings();
         }));
