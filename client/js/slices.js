@@ -6,7 +6,8 @@
  * This need a severe lifting!
  */
 
-var _selected_slice_marker = null;
+var _selected_slice_marker = null,
+    _marker_midi_message_timeout = null;
 
 /***********************************************************
     Functions.
@@ -26,7 +27,8 @@ var _saveMarkersSettings = function () {
     _local_session_settings.markers = [];
     _play_position_markers.forEach(function (obj) {
             var marker_settings = {  };
-            marker_settings["midi_out_device"] = obj.midi_out_device_uid;
+            marker_settings.midi_out = _cloneObj(obj.midi_out);
+            delete marker_settings.midi_out["custom_midi_message_fn"];
             _local_session_settings.markers.push(marker_settings);
         });
     _saveLocalSessionSettings();  
@@ -201,15 +203,15 @@ var _buildMarkerMIDIDevices = function (marker_obj, midi_dev_list) {
 
     midi_devices = _getMIDIDevices("output");
 
-    for (j = 0; j < marker_obj.midi_out_device_uid.length; j += 1) {
-        if (!(marker_obj.midi_out_device_uid[i] in midi_devices)) {
-            _notification("Slice '" + marker_obj.id + "' MIDI out '" + i + "' device does not exist anymore, defaulted to 'none'.");
+    for (j = 0; j < marker_obj.midi_out.device_uids.length; j += 1) {
+        if (!(marker_obj.midi_out.device_uids[i] in midi_devices)) {
+            _notification("Slice '" + marker_obj.id + "' MIDI out '" + i + "' device does not exist anymore, defaulted to 'none'.", 4000);
         } else {
-            uids.push(marker_obj.midi_out_device_uid[i]);
+            uids.push(marker_obj.midi_out.device_uids[i]);
         }
     }
 
-    marker_obj.midi_out_device_uid = uids;
+    marker_obj.midi_out.device_uids = uids;
 
     for (key in midi_devices) {
         if (!midi_devices[key].id) {
@@ -224,8 +226,8 @@ var _buildMarkerMIDIDevices = function (marker_obj, midi_dev_list) {
         midi_dev_option.value = midi_devices[key].id;
         midi_dev_option.id = "fs_slice_settings_midi_device_opt_" + marker_obj.id + "_" + i;
 
-        for (j = 0; j < marker_obj.midi_out_device_uid.length; j += 1) {
-            if (marker_obj.midi_out_device_uid[j] === midi_devices[key].id) {
+        for (j = 0; j < marker_obj.midi_out.device_uids.length; j += 1) {
+            if (marker_obj.midi_out.device_uids[j] === midi_devices[key].id) {
                 midi_dev_option.selected = true;
             }
         }
@@ -247,6 +249,25 @@ var _rebuildMarkersMIDIDevices = function () {
         midi_dev_list = document.getElementById("fs_slice_settings_midi_device_" + play_position_marker.id);
 
         _buildMarkerMIDIDevices(play_position_marker, midi_dev_list);
+    }
+};
+
+var _compileMarkerMIDIData = function (marker_obj, textarea) {
+    try {
+        marker_obj.midi_out.custom_midi_message_fn = new Function("type", "l", "r", "b", "a", "c", "var on, off, change;" + marker_obj.midi_out.custom_midi_message + "\nreturn { on: on, change: change, off: off };");
+        if (textarea) {
+            textarea.style.border = "1px solid #111111";
+        }    
+    } catch (e) {
+        _notification("MIDI message compilation error : " + e, 5000);
+
+        console.log("MIDI message compilation error : " + e);
+
+        marker_obj.midi_out.custom_midi_message_fn = null;
+
+        if (textarea) {
+            textarea.style.border = "1px solid #ff0000";
+        }
     }
 };
 
@@ -272,6 +293,8 @@ var _createMarkerSettings = function (marker_obj) {
         midi_dev_list = document.createElement("select"),
         midi_dev_option,
 
+        midi_custom_message_area = document.createElement("textarea"),
+
         midi_devices,
 
         dialog_element = document.createElement("div"),
@@ -282,6 +305,25 @@ var _createMarkerSettings = function (marker_obj) {
         key,
         
         i = 0;
+    
+    midi_custom_message_area.innerHTML = '// User-defined MIDI messages\n// Usable arguments : l, r, b, a, c\n\nif (type === "on") {\n    on = [];\n} else if (type === "change") {\n    change = [];\n} else if (type === "off") {\n    off = [];\n}';
+    midi_custom_message_area.style.width = "94%";
+    midi_custom_message_area.style.height = "180px";
+    midi_custom_message_area.className = "fs-textarea";
+    midi_custom_message_area.style.border = "1px solid #111111";
+
+    if (marker_obj.midi_out.custom_midi_message.length > 0) {
+        midi_custom_message_area.innerHTML = marker_obj.midi_out.custom_midi_message;
+    }
+
+    midi_custom_message_area.addEventListener("input", _cbMarkerSettingsChange(marker_obj, function (self, value, marker_obj) {
+            marker_obj.midi_out.custom_midi_message = self.value;
+        
+            clearTimeout(_marker_midi_message_timeout);
+            _marker_midi_message_timeout = setTimeout(_compileMarkerMIDIData, 2000, marker_obj, self);
+        
+            _saveMarkersSettings();
+        }));
     
     midi_dev_list_label.className = "fs-select-label";
     midi_dev_list_label.htmlFor = "fs_slice_settings_midi_device_" + marker_obj.id;
@@ -295,15 +337,11 @@ var _createMarkerSettings = function (marker_obj) {
     midi_dev_list_container.appendChild(midi_dev_list);
     midi_dev_list_container.style = "text-align: center;";
 
+    midi_dev_list_container.appendChild(midi_custom_message_area);
+
     _buildMarkerMIDIDevices(marker_obj, midi_dev_list);
 
     midi_dev_list.addEventListener("change", _cbMarkerSettingsChange(marker_obj, function (self, value, marker_obj) {
-/*
-        var option_id = self.selectedIndex,
-            option_elem = document.getElementById("fs_slice_settings_midi_device_opt_" + marker_obj.id + "_" + option_id);
-        
-        marker_obj.midi_out_device_uid = option_elem.dataset.uid;
-*/
         var len = self.options.length,
             opt = null,
             uids = [],
@@ -317,7 +355,7 @@ var _createMarkerSettings = function (marker_obj) {
             }
         }
 
-        marker_obj.midi_out_device_uid = uids;
+        marker_obj.midi_out.device_uids = uids;
         
         _saveMarkersSettings();
     }));    
@@ -606,7 +644,11 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, synthesis
             y: 0,
             height: _canvas_height,
             id: play_position_marker_id,
-            midi_out_device_uid: []
+            midi_out: {
+                device_uids: [],
+                custom_midi_message: "",
+                custom_midi_message_fn: null,
+            }
         });
     
     play_position_marker = _play_position_markers[play_position_marker_id];
@@ -614,8 +656,11 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, synthesis
     if (_local_session_settings["markers"]) {
         local_session_marker = _local_session_settings.markers[play_position_marker_id];
         if (local_session_marker) {
-            if (local_session_marker["midi_out_device"]) {
-                play_position_marker.midi_out_device_uid = local_session_marker["midi_out_device"];
+            if (local_session_marker["midi_out"]) {
+                play_position_marker.midi_out.device_uids = local_session_marker["midi_out"].device_uids;
+                play_position_marker.midi_out.custom_midi_message = local_session_marker["midi_out"].custom_midi_message;
+
+                _compileMarkerMIDIData(play_position_marker, null);
             }
         }
     }    

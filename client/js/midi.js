@@ -275,7 +275,11 @@ var _midiSendToDevice = function (msg_arr, device_type, device_uids) {
         }
         
         if (midi_device.enabled) {
-            midi_device.obj.send(msg_arr);
+            try {
+                midi_device.obj.send(msg_arr);
+            } catch (e) {
+                console.log("_midiSendToDevice: Tried to send invalid MIDI data.");
+            }    
         }
     }    
 };
@@ -306,6 +310,8 @@ var _midiDataOut = function (pixels_data) {
         i = 0,
         k = 0,
         j = 0,
+        b = 0,
+        a = 0,
         chn,
 
         midi_chn_data_index = _output_channels,
@@ -316,8 +322,12 @@ var _midiDataOut = function (pixels_data) {
 
         midi_volume,
         midi_panning,
+
+        midi_message = [],
         
         midi_bend = 0,
+
+        midi_obj,
 
         midi_note = 0,
         midi_note_fractional = 0,
@@ -346,15 +356,22 @@ var _midiDataOut = function (pixels_data) {
         for (i = 0; i < data_length; i += 4) {
             l = data[i + li];
             r = data[i + ri];
+            b = data[i + 2];
+            a = data[i + 3];
             
             pl = prev_data[i + li];
             pr = prev_data[i + ri];
             
             osc = _oscillators[y];
 
+            midi_obj = pixels_data[midi_chn_data_index + k];
+
             if (l > 0 || r > 0) {
                 l *= inv_full_brightness;
                 r *= inv_full_brightness;
+                b *= inv_full_brightness;
+                a *= inv_full_brightness;
+                
                 pl *= inv_full_brightness;
                 pr *= inv_full_brightness;
 
@@ -387,18 +404,27 @@ var _midiDataOut = function (pixels_data) {
 
                     midi_panning = _getMIDIPan(l, r);
 
-                    //_midiSendToDevice([0xB0 + chn, 0x07, 100], "output", pixels_data[midi_chn_data_index + k]);
-                    //_midiSendToDevice([0xB0 + chn, 0x64, 0x0, 0xB0, 0x06, 0x1], "output", pixels_data[midi_chn_data_index + k]);
-                    _midiSendToDevice([0xE0 + chn, midi_bend & 0x7F, (midi_bend >> 7),
-                                       0xB0 + chn, 0x0A, midi_panning,
-                                       0x90 + chn, midi_note, midi_volume], "output", pixels_data[midi_chn_data_index + k]);
+                    midi_message = [0xE0 + chn, midi_bend & 0x7F, (midi_bend >> 7),
+                                    0xB0 + chn, 0x0A, midi_panning,
+                                    0x90 + chn, midi_note, midi_volume];
+
+                    if (midi_obj.custom_midi_message_fn) {
+                        midi_message = midi_message.concat(midi_obj.custom_midi_message_fn("on", l, r, b, a, k).on);
+                    }
+                    
+                    _midiSendToDevice(midi_message, "output", midi_obj.device_uids);
+
                     midi_note_obj.on = true;
                     midi_note_obj.chn = chn;
                 }
                 
                 if (pl !== l || pr !== r) {
                     if (midi_note_obj.on && _midi_notes[midi_note_obj.chn].notes <= 1) {
-                        //_midiSendToDevice([0xB0 +  midi_note_obj.chn, 0x07, midi_volume, 0xB0 + midi_note_obj.chn, 0x0A, midi_panning], "output", pixels_data[midi_chn_data_index + k]);
+                        if (midi_obj.custom_midi_message_fn) {
+                            midi_message = midi_obj.custom_midi_message_fn("change", l, r, b, a, k).change;
+
+                            _midiSendToDevice(midi_message, "output", midi_obj.device_uids);
+                        }
                     }
                 }
             } else {
@@ -411,7 +437,13 @@ var _midiDataOut = function (pixels_data) {
                     if (midi_note_obj.on) {
                         _midi_notes[midi_note_obj.chn].notes -= 1;
 
-                        _midiSendToDevice([0x80 + midi_note_obj.chn, midi_note, 127], "output", pixels_data[midi_chn_data_index + k]);
+                        midi_message = [0x80 + midi_note_obj.chn, midi_note, 127];
+
+                        if (midi_obj.custom_midi_message_fn) {
+                            midi_message = midi_message.concat(midi_obj.custom_midi_message_fn("off", l, r, b, a, k).off);
+                        }
+
+                        _midiSendToDevice(midi_message, "output", midi_obj.device_uids);
                         
                         midi_note_obj.on = false;
                     }

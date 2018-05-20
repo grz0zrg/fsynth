@@ -238,7 +238,7 @@ var _fssConnect = function () {
                     }
                 }
             } catch (e) {
-                _notification('JSON message parsing failed : ' + e);
+                _notification('JSON message parsing failed : ' + e, 3500);
 
                 console.log(e);
             }

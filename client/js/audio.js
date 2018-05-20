@@ -584,7 +584,7 @@ var _audioInit = function () {
         
         _fragment_worklet_connected = true;
     } catch (e) {
-        _notification("AudioWorklet unavailable... switching to OSC. mode.");
+        _notification("AudioWorklet unavailable... switching to OSC. mode.", 2500);
 
         console.log("AudioWorklet unavailable... switching to OSC. mode.");
         

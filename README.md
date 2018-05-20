@@ -63,7 +63,7 @@ Fragment is also able to do real-time distributed sound synthesis with the sound
 
 ## Features
 
-- Additive, spectral, granular, subtractive, wavetable, phase modulation synthesizer powered by WebAudio oscillators (additive only, work best in Chrome), a Wavetable with AudioWorklet (additive only, probably the best) OR a [C native audio server](https://github.com/grz0zrg/fas) (fastest/best)
+- Additive, spectral, granular, subtractive, wavetable, phase modulation synthesizer powered by WebAudio oscillators (additive only, work best in Chrome), a Wavetable with AudioWorklet (additive only, probably the best in the future) OR a [C native audio server](https://github.com/grz0zrg/fas) (fastest/best)
 - Live coding/JIT compilation of shader code
 - Real-time, collaborative app.
 - Distributed sound synthesis, multi-machines/multi-core support (Fragment Audio Server with fas_relay)
@@ -99,7 +99,7 @@ Common to all synthesis methods, the canvas represent frequencies (exponential m
 
 The [Fragment audio server](https://github.com/grz0zrg/fas) is necessary for very fast sound synthesis and other features such as different output channels per slices.
 
-With the web browser, Fragment is limited to additive synthesis and two output channels.
+With the web browser, Fragment is limited to additive synthesis and two output channels, external synthesizers can be triggered via MIDI out.
 
 Slices data can be sent via OSC bundles to extend the possibilities of this synthesizer.
 
@@ -240,7 +240,7 @@ Fragment support MIDI inputs and MIDI outputs with compatible browsers.
   - polyphony/stereo panning through 16 channels
   - microtonal capabilities (frequency mapping is respected)
 
-External synths can be triggered from pixels data via MIDI OUT, a MIDI device can be assigned to one or more slice, RGBA channels can be assigned to user-defined MIDI messages from the slice settings, Fragment has limited MPE support (non-standard for now) to support polyphony through 16 channels, every sounding note is temporarily assigned to its own MIDI channel, allowing microtonal, individual stereo panning and polyphonic capabilities.
+External synths can be triggered from pixels data via MIDI OUT, MIDI devices can be assigned to one or more slice, RGBA channels can be assigned to user-defined MIDI messages from the slice settings, Fragment has limited MPE support for output (non-standard for now) to support polyphony through 16 channels, every sounding note is temporarily assigned to its own MIDI channel, allowing microtonal, individual stereo panning and polyphonic capabilities.
 
 If you need to control more parameters, see OSC below.
 
@@ -283,7 +283,7 @@ Many tools are available to enhance Fragment.
 
 ## Notes
 
-- WebAudio oscillators and the WebAudio Worklet Wavetable mode can only have two output channels (L/R) due to performances issues (this may change in the future!)
+- WebAudio oscillators and the WebAudio Worklet mode can only have two output channels (L/R) due to performances issues (this may change in the future!)
 
 
 ## Tips and tricks
@@ -400,7 +400,7 @@ Utilities :
  * [libflds](http://liblfds.org/) for [fas](https://github.com/grz0zrg/fas)
  * [SimpleScreenRecorder](http://www.maartenbaert.be/simplescreenrecorder/) for videos recording
  * [KDEnlive](https://kdenlive.org/) to edit the videos
- * [Geogebra](https://kdenlive.org/) for the logo
+ * [Geogebra](https://www.geogebra.org) for the logo
  * [Inkscape](https://www.inkscape.org) for the logo and some graphics
  * [GIMP](https://www.gimp.org/) some graphics
  * [MkDocs](http://www.mkdocs.org/) Documentation

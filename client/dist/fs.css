@@ -1625,6 +1625,20 @@ canvas {
     height: 6px;
 }
 
+.fs-textarea {
+    color: #ffffff;
+    
+    cursor: default;
+    
+    font-size: 10pt;
+    
+    background-color: #181818;
+
+    line-height: normal;
+
+    border: none;
+}
+
 .fs-btn {
     color: #ffffff;
     

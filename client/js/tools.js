@@ -76,7 +76,7 @@ var _objSwap = function (src, dst) {
     }
 };
 
-var cloneObj = function (obj) {
+var _cloneObj = function (obj) {
     return JSON.parse(JSON.stringify(obj));
 };
 

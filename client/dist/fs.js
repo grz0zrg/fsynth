@@ -19072,7 +19072,7 @@ var _objSwap = function (src, dst) {
     }
 };
 
-var cloneObj = function (obj) {
+var _cloneObj = function (obj) {
     return JSON.parse(JSON.stringify(obj));
 };
 
@@ -20646,7 +20646,7 @@ var _audioInit = function () {
         
         _fragment_worklet_connected = true;
     } catch (e) {
-        _notification("AudioWorklet unavailable... switching to OSC. mode.");
+        _notification("AudioWorklet unavailable... switching to OSC. mode.", 2500);
 
         console.log("AudioWorklet unavailable... switching to OSC. mode.");
         
@@ -21713,11 +21713,11 @@ var _frame = function (raf_time) {
             _data[channel] = new _synth_data_array(_canvas_height_mul4);
             _midi_data[channel] = new _synth_data_array(_canvas_height_mul4);
         } else {
-            if (play_position_marker.midi_out_device_uid.length === 0) {
+            if (play_position_marker.midi_out.device_uids.length === 0) {
                 target_data = _data[channel];
             } else {
                 target_data = _midi_data[channel];
-                _midi_data[_output_channels + channel] = play_position_marker.midi_out_device_uid;
+                _midi_data[_output_channels + channel] = play_position_marker.midi_out;
             }
 
             if (play_position_marker.frame_increment != 0) {
@@ -21760,11 +21760,11 @@ var _frame = function (raf_time) {
 
             _transformData(play_position_marker, _temp_data);
 
-            if (play_position_marker.midi_out_device_uid.length === 0) {
+            if (play_position_marker.midi_out.device_uids.length === 0) {
                 channel_data = _data[channel];
             } else {
                 channel_data = _midi_data[channel];
-                _midi_data[_output_channels + channel] = play_position_marker.midi_out_device_uid;
+                _midi_data[_output_channels + channel] = play_position_marker.midi_out;
             }
 
             // merge slices data
@@ -22483,7 +22483,7 @@ var _fssConnect = function () {
                     }
                 }
             } catch (e) {
-                _notification('JSON message parsing failed : ' + e);
+                _notification('JSON message parsing failed : ' + e, 3500);
 
                 console.log(e);
             }
@@ -28240,7 +28240,8 @@ _controllers_canvas.addEventListener("mousedown", function (e) {
  * This need a severe lifting!
  */
 
-var _selected_slice_marker = null;
+var _selected_slice_marker = null,
+    _marker_midi_message_timeout = null;
 
 /***********************************************************
     Functions.
@@ -28260,7 +28261,8 @@ var _saveMarkersSettings = function () {
     _local_session_settings.markers = [];
     _play_position_markers.forEach(function (obj) {
             var marker_settings = {  };
-            marker_settings["midi_out_device"] = obj.midi_out_device_uid;
+            marker_settings.midi_out = _cloneObj(obj.midi_out);
+            delete marker_settings.midi_out["custom_midi_message_fn"];
             _local_session_settings.markers.push(marker_settings);
         });
     _saveLocalSessionSettings();  
@@ -28435,15 +28437,15 @@ var _buildMarkerMIDIDevices = function (marker_obj, midi_dev_list) {
 
     midi_devices = _getMIDIDevices("output");
 
-    for (j = 0; j < marker_obj.midi_out_device_uid.length; j += 1) {
-        if (!(marker_obj.midi_out_device_uid[i] in midi_devices)) {
-            _notification("Slice '" + marker_obj.id + "' MIDI out '" + i + "' device does not exist anymore, defaulted to 'none'.");
+    for (j = 0; j < marker_obj.midi_out.device_uids.length; j += 1) {
+        if (!(marker_obj.midi_out.device_uids[i] in midi_devices)) {
+            _notification("Slice '" + marker_obj.id + "' MIDI out '" + i + "' device does not exist anymore, defaulted to 'none'.", 4000);
         } else {
-            uids.push(marker_obj.midi_out_device_uid[i]);
+            uids.push(marker_obj.midi_out.device_uids[i]);
         }
     }
 
-    marker_obj.midi_out_device_uid = uids;
+    marker_obj.midi_out.device_uids = uids;
 
     for (key in midi_devices) {
         if (!midi_devices[key].id) {
@@ -28458,8 +28460,8 @@ var _buildMarkerMIDIDevices = function (marker_obj, midi_dev_list) {
         midi_dev_option.value = midi_devices[key].id;
         midi_dev_option.id = "fs_slice_settings_midi_device_opt_" + marker_obj.id + "_" + i;
 
-        for (j = 0; j < marker_obj.midi_out_device_uid.length; j += 1) {
-            if (marker_obj.midi_out_device_uid[j] === midi_devices[key].id) {
+        for (j = 0; j < marker_obj.midi_out.device_uids.length; j += 1) {
+            if (marker_obj.midi_out.device_uids[j] === midi_devices[key].id) {
                 midi_dev_option.selected = true;
             }
         }
@@ -28481,6 +28483,25 @@ var _rebuildMarkersMIDIDevices = function () {
         midi_dev_list = document.getElementById("fs_slice_settings_midi_device_" + play_position_marker.id);
 
         _buildMarkerMIDIDevices(play_position_marker, midi_dev_list);
+    }
+};
+
+var _compileMarkerMIDIData = function (marker_obj, textarea) {
+    try {
+        marker_obj.midi_out.custom_midi_message_fn = new Function("type", "l", "r", "b", "a", "c", "var on, off, change;" + marker_obj.midi_out.custom_midi_message + "\nreturn { on: on, change: change, off: off };");
+        if (textarea) {
+            textarea.style.border = "1px solid #111111";
+        }    
+    } catch (e) {
+        _notification("MIDI message compilation error : " + e, 5000);
+
+        console.log("MIDI message compilation error : " + e);
+
+        marker_obj.midi_out.custom_midi_message_fn = null;
+
+        if (textarea) {
+            textarea.style.border = "1px solid #ff0000";
+        }
     }
 };
 
@@ -28506,6 +28527,8 @@ var _createMarkerSettings = function (marker_obj) {
         midi_dev_list = document.createElement("select"),
         midi_dev_option,
 
+        midi_custom_message_area = document.createElement("textarea"),
+
         midi_devices,
 
         dialog_element = document.createElement("div"),
@@ -28516,6 +28539,25 @@ var _createMarkerSettings = function (marker_obj) {
         key,
         
         i = 0;
+    
+    midi_custom_message_area.innerHTML = '// User-defined MIDI messages\n// Usable arguments : l, r, b, a, c\n\nif (type === "on") {\n    on = [];\n} else if (type === "change") {\n    change = [];\n} else if (type === "off") {\n    off = [];\n}';
+    midi_custom_message_area.style.width = "94%";
+    midi_custom_message_area.style.height = "180px";
+    midi_custom_message_area.className = "fs-textarea";
+    midi_custom_message_area.style.border = "1px solid #111111";
+
+    if (marker_obj.midi_out.custom_midi_message.length > 0) {
+        midi_custom_message_area.innerHTML = marker_obj.midi_out.custom_midi_message;
+    }
+
+    midi_custom_message_area.addEventListener("input", _cbMarkerSettingsChange(marker_obj, function (self, value, marker_obj) {
+            marker_obj.midi_out.custom_midi_message = self.value;
+        
+            clearTimeout(_marker_midi_message_timeout);
+            _marker_midi_message_timeout = setTimeout(_compileMarkerMIDIData, 2000, marker_obj, self);
+        
+            _saveMarkersSettings();
+        }));
     
     midi_dev_list_label.className = "fs-select-label";
     midi_dev_list_label.htmlFor = "fs_slice_settings_midi_device_" + marker_obj.id;
@@ -28529,15 +28571,11 @@ var _createMarkerSettings = function (marker_obj) {
     midi_dev_list_container.appendChild(midi_dev_list);
     midi_dev_list_container.style = "text-align: center;";
 
+    midi_dev_list_container.appendChild(midi_custom_message_area);
+
     _buildMarkerMIDIDevices(marker_obj, midi_dev_list);
 
     midi_dev_list.addEventListener("change", _cbMarkerSettingsChange(marker_obj, function (self, value, marker_obj) {
-/*
-        var option_id = self.selectedIndex,
-            option_elem = document.getElementById("fs_slice_settings_midi_device_opt_" + marker_obj.id + "_" + option_id);
-        
-        marker_obj.midi_out_device_uid = option_elem.dataset.uid;
-*/
         var len = self.options.length,
             opt = null,
             uids = [],
@@ -28551,7 +28589,7 @@ var _createMarkerSettings = function (marker_obj) {
             }
         }
 
-        marker_obj.midi_out_device_uid = uids;
+        marker_obj.midi_out.device_uids = uids;
         
         _saveMarkersSettings();
     }));    
@@ -28840,7 +28878,11 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, synthesis
             y: 0,
             height: _canvas_height,
             id: play_position_marker_id,
-            midi_out_device_uid: []
+            midi_out: {
+                device_uids: [],
+                custom_midi_message: "",
+                custom_midi_message_fn: null,
+            }
         });
     
     play_position_marker = _play_position_markers[play_position_marker_id];
@@ -28848,8 +28890,11 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, synthesis
     if (_local_session_settings["markers"]) {
         local_session_marker = _local_session_settings.markers[play_position_marker_id];
         if (local_session_marker) {
-            if (local_session_marker["midi_out_device"]) {
-                play_position_marker.midi_out_device_uid = local_session_marker["midi_out_device"];
+            if (local_session_marker["midi_out"]) {
+                play_position_marker.midi_out.device_uids = local_session_marker["midi_out"].device_uids;
+                play_position_marker.midi_out.custom_midi_message = local_session_marker["midi_out"].custom_midi_message;
+
+                _compileMarkerMIDIData(play_position_marker, null);
             }
         }
     }    
@@ -29215,7 +29260,11 @@ var _midiSendToDevice = function (msg_arr, device_type, device_uids) {
         }
         
         if (midi_device.enabled) {
-            midi_device.obj.send(msg_arr);
+            try {
+                midi_device.obj.send(msg_arr);
+            } catch (e) {
+                console.log("_midiSendToDevice: Tried to send invalid MIDI data.");
+            }    
         }
     }    
 };
@@ -29246,6 +29295,8 @@ var _midiDataOut = function (pixels_data) {
         i = 0,
         k = 0,
         j = 0,
+        b = 0,
+        a = 0,
         chn,
 
         midi_chn_data_index = _output_channels,
@@ -29256,8 +29307,12 @@ var _midiDataOut = function (pixels_data) {
 
         midi_volume,
         midi_panning,
+
+        midi_message = [],
         
         midi_bend = 0,
+
+        midi_obj,
 
         midi_note = 0,
         midi_note_fractional = 0,
@@ -29286,15 +29341,22 @@ var _midiDataOut = function (pixels_data) {
         for (i = 0; i < data_length; i += 4) {
             l = data[i + li];
             r = data[i + ri];
+            b = data[i + 2];
+            a = data[i + 3];
             
             pl = prev_data[i + li];
             pr = prev_data[i + ri];
             
             osc = _oscillators[y];
 
+            midi_obj = pixels_data[midi_chn_data_index + k];
+
             if (l > 0 || r > 0) {
                 l *= inv_full_brightness;
                 r *= inv_full_brightness;
+                b *= inv_full_brightness;
+                a *= inv_full_brightness;
+                
                 pl *= inv_full_brightness;
                 pr *= inv_full_brightness;
 
@@ -29327,18 +29389,27 @@ var _midiDataOut = function (pixels_data) {
 
                     midi_panning = _getMIDIPan(l, r);
 
-                    //_midiSendToDevice([0xB0 + chn, 0x07, 100], "output", pixels_data[midi_chn_data_index + k]);
-                    //_midiSendToDevice([0xB0 + chn, 0x64, 0x0, 0xB0, 0x06, 0x1], "output", pixels_data[midi_chn_data_index + k]);
-                    _midiSendToDevice([0xE0 + chn, midi_bend & 0x7F, (midi_bend >> 7),
-                                       0xB0 + chn, 0x0A, midi_panning,
-                                       0x90 + chn, midi_note, midi_volume], "output", pixels_data[midi_chn_data_index + k]);
+                    midi_message = [0xE0 + chn, midi_bend & 0x7F, (midi_bend >> 7),
+                                    0xB0 + chn, 0x0A, midi_panning,
+                                    0x90 + chn, midi_note, midi_volume];
+
+                    if (midi_obj.custom_midi_message_fn) {
+                        midi_message = midi_message.concat(midi_obj.custom_midi_message_fn("on", l, r, b, a, k).on);
+                    }
+                    
+                    _midiSendToDevice(midi_message, "output", midi_obj.device_uids);
+
                     midi_note_obj.on = true;
                     midi_note_obj.chn = chn;
                 }
                 
                 if (pl !== l || pr !== r) {
                     if (midi_note_obj.on && _midi_notes[midi_note_obj.chn].notes <= 1) {
-                        //_midiSendToDevice([0xB0 +  midi_note_obj.chn, 0x07, midi_volume, 0xB0 + midi_note_obj.chn, 0x0A, midi_panning], "output", pixels_data[midi_chn_data_index + k]);
+                        if (midi_obj.custom_midi_message_fn) {
+                            midi_message = midi_obj.custom_midi_message_fn("change", l, r, b, a, k).change;
+
+                            _midiSendToDevice(midi_message, "output", midi_obj.device_uids);
+                        }
                     }
                 }
             } else {
@@ -29351,7 +29422,13 @@ var _midiDataOut = function (pixels_data) {
                     if (midi_note_obj.on) {
                         _midi_notes[midi_note_obj.chn].notes -= 1;
 
-                        _midiSendToDevice([0x80 + midi_note_obj.chn, midi_note, 127], "output", pixels_data[midi_chn_data_index + k]);
+                        midi_message = [0x80 + midi_note_obj.chn, midi_note, 127];
+
+                        if (midi_obj.custom_midi_message_fn) {
+                            midi_message = midi_message.concat(midi_obj.custom_midi_message_fn("off", l, r, b, a, k).off);
+                        }
+
+                        _midiSendToDevice(midi_message, "output", midi_obj.device_uids);
                         
                         midi_note_obj.on = false;
                     }

@@ -351,6 +351,7 @@ $list(
 		$item Increment per frame: This allow the slice to move left or right automatically, this is the increment value per frames
 		$item $ref(fas)(FAS) Output channel: the l/r output channel which will be used by FAS for that slice)
     $item MIDI out device: The MIDI device which will receive MIDI data from pixels data. (see MIDI)
+    $item MIDI script: A JS MIDI script which allow to define user-defined MIDI messages on note on/off/change
 	$item deletion)
 Here is how you can mute a slice:
 $pagewidthgif(mute_slice)
