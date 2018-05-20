@@ -1588,6 +1588,17 @@ canvas {
     text-align: right;
     width: 94px;
     font-size: 10pt;
+    vertical-align: middle;
+}
+
+.fs-select-label {
+    color: #ffffff;
+    display: inline-block;
+    text-align: right;
+    width: 94px;
+    height: 40px;
+    font-size: 10pt;
+    vertical-align: middle;
 }
 
 .fs-ck-container {
@@ -1633,6 +1644,29 @@ canvas {
     border-right: solid 1px #000000;
 
     text-align: center;
+
+    line-height: normal;
+}
+
+.fs-multiple-select {
+    color: #ffffff;
+    
+    cursor: default;
+    
+    font-size: 11pt;
+
+    height: 40px;
+    
+    margin-bottom: 4px;
+    margin-top: 4px;
+    
+    border-radius: 4px;
+    
+    background-color: #181818;
+    border-top: solid 1px #404040;
+    border-left: solid 1px #404040;
+    border-bottom: solid 1px #000000;
+    border-right: solid 1px #000000;
 
     line-height: normal;
 }

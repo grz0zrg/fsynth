@@ -147,12 +147,12 @@ See OSC section to use more controllers.
 ## MIDI output
 
 - Features
-  - MIDI devices can be assigned to each slices through the slice settings
+  - MIDI devices can be assigned to slices through the slice settings dialog
   - user-defined MIDI messages interpretation of RGBA values through the slice settings
   - polyphony/stereo panning through 16 channels
   - microtonal capabilities (frequency mapping is respected)
 
-External synths can be triggered from pixels data via MIDI OUT, a MIDI device can be assigned to one or more slice (must have different output channels to work), RGBA channels can be assigned to user-defined MIDI messages from the slice settings, Fragment has limited MPE support (non-standard for now) to support polyphony through 16 channels, every sounding note is temporarily assigned to its own MIDI channel, allowing microtonal, individual stereo panning and polyphonic capabilities.
+External synths can be triggered from pixels data via MIDI OUT, one or multiple MIDI devices can be assigned to one or more slice (note: slices must have different output channels otherwise the last slice with MIDI devices attached is used), RGBA channels can be assigned to user-defined MIDI messages from the slice settings, Fragment has limited MPE support (non-standard for now) to support polyphony through 16 channels, every sounding note is temporarily assigned to its own MIDI channel, allowing microtonal, individual stereo panning and polyphonic capabilities.
 
 ## Note
 

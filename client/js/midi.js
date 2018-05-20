@@ -127,7 +127,7 @@ var _addMIDIDevice = function (midi, io_type) {
         midi_enabled_ck_id = "fs_midi_settings_ck_" + _midi_device_uid,
         midi_settings_element = document.getElementById(_midi_settings_dialog_id).lastElementChild,
         midi_device_enabled = (io_type === "output"),
-        midi_device_enabled_ck = "",
+        midi_device_enabled_ck = (io_type === "output" ? "checked" : ""),
         
         tmp_element = null,
 
@@ -196,6 +196,7 @@ var _addMIDIDevice = function (midi, io_type) {
 
     _midiDeviceIOUpdate();
 
+    // program changes for every channels
     for (i = 0; i < 16; i += 1) {
         _midiSendToDevice([0xC0 + i, 0x00], "output", midi.id);
     }
@@ -262,16 +263,21 @@ var _midiSendAllActive = function (msg_arr) {
     }
 };
 
-var _midiSendToDevice = function (msg_arr, device_type, device_uid) {
-    var midi_device = _midi_devices[device_type][device_uid];
+var _midiSendToDevice = function (msg_arr, device_type, device_uids) {
+    var i = 0,
+        midi_device;
 
-    if (!midi_device) {
-        return;
-    }
+    for (i = 0; i < device_uids.length; i += 1) {
+        midi_device = _midi_devices[device_type][device_uids[i]];
+
+        if (!midi_device) {
+            return;
+        }
         
-    if (midi_device.enabled) {
-        midi_device.obj.send(msg_arr);
-    }
+        if (midi_device.enabled) {
+            midi_device.obj.send(msg_arr);
+        }
+    }    
 };
 
 var _getMIDINoteObj = function (chn, note) {

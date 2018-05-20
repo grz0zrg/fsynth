@@ -709,7 +709,7 @@ var _frame = function (raf_time) {
             _data[channel] = new _synth_data_array(_canvas_height_mul4);
             _midi_data[channel] = new _synth_data_array(_canvas_height_mul4);
         } else {
-            if (play_position_marker.midi_out_device_uid === "-1") {
+            if (play_position_marker.midi_out_device_uid.length === 0) {
                 target_data = _data[channel];
             } else {
                 target_data = _midi_data[channel];
@@ -756,7 +756,7 @@ var _frame = function (raf_time) {
 
             _transformData(play_position_marker, _temp_data);
 
-            if (play_position_marker.midi_out_device_uid === "-1") {
+            if (play_position_marker.midi_out_device_uid.length === 0) {
                 channel_data = _data[channel];
             } else {
                 channel_data = _midi_data[channel];
