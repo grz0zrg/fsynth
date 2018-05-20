@@ -29370,9 +29370,6 @@ var _midiDataOut = function (pixels_data) {
                 r *= inv_full_brightness;
                 b *= inv_full_brightness;
                 a *= inv_full_brightness;
-                
-                pl *= inv_full_brightness;
-                pr *= inv_full_brightness;
 
                 midi_note_fractional = _hzToMIDINote(osc.freq);
                 midi_note = Math.min(Math.round(midi_note_fractional), 127);
@@ -29381,7 +29378,7 @@ var _midiDataOut = function (pixels_data) {
 
                 midi_volume = Math.min(Math.round((l + r) / 2 * 127), 127);
 
-                if ((pl <= 0 || pr <= 0) && !midi_note_obj.on) {
+                if ((pl <= 0 || pr <= 0) /*&& !midi_note_obj.on*/) {
                     chn = 0;
                     notes = Infinity;
 
@@ -29397,6 +29394,18 @@ var _midiDataOut = function (pixels_data) {
                         }
                     }
 
+                    if (midi_note_obj.on) {
+                        _midi_notes[midi_note_obj.chn].notes -= 1;
+                        
+                        midi_message = [0x80 + midi_note_obj.chn, midi_note, 127];
+
+                        if (midi_obj.custom_midi_message_fn) {
+                            midi_message = midi_message.concat(midi_obj.custom_midi_message_fn("off", l, r, b, a, midi_note_obj.chn).off);
+                        }
+
+                        _midiSendToDevice(midi_message, "output", midi_obj.device_uids);
+                    }
+
                     _midi_notes[chn].notes += 1;
 
                     midi_bend = _getMIDIBend(osc.freq, midi_note);
@@ -29406,7 +29415,7 @@ var _midiDataOut = function (pixels_data) {
                     midi_message = [];
 
                     if (midi_obj.custom_midi_message_fn) {
-                        midi_message = midi_obj.custom_midi_message_fn("on", l, r, b, a, k).on;
+                        midi_message = midi_obj.custom_midi_message_fn("on", l, r, b, a, chn).on;
                     }
 
                     midi_message = midi_message.concat([0xE0 + chn, midi_bend & 0x7F, (midi_bend >> 7),
@@ -29422,7 +29431,7 @@ var _midiDataOut = function (pixels_data) {
                 if (pl !== l || pr !== r) {
                     if (midi_note_obj.on && _midi_notes[midi_note_obj.chn].notes <= 1) {
                         if (midi_obj.custom_midi_message_fn) {
-                            midi_message = midi_obj.custom_midi_message_fn("change", l, r, b, a, k).change;
+                            midi_message = midi_obj.custom_midi_message_fn("change", l, r, b, a, midi_note_obj.chn).change;
 
                             _midiSendToDevice(midi_message, "output", midi_obj.device_uids);
                         }
@@ -29441,7 +29450,7 @@ var _midiDataOut = function (pixels_data) {
                         midi_message = [0x80 + midi_note_obj.chn, midi_note, 127];
 
                         if (midi_obj.custom_midi_message_fn) {
-                            midi_message = midi_message.concat(midi_obj.custom_midi_message_fn("off", l, r, b, a, k).off);
+                            midi_message = midi_message.concat(midi_obj.custom_midi_message_fn("off", l, r, b, a, midi_note_obj.chn).off);
                         }
 
                         _midiSendToDevice(midi_message, "output", midi_obj.device_uids);
