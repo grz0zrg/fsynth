@@ -462,7 +462,7 @@ var _allocateFramesData = function () {
     }
 };
 
-var _canvasRecord = function (ndata) {
+var _canvasRecord = function (ndata, mdata) {
     var min_r = 255, max_r = 0, 
         min_g = 255, max_g = 0,
         min_b = 255, max_b = 0,
@@ -485,7 +485,7 @@ var _canvasRecord = function (ndata) {
         
         for (i = 0; i < _output_channels; i += 1) {
             for (j = 0; j <= _canvas_height_mul4; j += 1) {
-                temp_data[j] += ndata[i][j] * m;
+                temp_data[j] += ((ndata[i][j] + mdata[i][j]) * m);
                 
                 temp_data[j] = Math.min(temp_data[j], 255);
             }
@@ -788,7 +788,7 @@ var _frame = function (raf_time) {
             _osc_infos.textContent = arr_infos.join(" ");
         }
 
-        _canvasRecord(_data);
+        _canvasRecord(_data, _midi_data);
 
         // OSC
         if (_osc.enabled) {

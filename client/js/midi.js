@@ -376,6 +376,11 @@ var _midiDataOut = function (pixels_data) {
 
             midi_obj = pixels_data[midi_chn_data_index + k];
 
+            if (!midi_obj) {
+                y -= 1;
+                continue;
+            }
+
             if (l > 0 || r > 0) {
                 l *= inv_full_brightness;
                 r *= inv_full_brightness;
@@ -407,7 +412,7 @@ var _midiDataOut = function (pixels_data) {
 
                     if (midi_note_obj.on) {
                         _midi_notes[midi_note_obj.chn].notes -= 1;
-                        
+
                         midi_message = [0x80 + midi_note_obj.chn, midi_note, 127];
 
                         if (midi_obj.custom_midi_message_fn) {
