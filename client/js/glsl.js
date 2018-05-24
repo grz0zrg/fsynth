@@ -267,7 +267,6 @@ var _glsl_compilation = function () {
 
             _setUniforms(_gl, ctrl_arr.type, _program, ctrl_name, ctrl_arr.data, ctrl_arr.comps);
         }
-
         
         if (_gl2) {
             _gl.bindBuffer(_gl.ARRAY_BUFFER, _quad_vertex_buffer);

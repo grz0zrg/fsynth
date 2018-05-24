@@ -288,7 +288,7 @@ var _midiSendToDevice = function (msg_arr, device_type, device_uids) {
             try {
                 midi_device.obj.send(msg_arr);
             } catch (e) {
-                console.log("_midiSendToDevice: Tried to send invalid MIDI data.");
+                console.log("_midiSendToDevice: Tried to send invalid MIDI data.", e);
             }    
         }
     }    

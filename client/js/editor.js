@@ -75,6 +75,9 @@ var _changeEditorTheme = function (theme) {
 
     _code_editor_theme_link.onload = function(){
         _code_editor.setOption("theme", theme);
+
+        // update slice settings MIDI editors
+        _changeMarkerSettingsEditor(theme);
     };
     _code_editor_theme_link.rel = "stylesheet";
     _code_editor_theme_link.media = "all";

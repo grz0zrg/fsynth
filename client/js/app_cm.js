@@ -11,7 +11,7 @@
 /*#include codemirror/addon/scroll/simplescrollbars.js*/
 /*#include codemirror/addon/scroll/annotatescrollbar.js*/
 /*#include codemirror/addon/selection/active-line.js*/
-/*#include codemirror/codemirror_glsl.js*/
+/*#include codemirror/mode/glsl.js*/
 
 window.onload = function() {
     var new_editor_element = document.body.getElementsByClassName("fs-editor"),

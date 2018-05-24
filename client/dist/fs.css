@@ -1597,8 +1597,9 @@ canvas {
     text-align: right;
     width: 94px;
     height: 40px;
+    line-height: 48px;
     font-size: 10pt;
-    vertical-align: middle;
+    vertical-align: top;
 }
 
 .fs-ck-container {

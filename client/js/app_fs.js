@@ -16,7 +16,8 @@
 /*#include codemirror/addon/scroll/annotatescrollbar.js*/
 /*#include codemirror/addon/selection/active-line.js*/
 /*#include codemirror/addon/display/fullscreen.js*/
-/*#include codemirror/codemirror_glsl.js*/
+/*#include codemirror/mode/glsl.js*/
+/*#include codemirror/mode/javascript.js*/
 
 // showdown - https://github.com/showdownjs/showdown
 /*#include showdown/showdown.min.js*/
@@ -188,16 +189,6 @@ var FragmentSynth = function (params) {
             },
             f: null
         },
-        
-        _generic_fragment_shader = [
-            "precision mediump float;",
-            "uniform vec2 resolution;",
-            "uniform sampler2D texture;",
-            "void main () {",
-            "    vec2 uv = gl_FragCoord.xy / resolution;",
-            "    vec4 c = texture2D(texture, uv);",
-            "    gl_FragColor = c;",
-            "}"].join(""),
         
         // helper canvas
         _c_helper = document.getElementById("fs_helper_canvas"),

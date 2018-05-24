@@ -7,7 +7,17 @@
 var _main_program = null,
     _main_attch0 = null,
     _main_attch1 = null,
-    _main_fbo = null;
+    _main_fbo = null,
+    
+    _generic_fragment_shader = [
+        "precision mediump float;",
+        "uniform vec2 resolution;",
+        "uniform sampler2D texture;",
+        "void main () {",
+        "    vec2 uv = gl_FragCoord.xy / resolution;",
+        "    vec4 c = texture2D(texture, uv);",
+        "    gl_FragColor = c;",
+        "}"].join("");
 
 var _buildScreenAlignedQuad = function() {
     var position;
