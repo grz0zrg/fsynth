@@ -114,7 +114,9 @@ var _connectWorklet = function () {
             _fragment_worklet_node.connect(_mst_gain_node);
         }
         
-        _playWorklet();
+        if (_fs_state === 0) {
+            _playWorklet();
+        }    
         
         _fragment_worklet_connected = true;
     }

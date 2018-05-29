@@ -371,8 +371,8 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                             <input id="fs_settings_ck_polyinfos" type="checkbox">
                         </label>
                         <label class="fs-ck-label">
-                            <div>Show slices bar</div>&nbsp;
-                            <input id="fs_settings_ck_slicebar" type="checkbox">
+                            <div>Show slices</div>&nbsp;
+                            <input id="fs_settings_ck_slices" type="checkbox" checked>
                         </label>
                         <label class="fs-ck-label">
                             <div>Quickstart startup</div>&nbsp;
@@ -397,10 +397,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                             <input id="fs_settings_ck_hlmatches" type="checkbox">
                         </label>
                         <label class="fs-ck-label">
-                            <div>Show slices</div>&nbsp;
-                            <input id="fs_settings_ck_slices" type="checkbox" checked>
-                        </label>
-                        <label class="fs-ck-label">
+                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>&nbsp;
                         </label>
                     </div>
                 </div>
@@ -708,71 +705,6 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                 </div>
             </div>
         </div>
-        <div id="fs_controls_dialog">
-            <div>
-                <div class="fs-settings">
-                    <div class="fs-settings-panel">
-                        Scalars
-                        <br/>
-                        <label class="fs-input-label" for="fs_scalars_ctrl_name">Input name:</label>
-                        <input id="fs_scalars_ctrl_name" class="wui-rangeslider-input fs-controls-add-ctrl">
-                        <br/>
-                        <label class="fs-input-label" for="fs_scalars_ctrl_type">Type:</label>
-                        <select id="fs_scalars_ctrl_type" class="fs-btn fs-controls-add-ctrl">
-                            <option value="bool">bool</option>
-                            <option value="int">int</option>
-                            <option value="float">float</option>
-                        </select>
-                        <br/>
-                        <label class="fs-input-label" for="fs_scalars_ctrl_mtype">Midi:</label>
-                        <select id="fs_scalars_ctrl_mtype" class="fs-btn fs-controls-add-ctrl">
-                            <option value="rel">Relative</option>
-                            <option value="abs">Absolute</option>
-                        </select>
-                        <br/>
-                        <br/>
-                        <label class="fs-input-label" for="fs_scalars_ctrl_array_size">Count:</label>
-                        <input id="fs_scalars_ctrl_array_size" type="number" value="1" min="1" class="wui-rangeslider-input fs-controls-add-ctrl">
-                        <br/>
-                        <button id="fs_scalars_ctrl_add" class="fs-btn fs-controls-add-ctrl">Add</button>
-                    </div>
-                    <div class="fs-settings-panel">
-                        Vectors
-                        <br/>
-                        <label class="fs-input-label" for="fs_vectors_ctrl_name">Input name:</label>
-                        <input id="fs_vectors_ctrl_name" class="wui-rangeslider-input fs-controls-add-ctrl">
-                        <br/>
-                        <label class="fs-input-label" for="fs_vectors_ctrl_type">Type:</label>
-                        <select id="fs_vectors_ctrl_type" class="fs-btn fs-controls-add-ctrl">
-                            <option value="bvec">bvec</option>
-                            <option value="ivec">ivec</option>
-                            <option value="vec">vec</option>
-                        </select>
-                        <br/>
-                        <label class="fs-input-label" for="fs_vectors_ctrl_mtype">Midi:</label>
-                        <select id="fs_vectors_ctrl_mtype" class="fs-btn fs-controls-add-ctrl">
-                            <option value="rel">Relative</option>
-                            <option value="abs">Absolute</option>
-                        </select>
-                        <br/>
-                        <label class="fs-input-label" for="fs_vectors_ctrl_comps">Components:</label>
-                        <select id="fs_vectors_ctrl_comps" class="fs-btn fs-controls-add-ctrl">
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                        </select>
-                        <br/>
-                        <label class="fs-input-label" for="fs_vectors_ctrl_array_size">Count:</label>
-                        <input id="fs_vectors_ctrl_array_size" type="number" value="1" min="1" class="wui-rangeslider-input fs-controls-add-ctrl">
-                        <br/>
-                        <button id="fs_vectors_ctrl_add" class="fs-btn fs-controls-add-ctrl">Add</button>
-                    </div>
-                </div>
-                <div id="fs_controls_panel" class="fs-controls-panel">
-                </div>
-            </div>
-        </div>
-
         <div id="fs_right_dialog">
             <div>
                 <ul id="fs_discuss" class="fs-discuss">
@@ -788,11 +720,12 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
         </div>
         <div id="fs_import_dialog">
             <div>
-                <div class="fs-audio-import-settings">
-                    <div style="font-size: 13px; margin-top: 5px; margin-left: 5px;">Audio import settings</div>
+                <div style="padding: 4px"></div>
+                <fieldset id="fs_import_audio" class="fs-fieldset fs-audio-import-settings fs-collapsed">
+                    <legend id="fs_import_audio_legend" style="margin-top: 5px; margin-left: 5px;">Audio import settings</legend>
                     <div class="fs-spacer"></div>
-                    <div>
-                        <label style="font-size: 9pt" class="fs-input-label" for="fs_import_audio_window_settings">Window type</label>
+                    <div class="wui-rangeslider">
+                        <label class="wui-rangeslider-title" style="min-width: 81px;" class="fs-input-label" for="fs_import_audio_window_settings">Window type</label>
                         <select id="fs_import_audio_window_settings" class="fs-btn">
                             <option>hann</option>
                             <option>triangular</option>
@@ -831,7 +764,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                         </label>
                     </div>
                     <div class="fs-spacer"></div>
-                </div>
+                </fieldset>
                 <div id="fs_import_toolbar">
 
                 </div>

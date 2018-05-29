@@ -245,7 +245,6 @@ redisClient.on('connect', function() {
                         
                             redisSettingsClient.get(session, function (err, reply) {
                                     if (reply !== null) {
-                                        //console.log(JSON.parse(reply));
                                         ws.send(prepareMessage("slices", { data : JSON.parse(reply) }));
                                     } else {
                                         redisSettingsClient.set(session, "[]");
@@ -289,7 +288,7 @@ redisClient.on('connect', function() {
                             if (reply !== null) {
                                 var slices = JSON.parse(reply);
                                 
-                                slices.push({ x: msg.data.x, shift: msg.data.shift, mute: msg.data.mute, output_channel: msg.data.output_channel, synthesis_type: msg.data.synthesis_type });
+                                slices.push({ x: msg.data.x, shift: msg.data.shift, mute: msg.data.mute, output_channel: msg.data.output_channel, type: msg.data.type });
                                 
                                 clusterWideBroadcast(ws, prepareMessage("addSlice", { data: msg.data }), client.session);
                                 
@@ -350,8 +349,8 @@ redisClient.on('connect', function() {
                                     slice.output_channel = msg.data.obj.output_channel;
                                 }
                                 
-                                if (msg.data.obj['synthesis_type'] !== undefined) {
-                                    slice.synthesis_type = msg.data.obj.synthesis_type;
+                                if (msg.data.obj['type'] !== undefined) {
+                                    slice.type = msg.data.obj.type;
                                 }
                                 
                                 clusterWideBroadcast(ws, prepareMessage("updSlice", { data: msg.data }), client.session);

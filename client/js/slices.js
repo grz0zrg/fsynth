@@ -7,7 +7,11 @@
  */
 
 var _selected_slice_marker = null,
-    _marker_midi_message_timeout = null;
+    _marker_midi_message_timeout = null,
+
+    _slice_update_timeout = [{}, {}, {}, {}, {}],
+    
+    _slice_type_color = ["#ffffff", "#ff0000"];
 
 /***********************************************************
     Functions.
@@ -42,10 +46,6 @@ var _domCreatePlayPositionMarker = function (hook_element, height) {
         decoration_div2 = document.createElement("div");
     
     play_position_marker_div.className = "play-position-marker";
-    
-    if (_show_slicebar) {
-        play_position_marker_div.classList.add("play-position-marker-bar");
-    }
     
     decoration_div.style.top = "0px";
     //decoration_div2.style.top = "0";
@@ -326,7 +326,7 @@ var _createMarkerSettings = function (marker_obj) {
         
         i = 0;
     
-    midi_custom_message_area.innerHTML = '// User-defined MIDI messages for note events\n// Pixels data ([0,1] float data) : l, r, b, a\n// MIDI channel : c\n\nif (type === "on") {\n    on = [];\n} else if (type === "change") {\n    change = [];\n} else if (type === "off") {\n    off = [];\n}';
+    midi_custom_message_area.innerHTML = '// User-defined MIDI messages for note events\n// Pixels data ([0,1) float data) : l, r, b, a\n// MIDI channel : c\n\nif (type === "on") {\n    on = [];\n} else if (type === "change") {\n    change = [];\n} else if (type === "off") {\n    off = [];\n}';
     midi_custom_message_area.style.width = "94%";
     midi_custom_message_area.style.height = "180px";
     midi_custom_message_area.className = "fs-textarea";
@@ -620,7 +620,8 @@ var _muteSlice = function (slice_obj, submit) {
         play_position_bottom_hook_element = slice_obj.element.lastElementChild;
     
     slice_obj.mute = true;
-    slice_obj.element.style.backgroundColor = "#555555";
+    play_position_top_hook_element.style.borderTopColor = "#555555";
+    play_position_bottom_hook_element.style.borderBottomColor = "#555555";
     
     if (submit) {
         _submitSliceUpdate(2, slice_obj.element.dataset.slice, { mute : true }); 
@@ -632,14 +633,29 @@ var _unmuteSlice = function (slice_obj, submit) {
         play_position_bottom_hook_element = slice_obj.element.lastElementChild;    
 
     slice_obj.mute = false;
-    slice_obj.element.style.backgroundColor = "";
+    play_position_top_hook_element.style.borderTopColor = _slice_type_color[type];
+    play_position_bottom_hook_element.style.borderBottomColor = _slice_type_color[type];
 
     if (submit) {
         _submitSliceUpdate(2, slice_obj.element.dataset.slice, { mute : false });
     }
 };
 
-var _addPlayPositionMarker = function (x, shift, mute, output_channel, synthesis_type, submit) {
+
+var _changeSliceType = function (slice_obj, type, submit) {
+    var play_position_top_hook_element = slice_obj.element.firstElementChild,
+        play_position_bottom_hook_element = slice_obj.element.lastElementChild;    
+
+    slice_obj.type = type;
+    play_position_top_hook_element.style.borderTopColor = _slice_type_color[type];
+    play_position_bottom_hook_element.style.borderBottomColor = _slice_type_color[type];
+
+    if (submit) {
+        _submitSliceUpdate(4, slice_obj.element.dataset.slice, { type : type });
+    }
+};
+
+var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_type, submit) {
     var play_position_marker_element = _domCreatePlayPositionMarker(_canvas, _canvas_height),
         play_position_marker_id = _play_position_markers.length,
         
@@ -661,8 +677,10 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, synthesis
     if (!is_mute) {
         is_mute = false;
     } else {
-        play_position_marker_element.style.backgroundColor = "#555555";
     }
+
+    play_position_top_hook_element.style.borderTopColor = _slice_type_color[slice_type];
+    play_position_bottom_hook_element.style.borderBottomColor = _slice_type_color[slice_type];
 
     play_position_marker_element.dataset.slice = play_position_marker_id;
 
@@ -675,10 +693,10 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, synthesis
             shift: 0,
             frame_increment: 0,
             output_channel: 1,
-            synthesis_type: 0,
             y: 0,
             height: _canvas_height,
             id: play_position_marker_id,
+            type: slice_type,
             midi_out: {
                 device_uids: [],
                 custom_midi_message: "",
@@ -746,8 +764,20 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, synthesis
                 unmute_obj = { icon: "fs-unmute-icon", tooltip: "Unmute",  on_click: function () {
                         _unmuteSlice(play_position_marker, true);
                     } },
-                
-                obj;
+                fx_obj = { icon: "fs-fx-icon", tooltip: "FX",  on_click: function () {
+                    _changeSliceType(play_position_marker, 1, true);
+                } },
+                synth_obj = { icon: "fs-fas-icon", tooltip: "Synth",  on_click: function () {
+                    _changeSliceType(play_position_marker, 0, true);
+                } },
+                obj,
+                type_obj;
+
+            if (play_position_marker.type === 0 || play_position_marker.type === undefined) {
+                type_obj = fx_obj;
+            } else {
+                type_obj = synth_obj;
+            }
         
             if (!play_position_marker.mute) {
                 obj = mute_obj;
@@ -771,9 +801,10 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, synthesis
                     { icon: "fs-gear-icon", tooltip: "Settings",  on_click: function () {
                             _updateSliceSettingsDialog(play_position_marker, true);
                         }},
+                    type_obj,
                     { icon: "fs-cross-45-icon", tooltip: "Delete",  on_click: function () {
                             _removePlayPositionMarker(play_position_marker_element.dataset.slice, true, true);
-                        } }
+                        }}
                 ]);
 
             return false;

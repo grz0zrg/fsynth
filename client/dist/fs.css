@@ -1207,6 +1207,10 @@ span.CodeMirror-selectedtext { background: none; }
     background-image: url("../data/ui-icons/video.png");
 }
 
+.fs-fx-icon {
+    background-image: url("../data/ui-icons/fx.png");
+}
+
 .fs-error-icon {
     background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAHlBMVEW7AAC7AACxAAC7AAC7AAAAAAC4AAC5AAD///+7AAAUdclpAAAABnRSTlMXnORSiwCK0ZKSAAAATUlEQVR42mWPOQ7AQAgDuQLx/z8csYRmPRIFIwRGnosRrpamvkKi0FTIiMASR3hhKW+hAN6/tIWhu9PDWiTGNEkTtIOucA5Oyr9ckPgAWm0GPBog6v4AAAAASUVORK5CYII=");
     
@@ -1225,6 +1229,7 @@ span.CodeMirror-selectedtext { background: none; }
 .fp-join-icon {
     background-image: url("../data/ui-icons/join.png");
 }
+
 .wui-rangeslider-title {
     font-family: inherit !important;
     font-size: 9pt;
@@ -1895,7 +1900,7 @@ canvas {
 }
 
 .play-position-marker-bar {
-    background-color: #aaaa00;
+
 }
 
 .play-position-triangle {
@@ -1905,10 +1910,26 @@ canvas {
     position: absolute;
     border-left: 8px solid transparent;
     border-right: 8px solid transparent;
-    border-top: 8px solid #ffff00;
+    border-top: 8px solid #ffffff;
 }
 
 .play-position-triangle:hover {
+    cursor: hand;
+}
+
+.play-position-triangle-vflip {
+    width: 0;
+    height: 0;
+    left: -8px;
+    position: absolute;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid #ffffff;
+    
+    bottom: 0;
+}
+
+.play-position-triangle-vflip:hover {
     cursor: hand;
 }
 
@@ -1985,18 +2006,6 @@ canvas {
     opacity: 0;
 }
 
-.play-position-triangle-vflip {
-    width: 0;
-    height: 0;
-    left: -8px;
-    position: absolute;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-bottom: 8px solid #ffff00;
-    
-    bottom: 0;
-}
-
 .fs-help-content {
     text-align: center;
     padding-top: 16px;
@@ -2045,10 +2054,6 @@ canvas {
 
 .fs-documentation-keyword:hover {
     cursor: pointer;
-}
-
-.play-position-triangle-vflip:hover {
-    cursor: hand;
 }
 
 .fs-browser {
@@ -2111,16 +2116,14 @@ body .code .CodeMirror-fullscreen {
     flex-direction: column;
     text-align: center;
     
-    position: absolute;
+    /*position: absolute;*/
+    margin-top: 8px;
     bottom: 1px;
 }
 
 .fs-audio-import-settings {
-    width: 320px;
+    width: 380px;
     margin: auto;
-    border: solid 1px #333333;
-    border-radius: 4px;
-    background-color: #111111;
     margin-top: 0px;
     margin-bottom: 6px;
     color: #ffffff;
@@ -2299,6 +2302,79 @@ body .code .CodeMirror-fullscreen {
 
 .fs-link:hover {
     color: greenyellow;
+}
+
+.fs-fieldset {
+    border: 1px ridge #424242;
+    background-color: #111;
+    color: #ffffff;
+    font-size: 11pt;
+}
+
+.fs-fieldset.fs-collapsible > legend:before {
+    font-family: FontAwesome;
+    content: "\f0d8";
+    padding-right: 3px;
+}
+
+.fs-fieldset.fs-collapsed > legend {
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.fs-fieldset.fs-collapsible > legend {
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.fs-fieldset.fs-collapsed > legend:before {
+    font-family: FontAwesome;
+    content: "\f0d7";
+    padding-right: 3px;
+}
+
+.fs-fieldset.fs-collapsed {
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    height: 10px;
+    cursor: pointer;
+}
+
+.fs-fieldset.fs-collapsed *:not(legend) {
+    display: none;
+}
+
+.fs-matrix {
+    font-size: 13px;
+    font-family: monospace;
+}
+
+.fs-matrix th {
+    font-weight: normal;
+}
+
+.fs-matrix-first-row {
+    text-align: center;
+}
+
+.fs-matrix-first-row th {
+    padding-bottom: 2px;
+}
+
+.fs-matrix-first-cell {
+    text-align: right;
+    padding-right: 4px;
+}
+
+.fs-matrix-ck-cell {
+    padding: 1px;
 }
 
 .fs-text {

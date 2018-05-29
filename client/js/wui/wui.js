@@ -1585,6 +1585,11 @@ var WUI_Dialog = new (function() {
         dialog.style.width  = opts.width;
         dialog.style.height = opts.height;
 
+        if (opts.min_width != "title") {
+            dialog.style.minWidth = opts.min_width + "px";
+        }
+        dialog.style.minHeight = opts.min_height + "px";
+
         dialog.classList.add(_class_name.dialog);
 
         content.classList.add(_class_name.content);
@@ -1742,6 +1747,10 @@ var WUI_Dialog = new (function() {
             this.open(id, false);
         } else {
             dialog.classList.add(_class_name.closed);
+        }
+
+        if (opts.min_width === "title") {
+            dialog.style.minWidth = header_title_wrapper.offsetWidth + 148 + "px";
         }
 
         return id;

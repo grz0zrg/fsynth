@@ -54,14 +54,8 @@ var _icon_class = {
     _send_slices_settings_timeout,
     _add_slice_timeout,
     _remove_slice_timeout,
-    _slice_update_timeout = [{}, {}, {}, {}],
-    _slice_update_queue = [],
     
-    _fas_content_list = [],
-    
-    _controls_dialog_id = "fs_controls_dialog",
-    _controls_dialog,
-    _controls_dialog_element = document.getElementById(_controls_dialog_id);
+    _fas_content_list = [];
 
 /***********************************************************
     Functions.
@@ -73,16 +67,6 @@ var _togglePlay = function (toggle_ev) {
     } else {
         _play();
     }
-};
-
-var _showControlsDialog = function () {
-/* // Recent controllers
-    _controllers_canvas = document.getElementById("fs_controllers");
-    _controllers_canvas_ctx = _controllers_canvas.getContext('2d');
-
-    _redrawControls();
-*/  
-    WUI_Dialog.open(_controls_dialog, true);
 };
 
 var _showHelpDialog = function () {
@@ -117,7 +101,294 @@ var _onChangeChannelSettings = function (channel, channel_data_index) {
     };
 };
 
+var _toggleCollapse = function (element, bind_to) {
+    return function (ev) {
+        element.classList.toggle("fs-collapsible");
+        element.classList.toggle("fs-collapsed");
+
+        ev.stopPropagation();
+    };
+};
+
+var _applyCollapsible = function (element, bind_to) {
+    element.classList.add("fs-collapsible");
+    bind_to.addEventListener("click", _toggleCollapse(element, bind_to));
+
+    if (element !== bind_to) {
+        element.addEventListener("click", function (ev) {
+            if (element.classList.contains("fs-collapsed")) {
+                bind_to.dispatchEvent(new UIEvent('click'));
+            }
+
+            ev.stopPropagation();
+        });
+    }
+};
+
 var _createFasSettingsContent = function () {
+    var dialog_div = document.getElementById(_fas_dialog).lastElementChild,
+        detached_dialog = WUI_Dialog.getDetachedDialog(_fas_dialog),
+
+        load_samples_btn = document.createElement("button"),
+        
+        synthesis_matrix_fieldset = document.createElement("fieldset"),
+        fx_matrix_fieldset = document.createElement("fieldset"),
+        actions_fieldset = document.createElement("fieldset"),
+
+        fx_matrix_fx_fieldset = document.createElement("fieldset"),
+        fx_matrix_chn_fieldset = document.createElement("fieldset"),
+
+        synthesis_matrix_table = document.createElement("table"),
+        fx_matrix_table = document.createElement("table"),
+        
+        synthesis_matrix_fieldset_legend = document.createElement("legend"),
+        fx_matrix_fieldset_legend = document.createElement("legend"),
+        actions_fieldset_legend = document.createElement("legend"),
+
+        fx_matrix_fx_fieldset_legend = document.createElement("legend"),
+        fx_matrix_chn_fieldset_legend = document.createElement("legend"),
+        
+        synthesis_types = ["Additive", "Granular", "PM/FM", "Subtractive", "Karplus", "Wavetable"],
+        fx_types = ["Waveshaping"],
+
+        ck_tmp = [],
+
+        chn_settings,
+
+        slice,
+
+        row,
+        cell,
+        checkbox,
+        
+        i = 0, j = 0;
+    
+    // fieldset
+    synthesis_matrix_fieldset.className = "fs-fieldset";
+    fx_matrix_fieldset.className = "fs-fieldset";
+    actions_fieldset.className = "fs-fieldset";
+    fx_matrix_fx_fieldset.className = "fs-fieldset";
+    fx_matrix_chn_fieldset.className = "fs-fieldset";
+    
+    dialog_div.style = "overflow: auto";
+    dialog_div.innerHTML = "";
+    
+    synthesis_matrix_fieldset_legend.innerHTML = "Synthesis";
+    fx_matrix_fieldset_legend.innerHTML = "FX";
+    actions_fieldset_legend.innerHTML = "Actions";
+    fx_matrix_fx_fieldset_legend.innerHTML = "Type";
+    fx_matrix_chn_fieldset_legend.innerHTML = "Chn";
+    
+    synthesis_matrix_fieldset.appendChild(synthesis_matrix_fieldset_legend);
+    fx_matrix_fieldset.appendChild(fx_matrix_fieldset_legend);
+    actions_fieldset.appendChild(actions_fieldset_legend);
+    fx_matrix_fx_fieldset.appendChild(fx_matrix_fx_fieldset_legend);
+    fx_matrix_chn_fieldset.appendChild(fx_matrix_chn_fieldset_legend);
+
+    _applyCollapsible(synthesis_matrix_fieldset, synthesis_matrix_fieldset_legend);
+    _applyCollapsible(fx_matrix_fieldset, fx_matrix_fieldset_legend);
+    _applyCollapsible(actions_fieldset, actions_fieldset_legend);
+
+    // synthesis matrix
+    synthesis_matrix_table.className = "fs-matrix";
+    synthesis_matrix_fieldset.appendChild(synthesis_matrix_table);
+
+    row = document.createElement("tr");
+    row.className = "fs-matrix-first-row";
+    cell = document.createElement("th");
+    row.appendChild(cell);
+    for (i = 0; i < _output_channels; i += 1) {
+        cell = document.createElement("th");
+        cell.innerHTML = i;
+        row.appendChild(cell);
+    }
+
+    synthesis_matrix_table.appendChild(row);    
+
+    for (i = 0; i < synthesis_types.length; i += 1) {
+        row = document.createElement("tr");
+
+        cell = document.createElement("th");
+        cell.className = "fs-matrix-first-cell";
+        cell.innerHTML = synthesis_types[i];
+        row.appendChild(cell);
+        
+        for (j = 0; j < _output_channels; j += 1) {
+            chn_settings = _chn_settings[j];
+
+            cell = document.createElement("th");
+            cell.className = "fs-matrix-ck-cell";
+            checkbox = document.createElement("input");
+            checkbox.name = j;
+            checkbox.value = i;
+            checkbox.type = "radio";
+
+            // create channel settings if it does not exist
+            if (!chn_settings) {
+                _chn_settings[j] = [0, 0, 0, 0, 0, 0];
+                chn_settings = _chn_settings[j];
+            }
+            
+            // check synthesis type from saved settings
+            if (chn_settings[0] === i) {
+                checkbox.checked = true;
+            }
+
+            checkbox.addEventListener("change", function () {
+                var chn = parseInt(this.name, 10);
+
+                _chn_settings[chn][0] = parseInt(this.value, 10);
+
+                // save settings
+                _local_session_settings.chn_settings[chn] = _chn_settings[chn];
+                _saveLocalSessionSettings();
+            
+                // notify FAS
+                clearTimeout(_fas_chn_notify_timeout);
+                _fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 2000);
+            });
+
+            ck_tmp.push(checkbox);
+
+            cell.appendChild(checkbox);
+            row.appendChild(cell);
+        }
+
+        // trigger change event on checked ones
+        for (j = 0; j < ck_tmp.length; j += 1) {
+            checkbox = ck_tmp[j];
+            if (checkbox.checked) {
+                checkbox.dispatchEvent(new UIEvent('change'));
+            }
+        }
+        ck_tmp = [];
+
+        synthesis_matrix_table.appendChild(row);
+    }
+
+    // fx / chn matrix
+    fx_matrix_table.className = "fs-matrix";
+    fx_matrix_chn_fieldset.appendChild(fx_matrix_table);
+    fx_matrix_fieldset.appendChild(fx_matrix_chn_fieldset);
+
+    row = document.createElement("tr");
+    row.className = "fs-matrix-first-row";
+    cell = document.createElement("th");
+    row.appendChild(cell);
+    for (i = 0; i < _play_position_markers.length; i += 1) {
+        slice = _play_position_markers[i];
+
+        if (slice.type === 1) {
+            cell = document.createElement("th");
+            cell.style.color = "red";
+            cell.innerHTML = slice.id;
+            row.appendChild(cell);
+        }    
+    }
+
+    fx_matrix_table.appendChild(row);    
+
+    for (i = 0; i < _output_channels; i += 1) {
+        row = document.createElement("tr");
+
+        cell = document.createElement("th");
+        cell.className = "fs-matrix-first-cell";
+        cell.innerHTML = i;
+        row.appendChild(cell);
+        
+        for (j = 0; j < _play_position_markers.length; j += 1) {
+            slice = _play_position_markers[j];
+
+            if (slice.type === 1) {
+                cell = document.createElement("th");
+                cell.className = "fs-matrix-ck-cell";
+                checkbox = document.createElement("input");
+                //checkbox.name = "fxs_" + j;
+                checkbox.type = "checkbox";
+
+                checkbox.addEventListener("change", function () {
+
+                });
+
+                cell.appendChild(checkbox);
+                row.appendChild(cell);
+            }    
+        }
+
+        fx_matrix_table.appendChild(row);
+    }
+
+    // fx / slice matrix
+    fx_matrix_table = document.createElement("table");
+    
+    fx_matrix_table.className = "fs-matrix";
+    fx_matrix_fx_fieldset.appendChild(fx_matrix_table);
+    fx_matrix_fieldset.appendChild(fx_matrix_fx_fieldset);
+
+    row = document.createElement("tr");
+    row.className = "fs-matrix-first-row";
+    cell = document.createElement("th");
+    row.appendChild(cell);
+    for (i = 0; i < _play_position_markers.length; i += 1) {
+        slice = _play_position_markers[i];
+
+        if (slice.type === 1) {
+            cell = document.createElement("th");
+            cell.style.color = "red";
+            cell.innerHTML = slice.id;
+            row.appendChild(cell);
+        }    
+    }
+
+    fx_matrix_table.appendChild(row);    
+
+    for (i = 0; i < fx_types.length; i += 1) {
+        row = document.createElement("tr");
+
+        cell = document.createElement("th");
+        cell.className = "fs-matrix-first-cell";
+        cell.innerHTML = fx_types[i];
+        row.appendChild(cell);
+        
+        for (j = 0; j < _play_position_markers.length; j += 1) {
+            slice = _play_position_markers[j];
+
+            if (slice.type === 1) {
+                cell = document.createElement("th");
+                cell.className = "fs-matrix-ck-cell";
+                checkbox = document.createElement("input");
+                //checkbox.name = "fxs_" + j;
+                checkbox.type = "checkbox";
+
+                checkbox.addEventListener("change", function () {
+
+                });
+
+                cell.appendChild(checkbox);
+                row.appendChild(cell);
+            }    
+        }
+
+        fx_matrix_table.appendChild(row);
+    }
+
+    // load sample action
+    load_samples_btn.innerHTML = "Reload samples";
+    load_samples_btn.className = "fs-btn fs-btn-default";
+
+    load_samples_btn.style.width = "100%";
+    
+    load_samples_btn.addEventListener("click", function () {
+        _fasNotify(_FAS_ACTION, { type: 0 });
+        _fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
+    });
+
+    actions_fieldset.appendChild(load_samples_btn);
+    
+    dialog_div.appendChild(synthesis_matrix_fieldset);
+    dialog_div.appendChild(fx_matrix_fieldset);
+    dialog_div.appendChild(actions_fieldset);  
+/*
     var dialog_div = document.getElementById(_fas_dialog).lastElementChild,
         detached_dialog = WUI_Dialog.getDetachedDialog(_fas_dialog),
         main_chn_settings_div = document.createElement("div"),
@@ -450,6 +721,7 @@ var _createFasSettingsContent = function () {
     }
     
     dialog_div.appendChild(main_chn_settings_div);  
+*/
 };
 
 var _showFasDialog = function (toggle_ev) {
@@ -686,7 +958,6 @@ var _uiInit = function () {
         settings_ck_feedback_elem = document.getElementById("fs_settings_ck_feedback"),
         settings_ck_osc_out_elem = document.getElementById("fs_settings_ck_oscout"),
         settings_ck_osc_in_elem = document.getElementById("fs_settings_ck_oscin"),
-        settings_ck_slicebar_elem = document.getElementById("fs_settings_ck_slicebar"),
         settings_ck_slices_elem = document.getElementById("fs_settings_ck_slices"),
         settings_ck_quickstart_elem = document.getElementById("fs_settings_ck_quickstart"),
         settings_ck_worklet_elem = document.getElementById("fs_settings_ck_audioworklet"),
@@ -697,7 +968,6 @@ var _uiInit = function () {
         fs_settings_show_globaltime = localStorage.getItem('fs-show-globaltime'),
         fs_settings_show_polyinfos = localStorage.getItem('fs-show-polyinfos'),
         fs_settings_show_oscinfos = localStorage.getItem('fs-show-oscinfos'),
-        fs_settings_show_slicebar = localStorage.getItem('fs-show-slicebar'),
         fs_settings_hlmatches = localStorage.getItem('fs-editor-hl-matches'),
         fs_settings_lnumbers = localStorage.getItem('fs-editor-show-linenumbers'),
         fs_settings_xscrollbar = localStorage.getItem('fs-editor-advanced-scrollbar'),
@@ -804,10 +1074,6 @@ var _uiInit = function () {
         _show_polyinfos = (fs_settings_show_polyinfos === "true");
     }
 
-    if (fs_settings_show_slicebar !== null) {
-        _show_slicebar = (fs_settings_show_slicebar === "true");
-    }
-
     if (fs_settings_hlmatches !== null) {
         _cm_highlight_matches = (fs_settings_hlmatches === "true");
     }
@@ -862,12 +1128,6 @@ var _uiInit = function () {
         settings_ck_lnumbers_elem.checked = true;
     } else {
         settings_ck_lnumbers_elem.checked = false;
-    }
-    
-    if (_show_slicebar) {
-        settings_ck_slicebar_elem.checked = true;
-    } else {
-        settings_ck_slicebar_elem.checked = false;
     }
     
     settings_ck_osc_in_elem.addEventListener("change", function () {
@@ -938,25 +1198,6 @@ var _uiInit = function () {
             }
         
             localStorage.setItem('fs-show-polyinfos', _show_polyinfos);
-        });
-    
-    settings_ck_slicebar_elem.addEventListener("change", function () {
-            var elements = document.getElementsByClassName("play-position-marker"),
-                i = 0;
-        
-            _show_slicebar = this.checked;
-        
-            if (!_show_slicebar) {
-                for(i = elements.length - 1; i >= 0; --i) {
-                    elements[i].classList.remove("play-position-marker-bar");
-                }   
-            } else {
-                for(i = elements.length - 1; i >= 0; --i) {
-                    elements[i].classList.add("play-position-marker-bar");
-                } 
-            }
-        
-            localStorage.setItem('fs-show-slicebar', _show_slicebar);
         });
     
     settings_ck_slices_elem.addEventListener("change", function () {
@@ -1059,7 +1300,6 @@ var _uiInit = function () {
     settings_ck_feedback_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_osc_in_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_osc_out_elem.dispatchEvent(new UIEvent('change'));
-    settings_ck_slicebar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_slices_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_quickstart_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_worklet_elem.dispatchEvent(new UIEvent('change'));
@@ -1070,7 +1310,7 @@ var _uiInit = function () {
             width: "320px",
             height: "480px",
         
-            min_height: "120px",
+            min_height: 120,
 
             halign: "center",
             valign: "center",
@@ -1136,10 +1376,11 @@ var _uiInit = function () {
     _fas_dialog = WUI_Dialog.create(_fas_dialog_id, {
             title: "FAS Settings",
 
-            width: "340px",
+            width: "auto",
             height: "auto",
         
-            min_height: "180px",
+            min_width: 340,
+            min_height: 80,
 
             halign: "center",
             valign: "center",
@@ -1169,7 +1410,8 @@ var _uiInit = function () {
             title: "Import dialog (images etc.)",
 
             width: "420px",
-            height: "524px",
+            height: "auto",
+            min_height: "80px",
 
             halign: "center",
             valign: "center",
@@ -1237,7 +1479,7 @@ var _uiInit = function () {
             width: "380px",
             height: "auto",
         
-            min_height: "400px",
+            min_height: 32,
 
             halign: "center",
             valign: "center",
@@ -1350,63 +1592,6 @@ var _uiInit = function () {
                 }
             ]
     });
-
-    _controls_dialog = WUI_Dialog.create(_controls_dialog_id, {
-            title: "Controllers",
-
-            width: "auto",
-            height: "auto",
-
-            halign: "center",
-            valign: "center",
-
-            on_pre_detach: function () {
-                var ctrl_panel_element = document.getElementById("fs_controls_panel"),
-                    nodes, i;
-
-                if (ctrl_panel_element.firstElementChild) {
-                    nodes = ctrl_panel_element.firstElementChild.lastElementChild.childNodes;
-
-                    for (i = 0; i < nodes.length; i += 1) {
-                        WUI_RangeSlider.destroy(nodes[i].id);
-                    }
-
-                    ctrl_panel_element.innerHTML = "";
-                }
-            },
-
-            on_detach: function (new_window) {
-                var ndocument = new_window.document,
-                    ctrl_scalars_add_btn = ndocument.getElementById("fs_scalars_ctrl_add"),
-                    ctrl_vectors_add_btn = ndocument.getElementById("fs_vectors_ctrl_add");
-                    //ctrl_matrices_add_btn = ndocument.getElementById("fs_matrices_ctrl_add");
-
-                new_window.document.body.style.overflow = "auto";
-
-                _controls_dialog_element = ndocument.getElementById(_controls_dialog_id);
-
-                ctrl_scalars_add_btn.addEventListener("click",  function (ev) { _addControls("scalars", new_window);  });
-                ctrl_vectors_add_btn.addEventListener("click",  function (ev) { _addControls("vectors", new_window);  });
-                //ctrl_matrices_add_btn.addEventListener("click", function (ev) { _addControls("matrices", ev); });
-
-                _buildControls(_controls);
-            },
-/* // Recent controllers
-            on_detach: function (new_window) {
-                var previous_canvas = _controllers_canvas;
-                
-                _controllers_canvas = new_window.document.getElementById("fs_controllers");
-                _controllers_canvas_ctx = _controllers_canvas.getContext('2d');
-                
-                _controllers_canvas_ctx.drawImage(previous_canvas, 0, 0);
-            },
-*/
-            open: false,
-
-            status_bar: false,
-            detachable: true,
-            draggable: true
-        });
 
     WUI_ToolBar.create("fs_record_toolbar", {
                 allow_groups_minimize: false
@@ -2371,6 +2556,8 @@ var _uiInit = function () {
                 _audio_import_settings.maxfreq = value;
             }
         });
+    
+    _applyCollapsible(document.getElementById("fs_import_audio"), document.getElementById("fs_import_audio_legend"));
     
     // now useless, just safe to remove!
     _utterFailRemove();

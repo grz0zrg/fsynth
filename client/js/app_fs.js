@@ -325,7 +325,6 @@ var FragmentSynth = function (params) {
         _show_globaltime = true,
         _show_oscinfos = false,
         _show_polyinfos = false,
-        _show_slicebar = true,
         _cm_highlight_matches = false,
         _cm_show_linenumbers = true,
         _cm_advanced_scrollbar = false,
@@ -388,14 +387,11 @@ var FragmentSynth = function (params) {
         _analysis_colored = true,
         _analysis_speed = 2,
         
-        _midi_out_f,
         _midi_out = true,
         
         _quad_vertex_buffer,
         
         _program,
-
-        //_controls = {},
 
         _fragment_input_data = [],
 
@@ -440,7 +436,6 @@ var FragmentSynth = function (params) {
     /*#include transports.js*/
     /*#include export.js*/
     /*#include ui.js*/
-    /*#include controls.js*/
     /*#include slices.js*/
     /*#include midi.js*/
     /*#include fas.js*/
