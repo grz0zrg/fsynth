@@ -620,8 +620,13 @@ var _muteSlice = function (slice_obj, submit) {
         play_position_bottom_hook_element = slice_obj.element.lastElementChild;
     
     slice_obj.mute = true;
-    play_position_top_hook_element.style.borderTopColor = "#555555";
-    play_position_bottom_hook_element.style.borderBottomColor = "#555555";
+    if (slice_obj.type === 1) {
+        play_position_top_hook_element.style.borderTopColor = "#550000";
+        play_position_bottom_hook_element.style.borderBottomColor = "#550000";
+    } else {
+        play_position_top_hook_element.style.borderTopColor = "#555555";
+        play_position_bottom_hook_element.style.borderBottomColor = "#555555";
+    }    
     
     if (submit) {
         _submitSliceUpdate(2, slice_obj.element.dataset.slice, { mute : true }); 
@@ -633,8 +638,8 @@ var _unmuteSlice = function (slice_obj, submit) {
         play_position_bottom_hook_element = slice_obj.element.lastElementChild;    
 
     slice_obj.mute = false;
-    play_position_top_hook_element.style.borderTopColor = _slice_type_color[type];
-    play_position_bottom_hook_element.style.borderBottomColor = _slice_type_color[type];
+    play_position_top_hook_element.style.borderTopColor = _slice_type_color[slice_obj.type];
+    play_position_bottom_hook_element.style.borderBottomColor = _slice_type_color[slice_obj.type];
 
     if (submit) {
         _submitSliceUpdate(2, slice_obj.element.dataset.slice, { mute : false });
@@ -647,8 +652,18 @@ var _changeSliceType = function (slice_obj, type, submit) {
         play_position_bottom_hook_element = slice_obj.element.lastElementChild;    
 
     slice_obj.type = type;
-    play_position_top_hook_element.style.borderTopColor = _slice_type_color[type];
-    play_position_bottom_hook_element.style.borderBottomColor = _slice_type_color[type];
+    if (!slice_obj.mute) {
+        play_position_top_hook_element.style.borderTopColor = _slice_type_color[type];
+        play_position_bottom_hook_element.style.borderBottomColor = _slice_type_color[type];
+    } else {
+        if (slice_obj.type === 1) {
+            play_position_top_hook_element.style.borderTopColor = "#550000";
+            play_position_bottom_hook_element.style.borderBottomColor = "#550000";
+        } else {
+            play_position_top_hook_element.style.borderTopColor = "#555555";
+            play_position_bottom_hook_element.style.borderBottomColor = "#555555";
+        }    
+    }
 
     if (submit) {
         _submitSliceUpdate(4, slice_obj.element.dataset.slice, { type : type });
@@ -676,7 +691,6 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
     
     if (!is_mute) {
         is_mute = false;
-    } else {
     }
 
     play_position_top_hook_element.style.borderTopColor = _slice_type_color[slice_type];
@@ -706,6 +720,10 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
         });
     
     play_position_marker = _play_position_markers[play_position_marker_id];
+
+    if (is_mute) {
+        _muteSlice(play_position_marker);
+    }
 
     if (_local_session_settings["markers"]) {
         local_session_marker = _local_session_settings.markers[play_position_marker_id];

@@ -110,8 +110,13 @@ var _toggleCollapse = function (element, bind_to) {
     };
 };
 
-var _applyCollapsible = function (element, bind_to) {
+var _applyCollapsible = function (element, bind_to, collapsed) {
     element.classList.add("fs-collapsible");
+
+    if (element.classList.contains("fs-collapsed")) {
+        element.classList.toggle("fs-collapsible");
+    }    
+
     bind_to.addEventListener("click", _toggleCollapse(element, bind_to));
 
     if (element !== bind_to) {
@@ -940,12 +945,28 @@ var _drawBrushHelper = function () {
 
 var _uiInit = function () {
     _xhrContent("data/md/quickstart.md", function (md_content) {
-            document.getElementById("fs_quickstart_content").innerHTML = _showdown_converter.makeHtml(md_content);
-        });
+        document.getElementById("fs_quickstart_content").innerHTML = _showdown_converter.makeHtml(md_content);
+    });
     
     _xhrContent("data/md/uniforms.md", function (md_content) {
-            document.getElementById("fs_documentation_uniforms").innerHTML = _showdown_converter.makeHtml(md_content);
-        });
+        var md_fieldset = document.createElement("fieldset"),
+            md_fieldset_legend = document.createElement("legend"), 
+            md_content_div = document.createElement("div"),
+            doc_uniforms = document.getElementById("fs_documentation_uniforms");
+        
+        md_fieldset.className = "fs-fieldset";
+        md_content_div.className = "fs-md-uniforms";
+        
+        md_fieldset_legend.innerHTML = "Pre-defined uniforms";
+    
+        md_fieldset.appendChild(md_fieldset_legend);
+        md_fieldset.appendChild(md_content_div);
+        doc_uniforms.appendChild(md_fieldset);
+
+        _applyCollapsible(md_fieldset, md_fieldset_legend);
+
+        md_content_div.innerHTML = _showdown_converter.makeHtml(md_content);
+    });
     
     // may don't scale at all in the future!
     var settings_ck_globaltime_elem = document.getElementById("fs_settings_ck_globaltime"),
@@ -1512,12 +1533,18 @@ var _uiInit = function () {
         
             on_close: _disconnectAnalyserNode
         });
-*/  
+*/
+
+    
+    WUI_Tabs.create("fs_help_tabs", {
+        height: "calc(100% - 74px)"
+    });
+
     _help_dialog = WUI_Dialog.create(_help_dialog_id, {
             title: "Fragment - Help",
 
             width: "440px",
-            height: "820px",
+            height: "auto",
 
             halign: "center",
             valign: "center",
@@ -1528,10 +1555,6 @@ var _uiInit = function () {
             detachable: true,
             draggable: true
         });
-    
-    WUI_Tabs.create("fs_help_tabs", {
-        height: "calc(100% - 74px)"
-    });
     
     _paint_dialog = WUI_Dialog.create(_paint_dialog_id, {
             title: "Paint tools",
@@ -2557,7 +2580,16 @@ var _uiInit = function () {
             }
         });
     
-    _applyCollapsible(document.getElementById("fs_import_audio"), document.getElementById("fs_import_audio_legend"));
+    // initialize collapsable elements
+    var collapsibles = document.querySelectorAll(".fs-collapsible"),
+        legends,
+        i, j;
+    for (i = 0; i < collapsibles.length; i += 1) {
+        legends = collapsibles[i].getElementsByClassName("fs-collapsible-legend");
+        if (legends.length > 0) {
+            _applyCollapsible(collapsibles[i], legends[0]);
+        }    
+    }
     
     // now useless, just safe to remove!
     _utterFailRemove();

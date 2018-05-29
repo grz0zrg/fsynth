@@ -134,7 +134,7 @@ canvas {
 .fs-server-status:before {
     font-size: 14px;
     font-family: FontAwesome;
-    content: '\f1e6';
+    content: '\f109';
 }
 
 .fs-server-status-on {
@@ -795,11 +795,7 @@ canvas {
     color: #ffffff;
     /*margin: 8px;*/
     padding: 6px;
-    font-size: 12px;
     background-color: #111111;
-    height: -webkit-fill-available;
-    height: -moz-available;
-    height: fill-available;
 }
 
 .fs-documentation a {
@@ -810,6 +806,7 @@ canvas {
 .fs-documentation-entries {
     list-style-type: none;
     padding-left: 12px;
+    font-size: 12px;
 }
 
 .fs-documentation-entries ul {
@@ -828,11 +825,26 @@ canvas {
     */
 }
 
+.fs-documentation-keyword:before {
+    font-family: FontAwesome;
+    content: "\f0c5";
+    padding-right: 3px;
+    color: #ffffff;
+}
+
 .fs-documentation-keyword {
     color: #ffd700;
 }
 
 .fs-documentation-keyword:hover {
+    cursor: pointer;
+}
+
+.fs-documentation-action {
+    color: #ffd700;
+}
+
+.fs-documentation-action:hover {
     cursor: pointer;
 }
 
@@ -1132,7 +1144,7 @@ body .code .CodeMirror-fullscreen {
 }
 
 .fs-matrix {
-    font-size: 13px;
+    font-size: 12px;
     font-family: monospace;
 }
 
@@ -1155,6 +1167,28 @@ body .code .CodeMirror-fullscreen {
 
 .fs-matrix-ck-cell {
     padding: 1px;
+}
+
+.fs-md-uniforms p:nth-child(even) {
+    padding-left: 6px;
+    font-size: 13px;
+    padding-bottom: 3px;
+    padding-top: 2px;
+    font-family: sans-serif;
+}
+
+/*
+.fs-md-uniforms p:nth-child(odd):before {
+    font-family: FontAwesome;
+    content: "\f0da";
+    padding-right: 3px;
+    color: #fff;
+    font-size: 10px;
+}
+*/
+.fs-md-uniforms p:nth-child(odd) {
+    border-bottom: solid 1px #555555;
+    font-size: 14px;
 }
 
 .fs-text {
@@ -1181,7 +1215,7 @@ body .code .CodeMirror-fullscreen {
 
 .fs-text p {
     padding-left: 4px;
-    line-height: 18px;
+    /*line-height: 14px;*/
     margin-top: 8px;
     margin-bottom: 12px;
 }
@@ -1203,20 +1237,18 @@ body .code .CodeMirror-fullscreen {
 
 .fs-text code {
     font-family: monospace,monospace;
-    font-size: 0.7em;
+    font-size: 0.9em;
     color: #ff0;
 }
 
 .fs-uniforms {
     background-color: #111;
-    height: -webkit-fill-available;
-    height: -moz-available;
-    height: fill-available;
 }
 
 .fs-uniforms p {
     padding: 0;
     margin: 0;
+    font-size: 1em;
 }
 
 #fs_quickstart .wui-dialog-content {

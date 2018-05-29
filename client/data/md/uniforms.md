@@ -1,5 +1,3 @@
-#### Pre-defined uniforms
-
 `vec2 resolution`
 
 ​	viewport resolution (pixels)
@@ -18,7 +16,7 @@
 
 `vec4 mouse`
 
-​	normalized mouse pixel coords.
+​	normalized mouse coordinates (pixels)
 
 `vec4 date`
 
@@ -34,7 +32,7 @@
 
 `sampler2D pFrame` 
 
-​	previous frame available as a texture (feedback fx)
+​	the previous frame available as a texture (feedback)
 
 `sampler2D pFrameSynth`
 
@@ -42,15 +40,15 @@
 
 `int frame` 
 
-​	current frame
+​	the current frame
 
 `float htoy` 
 
-​	function with frequency as argument which return its vertical position on the canvas (pixels)
+​	a function with a frequency as argument, return a vertical position on the canvas (pixels)
 
 `float fline` 
 
-​	function with frequency as argument which return 1 or 0 (shortcut to draw a horizontal line)
+​	a function with a frequency as argument, return 1 or 0 (a shortcut to draw a horizontal line)
 
 `vec4[N] keyboard`
 
