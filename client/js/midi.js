@@ -134,6 +134,8 @@ var _addMIDIDevice = function (midi, io_type) {
     var midi_element = document.createElement("div"),
         midi_enabled_ck_id = "fs_midi_settings_ck_" + _midi_device_uid,
         midi_settings_element = document.getElementById(_midi_settings_dialog_id).lastElementChild,
+        midi_settings_in_element = document.getElementById("fs_midi_in_container"),
+        midi_settings_out_element = document.getElementById("fs_midi_out_container"),
         midi_device_enabled = (io_type === "output"),
         midi_device_enabled_ck = (io_type === "output" ? "checked" : ""),
         
@@ -142,9 +144,8 @@ var _addMIDIDevice = function (midi, io_type) {
         i = 0,
         
         detached_dialog = WUI_Dialog.getDetachedDialog(_midi_settings_dialog),
-        detached_dialog_midi_settings_element = null,
-        
-        io_type_html ='<span style="color: ' + ((io_type === "input") ? "lightgreen" : "orange") + '">' + io_type + '</span>';
+        detached_dialog_midi_in_element = null,
+        detached_dialog_midi_out_element = null;
     
     // settings were loaded previously
     if (midi.id in _midi_devices[io_type]) {
@@ -161,15 +162,19 @@ var _addMIDIDevice = function (midi, io_type) {
     midi_element.classList.add("fs-midi-settings-device");
 
     midi_element.innerHTML = [
-                midi.name,
                 '<div>',
+                midi.name,
+                '</div>',
                 '    <label class="fs-ck-label">',
-                '        <div>' + io_type_html.toUpperCase() + ' Enable</div>&nbsp;',
+                ' <span style="color: ' + ((io_type === "input") ? "lightgreen" : "orange") + '">Enable</span> </div>&nbsp;',
                 '        <input id="' + midi_enabled_ck_id + '" type="checkbox" data-type="' + io_type + '" data-did="' + midi.id + '" ' + midi_device_enabled_ck + '>',
-                '    </label>',
-                '</div>'].join('');
+                '    </label>'].join('');
 
-    midi_settings_element.appendChild(midi_element);
+    if (io_type === "input") {
+        midi_settings_in_element.appendChild(midi_element);
+    } else {
+        midi_settings_out_element.appendChild(midi_element);
+    } 
 
     _midi_devices[io_type][midi.id] = {
             obj: midi,
@@ -190,8 +195,13 @@ var _addMIDIDevice = function (midi, io_type) {
     if (detached_dialog) {
         tmp_element = midi_element.cloneNode(true);
         
-        detached_dialog_midi_settings_element = detached_dialog.document.getElementById(_midi_settings_dialog_id).lastElementChild,
-        detached_dialog_midi_settings_element.appendChild(tmp_element);
+        if (io_type === "input") {
+            detached_dialog_midi_in_element = detached_dialog.document.getElementById("fs_midi_in_container");
+            detached_dialog_midi_in_element.appendChild(tmp_element);
+        } else {
+            detached_dialog_midi_out_element = detached_dialog.document.getElementById("fs_midi_out_container");
+            detached_dialog_midi_out_element.appendChild(tmp_element);
+        }    
         
         _midi_devices[io_type][midi.id].detached_element = tmp_element;
     }
@@ -230,7 +240,7 @@ var _deleteMIDIDevice = function (id, type) {
         nodes = detached_dialog.document.querySelectorAll("[data-did='" + id + "']");
         
         if (nodes.length > 0) {
-            nodes[0].parentElement.parentElement.parentElement.parentElement.removeChild(nodes[0].parentElement.parentElement.parentElement);
+            nodes[0].parentElement.parentElement.parentElement.removeChild(nodes[0].parentElement.parentElement);
         }
     }
     
@@ -714,6 +724,6 @@ var _midiInit = function () {
 
         navigator.requestMIDIAccess().then(_midiAccessSuccess, _midiAccessFailure);
     } else {
-        midi_settings_element.innerHTML = "<center>WebMIDI API is not enabled/supported by this browser, please use a <a href=\"https://caniuse.com/#search=midi\">compatible browser</a>.</center>";
+        midi_settings_element.innerHTML = "<br><center>WebMIDI API is not enabled/supported by this browser, please use a <a href=\"https://caniuse.com/#search=midi\">compatible browser</a>.</center>";
     }
 }

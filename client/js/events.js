@@ -1,22 +1,24 @@
 /* jslint browser: true */
 
 _user_name_element.addEventListener('click', function (e) {
-        var user_name = prompt("User Name");
-
-        if (user_name === null) {
-            return;
-        }
-
-        if (user_name === "") {
-            user_name = "Anonymous";
-        }
-
-        _user_name_element.innerHTML = user_name;
-
-        localStorage.setItem('fs-user-name', user_name);
-
-        _notification("User name change will take effect after page reload.");
+        WUI_Dialog.open("fs_username_dialog");
     });
+    
+_username_input.addEventListener("change", function () {
+    var user_name = this.value;
+
+    if (user_name === null) {
+        return;
+    }
+
+    if (user_name === "") {
+        user_name = "Anonymous";
+    }
+
+    _user_name_element.innerHTML = user_name;
+
+    localStorage.setItem('fs-user-name', user_name);
+});
 
 _canvas.addEventListener('contextmenu', function(ev) {
         ev.preventDefault();

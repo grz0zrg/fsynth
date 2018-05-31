@@ -344,6 +344,22 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
 
         <div id="fs_midi_settings_dialog">
             <div class="fs-midi-settings">
+                <fieldset class="fs-fieldset fs-collapsible">
+                    <legend class="fs-collapsible-legend">
+                        INPUT
+                    </legend>
+                    <div id="fs_midi_in_container">
+
+                    </div>
+                </fieldset>
+                <fieldset class="fs-fieldset fs-collapsible fs-collapsed">
+                    <legend class="fs-collapsible-legend">
+                        OUTPUT
+                    </legend>
+                    <div id="fs_midi_out_container">
+
+                    </div>
+                </fieldset>
             </div>
         </div>
 
@@ -605,6 +621,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                                             </li>
                                         </ul>
                                     </fieldset>
+                                    <div>&nbsp;</div>
                                     <div class="fs-about-footer">
                                         <a href="https://www.fsynth.com" target="blank"><img src="data/fsynth2.png" width="297"></a>
                                         <br/><br/>
@@ -705,6 +722,16 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                         </div>
                     </div>
                     </div>
+                </div>
+            </div>
+        </div>
+        <div id="fs_username_dialog">
+            <div>
+                <div style="text-align: center; color: #ffffff">
+                    <input id="fs_username_input" type="text" value="Anonymous" placeholder="Anonymous" style="width: 80%; height: 18px" class="wui-rangeslider-input">
+                    <br><br>
+                    <div style="font-size: 9pt">This change will take effect after page reload.</div>
+                    <br>
                 </div>
             </div>
         </div>

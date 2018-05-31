@@ -155,6 +155,8 @@ var FragmentSynth = function (params) {
 
         _red_curtain_element = document.getElementById("fs_red_curtain"),
         _user_name_element = document.getElementById("fs_user_name"),
+        _username_input = document.getElementById("fs_username_input"),
+
         _time_infos = document.getElementById("fs_time_infos"),
         _hz_infos = document.getElementById("fs_hz_infos"),
         _xy_infos = document.getElementById("fs_xy_infos"),
@@ -612,6 +614,7 @@ var FragmentSynth = function (params) {
     }
 
     _user_name_element.innerHTML = _username;
+    _username_input.value = _username;
 
     //_canvas_width = _getElementOffset(_canvas_container).width;
 

@@ -1968,6 +1968,12 @@ canvas {
     border-top: solid 1px #222;
     padding: 4px;
     font-size: 10pt;
+    position: relative;
+}
+
+.fs-midi-settings-device label {
+    right: 4px;
+    position: absolute;
 }
 
 .fs-midi-settings-section {
@@ -1978,13 +1984,14 @@ canvas {
 }
 
 .fs-midi-settings-device > div {
-    padding: 4px;
+    padding: 1px;
     font-size: 9pt;
+    display: inline-block;
+    width: 206px;
 }
 
 .fs-midi-settings {
     color: #ffffff;
-    padding: 1px;
     overflow: overlay;
 }
 

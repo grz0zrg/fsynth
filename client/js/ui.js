@@ -1326,7 +1326,7 @@ var _uiInit = function () {
     settings_ck_worklet_elem.dispatchEvent(new UIEvent('change'));
     
     _midi_settings_dialog = WUI_Dialog.create(_midi_settings_dialog_id, {
-            title: "MIDI",
+            title: "MIDI I/O",
 
             width: "320px",
             height: "480px",
@@ -1515,6 +1515,26 @@ var _uiInit = function () {
                 new_window.document.body.style.overflow = "hidden";
             }
         });
+    
+    WUI_Dialog.create("fs_username_dialog", {
+        title: "Username",
+
+        width: "280px",
+        height: "auto",
+    
+        min_height: 32,
+
+        halign: "center",
+        valign: "center",
+
+        open: false,
+        modal: true,
+
+        status_bar: false,
+        detachable: false,
+        draggable: true
+    });
+    
 /*
     _analysis_dialog = WUI_Dialog.create(_analysis_dialog_id, {
             title: "Audio analysis",
