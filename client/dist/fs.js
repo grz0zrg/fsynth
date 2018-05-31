@@ -25620,6 +25620,10 @@ var _toggleCollapse = function (element, bind_to) {
 var _applyCollapsible = function (element, bind_to, collapsed) {
     element.classList.add("fs-collapsible");
 
+    if (collapsed) {
+        element.classList.add("fs-collapsed");
+    }
+
     if (element.classList.contains("fs-collapsed")) {
         element.classList.toggle("fs-collapsible");
     }    
@@ -25698,8 +25702,8 @@ var _createFasSettingsContent = function () {
     fx_matrix_chn_fieldset.appendChild(fx_matrix_chn_fieldset_legend);
 
     _applyCollapsible(synthesis_matrix_fieldset, synthesis_matrix_fieldset_legend);
-    _applyCollapsible(fx_matrix_fieldset, fx_matrix_fieldset_legend);
-    _applyCollapsible(actions_fieldset, actions_fieldset_legend);
+    _applyCollapsible(fx_matrix_fieldset, fx_matrix_fieldset_legend, true);
+    _applyCollapsible(actions_fieldset, actions_fieldset_legend, true);
 
     // synthesis matrix
     synthesis_matrix_table.className = "fs-matrix";
@@ -25846,7 +25850,6 @@ var _createFasSettingsContent = function () {
 
         if (slice.type === 1) {
             cell = document.createElement("th");
-            cell.style.color = "red";
             cell.innerHTML = slice.id;
             row.appendChild(cell);
         }    
@@ -28247,7 +28250,7 @@ var _updatePlayMarkersHeight = function (height) {
 var _updatePlayMarker = function (id, obj) {
     var slice = _play_position_markers[_parseInt10(id)];
 
-    if (obj.x) {
+    if ('x' in obj) {
         _setPlayPosition(slice.element.dataset.slice, _parseInt10(obj.x), 0);
     }
     
@@ -28261,16 +28264,20 @@ var _updatePlayMarker = function (id, obj) {
         }
     }
     
-    if (obj.shift) {
+    if ('shift' in obj) {
         slice.shift = _parseInt10(obj.shift);
         
         WUI_RangeSlider.setValue("fs_slice_settings_shift_input_" + slice.id, slice.shift);
     }
     
-    if (obj.output_channel) {
+    if ('output_channel' in obj) {
         slice.output_channel = _parseInt10(obj.output_channel);
         
         WUI_RangeSlider.setValue("fs_slice_settings_channel_input_" + slice.id, slice.output_channel);
+    }
+
+    if ('type' in obj) {
+        _changeSliceType(slice, obj.type);
     }
 };
 

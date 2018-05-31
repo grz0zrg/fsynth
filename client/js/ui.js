@@ -113,6 +113,10 @@ var _toggleCollapse = function (element, bind_to) {
 var _applyCollapsible = function (element, bind_to, collapsed) {
     element.classList.add("fs-collapsible");
 
+    if (collapsed) {
+        element.classList.add("fs-collapsed");
+    }
+
     if (element.classList.contains("fs-collapsed")) {
         element.classList.toggle("fs-collapsible");
     }    
@@ -191,8 +195,8 @@ var _createFasSettingsContent = function () {
     fx_matrix_chn_fieldset.appendChild(fx_matrix_chn_fieldset_legend);
 
     _applyCollapsible(synthesis_matrix_fieldset, synthesis_matrix_fieldset_legend);
-    _applyCollapsible(fx_matrix_fieldset, fx_matrix_fieldset_legend);
-    _applyCollapsible(actions_fieldset, actions_fieldset_legend);
+    _applyCollapsible(fx_matrix_fieldset, fx_matrix_fieldset_legend, true);
+    _applyCollapsible(actions_fieldset, actions_fieldset_legend, true);
 
     // synthesis matrix
     synthesis_matrix_table.className = "fs-matrix";
@@ -339,7 +343,6 @@ var _createFasSettingsContent = function () {
 
         if (slice.type === 1) {
             cell = document.createElement("th");
-            cell.style.color = "red";
             cell.innerHTML = slice.id;
             row.appendChild(cell);
         }    
