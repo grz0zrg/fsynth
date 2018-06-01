@@ -10,6 +10,9 @@
 
 var _dragged_input = null,
 
+    _input_settings_dialog_id = 0,   
+    _input_settings_dialog_prefix = "fs_channel_settings_dialog",
+
     _selected_input_canvas = null;
 
 /***********************************************************
@@ -18,10 +21,15 @@ var _dragged_input = null,
 
 var _cbChannelSettingsClose = function (input_channel_id) {
     return function () {
-        WUI_RangeSlider.destroy("fs_channel_settings_playrate"+input_channel_id);
-        WUI_RangeSlider.destroy("fs_channel_settings_videostart"+input_channel_id);
-        WUI_RangeSlider.destroy("fs_channel_settings_videoend"+input_channel_id);
-        WUI_Dialog.destroy("fs_channel_settings_dialog"+input_channel_id);
+        var fragment_input_channel = _fragment_input_data[input_channel_id];
+
+        WUI_RangeSlider.destroy("fs_channel_settings_playrate"+fragment_input_channel.dialog_id);
+        WUI_RangeSlider.destroy("fs_channel_settings_videostart"+fragment_input_channel.dialog_id);
+        WUI_RangeSlider.destroy("fs_channel_settings_videoend" + fragment_input_channel.dialog_id);
+        
+        if (fragment_input_channel) {
+            WUI_Dialog.destroy(_input_settings_dialog_prefix + fragment_input_channel.dialog_id);
+        }    
     };
 };
 
@@ -31,13 +39,19 @@ var _cbChannelSettingsChange = function (fic, ficd, cb) {
     };
 };
 
+var _openChannelSettingsDialog = function (input_channel_id) {
+    var fragment_input_channel = _fragment_input_data[input_channel_id];
+
+    WUI_Dialog.open(_input_settings_dialog_prefix + fragment_input_channel.dialog_id);
+};
+
 var _createChannelSettingsDialog = function (input_channel_id) {
     var dialog_element = document.createElement("div"),
         content_element = document.createElement("div"),
         
-        video_playrate_element = "fs_channel_settings_playrate"+input_channel_id,
-        video_start_element = "fs_channel_settings_videostart"+input_channel_id,
-        video_end_element = "fs_channel_settings_videoend"+input_channel_id,
+        video_playrate_element = "fs_channel_settings_playrate"+_input_settings_dialog_id,
+        video_start_element = "fs_channel_settings_videostart"+_input_settings_dialog_id,
+        video_end_element = "fs_channel_settings_videoend"+_input_settings_dialog_id,
         
         fragment_input_channel = _fragment_input_data[input_channel_id],
         
@@ -60,11 +74,9 @@ var _createChannelSettingsDialog = function (input_channel_id) {
         
         mipmap_option = '<option value="mipmap">mipmap</option>';
     
-    dialog_element.id = "fs_channel_settings_dialog" + input_channel_id;
+    dialog_element.id = _input_settings_dialog_prefix + _input_settings_dialog_id;
     
-    if (document.getElementById(dialog_element.id)) {
-        return;
-    }
+    fragment_input_channel.dialog_id = _input_settings_dialog_id;
     
     if (!_gl2) { // WebGL 2 does not have those limitations
         if (!_isPowerOf2(fragment_input_channel.image.width) || 
@@ -112,9 +124,9 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     if (fragment_input_channel.type === 3) {
         dialog_height = "340px";
         
-        content_element.innerHTML += '&nbsp;<div><label><div class="fs-input-settings-label">Smooth:</div>&nbsp;<input id="fs_channel_sloop' + input_channel_id + '" value="No" type="checkbox"></label></div>';
         content_element.innerHTML += '&nbsp;<div id="' + video_playrate_element + '"></div><div id="' + video_start_element + '"></div><div id="' + video_end_element + '"></div>';
-        
+        content_element.innerHTML += '&nbsp;<div><label><div style="vertical-align: top;" class="fs-input-settings-label">Smooth:</div>&nbsp;<input id="fs_channel_sloop' + input_channel_id + '" value="No" type="checkbox"></label></div>';
+
         WUI_RangeSlider.create(video_playrate_element, {
                     width: 120,
                     height: 8,
@@ -307,10 +319,8 @@ var _createChannelSettingsDialog = function (input_channel_id) {
         halign: "center",
         valign: "center",
 
-        open: true,
+        open: false,
         minimized: false,
-
-        on_close: _cbChannelSettingsClose(input_channel_id),
 
         modal: false,
         status_bar: false,
@@ -336,6 +346,8 @@ var _createChannelSettingsDialog = function (input_channel_id) {
             }
         ]
     });
+
+    _input_settings_dialog_id += 1;
 };
 
 var _imageProcessor = function (image_data, image_processing_done_cb) {
@@ -350,11 +362,11 @@ var _imageProcessor = function (image_data, image_processing_done_cb) {
     worker.postMessage({ img_width: image_data.width, img_height: image_data.height, buffer: image_data.data.buffer }, [image_data.data.buffer]);
 };
 
-var _cbChannelSettings = function (input_id) {
+var _cbChannelSettings = function (dialog_id) {
     return function (e) {
         e.preventDefault();
 
-        _createChannelSettingsDialog(input_id);
+        WUI_Dialog.open(_input_settings_dialog_prefix + dialog_id);
     };
 };
 
@@ -379,7 +391,7 @@ var _inputThumbMenu = function (e) {
     if (input.type !== 404) {
         items.unshift({
             icon: "fs-gear-icon", tooltip: "Settings", on_click: function () {
-                _createChannelSettingsDialog(input_id);
+                _openChannelSettingsDialog(input_id);
             }
         });
     }
@@ -468,12 +480,14 @@ var _selectCanvasInput = function (e) {
 var _sortInputs = function () {
     var i = 0,
         fragment_input_data;
-    
+
     for (i = 0; i < _fragment_input_data.length; i += 1) {
         fragment_input_data = _fragment_input_data[i];
 
         fragment_input_data.elem.title = _input_channel_prefix + i;
         fragment_input_data.elem.dataset.inputId = i;
+
+        WUI_Dialog.setTitle(_input_settings_dialog_prefix + fragment_input_data.dialog_id, "iInput" + i + " settings");
     }
 };
 
@@ -500,10 +514,10 @@ var _removeInputChannel = function (input_id) {
     if (fragment_input_data.canvas) {
         document.body.removeChild(fragment_input_data.canvas);   
     }
-    
-    _fragment_input_data.splice(input_id, 1);
 
     _cbChannelSettingsClose(_parseInt10(input_id))();
+
+    _fragment_input_data.splice(_parseInt10(input_id), 1);
 
     _sortInputs();
 
@@ -582,6 +596,9 @@ var _createInputThumb = function (input_id, image, thumb_title, src) {
         _dbUpdateInput(_parseInt10(dst_input_id), dst_input_data.db_obj);
         _dbUpdateInput(_parseInt10(src_input_id), src_input_data.db_obj);
         //
+
+        WUI_Dialog.setTitle(_input_settings_dialog_prefix + dst_input_data.dialog_id, "iInput" + dst_input_id + " settings");
+        WUI_Dialog.setTitle(_input_settings_dialog_prefix + src_input_data.dialog_id, "iInput" + src_input_id + " settings");
 
         e.target.style = "";
         
@@ -743,7 +760,9 @@ var _addFragmentInput = function (type, input, settings) {
 
         _fragment_input_data[input_id].elem = _createInputThumb(input_id, input_thumb, _input_channel_prefix + input_id);
 
-        _fragment_input_data[input_id].elem.addEventListener("contextmenu", _cbChannelSettings(input_id));
+        _createChannelSettingsDialog(input_id);
+
+        _fragment_input_data[input_id].elem.addEventListener("contextmenu", _cbChannelSettings(_fragment_input_data[input_id].dialog_id));
 
         _compile();
     } else if (type === "camera" || type === "video") {
@@ -797,7 +816,9 @@ var _addFragmentInput = function (type, input, settings) {
 
                         _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/camera.png");
                         
-                        _fragment_input_data[input_id].elem.addEventListener("contextmenu", _cbChannelSettings(input_id));
+                        _createChannelSettingsDialog(input_id);
+
+                        _fragment_input_data[input_id].elem.addEventListener("contextmenu", _cbChannelSettings(_fragment_input_data[input_id].dialog_id));
 
                         _compile();
                     }, function (e) {
@@ -859,7 +880,9 @@ var _addFragmentInput = function (type, input, settings) {
 
             _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/video.png");
             
-            _fragment_input_data[input_id].elem.addEventListener("contextmenu", _cbChannelSettings(input_id));
+            _createChannelSettingsDialog(input_id);
+
+            _fragment_input_data[input_id].elem.addEventListener("contextmenu", _cbChannelSettings(_fragment_input_data[input_id].dialog_id));
 
             _compile();
             
