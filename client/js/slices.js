@@ -9,7 +9,11 @@
 var _selected_slice_marker = null,
     _marker_midi_message_timeout = null,
 
+    _slice_settings_dialog_prefix = "fs_slice_settings_dialog",
+
     _slice_update_timeout = [{}, {}, {}, {}, {}],
+
+    _slice_dialog_id = 0,
     
     _slice_type_color = ["#ffffff", "#ff0000"];
 
@@ -23,7 +27,7 @@ var _updateSliceSettingsDialog = function (slice_obj, show) {
     _selected_slice = slice_obj;
     
     if (show) {
-        WUI_Dialog.open("fs_slice_settings_dialog" + slice_obj.id);
+        WUI_Dialog.open(_slice_settings_dialog_prefix + slice_obj.dialog_id);
 
         slice_obj.custom_midi_codemirror.refresh();
     }
@@ -159,26 +163,32 @@ var _updatePlayMarker = function (id, obj) {
 };
 
 var _removePlayPositionMarker = function (marker_id, force, submit) {
-    var play_position_marker = _play_position_markers[parseInt(marker_id, 10)],
+    var slice = _play_position_markers[parseInt(marker_id, 10)],
+        slice_tmp,    
+        elem,    
         i;
     
-    WUI.undraggable(play_position_marker.element);
-    WUI.undraggable(play_position_marker.element.firstElementChild);
-    WUI.undraggable(play_position_marker.element.lastElementChild);
+    WUI.undraggable(slice.element);
+    WUI.undraggable(slice.element.firstElementChild);
+    WUI.undraggable(slice.element.lastElementChild);
 
-    play_position_marker.element.parentElement.removeChild(play_position_marker.element);
+    slice.element.parentElement.removeChild(slice.element);
     
     WUI_RangeSlider.destroy("fs_slice_settings_x_input_" + marker_id);
     WUI_RangeSlider.destroy("fs_slice_settings_shift_input_" + marker_id);
     WUI_RangeSlider.destroy("fs_slice_settings_channel_input_" + marker_id);
     WUI_RangeSlider.destroy("fs_slice_settings_bpm_" + marker_id);
-    WUI_Dialog.destroy("fs_slice_settings_dialog" + marker_id);
+    WUI_Dialog.destroy(_slice_settings_dialog_prefix + slice.dialog_id);
 
     _play_position_markers.splice(marker_id, 1);
 
     for (i = 0; i < _play_position_markers.length; i += 1) {
-        _play_position_markers[i].element.dataset.slice = i;
-        _play_position_markers[i].id = i;
+        slice_tmp = _play_position_markers[i];
+
+        slice_tmp.element.dataset.slice = i;
+        slice_tmp.id = i;
+
+        WUI_Dialog.setTitle(_slice_settings_dialog_prefix + slice_tmp.dialog_id, _getSliceTitle(slice_tmp));
     }
     
     if (_play_position_markers.length === 0) {
@@ -293,14 +303,21 @@ var _compileMarkerMIDIData = function (marker_obj, codemirror_instance) {
     }
 };
 
+var _getSliceTitle = function (slice_obj) {
+    return "Slice '" + slice_obj.id + "' settings";
+};
+
 var _createMarkerSettings = function (marker_obj) {
-    var dialog_id = "fs_slice_settings_dialog" + marker_obj.id;
+    var dialog_id = _slice_settings_dialog_prefix + marker_obj.dialog_id;
 
     if (document.getElementById(dialog_id)) {
         WUI_Dialog.open(dialog_id);
 
         return;
     }
+
+    dialog_id = _slice_settings_dialog_prefix + _slice_dialog_id;
+    marker_obj.dialog_id = _slice_dialog_id;
 
     var fs_slice_settings_container = document.createElement("div"),
         fs_slice_settings_x_input = document.createElement("div"),
@@ -613,7 +630,7 @@ var _createMarkerSettings = function (marker_obj) {
     document.body.appendChild(dialog_element);
     
     WUI_Dialog.create(dialog_element, {
-        title: "Slice '"+marker_obj.id+"' settings",
+        title: _getSliceTitle(marker_obj),
 
         width: "360px",
         height: "auto",
@@ -638,6 +655,8 @@ var _createMarkerSettings = function (marker_obj) {
             }
         ]
     });
+
+    _slice_dialog_id += 1;
 };
 
 var _setSlicePositionFromAbsolute = function (play_position_marker_id, x, y) {
@@ -783,6 +802,7 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
             shift: 0,
             frame_increment: 0,
             output_channel: 1,
+            dialog_id: -1,
             y: 0,
             height: _canvas_height,
             id: play_position_marker_id,

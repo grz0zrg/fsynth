@@ -1720,7 +1720,7 @@ var _uiInit = function () {
                         toggle_group: 0
                     },
                     {
-                        icon: "fs-unmute-icon",
+                        icon: "fs-fas-icon",
                         type: "toggle",
                         toggle_state: true,
                         on_click: _toggleAUDIORecord,
