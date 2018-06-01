@@ -372,7 +372,10 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                 <div id="fs_settings_osc_fade_input"></div>
                 <div id="fs_settings_max_polyphony"></div>
                 <div id="fs_settings_note_lifetime"></div>
-                <div style="margin-top: 8px;">
+                <fieldset class="fs-fieldset fs-collapsible fs-collapsed" style="margin-top: 8px;">
+                    <legend class="fs-collapsible-legend">
+                        Options
+                    </legend>
                     <div class="fs-ck-container">
                         <label class="fs-ck-label">
                             <div>Show globalTime</div>&nbsp;
@@ -397,10 +400,6 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                     </div>
                     <div class="fs-ck-container">
                         <label class="fs-ck-label">
-                            <div>AudioWorklet</div>&nbsp;
-                            <input id="fs_settings_ck_audioworklet" type="checkbox" checked>
-                        </label>
-                        <label class="fs-ck-label">
                             <div>Show line numbers</div>&nbsp;
                             <input id="fs_settings_ck_lnumbers" type="checkbox">
                         </label>
@@ -413,11 +412,73 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                             <input id="fs_settings_ck_hlmatches" type="checkbox">
                         </label>
                         <label class="fs-ck-label">
-                            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>&nbsp;
+                            <div>Disable audio</div>&nbsp;
+                            <input id="fs_settings_ck_audio" type="checkbox">
+                        </label>
+                        <label class="fs-ck-label">
+                            <div style="display: block;"></div>&nbsp;
                         </label>
                     </div>
-                </div>
-                <div style="margin-top: 4px;">
+                    <div class="fs-spacer"></div>
+                    <div style="text-align: center;">
+                        <label class="fs-input-label" for="fs_select_editor_themes">Editor theme:</label>
+                        <select id="fs_select_editor_themes" class="fs-btn">
+                            <option selected>default</option>
+                            <option>3024-day</option>
+                            <option>3024-night</option>
+                            <option>abcdef</option>
+                            <option>ambiance</option>
+                            <option>ambiance-mobile</option>
+                            <option>base16-dark</option>
+                            <option>base16-light</option>
+                            <option>bespin</option>
+                            <option>blackboard</option>
+                            <option>cobalt</option>
+                            <option>colorforth</option>
+                            <option>dracula</option>
+                            <option>duotone-dark</option>
+                            <option>duotone-light</option>
+                            <option>eclipse</option>
+                            <option>elegant</option>
+                            <option>erlang-dark</option>
+                            <option>hopscotch</option>
+                            <option>icecoder</option>
+                            <option>isotope</option>
+                            <option>lesser-dark</option>
+                            <option>liquibyte</option>
+                            <option>material</option>
+                            <option>mbo</option>
+                            <option>mdn-like</option>
+                            <option>midnight</option>
+                            <option>monokai</option>
+                            <option>neat</option>
+                            <option>neo</option>
+                            <option>night</option>
+                            <option>oceanic-next</option>
+                            <option>panda-syntax</option>
+                            <option>paraiso-dark</option>
+                            <option>paraiso-light</option>
+                            <option>pastel-on-dark</option>
+                            <option>railscasts</option>
+                            <option>rubyblue</option>
+                            <option>solarized</option>
+                            <option>the-matrix</option>
+                            <option>tomorrow-night-bright</option>
+                            <option>tomorrow-night-eighties</option>
+                            <option>ttcn</option>
+                            <option>twilight</option>
+                            <option>vibrant-ink</option>
+                            <option>xq-dark</option>
+                            <option>xq-light</option>
+                            <option>yeti</option>
+                            <option>zenburn</option>
+                        </select>
+                    </div>
+                </fieldset>
+                <fieldset class="fs-fieldset fs-collapsible fs-collapsed" style="margin-top: 4px;">
+                    <legend class="fs-collapsible-legend">
+                        Features
+                    </legend>
                     <div class="fs-ck-container">
                         <label class="fs-ck-label">
                             <div>Monophonic</div>&nbsp;
@@ -440,70 +501,26 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                             <input id="fs_settings_ck_feedback" type="checkbox">
                         </label>
                     </div>
-                </div>
-                <div class="fs-spacer"></div>
-                <div style="text-align: center">
-                    <label class="fs-input-label" for="fs_select_editor_themes">Editor theme:</label>
-                    <select id="fs_select_editor_themes" class="fs-btn">
-                        <option selected>default</option>
-                        <option>3024-day</option>
-                        <option>3024-night</option>
-                        <option>abcdef</option>
-                        <option>ambiance</option>
-                        <option>ambiance-mobile</option>
-                        <option>base16-dark</option>
-                        <option>base16-light</option>
-                        <option>bespin</option>
-                        <option>blackboard</option>
-                        <option>cobalt</option>
-                        <option>colorforth</option>
-                        <option>dracula</option>
-                        <option>duotone-dark</option>
-                        <option>duotone-light</option>
-                        <option>eclipse</option>
-                        <option>elegant</option>
-                        <option>erlang-dark</option>
-                        <option>hopscotch</option>
-                        <option>icecoder</option>
-                        <option>isotope</option>
-                        <option>lesser-dark</option>
-                        <option>liquibyte</option>
-                        <option>material</option>
-                        <option>mbo</option>
-                        <option>mdn-like</option>
-                        <option>midnight</option>
-                        <option>monokai</option>
-                        <option>neat</option>
-                        <option>neo</option>
-                        <option>night</option>
-                        <option>oceanic-next</option>
-                        <option>panda-syntax</option>
-                        <option>paraiso-dark</option>
-                        <option>paraiso-light</option>
-                        <option>pastel-on-dark</option>
-                        <option>railscasts</option>
-                        <option>rubyblue</option>
-                        <option>solarized</option>
-                        <option>the-matrix</option>
-                        <option>tomorrow-night-bright</option>
-                        <option>tomorrow-night-eighties</option>
-                        <option>ttcn</option>
-                        <option>twilight</option>
-                        <option>vibrant-ink</option>
-                        <option>xq-dark</option>
-                        <option>xq-light</option>
-                        <option>yeti</option>
-                        <option>zenburn</option>
-                    </select>
-                </div>
-                <div style="text-align: center">
-                    <label class="fs-input-label" for="fs_fas_address">FAS address:</label>
-                    <input id="fs_fas_address" class="fs-btn" type="text" value="127.0.0.1:3003">
-                </div>
-                <div style="text-align: center">
-                    <label class="fs-input-label" for="fs_osc_inout_address">OSC address:</label>
-                    <input id="fs_osc_inout_address" class="fs-btn" type="text" value="127.0.0.1:8081">
-                </div>
+                    <div class="fs-ck-container">
+                        <label class="fs-ck-label">
+                            <div>AudioWorklet</div>&nbsp;
+                            <input id="fs_settings_ck_audioworklet" type="checkbox" checked>
+                        </label>
+                    </div>
+                </fieldset>
+                <fieldset class="fs-fieldset fs-collapsible fs-collapsed" style="margin-top: 4px;">
+                    <legend class="fs-collapsible-legend">
+                        Servers
+                    </legend>
+                    <div style="text-align: center">
+                        <label class="fs-input-label" for="fs_fas_address">FAS address&nbsp;</label>
+                        <input id="fs_fas_address" class="fs-btn" type="text" value="127.0.0.1:3003">
+                    </div>
+                    <div style="text-align: center">
+                        <label class="fs-input-label" for="fs_osc_inout_address">OSC address&nbsp;</label>
+                        <input id="fs_osc_inout_address" class="fs-btn" type="text" value="127.0.0.1:8081">
+                    </div>
+                </fieldset>
             </div>
         </div>
          <div id="fs_help_dialog">

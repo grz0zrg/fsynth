@@ -20641,6 +20641,8 @@ _utter_fail_element.innerHTML = "";
                 }
             }
         },
+
+        _audio_off = false,
         
         _code_editor_extern = false,
         
@@ -22723,20 +22725,22 @@ var _frame = function (raf_time) {
             }
         }
 
-        if (_fas.status) {
-            _fasNotifyFast(_FAS_FRAME, _data);
-        } else {
-            var tmp_buffer = [];
-            for (i = 0; i < _output_channels; i += 1) {
-                tmp_buffer.push(new _synth_data_array(_data[i]));
-            }
+        if (!_audio_off) {
+            if (_fas.status) {
+                _fasNotifyFast(_FAS_FRAME, _data);
+            } else {
+                var tmp_buffer = [];
+                for (i = 0; i < _output_channels; i += 1) {
+                    tmp_buffer.push(new _synth_data_array(_data[i]));
+                }
 
-            _notesProcessing(_prev_data, _data);
+                _notesProcessing(_prev_data, _data);
 
-            for (i = 0; i < _output_channels; i += 1) {
-                _prev_data[i] = tmp_buffer[i];
+                for (i = 0; i < _output_channels; i += 1) {
+                    _prev_data[i] = tmp_buffer[i];
+                }
             }
-        }
+        }    
 
         _data = buffer;
 
@@ -25665,6 +25669,7 @@ var _createFasSettingsContent = function () {
         fx_matrix_chn_fieldset_legend = document.createElement("legend"),
         
         synthesis_types = ["Additive", "Granular", "PM/FM", "Subtractive", "Karplus", "Wavetable"],
+        synthesis_params = [0, 3, 0, 0, 0, 0],
         fx_types = ["Waveshaping"],
 
         ck_tmp = [],
@@ -26492,6 +26497,7 @@ var _uiInit = function () {
         settings_ck_slices_elem = document.getElementById("fs_settings_ck_slices"),
         settings_ck_quickstart_elem = document.getElementById("fs_settings_ck_quickstart"),
         settings_ck_worklet_elem = document.getElementById("fs_settings_ck_audioworklet"),
+        settings_ck_audio_elem = document.getElementById("fs_settings_ck_audio"),
         
         fs_settings_note_lifetime = localStorage.getItem('fs-note-lifetime'),
         fs_settings_max_polyphony = localStorage.getItem('fs-max-polyphony'),
@@ -26507,7 +26513,8 @@ var _uiInit = function () {
         fs_settings_osc_in = localStorage.getItem('fs-osc-in'),
         fs_settings_osc_out = localStorage.getItem('fs-osc-out'),
         fs_settings_quickstart = localStorage.getItem('fs-quickstart'),
-        fs_settings_worklet = localStorage.getItem('fs-worklet');
+        fs_settings_worklet = localStorage.getItem('fs-worklet'),
+        fs_settings_audio = localStorage.getItem('fs-audio');
     
     _settings_dialog = WUI_Dialog.create(_settings_dialog_id, {
             title: "Session & global settings",
@@ -26659,6 +26666,16 @@ var _uiInit = function () {
         settings_ck_lnumbers_elem.checked = true;
     } else {
         settings_ck_lnumbers_elem.checked = false;
+    }
+
+    if (fs_settings_audio !== null) {
+        _audio_off = (fs_settings_audio === "true");
+    }
+
+    if (_audio_off) {
+        settings_ck_audio_elem.checked = true;
+    } else {
+        settings_ck_audio_elem.checked = false;
     }
     
     settings_ck_osc_in_elem.addEventListener("change", function () {
@@ -26820,6 +26837,16 @@ var _uiInit = function () {
     
         localStorage.setItem('fs-worklet', this.checked);
     });
+
+    settings_ck_audio_elem.addEventListener("change", function () {
+        if (this.checked) {
+            _audio_off = true;
+        } else {
+            _audio_off = false;
+        }
+    
+        localStorage.setItem('fs-audio', this.checked);
+    });
     
     settings_ck_oscinfos_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_polyinfos_elem.dispatchEvent(new UIEvent('change'));
@@ -26834,6 +26861,7 @@ var _uiInit = function () {
     settings_ck_slices_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_quickstart_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_worklet_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_audio_elem.dispatchEvent(new UIEvent('change'));
     
     _midi_settings_dialog = WUI_Dialog.create(_midi_settings_dialog_id, {
             title: "MIDI I/O",
@@ -28434,9 +28462,10 @@ var _createMarkerSettings = function (marker_obj) {
 
         // MIDI device
         midi_dev_out_container = document.createElement("div"),
-        midi_dev_list_container = document.createElement("div"),
+        midi_dev_list_container = document.createElement("fieldset"),
         midi_dev_list_label = document.createElement("div"),
         midi_dev_list = document.createElement("select"),
+        midi_dev_list_container_legend = document.createElement("legend"),
         midi_dev_option,
 
         midi_custom_codemirror = null,
@@ -28472,9 +28501,13 @@ var _createMarkerSettings = function (marker_obj) {
     midi_dev_list.className = "fs-multiple-select";
     midi_dev_list.multiple = true;
 
+    midi_dev_list_container.className = "fs-fieldset";
+    midi_dev_list_container_legend.innerHTML = "MIDI out";
+
     midi_dev_out_container.appendChild(midi_dev_list_label);
     midi_dev_out_container.innerHTML += "&nbsp;";
     midi_dev_out_container.appendChild(midi_dev_list);
+    midi_dev_list_container.appendChild(midi_dev_list_container_legend);
     midi_dev_list_container.appendChild(midi_dev_out_container);
     midi_dev_out_container.style = "text-align: center";
 
@@ -28500,6 +28533,8 @@ var _createMarkerSettings = function (marker_obj) {
     
         _saveMarkersSettings();
     }));
+
+    _applyCollapsible(midi_dev_list_container, midi_dev_list_container_legend);
 
     marker_obj.custom_midi_codemirror = midi_custom_codemirror;
 
@@ -28549,7 +28584,7 @@ var _createMarkerSettings = function (marker_obj) {
             default_value: 0,
             value: marker_obj.x,
 
-            title: "X Offset",
+            title: "X Offset (px)",
 
             title_min_width: 140,
             value_min_width: 88,
@@ -28574,7 +28609,7 @@ var _createMarkerSettings = function (marker_obj) {
             default_value: 0,
             value: marker_obj.shift,
 
-            title: "Y Shift",
+            title: "Y Shift (px)",
 
             title_min_width: 140,
             value_min_width: 88,
@@ -28640,7 +28675,7 @@ var _createMarkerSettings = function (marker_obj) {
             default_value: 0,
             value: marker_obj.frame_increment,
 
-            title: "Increment per frame",
+            title: "Increment / frame (px)",
         
             //decimals: 2,
 

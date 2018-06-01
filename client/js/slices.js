@@ -309,9 +309,10 @@ var _createMarkerSettings = function (marker_obj) {
 
         // MIDI device
         midi_dev_out_container = document.createElement("div"),
-        midi_dev_list_container = document.createElement("div"),
+        midi_dev_list_container = document.createElement("fieldset"),
         midi_dev_list_label = document.createElement("div"),
         midi_dev_list = document.createElement("select"),
+        midi_dev_list_container_legend = document.createElement("legend"),
         midi_dev_option,
 
         midi_custom_codemirror = null,
@@ -347,9 +348,13 @@ var _createMarkerSettings = function (marker_obj) {
     midi_dev_list.className = "fs-multiple-select";
     midi_dev_list.multiple = true;
 
+    midi_dev_list_container.className = "fs-fieldset";
+    midi_dev_list_container_legend.innerHTML = "MIDI out";
+
     midi_dev_out_container.appendChild(midi_dev_list_label);
     midi_dev_out_container.innerHTML += "&nbsp;";
     midi_dev_out_container.appendChild(midi_dev_list);
+    midi_dev_list_container.appendChild(midi_dev_list_container_legend);
     midi_dev_list_container.appendChild(midi_dev_out_container);
     midi_dev_out_container.style = "text-align: center";
 
@@ -375,6 +380,8 @@ var _createMarkerSettings = function (marker_obj) {
     
         _saveMarkersSettings();
     }));
+
+    _applyCollapsible(midi_dev_list_container, midi_dev_list_container_legend);
 
     marker_obj.custom_midi_codemirror = midi_custom_codemirror;
 
@@ -424,7 +431,7 @@ var _createMarkerSettings = function (marker_obj) {
             default_value: 0,
             value: marker_obj.x,
 
-            title: "X Offset",
+            title: "X Offset (px)",
 
             title_min_width: 140,
             value_min_width: 88,
@@ -449,7 +456,7 @@ var _createMarkerSettings = function (marker_obj) {
             default_value: 0,
             value: marker_obj.shift,
 
-            title: "Y Shift",
+            title: "Y Shift (px)",
 
             title_min_width: 140,
             value_min_width: 88,
@@ -515,7 +522,7 @@ var _createMarkerSettings = function (marker_obj) {
             default_value: 0,
             value: marker_obj.frame_increment,
 
-            title: "Increment per frame",
+            title: "Increment / frame (px)",
         
             //decimals: 2,
 

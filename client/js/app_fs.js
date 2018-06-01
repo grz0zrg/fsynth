@@ -270,6 +270,8 @@ var FragmentSynth = function (params) {
                 }
             }
         },
+
+        _audio_off = false,
         
         _code_editor_extern = false,
         
