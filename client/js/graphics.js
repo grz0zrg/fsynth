@@ -463,16 +463,20 @@ var _allocateFramesData = function () {
     _prev_data = [];
     _midi_data = [];
     _prev_midi_data = [];
+    _osc_data = [];
+    _prev_osc_data = [];
 
     for (i = 0; i < _output_channels; i += 1) {
         _data.push(new _synth_data_array(_canvas_height_mul4));
         _prev_data.push(new _synth_data_array(_canvas_height_mul4));
         _midi_data.push(new _synth_data_array(_canvas_height_mul4));
         _prev_midi_data.push(new _synth_data_array(_canvas_height_mul4));
+        _osc_data.push(new _synth_data_array(_canvas_height_mul4));
+        _prev_osc_data.push(new _synth_data_array(_canvas_height_mul4));
     }
 };
 
-var _canvasRecord = function (ndata, mdata) {
+var _canvasRecord = function () {
     var min_r = 255, max_r = 0, 
         min_g = 255, max_g = 0,
         min_b = 255, max_b = 0,
@@ -495,7 +499,7 @@ var _canvasRecord = function (ndata, mdata) {
         
         for (i = 0; i < _output_channels; i += 1) {
             for (j = 0; j <= _canvas_height_mul4; j += 1) {
-                temp_data[j] += ((ndata[i][j] + mdata[i][j]) * m);
+                temp_data[j] += (_record_fn[_record_type](i,j) * m);
                 
                 temp_data[j] = Math.min(temp_data[j], 255);
             }
@@ -504,7 +508,7 @@ var _canvasRecord = function (ndata, mdata) {
         if (_record_opts.f !== _record_opts.default)  {
             data = _record_canvas_ctx.getImageData(_record_position, 0, 1, _record_canvas.height).data;
         } else {
-            //data = new Uint8ClampedArray(_canvas_height_mul4 + 4); // with normalize
+            //data = new Uint8ClampedArray(_canvas_height_mul4 + 4); // with normalization
             data = new Uint8ClampedArray(_canvas_height_mul4);
         }
 
@@ -711,6 +715,7 @@ var _frame = function (raf_time) {
         }
 
         // populate array first
+/*
         play_position_marker = _play_position_markers[0];
 
         channel = play_position_marker.output_channel - 1;
@@ -741,11 +746,17 @@ var _frame = function (raf_time) {
 
             _transformData(play_position_marker, target_data);
         }
+*/
 
-        for (i = 1; i < _play_position_markers.length; i += 1) {
+        for (i = 0; i < _play_position_markers.length; i += 1) {
             play_position_marker = _play_position_markers[i];
 
             if (play_position_marker.mute) {
+                if (i === 0) {
+                    _data[channel] = new _synth_data_array(_canvas_height_mul4);
+                    _midi_data[channel] = new _synth_data_array(_canvas_height_mul4);
+                }
+
                 continue;
             }
 
@@ -766,17 +777,31 @@ var _frame = function (raf_time) {
 
             _transformData(play_position_marker, _temp_data);
 
-            if (play_position_marker.midi_out.device_uids.length === 0) {
+            if (play_position_marker.audio_out) {
                 channel_data = _data[channel];
-            } else {
-                channel_data = _midi_data[channel];
-                _midi_data[_output_channels + channel] = play_position_marker.midi_out;
+
+                for (j = 0; j < _canvas_height_mul4; j += 1) {
+                    channel_data[j] = channel_data[j] + _temp_data[j];
+                }
             }
 
-            // merge slices data
-            for (j = 0; j < _canvas_height_mul4; j += 1) {
-                channel_data[j] = channel_data[j] + _temp_data[j];
+            if (play_position_marker.osc_out) {
+                channel_data = _osc_data[channel];
+
+                for (j = 0; j < _canvas_height_mul4; j += 1) {
+                    channel_data[j] = channel_data[j] + _temp_data[j];
+                }
             }
+
+            if (play_position_marker.midi_out.device_uids.length > 0) {
+                channel_data = _midi_data[channel];
+                _midi_data[_output_channels + channel] = play_position_marker.midi_out;
+
+                for (j = 0; j < _canvas_height_mul4; j += 1) {
+                    channel_data[j] = channel_data[j] + _temp_data[j];
+                }
+            }
+
         }
 
         for (i = 0; i < _output_channels; i += 1) {
@@ -789,7 +814,7 @@ var _frame = function (raf_time) {
                 var c = 0;
 
                 for (i = 0; i < _canvas_height_mul4; i += 4) {
-                    c += (_midi_data[j][i] > 0 || _midi_data[j][i + 1] > 0 || _data[j][i] > 0 || _data[j][i + 1] > 0);
+                    c += (_osc_data[j][i] > 0 || _osc_data[j][i + 1] > 0 || _midi_data[j][i] > 0 || _midi_data[j][i + 1] > 0 || _data[j][i] > 0 || _data[j][i + 1] > 0);
                 }
 
                 arr_infos.push(c);
@@ -798,7 +823,7 @@ var _frame = function (raf_time) {
             _osc_infos.textContent = arr_infos.join(" ");
         }
 
-        _canvasRecord(_data, _midi_data);
+        _canvasRecord();
 
         // OSC
         if (_osc.enabled) {
@@ -806,7 +831,7 @@ var _frame = function (raf_time) {
                 // make a copy of all channels again
                 var buffer_osc = [];
                 for (i = 0; i < _output_channels; i += 1) {
-                    buffer_osc.push(new _synth_data_array(_data[i]));
+                    buffer_osc.push(new _synth_data_array(_osc_data[i]));
                 }
 
                 // and prev_data
@@ -815,7 +840,7 @@ var _frame = function (raf_time) {
                 }
 
                 _oscNotifyFast(_OSC_FRAME_DATA, buffer_osc);
-                
+
                 if (_fas.status) {
                     for (i = 0; i < _output_channels; i += 1) {
                         _prev_data[i] = new _synth_data_array(_data[i]);

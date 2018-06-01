@@ -834,6 +834,34 @@ var _showImportDialog = function (toggle_ev) {
     }
 };
 
+var _toggleMIDIRecord = function (toggle_ev) {
+    if (toggle_ev.state) {
+        _record_type = 3;
+    } else {
+        _record_type = 1;
+    }
+};
+
+var _toggleOSCRecord = function (toggle_ev) {
+    if (toggle_ev.state) {
+        _record_type = 2;
+    } else {
+        _record_type = 1;
+    }
+};
+
+var _toggleAUDIORecord = function (toggle_ev) {
+    _record_type = 1;
+};
+
+var _toggleALLRecord = function (toggle_ev) {
+    if (toggle_ev.state) {
+        _record_type = 0;
+    } else {
+        _record_type = 1;
+    }
+};
+
 var _toggleAdditiveRecord = function () {
     if (_record_opts.f === _record_opts.additive) {
         _record_opts.f = _record_opts.default;
@@ -1674,6 +1702,40 @@ var _uiInit = function () {
                         tooltip: "Reset recording"
                     }
                 ],
+                type: [
+                    {
+                        icon: "fs-midi-icon",
+                        type: "toggle",
+                        toggle_state: false,
+                        on_click: _toggleMIDIRecord,
+                        tooltip: "Only show MIDI output",
+                        toggle_group: 0
+                    },
+                    {
+                        icon: "fs-osc-icon",
+                        type: "toggle",
+                        toggle_state: false,
+                        on_click: _toggleOSCRecord,
+                        tooltip: "Only show OSC output",
+                        toggle_group: 0
+                    },
+                    {
+                        icon: "fs-unmute-icon",
+                        type: "toggle",
+                        toggle_state: true,
+                        on_click: _toggleAUDIORecord,
+                        tooltip: "Only show AUDIO output",
+                        toggle_group: 0
+                    },
+                    {
+                        icon: "fs-all-icon",
+                        type: "toggle",
+                        toggle_state: false,
+                        on_click: _toggleALLRecord,
+                        tooltip: "Show all output",
+                        toggle_group: 0
+                    }
+                ],
                 opts: [
                     {
                         icon: "fs-plus-symbol-icon",
@@ -1681,7 +1743,7 @@ var _uiInit = function () {
                         toggle_state: false,
                         on_click: _toggleAdditiveRecord,
                         tooltip: "Additive",
-                        toggle_group: 0
+                        toggle_group: 1
                     },
                     {
                         icon: "fs-minus-symbol-icon",
@@ -1689,7 +1751,7 @@ var _uiInit = function () {
                         toggle_state: false,
                         on_click: _toggleSubstractiveRecord,
                         tooltip: "Substractive",
-                        toggle_group: 0
+                        toggle_group: 1
                     },
                     {
                         icon: "fs-multiply-symbol-icon",
@@ -1697,7 +1759,7 @@ var _uiInit = function () {
                         toggle_state: false,
                         on_click: _toggleMultiplyRecord,
                         tooltip: "Multiply",
-                        toggle_group: 0
+                        toggle_group: 1
                     }
                 ],
                 acts: [

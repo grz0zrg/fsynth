@@ -1139,6 +1139,14 @@ span.CodeMirror-selectedtext { background: none; }
     background-image: url("../data/ui-icons/xyf.png");
 }
 
+.fs-all-icon {
+    background-image: url("../data/ui-icons/all.png");
+}
+
+.fs-osc-icon {
+    background-image: url("../data/ui-icons/osc.png");
+}
+
 .fs-mute-icon {
     background-image: url("../data/ui-icons/mute.png");
 }

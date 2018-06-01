@@ -34,6 +34,8 @@ var _saveMarkersSettings = function () {
     _play_position_markers.forEach(function (obj) {
             var marker_settings = {  };
             marker_settings.midi_out = _cloneObj(obj.midi_out);
+            marker_settings.osc_out = obj.osc_out;
+            marker_settings.audio_out = obj.audio_out;
             delete marker_settings.midi_out["custom_midi_message_fn"];
             _local_session_settings.markers.push(marker_settings);
         });
@@ -307,6 +309,20 @@ var _createMarkerSettings = function (marker_obj) {
         fs_slice_settings_synthesis_select = document.createElement("select"),
         fs_slice_settings_bpm = document.createElement("div"),
 
+        // AUDIO pane
+        audio_container = document.createElement("fieldset"),
+        audio_container_legend = document.createElement("legend"),
+        audio_label = document.createElement("label"),
+        audio_div = document.createElement("div"),
+        audio_input = document.createElement("input"),
+
+        // OSC pane
+        osc_container = document.createElement("fieldset"),
+        osc_container_legend = document.createElement("legend"),
+        osc_label = document.createElement("label"),
+        osc_div = document.createElement("div"),
+        osc_input = document.createElement("input"),
+
         // MIDI device
         midi_dev_out_container = document.createElement("div"),
         midi_dev_list_container = document.createElement("fieldset"),
@@ -331,6 +347,53 @@ var _createMarkerSettings = function (marker_obj) {
         
         i = 0;
     
+    // AUDIO pane
+    audio_container.className = "fs-fieldset";
+    audio_container_legend.innerHTML = "AUDIO out";
+    audio_div.innerHTML = "on/off &nbsp;";
+    audio_label.className = "fs-ck-label";
+    audio_input.type = "checkbox";
+
+    if (marker_obj.audio_out) {
+        audio_input.checked = true;
+    }
+
+    audio_container.appendChild(audio_container_legend);
+    audio_container.appendChild(audio_label);
+    audio_label.appendChild(audio_div);
+    audio_label.appendChild(audio_input);
+
+    _applyCollapsible(audio_container, audio_container_legend, true);
+
+    audio_input.addEventListener("change", _cbMarkerSettingsChange(marker_obj, function (self, instance, marker_obj) {
+        marker_obj.audio_out = self.checked;
+        _saveMarkersSettings();
+    }));
+
+    // OSC pane
+    osc_container.className = "fs-fieldset";
+    osc_container_legend.innerHTML = "OSC out";
+    osc_div.innerHTML = "on/off &nbsp;";
+    osc_label.className = "fs-ck-label";
+    osc_input.type = "checkbox";
+
+    if (marker_obj.osc_out) {
+        osc_input.checked = true;
+    }
+
+    osc_container.appendChild(osc_container_legend);
+    osc_container.appendChild(osc_label);
+    osc_label.appendChild(osc_div);
+    osc_label.appendChild(osc_input);
+
+    _applyCollapsible(osc_container, osc_container_legend, true);
+
+    osc_input.addEventListener("change", _cbMarkerSettingsChange(marker_obj, function (self, instance, marker_obj) {
+        marker_obj.osc_out = self.checked;
+        _saveMarkersSettings();
+    }));
+
+    // MIDI pane
     midi_custom_message_area.innerHTML = '// User-defined MIDI messages for note events\n// Pixels data ([0,1) float data) : l, r, b, a\n// MIDI channel : c\n\nif (type === "on") {\n    on = [];\n} else if (type === "change") {\n    change = [];\n} else if (type === "off") {\n    off = [];\n}';
     midi_custom_message_area.style.width = "94%";
     midi_custom_message_area.style.height = "180px";
@@ -540,6 +603,8 @@ var _createMarkerSettings = function (marker_obj) {
     fs_slice_settings_container.appendChild(fs_slice_settings_shift_input);
     fs_slice_settings_container.appendChild(fs_slice_settings_bpm);
     fs_slice_settings_container.appendChild(fs_slice_settings_channel_input);
+    fs_slice_settings_container.appendChild(audio_container);
+    fs_slice_settings_container.appendChild(osc_container);
     fs_slice_settings_container.appendChild(midi_dev_list_container);
     
     content_element.appendChild(fs_slice_settings_container);
@@ -727,6 +792,8 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
                 custom_midi_message: "",
                 custom_midi_message_fn: null,
             },
+            osc_out: false,
+            audio_out: true,
             custom_midi_codemirror: null
         });
     
@@ -744,6 +811,14 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
                 play_position_marker.midi_out.custom_midi_message = local_session_marker["midi_out"].custom_midi_message;
 
                 _compileMarkerMIDIData(play_position_marker, null);
+            }
+
+            if (local_session_marker["osc_out"]) {
+                play_position_marker.osc_out = local_session_marker["osc_out"];
+            }
+
+            if (local_session_marker["audio_out"]) {
+                play_position_marker.audio_out = local_session_marker["audio_out"];
             }
         }
     }    

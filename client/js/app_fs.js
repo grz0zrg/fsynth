@@ -176,6 +176,16 @@ var FragmentSynth = function (params) {
         _record_position = 0,
         _record = false,
         _record_input_count = 0,
+        _record_fn = [function (i, j) {
+            return _data[i][j] + _midi_data[i][j] + _osc_data[i][j];
+        }, function (i, j) {
+            return _data[i][j];
+        }, function (i, j) {
+            return _osc_data[i][j];
+        }, function (i, j) {
+            return _midi_data[i][j];
+        }],
+        _record_type = 1, // record AUDIO output only by default
         _record_opts = {
             default: function (p, p2) {
                 return p2;
@@ -379,6 +389,8 @@ var FragmentSynth = function (params) {
         _data = [],
         _prev_midi_data = [],
         _midi_data = [],
+        _prev_osc_data = [],
+        _osc_data = [],
         _output_channels = 1,
 
         _analysis_canvas,
