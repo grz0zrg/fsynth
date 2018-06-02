@@ -728,8 +728,8 @@ var WUI_Dialog = new (function() {
     // a tricky solution but the only one i know of until a standard pop up or someone has a better solution
     if (!Element.prototype['_addEventListener']) {
         Element.prototype._addEventListener = Element.prototype.addEventListener;
-        Element.prototype.addEventListener = function(a, b, c) {
-            this._addEventListener(a, b, c);
+        Element.prototype.addEventListener = function(a, b, c, d) {
+            this._addEventListener(a, b, c, d);
 
             if (_withinDialog(this)) {
                 if (!this['eventListenerList']) {
@@ -1038,24 +1038,26 @@ var WUI_Dialog = new (function() {
         var key, i;
 
         do {
-            if(elem.nodeType == 1) {
+            if (elem.nodeType == 1) {
                 if (elem['eventListenerList']) {
                     for (key in elem.eventListenerList) {
-                        if (key === 'length' || !elem.eventListenerList.hasOwnProperty(key)) continue;
-                            for (i = 0; i < elem.eventListenerList[key].length; i += 1) {
-                                target.addEventListener(key, elem.eventListenerList[key][i], false);
-                            }
+                        if (key === 'length' || !elem.eventListenerList.hasOwnProperty(key)) {
+                            continue;
+                        }
+
+                        for (i = 0; i < elem.eventListenerList[key].length; i += 1) {
+                            target.addEventListener(key, elem.eventListenerList[key][i]);
                         }
                     }
                 }
-                if(elem.hasChildNodes()) {
-                    _addListenerWalk(elem.firstChild, target.firstChild);
-                }
-
-                elem = elem.nextSibling;
-                target = target.nextSibling;
             }
-            while (elem && target);
+            if (elem.hasChildNodes()) {
+                _addListenerWalk(elem.firstChild, target.firstChild);
+            }
+
+            elem = elem.nextSibling;
+            target = target.nextSibling;
+        } while (elem && target);
     };
 
     var _detach = function (dialog) {
@@ -1912,7 +1914,7 @@ var WUI_Dialog = new (function() {
             element;
 
         if (widget === undefined) {
-            _log("Element id '" + id + "' is not a WUI_Dialog, destroying aborted.");
+            _log("Element id '" + id + "' is not a WUI_Dialog, destroying aborted.");_focus(_dragged_dialog);
 
             return;
         }
@@ -20513,6 +20515,8 @@ _utter_fail_element.innerHTML = "";
 
     var _motd = '<div id="fs_notify" class="fs-notify"><div class="fs-status-bar-date">31/12/2017 :</div><div class="fs-status-bar-content"><a class="fs-link" href="https://quiet.fsynth.com/d/12-fragment-1-0-3">Fragment 1.0.3 released, subtractive/PM synthesis, audio server update etc. (click for more details)</a></div></div>',
         
+        _webmidi_support_msg = '<center>WebMIDI API is not enabled/supported by this browser, please use a <a class="fs-link" href="https://caniuse.com/#search=midi">compatible browser</a>.</center>',
+        
         _showdown_converter = new showdown.Converter(),
         
         _fs_state = 1,
@@ -20577,8 +20581,9 @@ _utter_fail_element.innerHTML = "";
         _c_helper = document.getElementById("fs_helper_canvas"),
         _c_helper_ctx = _c_helper.getContext("2d"),
     
-        _canvas_width  = 1024,
-        _canvas_height = 439,//Math.round(window.innerHeight / 2) - 68,
+        // crude initial adaptation for mobiles / tablets / desktop
+        _canvas_width  = (window.innerWidth < 500 ? 320 : (window.innerWidth < 800 ? 640 : (window.innerWidth < 1280 ? 800 : 1224))),
+        _canvas_height = (window.innerHeight <= 640 ? 200 : 439),
 
         _canvas_width_m1 = _canvas_width - 1,
         _canvas_height_mul4 = _canvas_height * 4,
@@ -25617,6 +25622,9 @@ var _icon_class = {
     
     _fas_dialog_id = "fs_fas_dialog",
     _fas_dialog,
+
+    _fx_dialog_id = "fs_fx_dialog",
+    _fx_dialog,
     
     _fas_chn_notify_timeout,
     
@@ -25705,6 +25713,10 @@ var _applyCollapsible = function (element, bind_to, collapsed) {
     }
 };
 
+var _createFxSettingsContent = function () {
+
+};
+
 var _createFasSettingsContent = function () {
     var dialog_div = document.getElementById(_fas_dialog).lastElementChild,
         detached_dialog = WUI_Dialog.getDetachedDialog(_fas_dialog),
@@ -25761,13 +25773,13 @@ var _createFasSettingsContent = function () {
     fx_matrix_chn_fieldset_legend.innerHTML = "Chn";
     
     synthesis_matrix_fieldset.appendChild(synthesis_matrix_fieldset_legend);
-    fx_matrix_fieldset.appendChild(fx_matrix_fieldset_legend);
+//    fx_matrix_fieldset.appendChild(fx_matrix_fieldset_legend);
     actions_fieldset.appendChild(actions_fieldset_legend);
-    fx_matrix_fx_fieldset.appendChild(fx_matrix_fx_fieldset_legend);
-    fx_matrix_chn_fieldset.appendChild(fx_matrix_chn_fieldset_legend);
+//    fx_matrix_fx_fieldset.appendChild(fx_matrix_fx_fieldset_legend);
+//    fx_matrix_chn_fieldset.appendChild(fx_matrix_chn_fieldset_legend);
 
     _applyCollapsible(synthesis_matrix_fieldset, synthesis_matrix_fieldset_legend);
-    _applyCollapsible(fx_matrix_fieldset, fx_matrix_fieldset_legend, true);
+//    _applyCollapsible(fx_matrix_fieldset, fx_matrix_fieldset_legend, true);
     _applyCollapsible(actions_fieldset, actions_fieldset_legend, true);
 
     // synthesis matrix
@@ -25848,7 +25860,7 @@ var _createFasSettingsContent = function () {
     }
 
     // fx / chn matrix
-    fx_matrix_table.className = "fs-matrix";
+/*    fx_matrix_table.className = "fs-matrix";
     fx_matrix_chn_fieldset.appendChild(fx_matrix_table);
     fx_matrix_fieldset.appendChild(fx_matrix_chn_fieldset);
 
@@ -25951,7 +25963,7 @@ var _createFasSettingsContent = function () {
 
         fx_matrix_table.appendChild(row);
     }
-
+*/
     // load sample action
     load_samples_btn.innerHTML = "Reload samples";
     load_samples_btn.className = "fs-btn fs-btn-default";
@@ -25966,7 +25978,7 @@ var _createFasSettingsContent = function () {
     actions_fieldset.appendChild(load_samples_btn);
     
     dialog_div.appendChild(synthesis_matrix_fieldset);
-    dialog_div.appendChild(fx_matrix_fieldset);
+    //dialog_div.appendChild(fx_matrix_fieldset);
     dialog_div.appendChild(actions_fieldset);  
 /*
     var dialog_div = document.getElementById(_fas_dialog).lastElementChild,
@@ -26304,6 +26316,11 @@ var _createFasSettingsContent = function () {
 */
 };
 
+var _showFxDialog = function (toggle_ev) {
+    _createFxSettingsContent();
+    WUI_Dialog.open(_fx_dialog);
+};
+
 var _showFasDialog = function (toggle_ev) {
     _createFasSettingsContent();
     WUI_Dialog.open(_fas_dialog);
@@ -26375,7 +26392,7 @@ var _showRecordDialog = function () {
 };
 
 var _onImportDialogClose = function () {
-    WUI_ToolBar.toggle(_wui_main_toolbar, 14);
+    WUI_ToolBar.toggle(_wui_main_toolbar, 15);
     
     WUI_Dialog.close(_import_dialog);
 };
@@ -27020,6 +27037,39 @@ var _uiInit = function () {
             }
         });
     
+    _fx_dialog = WUI_Dialog.create(_fx_dialog_id, {
+        title: "FX Settings",
+
+        width: "auto",
+        height: "auto",
+    
+        min_width: 340,
+        min_height: 80,
+
+        halign: "center",
+        valign: "center",
+
+        open: false,
+
+        status_bar: false,
+        detachable: true,
+        draggable: true,
+    
+        on_detach: function (new_window) {
+            _createFxSettingsContent();
+        },
+    
+        header_btn: [
+            {
+                title: "Help",
+                on_click: function () {
+                    window.open(_documentation_link + "tutorials/audio_server_fx/"); 
+                },
+                class_name: "fs-help-icon"
+            }
+        ]
+    });
+    
     _fas_dialog = WUI_Dialog.create(_fas_dialog_id, {
             title: "FAS Settings",
 
@@ -27181,7 +27231,6 @@ var _uiInit = function () {
         });
 */
 
-    
     WUI_Tabs.create("fs_help_tabs", {
         height: "calc(100% - 74px)"
     });
@@ -27584,6 +27633,11 @@ var _uiInit = function () {
                     icon: "fs-gear-icon",
                     on_click: _showFasDialog,
                     tooltip: "Audio server settings"
+                },
+                {
+                    icon: "fs-fx-icon",
+                    on_click: _showFxDialog,
+                    tooltip: "Audio server fx settings"
                 }
             ],
             "Tools": [
@@ -28475,6 +28529,7 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
     }
     
     _computeOutputChannels();
+    _createFxSettingsContent();
 
     _saveMarkersSettings();
 };
@@ -28635,6 +28690,8 @@ var _createMarkerSettings = function (marker_obj) {
 
         synthesis_option,
 
+        tmp_element,
+
         key,
         
         i = 0;
@@ -28709,10 +28766,12 @@ var _createMarkerSettings = function (marker_obj) {
     midi_dev_out_container.appendChild(midi_dev_list_label);
     midi_dev_out_container.innerHTML += "&nbsp;";
     midi_dev_out_container.appendChild(midi_dev_list);
+
     midi_dev_list_container.appendChild(midi_dev_list_container_legend);
-    midi_dev_list_container.appendChild(midi_dev_out_container);
+
     midi_dev_out_container.style = "text-align: center";
 
+    midi_dev_list_container.appendChild(midi_dev_out_container);
     midi_dev_list_container.appendChild(midi_custom_message_area);
 
     midi_custom_codemirror = CodeMirror.fromTextArea(midi_custom_message_area, {
@@ -28736,7 +28795,19 @@ var _createMarkerSettings = function (marker_obj) {
         _saveMarkersSettings();
     }));
 
-    _applyCollapsible(midi_dev_list_container, midi_dev_list_container_legend);
+    if (!_webMIDISupport()) {
+        midi_dev_out_container.style.display = "none";
+        cm_element.style.display = "none";
+
+        tmp_element = document.createElement("div");
+        tmp_element.innerHTML = _webmidi_support_msg;
+
+        midi_dev_list_container.appendChild(tmp_element);
+
+        _applyCollapsible(midi_dev_list_container, midi_dev_list_container_legend, true);
+    } else {
+        _applyCollapsible(midi_dev_list_container, midi_dev_list_container_legend);
+    }
 
     marker_obj.custom_midi_codemirror = midi_custom_codemirror;
 
@@ -29034,6 +29105,9 @@ var _changeSliceType = function (slice_obj, type, submit) {
             play_position_bottom_hook_element.style.borderBottomColor = "#555555";
         }    
     }
+
+    _createFasSettingsContent();
+    _createFxSettingsContent();
 
     if (submit) {
         _submitSliceUpdate(4, slice_obj.element.dataset.slice, { type : type });
@@ -29941,7 +30015,8 @@ var _midiInit = function () {
 
         navigator.requestMIDIAccess().then(_midiAccessSuccess, _midiAccessFailure);
     } else {
-        midi_settings_element.innerHTML = "<br><center>WebMIDI API is not enabled/supported by this browser, please use a <a href=\"https://caniuse.com/#search=midi\">compatible browser</a>.</center>";
+        midi_settings_element.style.paddingTop = "12px";
+        midi_settings_element.innerHTML = _webmidi_support_msg;
     }
 }/* jslint browser: true */
 

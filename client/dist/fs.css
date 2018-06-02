@@ -1052,6 +1052,10 @@ span.CodeMirror-selectedtext { background: none; }
     padding-bottom: 3px;
 }
 
+.wui-rangeslider-input {
+    margin-bottom: 2px;
+}
+
 .wui-tab-content {
     overflow: hidden;
 }
@@ -1258,7 +1262,7 @@ html, body {
 }
 
 body {
-    font-family: "FiraSans-Regular", Helvetica, Arial, sans-serif;
+    font-family: "OpenSans-Regular", Helvetica, Arial, sans-serif;
     font-style: normal;
     font-weight: normal;
     
@@ -1267,13 +1271,13 @@ body {
 }
 
 @font-face {
-    font-family: "FiraSans-Regular";
-    src: url('../data/FiraSans-Regular.otf');
+    font-family: "OpenSans-Regular";
+    src: url('../data/OpenSans-Regular.woff');
 }
 
 @font-face {
     font-family: "Inconsolata";
-    src: url('../data/Inconsolata.otf');
+    src: url('../data/inconsolata.woff');
 }
 
 .CodeMirror-focused .cm-matchhighlight {
@@ -1551,25 +1555,6 @@ canvas {
 
 .fs-user-name:hover {
     cursor: pointer;
-}
-
-.fs-middle-panel {
-    border-top: solid 1px #282828;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
-
-.fs-input-panel {
-    width: calc(100% - 619px - 16px);
-/*
-    height: 32px;   
-    background-color: #111111;
-*/
-    display: inline;
-    
-    overflow-y: auto;
 }
 
 .fs-input-thumb {
@@ -1888,12 +1873,60 @@ canvas {
 */
 }
 
-.fs-middle-toolbar {
-    width: 619px;
+@media all and (max-width: 768px) {
+    .fs-middle-toolbar {
+        width: 90%;
+        
+        margin: 0;
+        
+        display: inline-block;
+    }
+
+    .fs-middle-panel {
+        border-top: solid 1px #282828;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+
+        text-align: center;
+    }
     
-    margin: 0;
+    .fs-input-panel {
+        padding-top: 2px;
+
+        width: 100%;
+
+        display: block;
+        
+        overflow-y: auto;
+    }
+}
+
+@media all and (min-width: 768px) {
+    .fs-middle-toolbar {
+        width: 656px;
+        
+        margin: 0;
+        
+        display: inline-block;
+    }
+
+    .fs-middle-panel {
+        border-top: solid 1px #282828;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
     
-    display: inline-block;
+    .fs-input-panel {
+        width: calc(100% - 656px - 16px);
+
+        display: inline;
+        
+        overflow-y: auto;
+    }
 }
 
 .fs-middle-toolbar > div {

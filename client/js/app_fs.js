@@ -142,6 +142,8 @@ var FragmentSynth = function (params) {
 
     var _motd = '<div id="fs_notify" class="fs-notify"><div class="fs-status-bar-date">31/12/2017 :</div><div class="fs-status-bar-content"><a class="fs-link" href="https://quiet.fsynth.com/d/12-fragment-1-0-3">Fragment 1.0.3 released, subtractive/PM synthesis, audio server update etc. (click for more details)</a></div></div>',
         
+        _webmidi_support_msg = '<center>WebMIDI API is not enabled/supported by this browser, please use a <a class="fs-link" href="https://caniuse.com/#search=midi">compatible browser</a>.</center>',
+        
         _showdown_converter = new showdown.Converter(),
         
         _fs_state = 1,
@@ -206,8 +208,9 @@ var FragmentSynth = function (params) {
         _c_helper = document.getElementById("fs_helper_canvas"),
         _c_helper_ctx = _c_helper.getContext("2d"),
     
-        _canvas_width  = 1024,
-        _canvas_height = 439,//Math.round(window.innerHeight / 2) - 68,
+        // crude initial adaptation for mobiles / tablets / desktop
+        _canvas_width  = (window.innerWidth < 500 ? 320 : (window.innerWidth < 800 ? 640 : (window.innerWidth < 1280 ? 800 : 1224))),
+        _canvas_height = (window.innerHeight <= 640 ? 200 : 439),
 
         _canvas_width_m1 = _canvas_width - 1,
         _canvas_height_mul4 = _canvas_height * 4,

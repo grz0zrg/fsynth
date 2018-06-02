@@ -46,6 +46,9 @@ var _icon_class = {
     
     _fas_dialog_id = "fs_fas_dialog",
     _fas_dialog,
+
+    _fx_dialog_id = "fs_fx_dialog",
+    _fx_dialog,
     
     _fas_chn_notify_timeout,
     
@@ -134,6 +137,10 @@ var _applyCollapsible = function (element, bind_to, collapsed) {
     }
 };
 
+var _createFxSettingsContent = function () {
+
+};
+
 var _createFasSettingsContent = function () {
     var dialog_div = document.getElementById(_fas_dialog).lastElementChild,
         detached_dialog = WUI_Dialog.getDetachedDialog(_fas_dialog),
@@ -190,13 +197,13 @@ var _createFasSettingsContent = function () {
     fx_matrix_chn_fieldset_legend.innerHTML = "Chn";
     
     synthesis_matrix_fieldset.appendChild(synthesis_matrix_fieldset_legend);
-    fx_matrix_fieldset.appendChild(fx_matrix_fieldset_legend);
+//    fx_matrix_fieldset.appendChild(fx_matrix_fieldset_legend);
     actions_fieldset.appendChild(actions_fieldset_legend);
-    fx_matrix_fx_fieldset.appendChild(fx_matrix_fx_fieldset_legend);
-    fx_matrix_chn_fieldset.appendChild(fx_matrix_chn_fieldset_legend);
+//    fx_matrix_fx_fieldset.appendChild(fx_matrix_fx_fieldset_legend);
+//    fx_matrix_chn_fieldset.appendChild(fx_matrix_chn_fieldset_legend);
 
     _applyCollapsible(synthesis_matrix_fieldset, synthesis_matrix_fieldset_legend);
-    _applyCollapsible(fx_matrix_fieldset, fx_matrix_fieldset_legend, true);
+//    _applyCollapsible(fx_matrix_fieldset, fx_matrix_fieldset_legend, true);
     _applyCollapsible(actions_fieldset, actions_fieldset_legend, true);
 
     // synthesis matrix
@@ -277,7 +284,7 @@ var _createFasSettingsContent = function () {
     }
 
     // fx / chn matrix
-    fx_matrix_table.className = "fs-matrix";
+/*    fx_matrix_table.className = "fs-matrix";
     fx_matrix_chn_fieldset.appendChild(fx_matrix_table);
     fx_matrix_fieldset.appendChild(fx_matrix_chn_fieldset);
 
@@ -380,7 +387,7 @@ var _createFasSettingsContent = function () {
 
         fx_matrix_table.appendChild(row);
     }
-
+*/
     // load sample action
     load_samples_btn.innerHTML = "Reload samples";
     load_samples_btn.className = "fs-btn fs-btn-default";
@@ -395,7 +402,7 @@ var _createFasSettingsContent = function () {
     actions_fieldset.appendChild(load_samples_btn);
     
     dialog_div.appendChild(synthesis_matrix_fieldset);
-    dialog_div.appendChild(fx_matrix_fieldset);
+    //dialog_div.appendChild(fx_matrix_fieldset);
     dialog_div.appendChild(actions_fieldset);  
 /*
     var dialog_div = document.getElementById(_fas_dialog).lastElementChild,
@@ -733,6 +740,11 @@ var _createFasSettingsContent = function () {
 */
 };
 
+var _showFxDialog = function (toggle_ev) {
+    _createFxSettingsContent();
+    WUI_Dialog.open(_fx_dialog);
+};
+
 var _showFasDialog = function (toggle_ev) {
     _createFasSettingsContent();
     WUI_Dialog.open(_fas_dialog);
@@ -804,7 +816,7 @@ var _showRecordDialog = function () {
 };
 
 var _onImportDialogClose = function () {
-    WUI_ToolBar.toggle(_wui_main_toolbar, 14);
+    WUI_ToolBar.toggle(_wui_main_toolbar, 15);
     
     WUI_Dialog.close(_import_dialog);
 };
@@ -1449,6 +1461,39 @@ var _uiInit = function () {
             }
         });
     
+    _fx_dialog = WUI_Dialog.create(_fx_dialog_id, {
+        title: "FX Settings",
+
+        width: "auto",
+        height: "auto",
+    
+        min_width: 340,
+        min_height: 80,
+
+        halign: "center",
+        valign: "center",
+
+        open: false,
+
+        status_bar: false,
+        detachable: true,
+        draggable: true,
+    
+        on_detach: function (new_window) {
+            _createFxSettingsContent();
+        },
+    
+        header_btn: [
+            {
+                title: "Help",
+                on_click: function () {
+                    window.open(_documentation_link + "tutorials/audio_server_fx/"); 
+                },
+                class_name: "fs-help-icon"
+            }
+        ]
+    });
+    
     _fas_dialog = WUI_Dialog.create(_fas_dialog_id, {
             title: "FAS Settings",
 
@@ -1610,7 +1655,6 @@ var _uiInit = function () {
         });
 */
 
-    
     WUI_Tabs.create("fs_help_tabs", {
         height: "calc(100% - 74px)"
     });
@@ -2013,6 +2057,11 @@ var _uiInit = function () {
                     icon: "fs-gear-icon",
                     on_click: _showFasDialog,
                     tooltip: "Audio server settings"
+                },
+                {
+                    icon: "fs-fx-icon",
+                    on_click: _showFxDialog,
+                    tooltip: "Audio server fx settings"
                 }
             ],
             "Tools": [

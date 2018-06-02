@@ -48,6 +48,10 @@
     padding-bottom: 3px;
 }
 
+.wui-rangeslider-input {
+    margin-bottom: 2px;
+}
+
 .wui-tab-content {
     overflow: hidden;
 }

@@ -724,6 +724,7 @@ var _midiInit = function () {
 
         navigator.requestMIDIAccess().then(_midiAccessSuccess, _midiAccessFailure);
     } else {
-        midi_settings_element.innerHTML = "<br><center>WebMIDI API is not enabled/supported by this browser, please use a <a href=\"https://caniuse.com/#search=midi\">compatible browser</a>.</center>";
+        midi_settings_element.style.paddingTop = "12px";
+        midi_settings_element.innerHTML = _webmidi_support_msg;
     }
 }

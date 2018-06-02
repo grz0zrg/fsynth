@@ -200,6 +200,7 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
     }
     
     _computeOutputChannels();
+    _createFxSettingsContent();
 
     _saveMarkersSettings();
 };
@@ -360,6 +361,8 @@ var _createMarkerSettings = function (marker_obj) {
 
         synthesis_option,
 
+        tmp_element,
+
         key,
         
         i = 0;
@@ -434,10 +437,12 @@ var _createMarkerSettings = function (marker_obj) {
     midi_dev_out_container.appendChild(midi_dev_list_label);
     midi_dev_out_container.innerHTML += "&nbsp;";
     midi_dev_out_container.appendChild(midi_dev_list);
+
     midi_dev_list_container.appendChild(midi_dev_list_container_legend);
-    midi_dev_list_container.appendChild(midi_dev_out_container);
+
     midi_dev_out_container.style = "text-align: center";
 
+    midi_dev_list_container.appendChild(midi_dev_out_container);
     midi_dev_list_container.appendChild(midi_custom_message_area);
 
     midi_custom_codemirror = CodeMirror.fromTextArea(midi_custom_message_area, {
@@ -461,7 +466,19 @@ var _createMarkerSettings = function (marker_obj) {
         _saveMarkersSettings();
     }));
 
-    _applyCollapsible(midi_dev_list_container, midi_dev_list_container_legend);
+    if (!_webMIDISupport()) {
+        midi_dev_out_container.style.display = "none";
+        cm_element.style.display = "none";
+
+        tmp_element = document.createElement("div");
+        tmp_element.innerHTML = _webmidi_support_msg;
+
+        midi_dev_list_container.appendChild(tmp_element);
+
+        _applyCollapsible(midi_dev_list_container, midi_dev_list_container_legend, true);
+    } else {
+        _applyCollapsible(midi_dev_list_container, midi_dev_list_container_legend);
+    }
 
     marker_obj.custom_midi_codemirror = midi_custom_codemirror;
 
@@ -759,6 +776,9 @@ var _changeSliceType = function (slice_obj, type, submit) {
             play_position_bottom_hook_element.style.borderBottomColor = "#555555";
         }    
     }
+
+    _createFasSettingsContent();
+    _createFxSettingsContent();
 
     if (submit) {
         _submitSliceUpdate(4, slice_obj.element.dataset.slice, { type : type });
