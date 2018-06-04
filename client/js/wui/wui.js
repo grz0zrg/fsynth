@@ -1934,11 +1934,11 @@ var WUI_Dialog = new (function() {
 
         if (child_window.document.body.firstElementChild) {
             _addListenerWalk(widget.dialog.children[1], child_window.document.body.firstElementChild);
-
+/*
             if (widget.opts.on_detach) {
                 widget.opts.on_detach(child_window);
             }
-        } else {
+        */        } else {
             window.setTimeout(function(){ // temporary
                 WUI_Dialog.childWindowLoaded(id);
             }, 500);

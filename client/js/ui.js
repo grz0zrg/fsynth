@@ -164,7 +164,7 @@ var _createFasSettingsContent = function () {
         fx_matrix_fx_fieldset_legend = document.createElement("legend"),
         fx_matrix_chn_fieldset_legend = document.createElement("legend"),
         
-        synthesis_types = ["Additive", "Granular", "PM/FM", "Subtractive", "Karplus", "Wavetable"],
+        synthesis_types = ["Additive", "Spectral", "Granular", "PM/FM", "Subtractive", "Karplus", "Wavetable"],
         synthesis_params = [0, 3, 0, 0, 0, 0],
         fx_types = ["Waveshaping"],
 
@@ -1206,7 +1206,7 @@ var _uiInit = function () {
     } else {
         settings_ck_audio_elem.checked = false;
     }
-    
+
     settings_ck_osc_in_elem.addEventListener("change", function () {
             if (this.checked) {
                 _osc.in = true;
@@ -1370,7 +1370,11 @@ var _uiInit = function () {
     settings_ck_audio_elem.addEventListener("change", function () {
         if (this.checked) {
             _audio_off = true;
+
+            _stopOscillators();
+            _pauseWorklet();
         } else {
+            _playWorklet();
             _audio_off = false;
         }
     
