@@ -436,7 +436,7 @@ var _createFasSettingsContent = function () {
     row.appendChild(cell);
     for (i = 0; i < _output_channels; i += 1) {
         cell = document.createElement("th");
-        cell.innerHTML = i;
+        cell.innerHTML = i + 1;
         row.appendChild(cell);
     }
 
@@ -932,6 +932,7 @@ var _uiInit = function () {
         settings_ck_quickstart_elem = document.getElementById("fs_settings_ck_quickstart"),
         settings_ck_worklet_elem = document.getElementById("fs_settings_ck_audioworklet"),
         settings_ck_audio_elem = document.getElementById("fs_settings_ck_audio"),
+        settings_ck_show_slice_chn_elem = document.getElementById("fs_settings_ck_show_slice_chn"),
         
         fs_settings_note_lifetime = localStorage.getItem('fs-note-lifetime'),
         fs_settings_max_polyphony = localStorage.getItem('fs-max-polyphony'),
@@ -948,7 +949,8 @@ var _uiInit = function () {
         fs_settings_osc_out = localStorage.getItem('fs-osc-out'),
         fs_settings_quickstart = localStorage.getItem('fs-quickstart'),
         fs_settings_worklet = localStorage.getItem('fs-worklet'),
-        fs_settings_audio = localStorage.getItem('fs-audio');
+        fs_settings_audio = localStorage.getItem('fs-audio'),
+        fs_settings_show_slice_chn = localStorage.getItem('fs-show-slice-chn');
     
     _settings_dialog = WUI_Dialog.create(_settings_dialog_id, {
             title: "Session & global settings",
@@ -1110,6 +1112,12 @@ var _uiInit = function () {
         settings_ck_audio_elem.checked = true;
     } else {
         settings_ck_audio_elem.checked = false;
+    }
+
+    if (fs_settings_show_slice_chn === "true") {
+        settings_ck_show_slice_chn_elem.checked = true;
+    } else {
+        settings_ck_show_slice_chn_elem.checked = false;
     }
 
     settings_ck_osc_in_elem.addEventListener("change", function () {
@@ -1285,6 +1293,18 @@ var _uiInit = function () {
     
         localStorage.setItem('fs-audio', this.checked);
     });
+
+    settings_ck_show_slice_chn_elem.addEventListener("change", function () {
+        if (this.checked) {
+            _show_output_channels = true;
+        } else {
+            _show_output_channels = false;
+        }
+
+        _updateSliceChnVisibility();
+    
+        localStorage.setItem('fs-show-slice-chn', this.checked);
+    });
     
     settings_ck_oscinfos_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_polyinfos_elem.dispatchEvent(new UIEvent('change'));
@@ -1300,6 +1320,7 @@ var _uiInit = function () {
     settings_ck_quickstart_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_worklet_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_audio_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_show_slice_chn_elem.dispatchEvent(new UIEvent('change'));
     
     _midi_settings_dialog = WUI_Dialog.create(_midi_settings_dialog_id, {
             title: "MIDI I/O",

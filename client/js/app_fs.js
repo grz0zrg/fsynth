@@ -284,6 +284,8 @@ var FragmentSynth = function (params) {
             }
         },
 
+        _show_output_channels = false,
+
         _audio_off = false,
         
         _code_editor_extern = false,

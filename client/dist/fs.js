@@ -20657,6 +20657,8 @@ _utter_fail_element.innerHTML = "";
             }
         },
 
+        _show_output_channels = false,
+
         _audio_off = false,
         
         _code_editor_extern = false,
@@ -26018,7 +26020,7 @@ var _createFasSettingsContent = function () {
     row.appendChild(cell);
     for (i = 0; i < _output_channels; i += 1) {
         cell = document.createElement("th");
-        cell.innerHTML = i;
+        cell.innerHTML = i + 1;
         row.appendChild(cell);
     }
 
@@ -26514,6 +26516,7 @@ var _uiInit = function () {
         settings_ck_quickstart_elem = document.getElementById("fs_settings_ck_quickstart"),
         settings_ck_worklet_elem = document.getElementById("fs_settings_ck_audioworklet"),
         settings_ck_audio_elem = document.getElementById("fs_settings_ck_audio"),
+        settings_ck_show_slice_chn_elem = document.getElementById("fs_settings_ck_show_slice_chn"),
         
         fs_settings_note_lifetime = localStorage.getItem('fs-note-lifetime'),
         fs_settings_max_polyphony = localStorage.getItem('fs-max-polyphony'),
@@ -26530,7 +26533,8 @@ var _uiInit = function () {
         fs_settings_osc_out = localStorage.getItem('fs-osc-out'),
         fs_settings_quickstart = localStorage.getItem('fs-quickstart'),
         fs_settings_worklet = localStorage.getItem('fs-worklet'),
-        fs_settings_audio = localStorage.getItem('fs-audio');
+        fs_settings_audio = localStorage.getItem('fs-audio'),
+        fs_settings_show_slice_chn = localStorage.getItem('fs-show-slice-chn');
     
     _settings_dialog = WUI_Dialog.create(_settings_dialog_id, {
             title: "Session & global settings",
@@ -26692,6 +26696,12 @@ var _uiInit = function () {
         settings_ck_audio_elem.checked = true;
     } else {
         settings_ck_audio_elem.checked = false;
+    }
+
+    if (fs_settings_show_slice_chn === "true") {
+        settings_ck_show_slice_chn_elem.checked = true;
+    } else {
+        settings_ck_show_slice_chn_elem.checked = false;
     }
 
     settings_ck_osc_in_elem.addEventListener("change", function () {
@@ -26867,6 +26877,18 @@ var _uiInit = function () {
     
         localStorage.setItem('fs-audio', this.checked);
     });
+
+    settings_ck_show_slice_chn_elem.addEventListener("change", function () {
+        if (this.checked) {
+            _show_output_channels = true;
+        } else {
+            _show_output_channels = false;
+        }
+
+        _updateSliceChnVisibility();
+    
+        localStorage.setItem('fs-show-slice-chn', this.checked);
+    });
     
     settings_ck_oscinfos_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_polyinfos_elem.dispatchEvent(new UIEvent('change'));
@@ -26882,6 +26904,7 @@ var _uiInit = function () {
     settings_ck_quickstart_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_worklet_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_audio_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_show_slice_chn_elem.dispatchEvent(new UIEvent('change'));
     
     _midi_settings_dialog = WUI_Dialog.create(_midi_settings_dialog_id, {
             title: "MIDI I/O",
@@ -28326,7 +28349,10 @@ var _saveMarkersSettings = function () {
 var _domCreatePlayPositionMarker = function (hook_element, height) {
     var play_position_marker_div = document.createElement("div"),
         decoration_div = document.createElement("div"),
-        decoration_div2 = document.createElement("div");
+        decoration_div2 = document.createElement("div"),
+        output_channel = document.createElement("div");
+    
+    output_channel.className = "fs-slice-output";
     
     play_position_marker_div.className = "play-position-marker";
     
@@ -28338,12 +28364,13 @@ var _domCreatePlayPositionMarker = function (hook_element, height) {
     decoration_div.className = "play-position-triangle";
     decoration_div2.className = "play-position-triangle-vflip";
     
+    play_position_marker_div.appendChild(output_channel);
     play_position_marker_div.appendChild(decoration_div);
     play_position_marker_div.appendChild(decoration_div2);
     
     hook_element.parentElement.insertBefore(play_position_marker_div, hook_element);
     
-    return play_position_marker_div;
+    return { slice_div: play_position_marker_div, out_div: output_channel };
 };
 
 var _getSlice = function (play_position_marker_id) {
@@ -28446,7 +28473,7 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
         i;
     
     WUI.undraggable(slice.element);
-    WUI.undraggable(slice.element.firstElementChild);
+    WUI.undraggable(slice.element.firstElementChild.nextElementSibling);
     WUI.undraggable(slice.element.lastElementChild);
 
     slice.element.parentElement.removeChild(slice.element);
@@ -28548,6 +28575,17 @@ var _rebuildMarkersMIDIDevices = function () {
     }
 };
 
+var _updateSliceChnVisibility = function () {
+    var i = 0,
+        slice,    
+        chn_div;
+    
+    for (i = 0; i < _play_position_markers.length; i += 1) {
+        slice = _play_position_markers[i];
+
+        slice.out_txt_div.style.display = (_show_output_channels === true) ? "" : "none";
+    }
+};
 
 var _changeMarkerSettingsEditor = function (theme) {
     var i = 0;
@@ -28875,7 +28913,9 @@ var _createMarkerSettings = function (marker_obj) {
                 
                 slice.output_channel = _parseInt10(value);
                 
-                _submitSliceUpdate(3, marker_obj.element.dataset.slice, { output_channel : value });
+                _submitSliceUpdate(3, marker_obj.element.dataset.slice, { output_channel: value });
+                
+                slice.out_txt_div.innerHTML = slice.output_channel;
                 
                 _computeOutputChannels();
             })
@@ -29005,7 +29045,7 @@ var _submitRemoveSlice = function (id) {
 };
 
 var _muteSlice = function (slice_obj, submit) {
-    var play_position_top_hook_element = slice_obj.element.firstElementChild,
+    var play_position_top_hook_element = slice_obj.element.firstElementChild.nextElementSibling,
         play_position_bottom_hook_element = slice_obj.element.lastElementChild;
     
     slice_obj.mute = true;
@@ -29016,15 +29056,15 @@ var _muteSlice = function (slice_obj, submit) {
         play_position_top_hook_element.style.borderTopColor = "#555555";
         play_position_bottom_hook_element.style.borderBottomColor = "#555555";
     }    
-    
+
     if (submit) {
         _submitSliceUpdate(2, slice_obj.element.dataset.slice, { mute : true }); 
     }
 };
 
 var _unmuteSlice = function (slice_obj, submit) {
-    var play_position_top_hook_element = slice_obj.element.firstElementChild,
-        play_position_bottom_hook_element = slice_obj.element.lastElementChild;    
+    var play_position_top_hook_element = slice_obj.element.firstElementChild.nextElementSibling,
+        play_position_bottom_hook_element = slice_obj.element.lastElementChild;
 
     slice_obj.mute = false;
     play_position_top_hook_element.style.borderTopColor = _slice_type_color[slice_obj.type];
@@ -29037,7 +29077,7 @@ var _unmuteSlice = function (slice_obj, submit) {
 
 
 var _changeSliceType = function (slice_obj, type, submit) {
-    var play_position_top_hook_element = slice_obj.element.firstElementChild,
+    var play_position_top_hook_element = slice_obj.element.firstElementChild.nextElementSibling,
         play_position_bottom_hook_element = slice_obj.element.lastElementChild;    
 
     slice_obj.type = type;
@@ -29063,12 +29103,13 @@ var _changeSliceType = function (slice_obj, type, submit) {
 };
 
 var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_type, submit) {
-    var play_position_marker_element = _domCreatePlayPositionMarker(_canvas, _canvas_height),
+    var slice_divs_obj = _domCreatePlayPositionMarker(_canvas, _canvas_height),
+        play_position_marker_element = slice_divs_obj.slice_div,
         play_position_marker_id = _play_position_markers.length,
         
         play_position_marker,
 
-        play_position_top_hook_element = play_position_marker_element.firstElementChild,
+        play_position_top_hook_element = play_position_marker_element.firstElementChild.nextElementSibling,
         play_position_bottom_hook_element = play_position_marker_element.lastElementChild,
 
         local_session_marker,
@@ -29085,6 +29126,10 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
         is_mute = false;
     }
 
+    if (!slice_type) {
+        slice_type = 0;
+    }
+
     play_position_top_hook_element.style.borderTopColor = _slice_type_color[slice_type];
     play_position_bottom_hook_element.style.borderBottomColor = _slice_type_color[slice_type];
 
@@ -29092,6 +29137,7 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
 
     _play_position_markers.push({
             element: play_position_marker_element,
+            out_txt_div: slice_divs_obj.out_div,
             x: x,
             mute: is_mute,
             min: 0,
@@ -29236,6 +29282,8 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
     if (submit) {
         _submitAddSlice(x, shift, mute);
     }
+
+    _updateSliceChnVisibility();
 };
 /* jslint browser: true */
 

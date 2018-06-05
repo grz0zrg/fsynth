@@ -747,6 +747,14 @@ canvas {
     font-weight: bold;
 }
 
+.fs-slice-output {
+    color: yellow;
+    position: absolute;
+    top: -20px;
+    right: -3px;
+    font-size: 13px;
+}
+
 .fs-utter-fail {
     display: -webkit-box;
     display: -ms-flexbox;
