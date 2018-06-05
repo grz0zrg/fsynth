@@ -34,7 +34,7 @@ body {
     font-style: normal;
     font-weight: normal;
     
-    /*overflow: hidden;*/
+    overflow: hidden;
     background-color: black;
 }
 
@@ -1194,15 +1194,22 @@ body .code .CodeMirror-fullscreen {
 
 .fs-matrix-first-row th {
     padding-bottom: 2px;
+    color: #ffffff;
 }
 
 .fs-matrix-first-cell {
     text-align: right;
     padding-right: 4px;
+    color: #ffffff;
 }
 
 .fs-matrix-ck-cell {
     padding: 1px;
+}
+
+.fs-md-uniforms {
+    height: 300px;
+    overflow: auto;
 }
 
 .fs-md-uniforms p:nth-child(even) {
@@ -1213,15 +1220,6 @@ body .code .CodeMirror-fullscreen {
     font-family: sans-serif;
 }
 
-/*
-.fs-md-uniforms p:nth-child(odd):before {
-    font-family: FontAwesome;
-    content: "\f0da";
-    padding-right: 3px;
-    color: #fff;
-    font-size: 10px;
-}
-*/
 .fs-md-uniforms p:nth-child(odd) {
     border-bottom: solid 1px #555555;
     font-size: 14px;

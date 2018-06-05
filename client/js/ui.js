@@ -47,6 +47,9 @@ var _icon_class = {
     _fas_dialog_id = "fs_fas_dialog",
     _fas_dialog,
 
+    _fas_synth_params_dialog_id = "fs_fas_synth_params_dialog",
+    _fas_synth_params_dialog,
+
     _fx_dialog_id = "fs_fx_dialog",
     _fx_dialog,
     
@@ -57,6 +60,10 @@ var _icon_class = {
     _send_slices_settings_timeout,
     _add_slice_timeout,
     _remove_slice_timeout,
+
+    _synthesis_types = ["Additive", "Spectral", "Granular", "PM/FM", "Subtractive", "Karplus", "Wavetable"],
+    _synthesis_enabled = [1, 0, 1, 1, 1, 1, 1],
+    _synthesis_params = [0, 0, 3, 0, 0, 0, 0],
     
     _fas_content_list = [];
 
@@ -141,11 +148,222 @@ var _createFxSettingsContent = function () {
 
 };
 
+var _openSynthParameters = function () {
+    WUI_Dialog.open(_fas_synth_params_dialog);
+};
+
+var _createSynthParametersContent = function () {
+    var dialog_div = document.getElementById(_fas_synth_params_dialog).lastElementChild,
+    
+        detached_dialog = WUI_Dialog.getDetachedDialog(_fas_synth_params_dialog),    
+    
+        synth_type = 0,    
+        chn_fieldset,
+        chn_legend,
+
+        chn_settings,
+
+        chn_genv_type_label,
+        chn_genv_type_select,
+        chn_genv_option,
+        chn_genv_options = ["sine", "hann", "hamming", "tukey", "gaussian", "confined gaussian", "trapezoidal", "blackman", "blackman harris", "parzen", "nutall", "flattop", "kaiser"],
+        
+        chn_gden_input,
+        chn_gmin_size_input,
+        chn_gmax_size_input,
+
+        gmin = 0.01,
+        gmax = 0.1,
+        gden = 0.00001,
+
+        i = 0, j = 0;
+    
+    if (detached_dialog) {
+        dialog_div = detached_dialog.document.body;
+    }
+    
+    for (i = 0; i < _fas_content_list.length; i += 1) {
+        WUI_RangeSlider.destroy(_fas_content_list[i]);
+    }
+
+    _fas_content_list = [];
+
+    dialog_div.innerHTML = "";
+
+    for (j = 0; j < _output_channels; j += 1) {
+        chn_settings = _chn_settings[j];
+
+        synth_type = _chn_settings[j][0];
+
+        if (_synthesis_params[synth_type] <= 0) {
+            continue;
+        }
+
+        chn_fieldset = document.createElement("fieldset");
+        chn_legend = document.createElement("legend");
+
+        chn_fieldset.className = "fs-fieldset";
+        
+        chn_legend.innerHTML = "Chn " + j + " / " + _synthesis_types[synth_type];
+
+        chn_fieldset.appendChild(chn_legend);
+
+        // granular parameters
+        if (_synthesis_types[synth_type] === "Granular") {
+            chn_gmin_size_input = document.createElement("div");
+            chn_gmin_size_input.id = "fs_chn_" + j + "_gmin";
+            chn_gmax_size_input = document.createElement("div");
+            chn_gmax_size_input.id = "fs_chn_" + j + "_gmax";
+            chn_gden_input = document.createElement("div");
+            chn_gden_input.id = "fs_chn_" + j + "_gden";
+
+
+            chn_genv_type_label = document.createElement("label");
+            chn_genv_type_select = document.createElement("select");
+            
+            for (i = 0; i < chn_genv_options.length; i += 1) {
+                chn_genv_option = document.createElement("option");
+                chn_genv_option.innerHTML = chn_genv_options[i];
+                
+                chn_genv_type_select.appendChild(chn_genv_option);
+            }
+            
+            chn_genv_type_label.classList.add("fs-input-label");
+            chn_genv_type_label.style.display = "none";
+            chn_genv_type_label.innerHTML = "Granular env: &nbsp;";
+            chn_genv_type_label.htmlFor = "fs_chn_" + j + "_genv_type_settings";
+            
+            chn_genv_type_select.classList.add("fs-btn");
+            chn_genv_type_select.style = "margin-top: 4px";
+            chn_genv_type_select.style.display = "none";
+            chn_genv_type_select.dataset.chnId = j;
+            chn_genv_type_select.id = chn_genv_type_label.htmlFor;
+
+            chn_genv_type_select.childNodes[chn_settings[1]].selected = true;
+
+            gmin = chn_settings[2];
+            gmax = chn_settings[3];
+            gden = chn_settings[4];
+
+            chn_genv_type_select.addEventListener("change", function() {
+                var j = parseInt(this.dataset.chnId, 10),
+                    value = parseInt(this.selectedIndex, 10);
+
+                _chn_settings[j][1] = value;
+
+                _local_session_settings.chn_settings[j] = _chn_settings[j];
+                _saveLocalSessionSettings();
+            
+                clearTimeout(_fas_chn_notify_timeout);
+                _fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 2000);
+            });
+
+            chn_fieldset.appendChild(chn_genv_type_label);
+            chn_fieldset.appendChild(chn_genv_type_select);
+            chn_fieldset.appendChild(chn_gmin_size_input);
+            chn_fieldset.appendChild(chn_gmax_size_input);
+            chn_fieldset.appendChild(chn_gden_input);
+
+            _fas_content_list.push(WUI_RangeSlider.create(chn_gmin_size_input, {
+                width: 120,
+                height: 8,
+    
+                min: 0.0,
+                max: 1.0,
+    
+                bar: false,
+    
+                step: 0.0001,
+                scroll_step: 0.01,
+    
+                default_value: gmin,
+                value: gmin,
+    
+                decimals: 4,
+
+                midi: true,
+                
+                title: "Min. grain length",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 2)
+            }));
+            
+            _fas_content_list.push(WUI_RangeSlider.create(chn_gmax_size_input, {
+                width: 120,
+                height: 8,
+    
+                min: 0.0,
+                max: 1.0,
+    
+                bar: false,
+    
+                step: 0.0001,
+                scroll_step: 0.01,
+    
+                default_value: gmax,
+                value: gmax,
+
+                midi: true,
+                
+                decimals: 4,
+    
+                title: "Max. grain length",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 3)
+            }));
+    
+            _fas_content_list.push(WUI_RangeSlider.create(chn_gden_input, {
+                width: 120,
+                height: 8,
+    
+                min: 0.0,
+                max: 1.0,
+    
+                bar: false,
+    
+                step: 0.00001,
+                scroll_step: 0.01,
+    
+                default_value: gden,
+                value: gden,
+
+                midi: true,
+                
+                decimals: 5,
+    
+                title: "Spread",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 4)
+            }));
+
+            chn_genv_type_select.dispatchEvent(new UIEvent('change'));
+        }
+
+        _applyCollapsible(chn_fieldset, chn_legend);
+
+        dialog_div.appendChild(chn_fieldset);
+    }
+
+    if (dialog_div.innerHTML.length <= 0) {
+        dialog_div.innerHTML = '<div style="padding: 8px; color: #ffffff">No synthesis parameters.</div>';
+    }
+};
+
 var _createFasSettingsContent = function () {
     var dialog_div = document.getElementById(_fas_dialog).lastElementChild,
         detached_dialog = WUI_Dialog.getDetachedDialog(_fas_dialog),
 
         load_samples_btn = document.createElement("button"),
+        open_synth_params_btn = document.createElement("button"),
         
         synthesis_matrix_fieldset = document.createElement("fieldset"),
         fx_matrix_fieldset = document.createElement("fieldset"),
@@ -164,8 +382,6 @@ var _createFasSettingsContent = function () {
         fx_matrix_fx_fieldset_legend = document.createElement("legend"),
         fx_matrix_chn_fieldset_legend = document.createElement("legend"),
         
-        synthesis_types = ["Additive", "Spectral", "Granular", "PM/FM", "Subtractive", "Karplus", "Wavetable"],
-        synthesis_params = [0, 3, 0, 0, 0, 0],
         fx_types = ["Waveshaping"],
 
         ck_tmp = [],
@@ -179,6 +395,10 @@ var _createFasSettingsContent = function () {
         checkbox,
         
         i = 0, j = 0;
+    
+    if (detached_dialog) {
+        dialog_div = detached_dialog.document.body;
+    }
     
     // fieldset
     synthesis_matrix_fieldset.className = "fs-fieldset";
@@ -222,12 +442,16 @@ var _createFasSettingsContent = function () {
 
     synthesis_matrix_table.appendChild(row);    
 
-    for (i = 0; i < synthesis_types.length; i += 1) {
+    for (i = 0; i < _synthesis_types.length; i += 1) {
+        if (!_synthesis_enabled[i]) {
+            continue;
+        }
+
         row = document.createElement("tr");
 
         cell = document.createElement("th");
         cell.className = "fs-matrix-first-cell";
-        cell.innerHTML = synthesis_types[i];
+        cell.innerHTML = _synthesis_types[i];
         row.appendChild(cell);
         
         for (j = 0; j < _output_channels; j += 1) {
@@ -242,7 +466,7 @@ var _createFasSettingsContent = function () {
 
             // create channel settings if it does not exist
             if (!chn_settings) {
-                _chn_settings[j] = [0, 0, 0, 0, 0, 0];
+                _chn_settings[j] = [0, 6, 0.01, 0.1, 0.00001, 0];
                 chn_settings = _chn_settings[j];
             }
             
@@ -263,6 +487,8 @@ var _createFasSettingsContent = function () {
                 // notify FAS
                 clearTimeout(_fas_chn_notify_timeout);
                 _fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 2000);
+
+                _createSynthParametersContent();
             });
 
             ck_tmp.push(checkbox);
@@ -388,6 +614,17 @@ var _createFasSettingsContent = function () {
         fx_matrix_table.appendChild(row);
     }
 */
+    // open parameters button
+    open_synth_params_btn.innerHTML = "Synth. parameters";
+    open_synth_params_btn.className = "fs-btn fs-btn-default";
+
+    open_synth_params_btn.style.width = "100%";
+    open_synth_params_btn.style.marginTop = "12px";
+    
+    open_synth_params_btn.addEventListener("click", _openSynthParameters);
+
+    synthesis_matrix_fieldset.appendChild(open_synth_params_btn);
+    
     // load sample action
     load_samples_btn.innerHTML = "Reload samples";
     load_samples_btn.className = "fs-btn fs-btn-default";
@@ -404,340 +641,8 @@ var _createFasSettingsContent = function () {
     dialog_div.appendChild(synthesis_matrix_fieldset);
     //dialog_div.appendChild(fx_matrix_fieldset);
     dialog_div.appendChild(actions_fieldset);  
-/*
-    var dialog_div = document.getElementById(_fas_dialog).lastElementChild,
-        detached_dialog = WUI_Dialog.getDetachedDialog(_fas_dialog),
-        main_chn_settings_div = document.createElement("div"),
-        fas_actions_div = document.createElement("div"),
-        load_samples_btn = document.createElement("button"),
-        synth_chn_br,
-        chn_settings_div,
-        chn_div,
-        chn_synthesis_label,
-        chn_synthesis_select,
-        granular_option,
-        wavetable_option,
-        additive_option,
-        spectral_option,
-        subtractive_option,
-        physical_modelling_option,
-        fm_option,
-        chn_gden_input,
-        chn_gmin_size_input,
-        chn_gmax_size_input,
-        gmin = 0.01,
-        gmax = 0.1,
-        gden = 0.00001,
-        chn_genv_type_label,
-        chn_genv_type_select,
-        chn_genv_option,
-        chn_genv_options = ["sine", "hann", "hamming", "tukey", "gaussian", "confined gaussian", "trapezoidal", "blackman", "blackman harris", "parzen", "nutall", "flattop", "kaiser"],
-        chn_settings,
-        j = 0, i = 0;
-    
-    load_samples_btn.innerHTML = "Reload samples";
-    load_samples_btn.className = "fs-btn fs-btn-default";
-    
-    load_samples_btn.addEventListener("click", function () {
-        _fasNotify(_FAS_ACTION, { type: 0 });
-        _fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
-    });
-    
-    fas_actions_div.style.textAlign = "center";
-    fas_actions_div.appendChild(load_samples_btn);
-    
-    // update chn. settings
-    if (_output_channels > _chn_settings.length) {
-        _chn_settings.length = _output_channels;
-    }
-    
-    if (detached_dialog) {
-        dialog_div = detached_dialog.document.body;
-    }
-    
-    for (i = 0; i < _fas_content_list.length; i += 1) {
-        WUI_RangeSlider.destroy(_fas_content_list[i]);
-    }
-    
-    dialog_div.style = "overflow: auto";
-    dialog_div.innerHTML = "";
-    
-    dialog_div.appendChild(fas_actions_div);
-    
-    main_chn_settings_div.classList.add("fs-chn-settings-main");
-    main_chn_settings_div.innerHTML = "Channels";
 
-    for (j = 0; j < _output_channels; j += 1) {
-        synth_chn_br = document.createElement("br");
-        synth_chn_br.style.display = "none";
-        
-        chn_settings_div = document.createElement("div");
-        chn_div = document.createElement("div");
-        chn_synthesis_label = document.createElement("label");
-        chn_synthesis_select = document.createElement("select");
-        
-        chn_gmin_size_input = document.createElement("div");
-        chn_gmin_size_input.id = "fs_chn_" + j + "_gmin";
-        chn_gmax_size_input = document.createElement("div");
-        chn_gmax_size_input.id = "fs_chn_" + j + "_gmax";
-        
-        chn_gden_input = document.createElement("div");
-        chn_gden_input.id = "fs_chn_" + j + "_drive";
-        
-        granular_option = document.createElement("option");
-        additive_option = document.createElement("option");
-        spectral_option = document.createElement("option");
-        wavetable_option = document.createElement("option");
-        subtractive_option = document.createElement("option");
-        physical_modelling_option = document.createElement("option"); 
-        fm_option = document.createElement("option");
-        granular_option.innerHTML = "granular";
-        additive_option.innerHTML = "additive";
-        wavetable_option.innerHTML = "wavetable";
-        spectral_option.innerHTML = "spectral";
-        spectral_option.style.display = "none";
-        subtractive_option.innerHTML = "subtractive";
-        physical_modelling_option.innerHTML = "phys. modelling";
-        //fm_option.style.display = "none";
-        fm_option.innerHTML = "PM/FM";
-        
-        chn_genv_type_label = document.createElement("label");
-        chn_genv_type_select = document.createElement("select");
-        
-        for (i = 0; i < chn_genv_options.length; i += 1) {
-            chn_genv_option = document.createElement("option");
-            chn_genv_option.innerHTML = chn_genv_options[i];
-            
-            chn_genv_type_select.appendChild(chn_genv_option);
-        }
-        
-        chn_genv_type_label.classList.add("fs-input-label");
-        chn_genv_type_label.style.display = "none";
-        chn_genv_type_label.innerHTML = "Granular env: &nbsp;";
-        chn_genv_type_label.htmlFor = "fs_chn_" + j + "_genv_type_settings";
-        
-        chn_genv_type_select.classList.add("fs-btn");
-        chn_genv_type_select.style = "margin-top: 4px";
-        chn_genv_type_select.style.display = "none";
-        chn_genv_type_select.dataset.chnId = j;
-        chn_genv_type_select.id = chn_genv_type_label.htmlFor;
-        
-        chn_synthesis_label.classList.add("fs-input-label");
-        chn_synthesis_label.innerHTML = "Synthesis: &nbsp;";
-        chn_synthesis_label.htmlFor = "fs_chn_" + j + "_synthesis_settings";
-        
-        chn_synthesis_select.classList.add("fs-btn");
-        chn_synthesis_select.style = "margin-top: 4px";
-        chn_synthesis_select.dataset.chnId = j;
-        chn_synthesis_select.id = chn_synthesis_label.htmlFor;
-        
-        chn_settings_div.classList.add("fs-chn-settings");
-        chn_div.classList.add("fs-chn-settings-content");
-        chn_settings_div.innerHTML = "Chn " + (j + 1);
-        
-        chn_synthesis_select.appendChild(additive_option);
-        chn_synthesis_select.appendChild(spectral_option);
-        chn_synthesis_select.appendChild(granular_option);
-        chn_synthesis_select.appendChild(wavetable_option);
-        chn_synthesis_select.appendChild(subtractive_option);
-        chn_synthesis_select.appendChild(physical_modelling_option);
-        chn_synthesis_select.appendChild(fm_option);
-        
-        chn_settings = _chn_settings[j];
-
-        if (!chn_settings) {
-            _chn_settings[j] = [0, 0, 0, 0, 0, 0];
-        } else {
-            if (chn_settings[0] === 0) {
-                additive_option.selected = true;
-            } else if (chn_settings[0] === 1) {
-                //spectral_option.selected = true;
-            } else if (chn_settings[0] === 2) {
-                granular_option.selected = true;
-            } else if (chn_settings[0] === 3) {
-                fm_option.selected = true;
-            } else if (chn_settings[0] === 4) {
-                subtractive_option.selected = true;
-            } else if (chn_settings[0] === 5) {
-                physical_modelling_option.selected = true;
-            } else if (chn_settings[0] === 6) {
-                wavetable_option.selected = true;
-            }
-            
-            if (chn_settings[1] !== undefined) {
-                chn_genv_type_select.childNodes[chn_settings[1]].selected = true;
-            }
-            
-            if (chn_settings[2] !== undefined) {
-                gmin = chn_settings[2];
-            }
-            
-            if (chn_settings[3] !== undefined) {
-                gmax = chn_settings[3];
-            }
-            
-            if (chn_settings[4] !== undefined) {
-                gden = chn_settings[4];
-            }
-        }
-        
-        chn_synthesis_select.addEventListener("change", function() {
-                var j = parseInt(this.dataset.chnId, 10),
-                    i = 0,
-                    e = null,
-                    value;
-            
-                e = this.nextElementSibling;
-                for (i = 0; i < 6; i += 1) {
-                    e.style.display = "none";
-                    
-                    e = e.nextElementSibling;
-                }
-
-                if (this.value === "additive") {
-                    value = 0;
-                } else if (this.value === "spectral") {
-                    value = 1;
-                } else if (this.value === "granular") {
-                    value = 2;
-                    
-                    e = this.nextElementSibling;
-                    for (i = 0; i < 6; i += 1) {
-                        e.style.display = "";
-
-                        e = e.nextElementSibling;
-                    }
-                } else if (this.value === "PM/FM") {
-                    value = 3;
-                } else if (this.value === "subtractive") {
-                    value = 4;
-                } else if (this.value === "phys. modelling") {
-                    value = 5;
-                } else if (this.value === "wavetable") {
-                    value = 6;
-                } else {
-                    value = 0;
-                }
-
-                _chn_settings[j][0] = value;
-
-                _local_session_settings.chn_settings[j] = _chn_settings[j];
-                _saveLocalSessionSettings();
-            
-                clearTimeout(_fas_chn_notify_timeout);
-                _fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 2000);
-            });
-        
-        chn_genv_type_select.addEventListener("change", function() {
-                var j = parseInt(this.dataset.chnId, 10),
-                    value = parseInt(this.selectedIndex, 10);
-
-                _chn_settings[j][1] = value;
-
-                _local_session_settings.chn_settings[j] = _chn_settings[j];
-                _saveLocalSessionSettings();
-            
-                clearTimeout(_fas_chn_notify_timeout);
-                _fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 2000);
-            });
-        
-        chn_div.appendChild(chn_synthesis_label);
-        chn_div.appendChild(chn_synthesis_select);
-        chn_div.appendChild(synth_chn_br);
-        chn_div.appendChild(chn_genv_type_label);
-        chn_div.appendChild(chn_genv_type_select);
-        chn_div.appendChild(chn_gmin_size_input);
-        chn_div.appendChild(chn_gmax_size_input);
-        chn_div.appendChild(chn_gden_input);
-        
-        chn_settings_div.appendChild(chn_div);
-        main_chn_settings_div.appendChild(chn_settings_div);
-        
-        _fas_content_list.push(WUI_RangeSlider.create(chn_gmin_size_input, {
-            width: 120,
-            height: 8,
-
-            min: 0.0,
-            max: 1.0,
-
-            bar: false,
-
-            step: 0.0001,
-            scroll_step: 0.01,
-
-            default_value: gmin,
-            value: gmin,
-
-            decimals: 4,
-            
-            title: "Min. grain length",
-
-            title_min_width: 140,
-            value_min_width: 88,
-
-            on_change: _onChangeChannelSettings(j, 2)
-        }));
-        
-        _fas_content_list.push(WUI_RangeSlider.create(chn_gmax_size_input, {
-            width: 120,
-            height: 8,
-
-            min: 0.0,
-            max: 1.0,
-
-            bar: false,
-
-            step: 0.0001,
-            scroll_step: 0.01,
-
-            default_value: gmax,
-            value: gmax,
-            
-            decimals: 4,
-
-            title: "Max. grain length",
-
-            title_min_width: 140,
-            value_min_width: 88,
-
-            on_change: _onChangeChannelSettings(j, 3)
-        }));
-
-        _fas_content_list.push(WUI_RangeSlider.create(chn_gden_input, {
-            width: 120,
-            height: 8,
-
-            min: 0.0,
-            max: 1.0,
-
-            bar: false,
-
-            step: 0.00001,
-            scroll_step: 0.01,
-
-            default_value: gden,
-            value: gden,
-            
-            decimals: 5,
-
-            title: "Spread",
-
-            title_min_width: 140,
-            value_min_width: 88,
-
-            on_change: _onChangeChannelSettings(j, 4)
-        }));
-
-        chn_gmin_size_input.style.display = "hidden";
-        chn_gmax_size_input.style.display = "hidden";
-        chn_gden_input.style.display = "hidden";
-        
-        chn_synthesis_select.dispatchEvent(new UIEvent('change'));
-        chn_genv_type_select.dispatchEvent(new UIEvent('change'));
-    }
-    
-    dialog_div.appendChild(main_chn_settings_div);  
-*/
+    _createSynthParametersContent();    
 };
 
 var _showFxDialog = function (toggle_ev) {
@@ -1530,6 +1435,39 @@ var _uiInit = function () {
                 }
             ]
         });
+    
+    _fas_synth_params_dialog = WUI_Dialog.create(_fas_synth_params_dialog_id, {
+        title: "Synthesis parameters",
+
+        width: "auto",
+        height: "auto",
+    
+        min_width: 340,
+        min_height: 80,
+
+        halign: "center",
+        valign: "center",
+
+        open: false,
+
+        status_bar: false,
+        detachable: true,
+        draggable: true,
+    
+        on_detach: function (new_window) {
+            _createSynthParametersContent();
+        },
+    
+        header_btn: [
+            {
+                title: "Help",
+                on_click: function () {
+                    window.open(_documentation_link + "tutorials/audio_server/"); 
+                },
+                class_name: "fs-help-icon"
+            }
+        ]
+    });
     
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
             title: "Import dialog (images etc.)",

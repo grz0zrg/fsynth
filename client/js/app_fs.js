@@ -830,7 +830,7 @@ var FragmentSynth = function (params) {
     window.gb_code_editor = _code_editor;
     window.gb_code_editor_theme = _code_editor_theme;
     
-    document.body.style.overflow = "visible";
+    //document.body.style.overflow = "visible";
 
     if (params.fas || window.location.search.indexOf("?fas=1") !== -1) {
         WUI_ToolBar.toggle(_wui_main_toolbar, 8, false);
