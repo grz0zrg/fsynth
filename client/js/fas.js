@@ -129,7 +129,7 @@ var _fasInit = function () {
 
             if (data.status === "open") {
                 _stopOscillators(); // TODO: move this somewhere else...
-                
+
                 _fasStatus(true);
 
                 _fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
@@ -139,7 +139,7 @@ var _fasInit = function () {
                 _fas_stream_load.textContent = parseInt(data.load * 100, 10) + "%";
             } else if (data.status === "error") {
                 _fasStatus(false);
-                
+
                 _fas_stream_load.textContent = "";
             } else if (data.status === "close") {
                 _fasStatus(false);

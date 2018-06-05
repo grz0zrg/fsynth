@@ -945,7 +945,7 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
                     { icon: "fs-gear-icon", tooltip: "Settings",  on_click: function () {
                             _updateSliceSettingsDialog(play_position_marker, true);
                         }},
-                    type_obj,
+                    //type_obj,
                     { icon: "fs-cross-45-icon", tooltip: "Delete",  on_click: function () {
                             _removePlayPositionMarker(play_position_marker_element.dataset.slice, true, true);
                         }}

@@ -229,13 +229,13 @@ var _createSynthParametersContent = function () {
             }
             
             chn_genv_type_label.classList.add("fs-input-label");
-            chn_genv_type_label.style.display = "none";
+            //chn_genv_type_label.style.display = "none";
             chn_genv_type_label.innerHTML = "Granular env: &nbsp;";
             chn_genv_type_label.htmlFor = "fs_chn_" + j + "_genv_type_settings";
             
             chn_genv_type_select.classList.add("fs-btn");
             chn_genv_type_select.style = "margin-top: 4px";
-            chn_genv_type_select.style.display = "none";
+            //chn_genv_type_select.style.display = "none";
             chn_genv_type_select.dataset.chnId = j;
             chn_genv_type_select.id = chn_genv_type_label.htmlFor;
 
@@ -1999,12 +1999,12 @@ var _uiInit = function () {
                     icon: "fs-gear-icon",
                     on_click: _showFasDialog,
                     tooltip: "Audio server settings"
-                },
+                }/*,
                 {
                     icon: "fs-fx-icon",
                     on_click: _showFxDialog,
                     tooltip: "Audio server fx settings"
-                }
+                }*/
             ],
             "Tools": [
                 {

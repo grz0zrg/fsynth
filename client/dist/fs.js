@@ -21065,7 +21065,9 @@ var _pauseWorklet = function () {
 };
 
 var _playWorklet = function () {
-    _postWorkletSettings({ type: 2 });
+    if (!_fasEnabled()) {
+        _postWorkletSettings({ type: 2 });
+    }    
 };
 
 var _disconnectWorklet = function () {
@@ -21348,7 +21350,9 @@ var _notesProcessing = function (prev_arr, arr) {
         
         i = 0;
     
-    if (_fragment_worklet_node && _osc_mode === _FS_WORKLET) {
+    if (_osc_mode === _FS_OSC_NODES) {
+        _playSlice(arr[0]);
+    } else if (_fragment_worklet_node && _osc_mode === _FS_WORKLET) {
         if (_fragment_worklet_busy) {
             return;
         }
@@ -21362,8 +21366,6 @@ var _notesProcessing = function (prev_arr, arr) {
         }, [arr[0].buffer, prev_arr[0].buffer]);
         
         _fragment_worklet_busy = true;
-    } else if (_osc_mode === _FS_OSC_NODES) {
-        _playSlice(arr[0]);
     }
 };
 
@@ -25419,6 +25421,10 @@ var _play = function (update_global_time) {
     if (update_global_time === undefined) {
         _time += (performance.now() - _pause_time);
     }
+
+    _audio_context.resume().then(() => {
+        console.log('Playback resumed successfully');
+    });
     
     _playWorklet();
 };
@@ -25805,13 +25811,13 @@ var _createSynthParametersContent = function () {
             }
             
             chn_genv_type_label.classList.add("fs-input-label");
-            chn_genv_type_label.style.display = "none";
+            //chn_genv_type_label.style.display = "none";
             chn_genv_type_label.innerHTML = "Granular env: &nbsp;";
             chn_genv_type_label.htmlFor = "fs_chn_" + j + "_genv_type_settings";
             
             chn_genv_type_select.classList.add("fs-btn");
             chn_genv_type_select.style = "margin-top: 4px";
-            chn_genv_type_select.style.display = "none";
+            //chn_genv_type_select.style.display = "none";
             chn_genv_type_select.dataset.chnId = j;
             chn_genv_type_select.id = chn_genv_type_label.htmlFor;
 
@@ -27575,12 +27581,12 @@ var _uiInit = function () {
                     icon: "fs-gear-icon",
                     on_click: _showFasDialog,
                     tooltip: "Audio server settings"
-                },
+                }/*,
                 {
                     icon: "fs-fx-icon",
                     on_click: _showFxDialog,
                     tooltip: "Audio server fx settings"
-                }
+                }*/
             ],
             "Tools": [
                 {
@@ -29216,7 +29222,7 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
                     { icon: "fs-gear-icon", tooltip: "Settings",  on_click: function () {
                             _updateSliceSettingsDialog(play_position_marker, true);
                         }},
-                    type_obj,
+                    //type_obj,
                     { icon: "fs-cross-45-icon", tooltip: "Delete",  on_click: function () {
                             _removePlayPositionMarker(play_position_marker_element.dataset.slice, true, true);
                         }}
@@ -30091,7 +30097,7 @@ var _fasInit = function () {
 
             if (data.status === "open") {
                 _stopOscillators(); // TODO: move this somewhere else...
-                
+
                 _fasStatus(true);
 
                 _fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
@@ -30101,7 +30107,7 @@ var _fasInit = function () {
                 _fas_stream_load.textContent = parseInt(data.load * 100, 10) + "%";
             } else if (data.status === "error") {
                 _fasStatus(false);
-                
+
                 _fas_stream_load.textContent = "";
             } else if (data.status === "close") {
                 _fasStatus(false);

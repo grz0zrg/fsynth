@@ -29,6 +29,10 @@ var _play = function (update_global_time) {
     if (update_global_time === undefined) {
         _time += (performance.now() - _pause_time);
     }
+
+    _audio_context.resume().then(() => {
+        console.log('Playback resumed successfully');
+    });
     
     _playWorklet();
 };

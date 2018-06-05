@@ -91,7 +91,9 @@ var _pauseWorklet = function () {
 };
 
 var _playWorklet = function () {
-    _postWorkletSettings({ type: 2 });
+    if (!_fasEnabled()) {
+        _postWorkletSettings({ type: 2 });
+    }    
 };
 
 var _disconnectWorklet = function () {
@@ -374,7 +376,9 @@ var _notesProcessing = function (prev_arr, arr) {
         
         i = 0;
     
-    if (_fragment_worklet_node && _osc_mode === _FS_WORKLET) {
+    if (_osc_mode === _FS_OSC_NODES) {
+        _playSlice(arr[0]);
+    } else if (_fragment_worklet_node && _osc_mode === _FS_WORKLET) {
         if (_fragment_worklet_busy) {
             return;
         }
@@ -388,8 +392,6 @@ var _notesProcessing = function (prev_arr, arr) {
         }, [arr[0].buffer, prev_arr[0].buffer]);
         
         _fragment_worklet_busy = true;
-    } else if (_osc_mode === _FS_OSC_NODES) {
-        _playSlice(arr[0]);
     }
 };
 

@@ -1905,7 +1905,7 @@ canvas {
 
 @media all and (min-width: 768px) {
     .fs-middle-toolbar {
-        width: 656px;
+        width: 618px;
         
         margin: 0;
         
@@ -1921,7 +1921,7 @@ canvas {
     }
     
     .fs-input-panel {
-        width: calc(100% - 656px - 16px);
+        width: calc(100% - 618px - 16px);
 
         display: inline;
         
