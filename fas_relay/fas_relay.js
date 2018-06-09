@@ -14,9 +14,17 @@
  * The load output from all the connected Fragment Audio Server incoming data is also printed at regular interval
  *
  * Usage:
- *   Simple usage (same machine, will try to connect to 127.0.0.1:3004, 127.0.0.1:3005 etc) : node fas_relay -c 2
- *   Usage by specifying address/port of each sound server : node fas_relay -s="127.0.0.1:3004 127.0.0.1:3005"
- *   Usage by specifying address/port + distribution weight of each sound server : node fas_relay -w="1 1.5" -s="127.0.0.1:3004 127.0.0.1:3005"
+ *   Simple usage (same machine, will try to connect to 127.0.0.1:3004, 127.0.0.1:3005 etc) :
+ *      node fas_relay -c 2
+ *   Usage by specifying address/port of each sound server :
+ *      node fas_relay -s="127.0.0.1:3004 127.0.0.1:3005"
+ *   Usage by specifying address/port + distribution weight of each sound server :
+ *      node fas_relay -w="1 1.5" -s="127.0.0.1:3004 127.0.0.1:3005"
+ *   Usage by specifying a starting address/port and the number of sound server instances on each address + address range :
+ *      node fas_relay -r 8 -c 4 -s="192.168.0.40:3003"
+ *    Note : this will connect from 192.168.0.40 to 192.168.0.48 on ports 3003 to 3006 for each address
+ * 
+ *  All options can be used with each other, weight option apply to each ip:port of the servers list even with ip/port range (in this case the range weight is the one of the starting addr/port).
  */
 
 const SYNTH_SETTINGS = 0,
@@ -67,19 +75,47 @@ var WebSocket = require("ws"),
     fas_servers = [],
     fas_weight = [],
     fas_loads = [],
-    fas_count = null;
+    fas_count = 1,
+    fas_addr_range = null;
 
-if (args.s) {
+if ("s" in args) {
     fas_servers = args.s.split(" ");
-} else if (args.c) {
+}
+
+if ("c" in args) {
     fas_count = parseInt(args.c, 10);
 }
 
-if (args.w) {
+if ("r" in args) {
+    fas_addr_range = parseInt(args.r, 10);
+}
+
+if ("w" in args) {
     fas_weight = args.w.split(" ");
     fas_weight = fas_weight.map(function (w) {
             return parseFloat(w);
         });
+    
+    fas_servers.forEach(function (v, i) {
+            if (!fas_weight[i]) {
+                fas_weight[i] = 1;
+            }
+        });
+}
+
+if ("h" in args) {
+    console.log('Options (where N is an integer and F a float) : ');
+    console.log('    -c N - Total number of ports (incremental)');
+    console.log('    -r N - Total number of address (incremental)');
+    console.log('    -s="ip:port ip:port" - A list of servers');
+    console.log('    -w="F F F" - Distribution weight which apply to each servers of the -s="" list\n');
+    console.log('Example usage : ');
+    console.log('    Same machine (127.0.0.1:3004, 127.0.0.1:3005) : node fas_relay -c 2');
+    console.log('    List of address:port : node fas_relay -s="127.0.0.1:3004 127.0.0.1:3005"');
+    console.log('    List of address:port with distribution weight : node fas_relay -w="1 1.5" -s="127.0.0.1:3004 127.0.0.1:3005"');
+    console.log('    List of address:port with address/port range (will connect from 192.168.0.40 to 192.168.0.48 on ports 3003 to 3006 for each address) : node fas_relay -r 8 -c 4 -s="192.168.0.40:3003"');
+
+    process.exit();
 }
 
 if (distribution_method === DSPLIT) {
@@ -355,7 +391,7 @@ function onFASOpen(i, port, cb) {
 
       fas_wss_count++;
 
-      if (fas_wss_count === fas_count) {
+      if (fas_wss_count === fas_servers.length) {
           cb();
       }
   };
@@ -431,31 +467,111 @@ function printOverallLoad() {
 }
 
 function fasConnect(cb) {
-    var i = 0,
-        c = fas_count,
-        port, ws;
+    var i = 0, j = 0, k = 0,
+        s = "",
+        expanded_servers = [],
+        inc, port, ws, curr_addr = 0, addr = "";
 
-    if (c === null) {
-        c = fas_servers.length;
+    if (fas_servers.length <= 0) {
+        port = 3004;
+        
+        for (i = 0; i < fas_count; i += 1) {
+            fas_servers.push("127.0.0.1:" + port);
+
+            port += 1;
+        }
+    } else {
+        if (fas_addr_range !== null && fas_count > 1) {
+            for (i = 0; i < fas_servers.length; i += 1) {
+                s = fas_servers[i].split(":");
+
+                addr = s[0];
+                port = parseInt(s[1], 10) + 1;
+
+                for (j = 0; j < fas_count - 1; j += 1) {
+                    expanded_servers.push(addr + ":" + port);
+
+                    port += 1;
+                }
+
+                addr = s[0].split(".");
+                curr_addr = parseInt(addr[3], 10) + 1;
+                addr.splice(3, 1);
+                addr.join(".");
+
+                for (j = 0; j < fas_addr_range - 1; j += 1) {
+                    port = parseInt(s[1], 10);
+
+                    for (k = 0; k < fas_count; k += 1) {
+                        expanded_servers.push(addr + "." + curr_addr + ":" + port);
+
+                        fas_weight.push(fas_weight[i]);
+
+                        port += 1;
+                    }
+
+                    curr_addr += 1;
+                }
+            }
+        } else if (fas_count > 1) {
+            for (i = 0; i < fas_servers.length; i += 1) {
+                s = fas_servers[i].split(":");
+
+                addr = s[0];
+                port = parseInt(s[1], 10) + 1;
+
+                for (j = 0; j < fas_count - 1; j += 1) {
+                    expanded_servers.push(addr + ":" + port);
+
+                    fas_weight.push(fas_weight[i]);
+
+                    port += 1;
+                }
+            }
+        } else if (fas_addr_range !== null) {
+            for (i = 0; i < fas_servers.length; i += 1) {
+                s = fas_servers[i].split(":");
+
+                addr = s[0].split(".");
+                curr_addr = parseInt(addr[3], 10) + 1;
+                addr.splice(3, 1);
+                addr.join(".");
+
+                for (j = 0; j < fas_addr_range - 1; j += 1) {
+                    port = parseInt(s[1], 10);
+
+                    for (k = 0; k < fas_count; k += 1) {
+                        expanded_servers.push(addr + "." + curr_addr + ":" + port);
+
+                        fas_weight.push(fas_weight[i]);
+
+                        port += 1;
+                    }
+
+                    curr_addr += 1;
+                }
+            }
+        }
     }
 
-    fas_count = c;
+    fas_servers = fas_servers.concat(expanded_servers);
 
-    for (i = 0; i < c; i += 1) {
-        var addr = "";
-        if (args.s) {
-            port = fas_servers[i].split(":")[1];
+    if (!fas_servers.length) {
+        logger.info("Please specify a valid target.");
+    }
+    
+    for (i = 0; i < fas_servers.length; i += 1) {
+        logger.info("Connecting to '" + fas_servers[i] + "'");
 
-            addr = "ws://" + fas_servers[i];
+        s = fas_servers[i].split(":");
 
-            ws = new WebSocket(addr);
-        } else if (args.c) {
-            port = 3004 + i;
+        addr = s[0];
+        port = s[1];
 
-            addr = "ws://127.0.0.1:" + port;
+        addr = "ws://" + addr + ":" + port;
 
-            ws = new WebSocket(addr);
-        }
+        ws = new WebSocket(addr);
+
         ws.binaryType = "arraybuffer";
         ws.on("open", onFASOpen(i, port, cb));
 
@@ -466,13 +582,9 @@ function fasConnect(cb) {
         ws.on("close", onFASClose({ s: ws, i: i, p: port }));
 
         fas_wss.push({
-          socket: ws,
-          data: null
+            socket: ws,
+            data: null
         });
-
-        if (!fas_weight[i]) {
-            fas_weight[i] = 1;
-        }
     }
 
     clearTimeout(fas_load_timeout);
