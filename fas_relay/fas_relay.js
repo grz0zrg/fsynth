@@ -497,7 +497,7 @@ function fasConnect(cb) {
                 addr = s[0].split(".");
                 curr_addr = parseInt(addr[3], 10) + 1;
                 addr.splice(3, 1);
-                addr.join(".");
+                addr = addr.join(".");
 
                 for (j = 0; j < fas_addr_range - 1; j += 1) {
                     port = parseInt(s[1], 10);
@@ -535,7 +535,7 @@ function fasConnect(cb) {
                 addr = s[0].split(".");
                 curr_addr = parseInt(addr[3], 10) + 1;
                 addr.splice(3, 1);
-                addr.join(".");
+                addr = addr.join(".");
 
                 for (j = 0; j < fas_addr_range - 1; j += 1) {
                     port = parseInt(s[1], 10);
