@@ -754,6 +754,12 @@ var _addFragmentInput = function (type, input, settings) {
             if (settings.flip) {
                 _flipTexture(data.texture, data.image, _fnReplaceInputTexture(input_id));
             }
+        } else {
+            db_obj.settings.f = "nearest";
+
+            _setTextureFilter(data.texture, db_obj.settings.f);
+            _setTextureWrapS(data.texture, db_obj.settings.wrap.s);
+            _setTextureWrapT(data.texture, db_obj.settings.wrap.t);
         }
 
         input_thumb = input;

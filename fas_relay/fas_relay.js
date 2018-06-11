@@ -95,12 +95,6 @@ if ("w" in args) {
     fas_weight = fas_weight.map(function (w) {
             return parseFloat(w);
         });
-    
-    fas_servers.forEach(function (v, i) {
-            if (!fas_weight[i]) {
-                fas_weight[i] = 1;
-            }
-        });
 }
 
 if ("h" in args) {
@@ -392,6 +386,8 @@ function onFASOpen(i, port, cb) {
       fas_wss_count++;
 
       if (fas_wss_count === fas_servers.length) {
+          logger.info("Relay successfully connected to all servers.");
+          
           cb();
       }
   };
@@ -556,12 +552,18 @@ function fasConnect(cb) {
 
     fas_servers = fas_servers.concat(expanded_servers);
 
+    fas_servers.forEach(function (v, i) {
+        if (fas_weight[i] === undefined) {
+            fas_weight[i] = 1;
+        }
+    });
+
     if (!fas_servers.length) {
         logger.info("Please specify a valid target.");
     }
     
     for (i = 0; i < fas_servers.length; i += 1) {
-        logger.info("Connecting to '" + fas_servers[i] + "'");
+        logger.info("Connecting to '" + fas_servers[i] + "' (FAS " + i + ")");
 
         s = fas_servers[i].split(":");
 

@@ -30,10 +30,18 @@ var _play = function (update_global_time) {
         _time += (performance.now() - _pause_time);
     }
 
-    _audio_context.resume().then(() => {
-        console.log('Playback resumed successfully');
-    });
-    
+    try {
+        // compatibility
+        var ar = new Function("audio_ctx", "" +
+            "audio_ctx.resume().then(() => {" +
+            "    console.log('Playback resumed successfully');" +
+            "});");
+        
+        ar(_audio_context);
+    } catch (e) {
+        console.log(e);
+    }
+
     _playWorklet();
 };
 

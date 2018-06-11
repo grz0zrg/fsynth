@@ -721,7 +721,7 @@ var _showRecordDialog = function () {
 };
 
 var _onImportDialogClose = function () {
-    WUI_ToolBar.toggle(_wui_main_toolbar, 15);
+    WUI_ToolBar.toggle(_wui_main_toolbar, 14);
     
     WUI_Dialog.close(_import_dialog);
 };

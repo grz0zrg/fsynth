@@ -25016,6 +25016,12 @@ var _addFragmentInput = function (type, input, settings) {
             if (settings.flip) {
                 _flipTexture(data.texture, data.image, _fnReplaceInputTexture(input_id));
             }
+        } else {
+            db_obj.settings.f = "nearest";
+
+            _setTextureFilter(data.texture, db_obj.settings.f);
+            _setTextureWrapS(data.texture, db_obj.settings.wrap.s);
+            _setTextureWrapT(data.texture, db_obj.settings.wrap.t);
         }
 
         input_thumb = input;
@@ -25424,10 +25430,18 @@ var _play = function (update_global_time) {
         _time += (performance.now() - _pause_time);
     }
 
-    _audio_context.resume().then(() => {
-        console.log('Playback resumed successfully');
-    });
-    
+    try {
+        // compatibility
+        var ar = new Function("audio_ctx", "" +
+            "audio_ctx.resume().then(() => {" +
+            "    console.log('Playback resumed successfully');" +
+            "});");
+        
+        ar(_audio_context);
+    } catch (e) {
+        console.log(e);
+    }
+
     _playWorklet();
 };
 
@@ -26305,7 +26319,7 @@ var _showRecordDialog = function () {
 };
 
 var _onImportDialogClose = function () {
-    WUI_ToolBar.toggle(_wui_main_toolbar, 15);
+    WUI_ToolBar.toggle(_wui_main_toolbar, 14);
     
     WUI_Dialog.close(_import_dialog);
 };
