@@ -56,6 +56,8 @@ var _icon_class = {
     _fas_chn_notify_timeout,
     
     _wui_main_toolbar,
+
+    _collapsible_id = 0,
     
     _send_slices_settings_timeout,
     _add_slice_timeout,
@@ -111,8 +113,13 @@ var _onChangeChannelSettings = function (channel, channel_data_index) {
     };
 };
 
-var _toggleCollapse = function (element, bind_to) {
+var _toggleCollapse = function (element) {
     return function (ev) {
+        var elem = ev.target.ownerDocument.getElementById(element.id);
+
+        elem.classList.toggle("fs-collapsible");
+        elem.classList.toggle("fs-collapsed");
+
         element.classList.toggle("fs-collapsible");
         element.classList.toggle("fs-collapsed");
 
@@ -121,6 +128,8 @@ var _toggleCollapse = function (element, bind_to) {
 };
 
 var _applyCollapsible = function (element, bind_to, collapsed) {
+    element.id = "fs_collapsible_" + _collapsible_id;
+
     element.classList.add("fs-collapsible");
 
     if (collapsed) {
@@ -131,17 +140,25 @@ var _applyCollapsible = function (element, bind_to, collapsed) {
         element.classList.toggle("fs-collapsible");
     }    
 
-    bind_to.addEventListener("click", _toggleCollapse(element, bind_to));
+    bind_to.addEventListener("click", _toggleCollapse(element));
+
+    bind_to.id = "fs_collapsible_target_" + _collapsible_id;
 
     if (element !== bind_to) {
         element.addEventListener("click", function (ev) {
-            if (element.classList.contains("fs-collapsed")) {
+            var elem = ev.target.ownerDocument.getElementById(element.id);
+            var bto = ev.target.ownerDocument.getElementById(bind_to.id);
+
+            if (elem.classList.contains("fs-collapsed")) {
+                bto.dispatchEvent(new UIEvent('click'));
                 bind_to.dispatchEvent(new UIEvent('click'));
             }
 
             ev.stopPropagation();
         });
     }
+
+    _collapsible_id += 1;
 };
 
 var _createFxSettingsContent = function () {
@@ -509,111 +526,6 @@ var _createFasSettingsContent = function () {
         synthesis_matrix_table.appendChild(row);
     }
 
-    // fx / chn matrix
-/*    fx_matrix_table.className = "fs-matrix";
-    fx_matrix_chn_fieldset.appendChild(fx_matrix_table);
-    fx_matrix_fieldset.appendChild(fx_matrix_chn_fieldset);
-
-    row = document.createElement("tr");
-    row.className = "fs-matrix-first-row";
-    cell = document.createElement("th");
-    row.appendChild(cell);
-    for (i = 0; i < _play_position_markers.length; i += 1) {
-        slice = _play_position_markers[i];
-
-        if (slice.type === 1) {
-            cell = document.createElement("th");
-            cell.style.color = "red";
-            cell.innerHTML = slice.id;
-            row.appendChild(cell);
-        }    
-    }
-
-    fx_matrix_table.appendChild(row);    
-
-    for (i = 0; i < _output_channels; i += 1) {
-        row = document.createElement("tr");
-
-        cell = document.createElement("th");
-        cell.className = "fs-matrix-first-cell";
-        cell.innerHTML = i;
-        row.appendChild(cell);
-        
-        for (j = 0; j < _play_position_markers.length; j += 1) {
-            slice = _play_position_markers[j];
-
-            if (slice.type === 1) {
-                cell = document.createElement("th");
-                cell.className = "fs-matrix-ck-cell";
-                checkbox = document.createElement("input");
-                //checkbox.name = "fxs_" + j;
-                checkbox.type = "checkbox";
-
-                checkbox.addEventListener("change", function () {
-
-                });
-
-                cell.appendChild(checkbox);
-                row.appendChild(cell);
-            }    
-        }
-
-        fx_matrix_table.appendChild(row);
-    }
-
-    // fx / slice matrix
-    fx_matrix_table = document.createElement("table");
-    
-    fx_matrix_table.className = "fs-matrix";
-    fx_matrix_fx_fieldset.appendChild(fx_matrix_table);
-    fx_matrix_fieldset.appendChild(fx_matrix_fx_fieldset);
-
-    row = document.createElement("tr");
-    row.className = "fs-matrix-first-row";
-    cell = document.createElement("th");
-    row.appendChild(cell);
-    for (i = 0; i < _play_position_markers.length; i += 1) {
-        slice = _play_position_markers[i];
-
-        if (slice.type === 1) {
-            cell = document.createElement("th");
-            cell.innerHTML = slice.id;
-            row.appendChild(cell);
-        }    
-    }
-
-    fx_matrix_table.appendChild(row);    
-
-    for (i = 0; i < fx_types.length; i += 1) {
-        row = document.createElement("tr");
-
-        cell = document.createElement("th");
-        cell.className = "fs-matrix-first-cell";
-        cell.innerHTML = fx_types[i];
-        row.appendChild(cell);
-        
-        for (j = 0; j < _play_position_markers.length; j += 1) {
-            slice = _play_position_markers[j];
-
-            if (slice.type === 1) {
-                cell = document.createElement("th");
-                cell.className = "fs-matrix-ck-cell";
-                checkbox = document.createElement("input");
-                //checkbox.name = "fxs_" + j;
-                checkbox.type = "checkbox";
-
-                checkbox.addEventListener("change", function () {
-
-                });
-
-                cell.appendChild(checkbox);
-                row.appendChild(cell);
-            }    
-        }
-
-        fx_matrix_table.appendChild(row);
-    }
-*/
     // open parameters button
     open_synth_params_btn.innerHTML = "Synth. parameters";
     open_synth_params_btn.className = "fs-btn fs-btn-default";
@@ -1618,10 +1530,6 @@ var _uiInit = function () {
         });
 */
 
-    WUI_Tabs.create("fs_help_tabs", {
-        height: "calc(100% - 74px)"
-    });
-
     _help_dialog = WUI_Dialog.create(_help_dialog_id, {
             title: "Fragment - Help",
 
@@ -1635,7 +1543,9 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: true,
-            draggable: true
+            draggable: true,
+            
+            top: 0
         });
     
     _paint_dialog = WUI_Dialog.create(_paint_dialog_id, {
@@ -1696,6 +1606,10 @@ var _uiInit = function () {
                     class_name: "fs-help-icon"
                 }
             ]
+    });
+
+    WUI_Tabs.create("fs_help_tabs", {
+        height: "auto"
     });
 
     WUI_ToolBar.create("fs_record_toolbar", {

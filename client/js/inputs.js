@@ -908,14 +908,15 @@ var _addFragmentInput = function (type, input, settings) {
         } else {
             db_obj.data = "";
         }
+
+        _setTextureWrapS(data.texture, "repeat");
+        _setTextureWrapT(data.texture, "repeat");
         
         db_obj.width = _canvas_width;
         db_obj.height = _canvas_height;
-        db_obj.settings.wrap.s = data.wrap.ws;
-        db_obj.settings.wrap.t = data.wrap.wt;
-        db_obj.settings.flip = false;
-        
-        _dbStoreInput(input_id, db_obj);
+        //db_obj.settings.wrap.s = data.wrap.ws;
+        //db_obj.settings.wrap.t = data.wrap.wt;
+        //db_obj.settings.flip = false;
         
         canvas = document.createElement("canvas");
         canvas.width = _canvas_width;
@@ -995,9 +996,13 @@ var _addFragmentInput = function (type, input, settings) {
             db_obj.settings.flip = settings.flip;
         }
 
+        _dbStoreInput(input_id, db_obj);
+
         input_thumb = input;
 
         _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/paint_brush.png" );
+
+        _createChannelSettingsDialog(input_id);
 
         _fragment_input_data[input_id].elem.addEventListener("contextmenu", _selectCanvasInput);
         

@@ -91,7 +91,7 @@ var _paint = function (ctx, brush, mode, x, y, scale_x, scale_y, angle, opacity)
     _pvx = x;
     _pvy = y;
     
-    for(i = 1; i <= step; i += 1) {
+    for (i = 1; i <= step; i += 1) {
         x += xinc;
         y += yinc;
 

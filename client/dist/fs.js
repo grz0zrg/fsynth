@@ -662,7 +662,8 @@ var WUI_Dialog = new (function() {
             dim_transition: "wui-dialog-dim-transition",
             modal:          "wui-dialog-modal",
             status_bar:     "wui-dialog-status-bar",
-            title_wrapper:  "wui-dialog-title-wrapper"
+            title_wrapper:  "wui-dialog-title-wrapper",
+            detached:       "wui-dialog-detach-window-body"
         },
 
         _known_options = {
@@ -713,8 +714,9 @@ var WUI_Dialog = new (function() {
 
     var _withinDialog = function (e) {
         var node = e.parentElement;
-        while (node != null) {
-            if (node.classList.contains(_class_name.dialog)) {
+        while (node !== null) {
+            if (node.classList.contains(_class_name.dialog) ||
+                node.classList.contains(_class_name.detached)) {
                 return true;
             }
 
@@ -728,25 +730,25 @@ var WUI_Dialog = new (function() {
     // a tricky solution but the only one i know of until a standard pop up or someone has a better solution
     if (!Element.prototype['_addEventListener']) {
         Element.prototype._addEventListener = Element.prototype.addEventListener;
-        Element.prototype.addEventListener = function(a, b, c, d) {
+        Element.prototype.addEventListener = function (a, b, c, d) {
             this._addEventListener(a, b, c, d);
-
+            
             if (_withinDialog(this)) {
-                if (!this['eventListenerList']) {
+                if (this['eventListenerList'] === undefined) {
                     this['eventListenerList'] = {};
                 }
-
-                if(!this.eventListenerList[a]) {
+                
+                if (this.eventListenerList[a] === undefined) {
                     this.eventListenerList[a] = [];
                 }
                 this.eventListenerList[a].push(b);
             }
         };
         Element.prototype._removeEventListener = Element.prototype.removeEventListener;
-        Element.prototype.removeEventListener = function(a, b, c) {
+        Element.prototype.removeEventListener = function (a, b, c) {
             if (this['eventListenerList']) {
                 var events = this.eventListenerList[a], i;
-                if(events) {
+                if (events) {
                     for (i = 0; i < events.length; i += 1) {
                         if (events[i] === b) {
                             events.splice(i, 1);
@@ -1135,7 +1137,7 @@ var WUI_Dialog = new (function() {
                                      '<title>' + stripped_title + '</title>',
                                      css_html,
                                      '</head>',
-                                     '<body id="' + dialog.id + "\" class=\"wui-dialog-detach-window-body\" onload=\"parent.opener.WUI_Dialog.childWindowLoaded(document.body.id)\">",
+                                     '<body id="' + dialog.id + "\" class=\"" + _class_name.detached + "\" onload=\"parent.opener.WUI_Dialog.childWindowLoaded(document.body.id)\">",
                                      //dialog.children[1].outerHTML,
                                      '</body>',
                                      '</html>'].join(''));
@@ -1939,11 +1941,11 @@ var WUI_Dialog = new (function() {
 
         if (child_window.document.body.firstElementChild) {
             _addListenerWalk(widget.dialog.children[1], child_window.document.body.firstElementChild);
-/*
+
             if (widget.opts.on_detach) {
                 widget.opts.on_detach(child_window);
             }
-        */        } else {
+        } else {
             window.setTimeout(function(){ // temporary
                 WUI_Dialog.childWindowLoaded(id);
             }, 500);
@@ -23909,7 +23911,7 @@ var _paint = function (ctx, brush, mode, x, y, scale_x, scale_y, angle, opacity)
     _pvx = x;
     _pvy = y;
     
-    for(i = 1; i <= step; i += 1) {
+    for (i = 1; i <= step; i += 1) {
         x += xinc;
         y += yinc;
 
@@ -25170,14 +25172,15 @@ var _addFragmentInput = function (type, input, settings) {
         } else {
             db_obj.data = "";
         }
+
+        _setTextureWrapS(data.texture, "repeat");
+        _setTextureWrapT(data.texture, "repeat");
         
         db_obj.width = _canvas_width;
         db_obj.height = _canvas_height;
-        db_obj.settings.wrap.s = data.wrap.ws;
-        db_obj.settings.wrap.t = data.wrap.wt;
-        db_obj.settings.flip = false;
-        
-        _dbStoreInput(input_id, db_obj);
+        //db_obj.settings.wrap.s = data.wrap.ws;
+        //db_obj.settings.wrap.t = data.wrap.wt;
+        //db_obj.settings.flip = false;
         
         canvas = document.createElement("canvas");
         canvas.width = _canvas_width;
@@ -25257,9 +25260,13 @@ var _addFragmentInput = function (type, input, settings) {
             db_obj.settings.flip = settings.flip;
         }
 
+        _dbStoreInput(input_id, db_obj);
+
         input_thumb = input;
 
         _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/paint_brush.png" );
+
+        _createChannelSettingsDialog(input_id);
 
         _fragment_input_data[input_id].elem.addEventListener("contextmenu", _selectCanvasInput);
         
@@ -25654,6 +25661,8 @@ var _icon_class = {
     _fas_chn_notify_timeout,
     
     _wui_main_toolbar,
+
+    _collapsible_id = 0,
     
     _send_slices_settings_timeout,
     _add_slice_timeout,
@@ -25709,8 +25718,13 @@ var _onChangeChannelSettings = function (channel, channel_data_index) {
     };
 };
 
-var _toggleCollapse = function (element, bind_to) {
+var _toggleCollapse = function (element) {
     return function (ev) {
+        var elem = ev.target.ownerDocument.getElementById(element.id);
+
+        elem.classList.toggle("fs-collapsible");
+        elem.classList.toggle("fs-collapsed");
+
         element.classList.toggle("fs-collapsible");
         element.classList.toggle("fs-collapsed");
 
@@ -25719,6 +25733,8 @@ var _toggleCollapse = function (element, bind_to) {
 };
 
 var _applyCollapsible = function (element, bind_to, collapsed) {
+    element.id = "fs_collapsible_" + _collapsible_id;
+
     element.classList.add("fs-collapsible");
 
     if (collapsed) {
@@ -25729,17 +25745,25 @@ var _applyCollapsible = function (element, bind_to, collapsed) {
         element.classList.toggle("fs-collapsible");
     }    
 
-    bind_to.addEventListener("click", _toggleCollapse(element, bind_to));
+    bind_to.addEventListener("click", _toggleCollapse(element));
+
+    bind_to.id = "fs_collapsible_target_" + _collapsible_id;
 
     if (element !== bind_to) {
         element.addEventListener("click", function (ev) {
-            if (element.classList.contains("fs-collapsed")) {
+            var elem = ev.target.ownerDocument.getElementById(element.id);
+            var bto = ev.target.ownerDocument.getElementById(bind_to.id);
+
+            if (elem.classList.contains("fs-collapsed")) {
+                bto.dispatchEvent(new UIEvent('click'));
                 bind_to.dispatchEvent(new UIEvent('click'));
             }
 
             ev.stopPropagation();
         });
     }
+
+    _collapsible_id += 1;
 };
 
 var _createFxSettingsContent = function () {
@@ -26107,111 +26131,6 @@ var _createFasSettingsContent = function () {
         synthesis_matrix_table.appendChild(row);
     }
 
-    // fx / chn matrix
-/*    fx_matrix_table.className = "fs-matrix";
-    fx_matrix_chn_fieldset.appendChild(fx_matrix_table);
-    fx_matrix_fieldset.appendChild(fx_matrix_chn_fieldset);
-
-    row = document.createElement("tr");
-    row.className = "fs-matrix-first-row";
-    cell = document.createElement("th");
-    row.appendChild(cell);
-    for (i = 0; i < _play_position_markers.length; i += 1) {
-        slice = _play_position_markers[i];
-
-        if (slice.type === 1) {
-            cell = document.createElement("th");
-            cell.style.color = "red";
-            cell.innerHTML = slice.id;
-            row.appendChild(cell);
-        }    
-    }
-
-    fx_matrix_table.appendChild(row);    
-
-    for (i = 0; i < _output_channels; i += 1) {
-        row = document.createElement("tr");
-
-        cell = document.createElement("th");
-        cell.className = "fs-matrix-first-cell";
-        cell.innerHTML = i;
-        row.appendChild(cell);
-        
-        for (j = 0; j < _play_position_markers.length; j += 1) {
-            slice = _play_position_markers[j];
-
-            if (slice.type === 1) {
-                cell = document.createElement("th");
-                cell.className = "fs-matrix-ck-cell";
-                checkbox = document.createElement("input");
-                //checkbox.name = "fxs_" + j;
-                checkbox.type = "checkbox";
-
-                checkbox.addEventListener("change", function () {
-
-                });
-
-                cell.appendChild(checkbox);
-                row.appendChild(cell);
-            }    
-        }
-
-        fx_matrix_table.appendChild(row);
-    }
-
-    // fx / slice matrix
-    fx_matrix_table = document.createElement("table");
-    
-    fx_matrix_table.className = "fs-matrix";
-    fx_matrix_fx_fieldset.appendChild(fx_matrix_table);
-    fx_matrix_fieldset.appendChild(fx_matrix_fx_fieldset);
-
-    row = document.createElement("tr");
-    row.className = "fs-matrix-first-row";
-    cell = document.createElement("th");
-    row.appendChild(cell);
-    for (i = 0; i < _play_position_markers.length; i += 1) {
-        slice = _play_position_markers[i];
-
-        if (slice.type === 1) {
-            cell = document.createElement("th");
-            cell.innerHTML = slice.id;
-            row.appendChild(cell);
-        }    
-    }
-
-    fx_matrix_table.appendChild(row);    
-
-    for (i = 0; i < fx_types.length; i += 1) {
-        row = document.createElement("tr");
-
-        cell = document.createElement("th");
-        cell.className = "fs-matrix-first-cell";
-        cell.innerHTML = fx_types[i];
-        row.appendChild(cell);
-        
-        for (j = 0; j < _play_position_markers.length; j += 1) {
-            slice = _play_position_markers[j];
-
-            if (slice.type === 1) {
-                cell = document.createElement("th");
-                cell.className = "fs-matrix-ck-cell";
-                checkbox = document.createElement("input");
-                //checkbox.name = "fxs_" + j;
-                checkbox.type = "checkbox";
-
-                checkbox.addEventListener("change", function () {
-
-                });
-
-                cell.appendChild(checkbox);
-                row.appendChild(cell);
-            }    
-        }
-
-        fx_matrix_table.appendChild(row);
-    }
-*/
     // open parameters button
     open_synth_params_btn.innerHTML = "Synth. parameters";
     open_synth_params_btn.className = "fs-btn fs-btn-default";
@@ -27216,10 +27135,6 @@ var _uiInit = function () {
         });
 */
 
-    WUI_Tabs.create("fs_help_tabs", {
-        height: "calc(100% - 74px)"
-    });
-
     _help_dialog = WUI_Dialog.create(_help_dialog_id, {
             title: "Fragment - Help",
 
@@ -27233,7 +27148,9 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: true,
-            draggable: true
+            draggable: true,
+            
+            top: 0
         });
     
     _paint_dialog = WUI_Dialog.create(_paint_dialog_id, {
@@ -27294,6 +27211,10 @@ var _uiInit = function () {
                     class_name: "fs-help-icon"
                 }
             ]
+    });
+
+    WUI_Tabs.create("fs_help_tabs", {
+        height: "auto"
     });
 
     WUI_ToolBar.create("fs_record_toolbar", {
