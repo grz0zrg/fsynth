@@ -5,6 +5,9 @@
 // WUI - https://github.com/grz0zrg/wui
 /*#include wui/wui.js*/
 
+// Processing.js - http://processingjs.org/download/
+/*#include processing.min.js*/
+
 // CodeMirror - https://codemirror.net/
 /*#include codemirror/codemirror.js*/
 /*#include codemirror/addon/search/searchcursor.js*/

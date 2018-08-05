@@ -49,11 +49,10 @@
 .fs-board-icon {
     background-image: url("../data/ui-icons/users.png");
 }
-/*
-.fs-midi-out-icon {
-    background-image: url("../data/ui-icons/midi.png");
+
+.fs-pjs-icon {
+    background-image: url("../data/ui-icons/pjs.png");
 }
-*/
 
 .fs-discuss-icon {
     background-image: url("../data/ui-icons/discuss.png");

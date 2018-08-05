@@ -434,6 +434,12 @@ var _inputThumbMenu = function (e) {
     );
 };
 
+var _openProcessingJSEditor = function (e) {
+    e.preventDefault();
+
+    
+};
+
 var _selectCanvasInput = function (e) {
     e.preventDefault();
     
@@ -1005,6 +1011,79 @@ var _addFragmentInput = function (type, input, settings) {
         _createChannelSettingsDialog(input_id);
 
         _fragment_input_data[input_id].elem.addEventListener("contextmenu", _selectCanvasInput);
+        
+        _compile();
+    } else if (type === "processing.js") {
+        data = _create2DTexture({
+            empty: true,
+            width: _canvas_width,
+            height: _canvas_height,
+        }, false, true);
+        
+        if (input) {
+            db_obj.data = input.src;
+        } else {
+            db_obj.data = "";
+        }
+
+        _setTextureWrapS(data.texture, "repeat");
+        _setTextureWrapT(data.texture, "repeat");
+        
+        db_obj.width = _canvas_width;
+        db_obj.height = _canvas_height;
+        
+        canvas = document.createElement("canvas");
+        canvas.width = _canvas_width;
+        canvas.height = _canvas_height;
+        canvas.display = "none";
+        
+        input_obj = {
+                type: 4,
+                image: canvas,
+                texture: data.texture,
+                elem: null,
+                db_obj: db_obj,
+                canvas: canvas,
+                canvas_ctx: canvas.getContext("2d"),
+                canvas_enable: false,
+                mouse_btn: 0,
+                update_timeout: null
+            };
+        
+        _fragment_input_data.push(input_obj);
+
+        var co = _getElementOffset(_canvas);
+            
+        _setImageSmoothing(input_obj.canvas_ctx, false);
+        /*
+        if (input) {
+            input_obj.canvas_ctx.drawImage(input, 0, 0);
+
+            _canvasInputUpdate(input_obj);
+        }*/
+        
+        document.body.appendChild(canvas);
+        
+        if (settings !== undefined) {
+            _setTextureFilter(data.texture, settings.f);
+            _setTextureWrapS(data.texture, settings.wrap.s);
+            _setTextureWrapT(data.texture, settings.wrap.t);
+            
+            db_obj.settings.f = settings.f;
+            db_obj.settings.wrap.s = settings.wrap.s;
+            db_obj.settings.wrap.t = settings.wrap.t;
+            db_obj.settings.flip = settings.flip;
+        }
+
+        _dbStoreInput(input_id, db_obj);
+
+        input_thumb = input;
+
+        _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/pjs.png" );
+
+        _createChannelSettingsDialog(input_id);
+
+        _fragment_input_data[input_id].elem.addEventListener("contextmenu", _openProcessingJSEditor);
         
         _compile();
     } else {

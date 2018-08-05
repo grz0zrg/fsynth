@@ -120,9 +120,6 @@ var _toggleCollapse = function (element) {
         elem.classList.toggle("fs-collapsible");
         elem.classList.toggle("fs-collapsed");
 
-        element.classList.toggle("fs-collapsible");
-        element.classList.toggle("fs-collapsed");
-
         ev.stopPropagation();
     };
 };
@@ -1405,7 +1402,7 @@ var _uiInit = function () {
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
             title: "Import dialog (images etc.)",
 
-            width: "420px",
+            width: "480px",
             height: "auto",
             min_height: "80px",
 
@@ -1465,6 +1462,12 @@ var _uiInit = function () {
                         on_click: (function () { _addFragmentInput("canvas"); }),
                         tooltip: "Cvs",
                         text: "Cvs"
+                    },
+                    {
+                        icon: "fs-pjs-icon",
+                        on_click: (function () { _addFragmentInput("processing.js"); }),
+                        tooltip: "Pjs",
+                        text: "Pjs"
                     }
                 ]
             });
@@ -1545,7 +1548,7 @@ var _uiInit = function () {
             detachable: true,
             draggable: true,
             
-            top: 0
+            top: 200
         });
     
     _paint_dialog = WUI_Dialog.create(_paint_dialog_id, {
@@ -2425,7 +2428,7 @@ var _uiInit = function () {
 
             title: "Window alpha",
 
-            title_min_width: 81,
+            title_min_width: 84,
             value_min_width: 64,
 
             on_change: function (value) {
@@ -2451,7 +2454,7 @@ var _uiInit = function () {
 
             title: "Window length",
 
-            title_min_width: 81,
+            title_min_width: 84,
             value_min_width: 64,
 
             on_change: function (value) {
@@ -2477,7 +2480,7 @@ var _uiInit = function () {
 
             title: "Overlap",
 
-            title_min_width: 81,
+            title_min_width: 84,
             value_min_width: 64,
 
             on_change: function (value) {
@@ -2503,7 +2506,7 @@ var _uiInit = function () {
 
             title: "BPM",
 
-            title_min_width: 81,
+            title_min_width: 84,
             value_min_width: 64,
 
             on_change: function (value) {
@@ -2529,7 +2532,7 @@ var _uiInit = function () {
 
             title: "PPB",
 
-            title_min_width: 81,
+            title_min_width: 84,
             value_min_width: 64,
 
             on_change: function (value) {
@@ -2555,7 +2558,7 @@ var _uiInit = function () {
 
             title: "Height",
 
-            title_min_width: 81,
+            title_min_width: 84,
             value_min_width: 64,
 
             on_change: function (value) {
@@ -2581,7 +2584,7 @@ var _uiInit = function () {
 
             title: "Min. freq.",
 
-            title_min_width: 81,
+            title_min_width: 84,
             value_min_width: 64,
 
             on_change: function (value) {
@@ -2607,7 +2610,7 @@ var _uiInit = function () {
 
             title: "Max. freq.",
 
-            title_min_width: 81,
+            title_min_width: 84,
             value_min_width: 64,
 
             on_change: function (value) {

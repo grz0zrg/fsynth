@@ -5480,6 +5480,8 @@ var WUI = new (function() {
     };
 })();
 
+// Processing.js - http://processingjs.org/download/
+
 // CodeMirror - https://codemirror.net/
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
 // Distributed under an MIT license: http://codemirror.net/LICENSE
@@ -24698,6 +24700,12 @@ var _inputThumbMenu = function (e) {
     );
 };
 
+var _openProcessingJSEditor = function (e) {
+    e.preventDefault();
+
+    
+};
+
 var _selectCanvasInput = function (e) {
     e.preventDefault();
     
@@ -25271,6 +25279,79 @@ var _addFragmentInput = function (type, input, settings) {
         _fragment_input_data[input_id].elem.addEventListener("contextmenu", _selectCanvasInput);
         
         _compile();
+    } else if (type === "processing.js") {
+        data = _create2DTexture({
+            empty: true,
+            width: _canvas_width,
+            height: _canvas_height,
+        }, false, true);
+        
+        if (input) {
+            db_obj.data = input.src;
+        } else {
+            db_obj.data = "";
+        }
+
+        _setTextureWrapS(data.texture, "repeat");
+        _setTextureWrapT(data.texture, "repeat");
+        
+        db_obj.width = _canvas_width;
+        db_obj.height = _canvas_height;
+        
+        canvas = document.createElement("canvas");
+        canvas.width = _canvas_width;
+        canvas.height = _canvas_height;
+        canvas.display = "none";
+        
+        input_obj = {
+                type: 4,
+                image: canvas,
+                texture: data.texture,
+                elem: null,
+                db_obj: db_obj,
+                canvas: canvas,
+                canvas_ctx: canvas.getContext("2d"),
+                canvas_enable: false,
+                mouse_btn: 0,
+                update_timeout: null
+            };
+        
+        _fragment_input_data.push(input_obj);
+
+        var co = _getElementOffset(_canvas);
+            
+        _setImageSmoothing(input_obj.canvas_ctx, false);
+        /*
+        if (input) {
+            input_obj.canvas_ctx.drawImage(input, 0, 0);
+
+            _canvasInputUpdate(input_obj);
+        }*/
+        
+        document.body.appendChild(canvas);
+        
+        if (settings !== undefined) {
+            _setTextureFilter(data.texture, settings.f);
+            _setTextureWrapS(data.texture, settings.wrap.s);
+            _setTextureWrapT(data.texture, settings.wrap.t);
+            
+            db_obj.settings.f = settings.f;
+            db_obj.settings.wrap.s = settings.wrap.s;
+            db_obj.settings.wrap.t = settings.wrap.t;
+            db_obj.settings.flip = settings.flip;
+        }
+
+        _dbStoreInput(input_id, db_obj);
+
+        input_thumb = input;
+
+        _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/pjs.png" );
+
+        _createChannelSettingsDialog(input_id);
+
+        _fragment_input_data[input_id].elem.addEventListener("contextmenu", _openProcessingJSEditor);
+        
+        _compile();
     } else {
         return;
     }
@@ -25724,9 +25805,6 @@ var _toggleCollapse = function (element) {
 
         elem.classList.toggle("fs-collapsible");
         elem.classList.toggle("fs-collapsed");
-
-        element.classList.toggle("fs-collapsible");
-        element.classList.toggle("fs-collapsed");
 
         ev.stopPropagation();
     };
@@ -27010,7 +27088,7 @@ var _uiInit = function () {
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
             title: "Import dialog (images etc.)",
 
-            width: "420px",
+            width: "480px",
             height: "auto",
             min_height: "80px",
 
@@ -27070,6 +27148,12 @@ var _uiInit = function () {
                         on_click: (function () { _addFragmentInput("canvas"); }),
                         tooltip: "Cvs",
                         text: "Cvs"
+                    },
+                    {
+                        icon: "fs-pjs-icon",
+                        on_click: (function () { _addFragmentInput("processing.js"); }),
+                        tooltip: "Pjs",
+                        text: "Pjs"
                     }
                 ]
             });
@@ -27150,7 +27234,7 @@ var _uiInit = function () {
             detachable: true,
             draggable: true,
             
-            top: 0
+            top: 200
         });
     
     _paint_dialog = WUI_Dialog.create(_paint_dialog_id, {
@@ -28030,7 +28114,7 @@ var _uiInit = function () {
 
             title: "Window alpha",
 
-            title_min_width: 81,
+            title_min_width: 84,
             value_min_width: 64,
 
             on_change: function (value) {
@@ -28056,7 +28140,7 @@ var _uiInit = function () {
 
             title: "Window length",
 
-            title_min_width: 81,
+            title_min_width: 84,
             value_min_width: 64,
 
             on_change: function (value) {
@@ -28082,7 +28166,7 @@ var _uiInit = function () {
 
             title: "Overlap",
 
-            title_min_width: 81,
+            title_min_width: 84,
             value_min_width: 64,
 
             on_change: function (value) {
@@ -28108,7 +28192,7 @@ var _uiInit = function () {
 
             title: "BPM",
 
-            title_min_width: 81,
+            title_min_width: 84,
             value_min_width: 64,
 
             on_change: function (value) {
@@ -28134,7 +28218,7 @@ var _uiInit = function () {
 
             title: "PPB",
 
-            title_min_width: 81,
+            title_min_width: 84,
             value_min_width: 64,
 
             on_change: function (value) {
@@ -28160,7 +28244,7 @@ var _uiInit = function () {
 
             title: "Height",
 
-            title_min_width: 81,
+            title_min_width: 84,
             value_min_width: 64,
 
             on_change: function (value) {
@@ -28186,7 +28270,7 @@ var _uiInit = function () {
 
             title: "Min. freq.",
 
-            title_min_width: 81,
+            title_min_width: 84,
             value_min_width: 64,
 
             on_change: function (value) {
@@ -28212,7 +28296,7 @@ var _uiInit = function () {
 
             title: "Max. freq.",
 
-            title_min_width: 81,
+            title_min_width: 84,
             value_min_width: 64,
 
             on_change: function (value) {
