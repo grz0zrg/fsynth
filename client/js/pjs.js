@@ -9,7 +9,8 @@ var _pjs_dialog_id = "fs_pjs",
 
     _current_pjs_input = null,
     
-    _pjs_codemirror_instance;
+    _pjs_codemirror_instance,
+    _pjs_codemirror_instance_detached;
 
 /***********************************************************
     Functions.
@@ -172,11 +173,50 @@ var _pjsInit = function () {
         detachable: true,
         draggable: true,
         resizable: true,
+        minimizable: true,
 
         status_bar_content: "",
 
         on_open: function () {
             _pjs_codemirror_instance.refresh();
+        },
+
+        on_detach: function (new_window) {
+            var pjs_editor_div = new_window.document.getElementById("fs_pjs_editor"),
+                textarea = document.createElement("textarea"),
+                cm_element;
+            
+            new_window.document.head.innerHTML += '<link rel="stylesheet" type="text/css" href="css/codemirror/theme/' + _code_editor_theme + '.css"/>';
+            
+            textarea.className = "fs-textarea";
+            textarea.style.border = "1px solid #111111";
+            
+            pjs_editor_div.innerHTML = "";
+
+            pjs_editor_div.appendChild(textarea);
+
+            _pjs_codemirror_instance_detached = CodeMirror.fromTextArea(textarea, {
+                mode: "text/x-java",
+                styleActiveLine: true,
+                lineNumbers: true,
+                lineWrapping: true,
+                theme: ((_code_editor_theme === null) ? "seti" : _code_editor_theme),
+                matchBrackets: true,
+                scrollbarStyle: "native"
+            });
+
+            cm_element = _pjs_codemirror_instance_detached.getWrapperElement();
+            cm_element.style = "font-size: 12pt";
+
+            CodeMirror.on(_pjs_codemirror_instance_detached, 'change', function () {
+                _pjsCodeChange(_pjs_codemirror_instance_detached.getValue());
+
+                _pjs_codemirror_instance.setValue(_pjs_codemirror_instance_detached.getValue());
+            });
+
+            _pjs_codemirror_instance_detached.setValue(_pjs_codemirror_instance.getValue());
+
+            _pjs_codemirror_instance_detached.refresh();
         },
     
         header_btn: [
@@ -232,11 +272,13 @@ var _pjsChangeSourceCb = function (input) {
 
         _pjsSelectInput(input);
 
-        elem.parentElement.childNodes.forEach(function (item) {
-            item.classList.remove("fs-pjs-selected");
-        });
+        if (elem.parentElement !== null) {
+            elem.parentElement.childNodes.forEach(function (item) {
+                item.classList.remove("fs-pjs-selected");
+            });
 
-        elem.classList.add("fs-pjs-selected");
+            elem.classList.add("fs-pjs-selected");
+        }
     };
 };
 

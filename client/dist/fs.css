@@ -2572,6 +2572,7 @@ body .code .CodeMirror-fullscreen {
 
 .fs-pjs-inputs {
     width: 140px;
+    min-width: 140px;
     height: 100%;
     padding: 2px;
     font-size: 10pt;
