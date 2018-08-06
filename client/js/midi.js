@@ -33,13 +33,13 @@ var _midiDeviceIOUpdate = function () {
     _midi_devices.i_total_active = 0;
     _midi_devices.o_total_active = 0;
     
-    for(key in _midi_devices.input) { 
+    for (key in _midi_devices.input) { 
         if(_midi_devices.input[key].enabled) {
             _midi_devices.i_total_active += 1;
         }
     }
     
-    for(key in _midi_devices.output) { 
+    for (key in _midi_devices.output) { 
         if(_midi_devices.output[key].enabled) {
             _midi_devices.o_total_active += 1;
         }
@@ -105,9 +105,7 @@ var _saveMIDISettings = function () {
 var _MIDIDeviceCheckboxChange = function () {
     var midi_device = _midi_devices[this.dataset.type][this.dataset.did],
         
-        midi_enabled_ck_id = "fs_midi_settings_ck_" + midi_device.iid,
-        
-        key;
+        midi_enabled_ck_id = "fs_midi_settings_ck_" + midi_device.iid;
 
     midi_device.enabled = this.checked;
     
@@ -133,7 +131,6 @@ var _resetMIDIDevice = function () {
 var _addMIDIDevice = function (midi, io_type) {
     var midi_element = document.createElement("div"),
         midi_enabled_ck_id = "fs_midi_settings_ck_" + _midi_device_uid,
-        midi_settings_element = document.getElementById(_midi_settings_dialog_id).lastElementChild,
         midi_settings_in_element = document.getElementById("fs_midi_in_container"),
         midi_settings_out_element = document.getElementById("fs_midi_out_container"),
         midi_device_enabled = (io_type === "output"),

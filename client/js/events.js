@@ -225,6 +225,8 @@ document.addEventListener('mousemove', function (e) {
                 _hz_infos.textContent = "";
             }
         }
+    
+        _pjsMouseMoveEvent();
 
         _mx = e.pageX;
         _my = e.pageY;

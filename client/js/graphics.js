@@ -599,7 +599,7 @@ var _frame = function (raf_time) {
         data,
 
         buffer = [];
-
+    
     _MIDInotesUpdate(date);
 
     if (_feedback.enabled) {
@@ -644,12 +644,15 @@ var _frame = function (raf_time) {
     _gl.uniform4f(_getUniformLocation("date"), date.getFullYear(), date.getMonth(), date.getDay(), date.getSeconds());
     _gl.uniform1i(_getUniformLocation("frame", _program), _globalFrame);
 
+    _pjsUpdateTexture();
+
     // fragment inputs
     for (i = 0; i < _fragment_input_data.length; i += 1) {
         fragment_input = _fragment_input_data[i];
 
         if (fragment_input.type === 0 ||
-           fragment_input.type === 2) { // 2D texture from image
+            fragment_input.type === 2 ||
+            fragment_input.type === 4) { // 2D texture from images
                 _gl.activeTexture(_gl.TEXTURE0 + i);
                 _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
                 _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);

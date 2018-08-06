@@ -1332,3 +1332,36 @@ body .code .CodeMirror-fullscreen {
     font-family: monospace;
     line-height: 12px;
 }
+
+.fs-pjs-container {
+    height: 100%;
+    text-align: center;
+    display: flex;
+}
+
+.fs-pjs-inputs {
+    width: 140px;
+    height: 100%;
+    padding: 2px;
+    font-size: 10pt;
+    border: solid 2px #000000;
+}
+
+.fs-pjs-editor {
+    height: 100%;
+    text-align: left;
+    flex-grow: 1;
+}
+
+.fs-pjs-input {
+    color: white;
+}
+
+.fs-pjs-input:hover {
+    cursor: pointer;
+    background-color: #444444;
+}
+
+.fs-pjs-selected {
+    background-color: #202020;
+}

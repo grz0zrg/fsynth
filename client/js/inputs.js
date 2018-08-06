@@ -13,6 +13,8 @@ var _dragged_input = null,
     _input_settings_dialog_id = 0,   
     _input_settings_dialog_prefix = "fs_channel_settings_dialog",
 
+    _pjs_canvas_id = 0,
+
     _selected_input_canvas = null;
 
 /***********************************************************
@@ -23,8 +25,8 @@ var _cbChannelSettingsClose = function (input_channel_id) {
     return function () {
         var fragment_input_channel = _fragment_input_data[input_channel_id];
 
-        WUI_RangeSlider.destroy("fs_channel_settings_playrate"+fragment_input_channel.dialog_id);
-        WUI_RangeSlider.destroy("fs_channel_settings_videostart"+fragment_input_channel.dialog_id);
+        WUI_RangeSlider.destroy("fs_channel_settings_playrate" + fragment_input_channel.dialog_id);
+        WUI_RangeSlider.destroy("fs_channel_settings_videostart" + fragment_input_channel.dialog_id);
         WUI_RangeSlider.destroy("fs_channel_settings_videoend" + fragment_input_channel.dialog_id);
         
         if (fragment_input_channel) {
@@ -437,7 +439,12 @@ var _inputThumbMenu = function (e) {
 var _openProcessingJSEditor = function (e) {
     e.preventDefault();
 
-    
+    var input_id = _parseInt10(e.target.dataset.inputId),
+        input = _fragment_input_data[input_id];
+
+    _pjsSelectInput(input);
+
+    WUI_Dialog.open("fs_pjs");
 };
 
 var _selectCanvasInput = function (e) {
@@ -532,6 +539,8 @@ var _removeInputChannel = function (input_id) {
     for (i = 0; i < _fragment_input_data.length; i += 1) {
          _dbStoreInput(_parseInt10(_fragment_input_data[i].elem.dataset.inputId), _fragment_input_data[i].db_obj);
     }
+
+    _pjsUpdateInputs();
 
     _compile();
 };
@@ -1019,11 +1028,20 @@ var _addFragmentInput = function (type, input, settings) {
             width: _canvas_width,
             height: _canvas_height,
         }, false, true);
-        
+
         if (input) {
-            db_obj.data = input.src;
+            db_obj.data = input;
         } else {
-            db_obj.data = "";
+            db_obj.data = [
+                "void setup() {",
+                //"  size(1224, 439);", // this is done automatically
+                "  background(0, 0, 0, 255);",
+                "  stroke(255, 255, 255, 255);",
+                "}",
+                "",
+                "void draw() {",
+                "  background(0, 0, 0, 255);",
+                "}"].join("\n");;
         }
 
         _setTextureWrapS(data.texture, "repeat");
@@ -1035,7 +1053,15 @@ var _addFragmentInput = function (type, input, settings) {
         canvas = document.createElement("canvas");
         canvas.width = _canvas_width;
         canvas.height = _canvas_height;
-        canvas.display = "none";
+        canvas.style.position = "absolute";
+        //canvas.style.visibility = "hidden";
+        canvas.id = "fs_pjs_canvas_" + _pjs_canvas_id;
+        canvas.className = "fs-pjs-canvas";
+
+        var main_canvas_offset = _getElementOffset(_canvas);
+        canvas.style.top = main_canvas_offset.top + "px";
+        canvas.style.left = main_canvas_offset.left + "px";
+        canvas.style.zIndex = "-1";
         
         input_obj = {
                 type: 4,
@@ -1047,7 +1073,8 @@ var _addFragmentInput = function (type, input, settings) {
                 canvas_ctx: canvas.getContext("2d"),
                 canvas_enable: false,
                 mouse_btn: 0,
-                update_timeout: null
+                update_timeout: null,
+                pjs_source_code: db_obj.data
             };
         
         _fragment_input_data.push(input_obj);
@@ -1063,7 +1090,7 @@ var _addFragmentInput = function (type, input, settings) {
         }*/
         
         document.body.appendChild(canvas);
-        
+
         if (settings !== undefined) {
             _setTextureFilter(data.texture, settings.f);
             _setTextureWrapS(data.texture, settings.wrap.s);
@@ -1084,8 +1111,14 @@ var _addFragmentInput = function (type, input, settings) {
         _createChannelSettingsDialog(input_id);
 
         _fragment_input_data[input_id].elem.addEventListener("contextmenu", _openProcessingJSEditor);
+
+        _fragment_input_data[input_id].pjs = new Processing(canvas.id, db_obj.data);
+
+        _pjsUpdateInputs();
         
         _compile();
+
+        _pjs_canvas_id += 1;
     } else {
         return;
     }

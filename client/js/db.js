@@ -139,6 +139,8 @@ var _initDb = function (db_name) {
                     };
                 } else if (value.type === "video") {
                     _addFragmentInput(value.type);
+                } else if (value.type === "processing.js") {
+                    _addFragmentInput(value.type, value.data);
                 } else {
                     _addFragmentInput(value.type);
                 }

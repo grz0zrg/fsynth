@@ -36,7 +36,7 @@ Table of Contents
 
 ## About Fragment
 
-Fragment is a collaborative audiovisual live coding web. environment with pixels based (image-synth) live additive/spectral/granular synthesis and sequencing, the **sound synthesis** is **powered by pixels data** generated from live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)
+Fragment is a collaborative audiovisual live coding web. environment with pixels based (image-synth) live additive/spectral/granular synthesis and sequencing, the **sound synthesis** is **powered by pixels data** generated from live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) and [Processing.js](http://processingjs.org/) code with many different types of input data.
 
 Many videos of most features are available on [YouTube](https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ)
 
@@ -86,6 +86,7 @@ Fragment is also able to do real-time distributed sound synthesis with the sound
   - Videos with rate & rewind & loop settings (can import the audio track as an image)
   - Audio files (translated to images)
   - Drawing canvas with drawing and compositing operations which use images Fragment input as brushes, Fragment is bundled with 20 high-quality brushes, a pack of 969 high-quality brushes is also available as a [separate download](https://www.fsynth.com/data/969_png_brushes_pack.7z)
+  - [Processing.js](http://processingjs.org/) sketchs
 - Uniform controllers via OSC [Open Stage Control is recommended](http://osc.ammd.net)
 - Per-sessions discussion system
 - Global and per sessions settings smart save/load; make use of *localStorage*

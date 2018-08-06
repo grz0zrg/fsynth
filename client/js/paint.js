@@ -147,11 +147,13 @@ var _draw = function (ctx, brush, mode, x, y, scale_x, scale_y, angle, opacity) 
     ctx.globalAlpha = opacity;
     
     ctx.save();
+    
     if (mode === 1) {
         ctx.globalCompositeOperation = "destination-out";
     } else {
         ctx.globalCompositeOperation = _paint_mode;
     }
+
     ctx.translate(x, y);
     ctx.rotate(angle);
     ctx.translate(drawing_x - x, drawing_y - y);

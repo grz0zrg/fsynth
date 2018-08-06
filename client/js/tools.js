@@ -375,6 +375,18 @@ var _fnToImageData = function (img, done) {
     };
 };
 
+var _imageToDataURL = function (image) {
+    var canvas = document.createElement("canvas"),
+        ctx = canvas.getContext("2d");
+    
+    canvas.width = image.width;
+    canvas.height = image.height;
+
+    ctx.drawImage(image, 0, 0);
+
+    return canvas.toDataURL("image/png");
+};
+
 var _fnCanvasToImage = function (tmp_canvas, done) {
     var image_element = document.createElement("img");
     image_element.src = tmp_canvas.toDataURL();

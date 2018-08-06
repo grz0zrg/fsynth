@@ -6,7 +6,7 @@
 /*#include wui/wui.js*/
 
 // Processing.js - http://processingjs.org/download/
-/*#include processing.min.js*/
+/*#include processing.js/processing.min.js*/
 
 // CodeMirror - https://codemirror.net/
 /*#include codemirror/codemirror.js*/
@@ -21,6 +21,7 @@
 /*#include codemirror/addon/display/fullscreen.js*/
 /*#include codemirror/mode/glsl.js*/
 /*#include codemirror/mode/javascript.js*/
+/*#include codemirror/mode/clike.js*/
 
 // showdown - https://github.com/showdownjs/showdown
 /*#include showdown/showdown.min.js*/
@@ -460,6 +461,7 @@ var FragmentSynth = function (params) {
     /*#include transports.js*/
     /*#include export.js*/
     /*#include ui.js*/
+    /*#include pjs.js*/
     /*#include slices.js*/
     /*#include midi.js*/
     /*#include fas.js*/
@@ -820,6 +822,8 @@ var FragmentSynth = function (params) {
     _allocateFramesData();
     
     _uiInit();
+
+    _pjsInit();
     
     _midiInit();
     
