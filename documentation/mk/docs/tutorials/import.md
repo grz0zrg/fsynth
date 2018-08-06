@@ -9,6 +9,7 @@ Fragment allow the import of
 - videos (images and sounds)
 - camera (only images)
 - canvas
+- Processing.js
 
 The imported data are all transformed into a 2D texture automatically bound to a GLSL uniform, all GLSL inputs can be used as a 2D texture (**texture** keyword) within the fragment program, they are pre-defined as **iInputN** where N is the id (position) of the input starting from 0.
 

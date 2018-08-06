@@ -21177,6 +21177,10 @@ var FragmentSynth = function (params) {
 
 /* jslint browser: true */
 
+/***********************************************************
+    Fields.
+************************************************************/
+
 var _fs_palette = {
         0:   [0,   0,   0],
         10:  [75,  0, 159],
@@ -25648,6 +25652,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
 
     if (fragment_input_channel.type === 1 ||
         fragment_input_channel.type === 3 ||
+        fragment_input_channel.type === 4 ||
         fragment_input_channel.type === 404) {
         vflip_style = "display: none";
     }
@@ -26592,7 +26597,7 @@ var _addFragmentInput = function (type, input, settings) {
                 "void setup() {",
                 //"  size(1224, 439);", // this is done automatically
                 "  background(0, 0, 0, 255);",
-                "  stroke(255, 255, 255, 255);",
+                "  noStroke();",
                 "}",
                 "",
                 "void draw() {",
@@ -27833,6 +27838,28 @@ var _uiInit = function () {
         _applyCollapsible(md_fieldset, md_fieldset_legend);
 
         md_content_div.innerHTML = _showdown_converter.makeHtml(md_content);
+    });
+
+    _xhrContent("data/md/pjs.md", function (md_content) {
+        var md_fieldset = document.createElement("fieldset"),
+            md_fieldset_legend = document.createElement("legend"), 
+            md_content_div = document.createElement("div"),
+            doc_uniforms = document.getElementById("fs_documentation_pjs");
+        
+        md_fieldset.className = "fs-fieldset";
+        md_content_div.className = "fs-md-uniforms";
+        
+        md_fieldset_legend.innerHTML = "Pre-defined variables";
+    
+        md_fieldset.appendChild(md_fieldset_legend);
+        md_fieldset.appendChild(md_content_div);
+        doc_uniforms.appendChild(md_fieldset);
+
+        _applyCollapsible(md_fieldset, md_fieldset_legend);
+
+        md_content_div.innerHTML = _showdown_converter.makeHtml(md_content);
+
+        md_content_div.innerHTML += '<br><br><a href="http://processingjs.org/reference/">Processing.js reference (Official)</a>';
     });
     
     // may don't scale at all in the future!
@@ -29685,9 +29712,9 @@ var _pjsMouseMoveEvent = function () {
     }
 };
 
-var _pjsCodeChange = function () {
+var _pjsCodeChange = function (source_code) {
     var pjs,
-        pjs_source_code = _pjs_codemirror_instance.getValue(),
+        pjs_source_code = (source_code !== undefined) ? source_code : _pjs_codemirror_instance.getValue(),
 
         inputs_source_code = "",
         inputs_load_source_code = "",
@@ -29695,6 +29722,16 @@ var _pjsCodeChange = function () {
         input_url = "",
 
         fragment_input,
+
+        fs_pjs_library = [
+            'float baseFrequency = ' + _audio_infos.base_freq + ";",
+            'float octaves = ' + _audio_infos.octaves + ";",
+            'int htoy (float f) {',
+            '    return (height - (log(f / baseFrequency) / log(2.0)) * floor(height / octaves + 0.5));',
+            '}'
+        ].join("\n"),
+
+        pjs_error,
         
         i = 0;
     
@@ -29710,7 +29747,7 @@ var _pjsCodeChange = function () {
             }
         }
 
-        pjs_source_code = inputs_source_code + pjs_source_code.replace(/(void\s+setup\s*\(\)\s*{)/gm, "$1  size(" + _canvas_width + "," + _canvas_height + ");background(0, 0, 0, 255);" + inputs_load_source_code + "\n");
+        pjs_source_code = fs_pjs_library + inputs_source_code + pjs_source_code.replace(/(void\s+setup\s*\(\)\s*{)/gm, "$1  size(" + _canvas_width + "," + _canvas_height + ");background(0, 0, 0, 255);" + inputs_load_source_code + "\n");
 
         if (_current_pjs_input.pjs) {
             _current_pjs_input.pjs.exit();
@@ -29718,10 +29755,16 @@ var _pjsCodeChange = function () {
             _current_pjs_input.pjs = null;
         }
 
+        WUI_Dialog.setStatusBarContent(_pjs_dialog, '<span class="fs-pjs-status">Successfully compiled</span<');
+
         try {
             _current_pjs_input.pjs = new Processing(_current_pjs_input.canvas.id, pjs_source_code);
         } catch (err) {
-            
+            pjs_error = err.name + " : " + err.message;
+
+            if (pjs_error) {
+                WUI_Dialog.setStatusBarContent(_pjs_dialog, "<span class='fs-pjs-failed'>" + pjs_error + "</span>");
+            }
         }
         
         _current_pjs_input.pjs_source_code = _pjs_codemirror_instance.getValue();
@@ -29734,10 +29777,47 @@ var _pjsCodeChange = function () {
     }
 };
 
+var _pjsDimensionsUpdate = function (new_width, new_height) {
+    var i = 0,
+        fragment_input_data,
+        input_id;
+
+    for (i = 0; i < _fragment_input_data.length; i += 1) {
+        fragment_input_data = _fragment_input_data[i];
+        
+        if (fragment_input_data.type === 4) {
+            fragment_input_data.db_obj.width = new_width;
+            fragment_input_data.db_obj.height = new_height;
+
+            fragment_input_data.texture = _replace2DTexture({ empty: true, width: new_width, height: new_height }, fragment_input_data.texture);
+
+            input_id = _parseInt10(fragment_input_data.elem.dataset.inputId);
+            
+            _dbUpdateInput(input_id, fragment_input_data.db_obj);
+
+            _pjsUpdateTexture();
+        }
+    }
+};
+
+var _pjsCompileAll = function () {
+    var i = 0,
+        fragment_input_data;
+
+    for (i = 0; i < _fragment_input_data.length; i += 1) {
+        fragment_input_data = _fragment_input_data[i];
+        
+        if (fragment_input_data.type === 4) {
+            _current_pjs_input = input;
+
+            _pjsCodeChange(_current_pjs_input.pjs_source_code);
+        }
+    }
+};
+
 var _pjsInit = function () {
     var custom_message_area = document.createElement("textarea"),
 
-        pjs_editor_inputs = document.getElementById("fs_pjs_inputs"),
         pjs_editor_div = document.getElementById("fs_pjs_editor"),
         
         cm_element;
@@ -29757,10 +29837,12 @@ var _pjsInit = function () {
 
         open: false,
 
-        status_bar: false,
-        detachable: false,
+        status_bar: true,
+        detachable: true,
         draggable: true,
         resizable: true,
+
+        status_bar_content: "",
 
         on_open: function () {
             _pjs_codemirror_instance.refresh();
@@ -29792,7 +29874,9 @@ var _pjsInit = function () {
     cm_element = _pjs_codemirror_instance.getWrapperElement();
     cm_element.style = "font-size: 12pt";
 
-    CodeMirror.on(_pjs_codemirror_instance, 'change', _pjsCodeChange);
+    CodeMirror.on(_pjs_codemirror_instance, 'change', function () {
+        _pjsCodeChange();
+    });
 
     _pjsUpdateInputs();
 };
@@ -29802,11 +29886,11 @@ var _pjsSelectInput = function (input) {
         return;
     }
 
-    _pjs_codemirror_instance.setValue(input.pjs_source_code);
-    
     _current_pjs_input = input;
 
-    //_pjsUpdateInputs();
+    _pjs_codemirror_instance.setValue(input.pjs_source_code);
+
+    _pjsUpdateInputs();
 
     _pjsCodeChange();
 };
@@ -29840,7 +29924,7 @@ var _pjsUpdateInputs = function () {
 
     for (i = 0; i < _fragment_input_data.length; i += 1) {
         fragment_input_data = _fragment_input_data[i];
-
+        
         if (fragment_input_data.type === 4) {
             input_name_div = document.createElement("div");
             input_name_div.className = "fs-pjs-input";
@@ -32029,7 +32113,10 @@ var _oscInit = function () {
         
         if (update_obj.width || update_obj.height) {
             _canvasInputDimensionsUpdate(update_obj.width, update_obj.height);
+            _pjsDimensionsUpdate(update_obj.width, update_obj.height);
         }
+
+        _pjsCompileAll();
         
         // detached canvas
         _detached_canvas_buffer = new Uint8Array(_canvas_width * _canvas_height * 4);

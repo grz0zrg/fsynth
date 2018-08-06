@@ -92,6 +92,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
 
     if (fragment_input_channel.type === 1 ||
         fragment_input_channel.type === 3 ||
+        fragment_input_channel.type === 4 ||
         fragment_input_channel.type === 404) {
         vflip_style = "display: none";
     }
@@ -1036,7 +1037,7 @@ var _addFragmentInput = function (type, input, settings) {
                 "void setup() {",
                 //"  size(1224, 439);", // this is done automatically
                 "  background(0, 0, 0, 255);",
-                "  stroke(255, 255, 255, 255);",
+                "  noStroke();",
                 "}",
                 "",
                 "void draw() {",

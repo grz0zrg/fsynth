@@ -583,7 +583,10 @@ var FragmentSynth = function (params) {
         
         if (update_obj.width || update_obj.height) {
             _canvasInputDimensionsUpdate(update_obj.width, update_obj.height);
+            _pjsDimensionsUpdate(update_obj.width, update_obj.height);
         }
+
+        _pjsCompileAll();
         
         // detached canvas
         _detached_canvas_buffer = new Uint8Array(_canvas_width * _canvas_height * 4);

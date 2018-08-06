@@ -825,6 +825,28 @@ var _uiInit = function () {
 
         md_content_div.innerHTML = _showdown_converter.makeHtml(md_content);
     });
+
+    _xhrContent("data/md/pjs.md", function (md_content) {
+        var md_fieldset = document.createElement("fieldset"),
+            md_fieldset_legend = document.createElement("legend"), 
+            md_content_div = document.createElement("div"),
+            doc_uniforms = document.getElementById("fs_documentation_pjs");
+        
+        md_fieldset.className = "fs-fieldset";
+        md_content_div.className = "fs-md-uniforms";
+        
+        md_fieldset_legend.innerHTML = "Pre-defined variables";
+    
+        md_fieldset.appendChild(md_fieldset_legend);
+        md_fieldset.appendChild(md_content_div);
+        doc_uniforms.appendChild(md_fieldset);
+
+        _applyCollapsible(md_fieldset, md_fieldset_legend);
+
+        md_content_div.innerHTML = _showdown_converter.makeHtml(md_content);
+
+        md_content_div.innerHTML += '<br><br><a href="http://processingjs.org/reference/">Processing.js reference (Official)</a>';
+    });
     
     // may don't scale at all in the future!
     var settings_ck_globaltime_elem = document.getElementById("fs_settings_ck_globaltime"),

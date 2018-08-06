@@ -2596,3 +2596,12 @@ body .code .CodeMirror-fullscreen {
 .fs-pjs-selected {
     background-color: #202020;
 }
+
+.fs-pjs-status {
+    font-size: 10pt;
+}
+
+.fs-pjs-failed {
+    font-size: 10pt;
+    color: #ff0000;
+}
