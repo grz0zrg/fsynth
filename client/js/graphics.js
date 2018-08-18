@@ -651,11 +651,16 @@ var _frame = function (raf_time) {
         fragment_input = _fragment_input_data[i];
 
         if (fragment_input.type === 0 ||
-            fragment_input.type === 2 ||
-            fragment_input.type === 4) { // 2D texture from images
-                _gl.activeTexture(_gl.TEXTURE0 + i);
-                _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
-                _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
+            fragment_input.type === 2) { // 2D texture from images
+            _gl.activeTexture(_gl.TEXTURE0 + i);
+            _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
+            _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
+        } else if (fragment_input.type === 4) { // pjs
+            _gl.activeTexture(_gl.TEXTURE0 + i);
+            _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
+            _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
+
+            fragment_input.globalTime += 1;
         } else if (fragment_input.type === 1 || fragment_input.type === 3) { // video/camera
             if (fragment_input.video_elem.readyState === fragment_input.video_elem.HAVE_ENOUGH_DATA) {
                 if (fragment_input.type === 3) {

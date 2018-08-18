@@ -55,12 +55,20 @@ var _pjsCodeChange = function (source_code) {
 
         fragment_input,
 
+        pjs_canvas = null, 
+        pjs_gl = null,
+        
+        fs_pjs_size = "size(" + _canvas_width + "," + _canvas_height + "$1",
+
         fs_pjs_library = [
             'float baseFrequency = ' + _audio_infos.base_freq + ";",
             'float octaves = ' + _audio_infos.octaves + ";",
             'int htoy (float f) {',
             '    return (height - (log(f / baseFrequency) / log(2.0)) * floor(height / octaves + 0.5));',
-            '}'
+            '}',
+            'float yfreq (float y, float sample_rate) {',
+            '   return (baseFrequency * pow(2., (height - round(y * height)) / octaves)) / sample_rate;',
+            "}"
         ].join("\n"),
 
         pjs_error,
@@ -79,10 +87,26 @@ var _pjsCodeChange = function (source_code) {
             }
         }
 
-        pjs_source_code = fs_pjs_library + inputs_source_code + pjs_source_code.replace(/(void\s+setup\s*\(\)\s*{)/gm, "$1  size(" + _canvas_width + "," + _canvas_height + ");background(0, 0, 0, 255);" + inputs_load_source_code + "\n");
+        pjs_source_code = pjs_source_code.replace(/size.*?\([\d\w]+.*?[\d\w]+(,*)/gm, fs_pjs_size);
+        pjs_source_code = 'double globalTime = ' + _current_pjs_input.globalTime + ";\n" + fs_pjs_library + inputs_source_code + pjs_source_code.replace(/(void\s+setup\s*\(\)\s*{)/gm, "$1 " + "background(0, 0, 0, 255);" + inputs_load_source_code + "\n");
+
 
         if (_current_pjs_input.pjs) {
+            pjs_canvas = _current_pjs_input.pjs.externals.canvas;
+
             _current_pjs_input.pjs.exit();
+
+            if (pjs_canvas) {
+                pjs_gl = pjs_canvas.getContext("webgl2", _webgl_opts) ||
+                         pjs_canvas.getContext("experimental-webgl2", _webgl_opts) ||
+                         pjs_canvas.getContext("webgl", _webgl_opts) ||
+                         pjs_canvas.getContext("experimental-webgl", _webgl_opts);
+                if (pjs_gl) {
+                    if (pjs_gl.getExtension('WEBGL_lose_context')) {
+                        pjs_gl.getExtension('WEBGL_lose_context').loseContext();
+                    }
+                }
+            }
 
             _current_pjs_input.pjs = null;
         }
@@ -124,11 +148,19 @@ var _pjsDimensionsUpdate = function (new_width, new_height) {
             fragment_input_data.texture = _replace2DTexture({ empty: true, width: new_width, height: new_height }, fragment_input_data.texture);
 
             input_id = _parseInt10(fragment_input_data.elem.dataset.inputId);
-            
+
             _dbUpdateInput(input_id, fragment_input_data.db_obj);
 
             _pjsUpdateTexture();
         }
+    }
+};
+
+var _pjsCompile = function (input) {
+    if (input.type === 4) {
+        _current_pjs_input = input;
+
+        _pjsCodeChange(_current_pjs_input.pjs_source_code);
     }
 };
 
@@ -139,11 +171,7 @@ var _pjsCompileAll = function () {
     for (i = 0; i < _fragment_input_data.length; i += 1) {
         fragment_input_data = _fragment_input_data[i];
         
-        if (fragment_input_data.type === 4) {
-            _current_pjs_input = input;
-
-            _pjsCodeChange(_current_pjs_input.pjs_source_code);
-        }
+        _pjsCompile(fragment_input_data);
     }
 };
 
@@ -302,6 +330,7 @@ var _pjsUpdateInputs = function () {
             input_name_div = document.createElement("div");
             input_name_div.className = "fs-pjs-input";
             input_name_div.innerHTML = fragment_input_data.elem.title;
+
 
             if (selected_input === fragment_input_data) {
                 input_name_div.classList.add("fs-pjs-selected");

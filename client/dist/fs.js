@@ -23865,11 +23865,16 @@ var _frame = function (raf_time) {
         fragment_input = _fragment_input_data[i];
 
         if (fragment_input.type === 0 ||
-            fragment_input.type === 2 ||
-            fragment_input.type === 4) { // 2D texture from images
-                _gl.activeTexture(_gl.TEXTURE0 + i);
-                _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
-                _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
+            fragment_input.type === 2) { // 2D texture from images
+            _gl.activeTexture(_gl.TEXTURE0 + i);
+            _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
+            _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
+        } else if (fragment_input.type === 4) { // pjs
+            _gl.activeTexture(_gl.TEXTURE0 + i);
+            _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
+            _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
+
+            fragment_input.globalTime += 1;
         } else if (fragment_input.type === 1 || fragment_input.type === 3) { // video/camera
             if (fragment_input.video_elem.readyState === fragment_input.video_elem.HAVE_ENOUGH_DATA) {
                 if (fragment_input.type === 3) {
@@ -24330,18 +24335,15 @@ var _glsl_compilation = function () {
             glsl_code += "uniform sampler2D pFrame;";
         }
     }
-    
+
     // add htoy
     glsl_code += "float htoy(float frequency) {return resolution.y - (resolution.y - (log(frequency / baseFrequency) / log(2.)) * floor(resolution.y / octave + 0.5));}"; // round(resolution.y / octave)
-    
-    // add htox
-    //glsl_code += "float htoy(float frequency) {return resolution.x - (resolution.x - (log(frequency / baseFrequency) / log(2.)) * (resolution.x / octave));}";
     
     // add fline
     glsl_code += "float fline(float frequency) {return step(abs(gl_FragCoord.y - htoy(frequency)), 0.5);}";
 
-    // add vline
-    //glsl_code += "float vline(float frequency) {return step(abs(gl_FragCoord.x - htoy(frequency)), 0.5);}";
+    // add yfreq
+    glsl_code += "float getFrequency(float y, float sample_rate) { return (baseFrequency * pow(2., (resolution.y - round(y * resolution.y)) / octave)) / sample_rate; }";
     
     // add inputs uniforms
     for (i = 0; i < _fragment_input_data.length; i += 1) {
@@ -25984,6 +25986,14 @@ var _inputThumbMenu = function (e) {
         });
     }
 
+    if (input.type === 4) {
+        items.push({
+            icon: "fs-reset-icon", tooltip: "Rewind", on_click: function () {
+                input.globalTime = 0;
+            }
+        });
+    }
+
     WUI_CircularMenu.create(
         {
             element: dom_image,
@@ -26595,7 +26605,7 @@ var _addFragmentInput = function (type, input, settings) {
         } else {
             db_obj.data = [
                 "void setup() {",
-                //"  size(1224, 439);", // this is done automatically
+                "  size(1224, 439);", // this is updated automatically
                 "  background(0, 0, 0, 255);",
                 "  noStroke();",
                 "}",
@@ -26635,7 +26645,8 @@ var _addFragmentInput = function (type, input, settings) {
                 canvas_enable: false,
                 mouse_btn: 0,
                 update_timeout: null,
-                pjs_source_code: db_obj.data
+                pjs_source_code: db_obj.data,
+                globalTime: 0
             };
         
         _fragment_input_data.push(input_obj);
@@ -26673,15 +26684,17 @@ var _addFragmentInput = function (type, input, settings) {
 
         _fragment_input_data[input_id].elem.addEventListener("contextmenu", _openProcessingJSEditor);
 
-        _fragment_input_data[input_id].pjs = new Processing(canvas.id, db_obj.data);
+        try {
+            _fragment_input_data[input_id].pjs = new Processing(canvas.id, db_obj.data);
+        } catch (err) {
+
+        }
 
         _pjsUpdateInputs();
-        
+
         _compile();
 
         _pjs_canvas_id += 1;
-    } else {
-        return;
     }
 };
 
@@ -29724,12 +29737,20 @@ var _pjsCodeChange = function (source_code) {
 
         fragment_input,
 
+        pjs_canvas = null, 
+        pjs_gl = null,
+        
+        fs_pjs_size = "size(" + _canvas_width + "," + _canvas_height + "$1",
+
         fs_pjs_library = [
             'float baseFrequency = ' + _audio_infos.base_freq + ";",
             'float octaves = ' + _audio_infos.octaves + ";",
             'int htoy (float f) {',
             '    return (height - (log(f / baseFrequency) / log(2.0)) * floor(height / octaves + 0.5));',
-            '}'
+            '}',
+            'float yfreq (float y, float sample_rate) {',
+            '   return (baseFrequency * pow(2., (height - round(y * height)) / octaves)) / sample_rate;',
+            "}"
         ].join("\n"),
 
         pjs_error,
@@ -29748,10 +29769,26 @@ var _pjsCodeChange = function (source_code) {
             }
         }
 
-        pjs_source_code = fs_pjs_library + inputs_source_code + pjs_source_code.replace(/(void\s+setup\s*\(\)\s*{)/gm, "$1  size(" + _canvas_width + "," + _canvas_height + ");background(0, 0, 0, 255);" + inputs_load_source_code + "\n");
+        pjs_source_code = pjs_source_code.replace(/size.*?\([\d\w]+.*?[\d\w]+(,*)/gm, fs_pjs_size);
+        pjs_source_code = 'double globalTime = ' + _current_pjs_input.globalTime + ";\n" + fs_pjs_library + inputs_source_code + pjs_source_code.replace(/(void\s+setup\s*\(\)\s*{)/gm, "$1 " + "background(0, 0, 0, 255);" + inputs_load_source_code + "\n");
+
 
         if (_current_pjs_input.pjs) {
+            pjs_canvas = _current_pjs_input.pjs.externals.canvas;
+
             _current_pjs_input.pjs.exit();
+
+            if (pjs_canvas) {
+                pjs_gl = pjs_canvas.getContext("webgl2", _webgl_opts) ||
+                         pjs_canvas.getContext("experimental-webgl2", _webgl_opts) ||
+                         pjs_canvas.getContext("webgl", _webgl_opts) ||
+                         pjs_canvas.getContext("experimental-webgl", _webgl_opts);
+                if (pjs_gl) {
+                    if (pjs_gl.getExtension('WEBGL_lose_context')) {
+                        pjs_gl.getExtension('WEBGL_lose_context').loseContext();
+                    }
+                }
+            }
 
             _current_pjs_input.pjs = null;
         }
@@ -29793,11 +29830,19 @@ var _pjsDimensionsUpdate = function (new_width, new_height) {
             fragment_input_data.texture = _replace2DTexture({ empty: true, width: new_width, height: new_height }, fragment_input_data.texture);
 
             input_id = _parseInt10(fragment_input_data.elem.dataset.inputId);
-            
+
             _dbUpdateInput(input_id, fragment_input_data.db_obj);
 
             _pjsUpdateTexture();
         }
+    }
+};
+
+var _pjsCompile = function (input) {
+    if (input.type === 4) {
+        _current_pjs_input = input;
+
+        _pjsCodeChange(_current_pjs_input.pjs_source_code);
     }
 };
 
@@ -29808,11 +29853,7 @@ var _pjsCompileAll = function () {
     for (i = 0; i < _fragment_input_data.length; i += 1) {
         fragment_input_data = _fragment_input_data[i];
         
-        if (fragment_input_data.type === 4) {
-            _current_pjs_input = input;
-
-            _pjsCodeChange(_current_pjs_input.pjs_source_code);
-        }
+        _pjsCompile(fragment_input_data);
     }
 };
 
@@ -29971,6 +30012,7 @@ var _pjsUpdateInputs = function () {
             input_name_div = document.createElement("div");
             input_name_div.className = "fs-pjs-input";
             input_name_div.innerHTML = fragment_input_data.elem.title;
+
 
             if (selected_input === fragment_input_data) {
                 input_name_div.classList.add("fs-pjs-selected");

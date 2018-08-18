@@ -424,6 +424,14 @@ var _inputThumbMenu = function (e) {
         });
     }
 
+    if (input.type === 4) {
+        items.push({
+            icon: "fs-reset-icon", tooltip: "Rewind", on_click: function () {
+                input.globalTime = 0;
+            }
+        });
+    }
+
     WUI_CircularMenu.create(
         {
             element: dom_image,
@@ -1035,7 +1043,7 @@ var _addFragmentInput = function (type, input, settings) {
         } else {
             db_obj.data = [
                 "void setup() {",
-                //"  size(1224, 439);", // this is done automatically
+                "  size(1224, 439);", // this is updated automatically
                 "  background(0, 0, 0, 255);",
                 "  noStroke();",
                 "}",
@@ -1075,7 +1083,8 @@ var _addFragmentInput = function (type, input, settings) {
                 canvas_enable: false,
                 mouse_btn: 0,
                 update_timeout: null,
-                pjs_source_code: db_obj.data
+                pjs_source_code: db_obj.data,
+                globalTime: 0
             };
         
         _fragment_input_data.push(input_obj);
@@ -1113,15 +1122,17 @@ var _addFragmentInput = function (type, input, settings) {
 
         _fragment_input_data[input_id].elem.addEventListener("contextmenu", _openProcessingJSEditor);
 
-        _fragment_input_data[input_id].pjs = new Processing(canvas.id, db_obj.data);
+        try {
+            _fragment_input_data[input_id].pjs = new Processing(canvas.id, db_obj.data);
+        } catch (err) {
+
+        }
 
         _pjsUpdateInputs();
-        
+
         _compile();
 
         _pjs_canvas_id += 1;
-    } else {
-        return;
     }
 };
 

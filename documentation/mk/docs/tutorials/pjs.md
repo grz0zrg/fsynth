@@ -4,7 +4,7 @@
 
 Fragment has full support for the Processing.js visualization language through Fragment inputs, the Processing.js sketch is rendered into a texture and passed to the fragment shader.
 
-This feature allow to build almost anything within Fragment.
+This feature allow to build almost anything within Fragment, it is a logical complement to the fragment shader.
 
 ## How-to
 
@@ -20,9 +20,15 @@ Compilation status appear at the bottom end of the Pjs editor dialog.
 
 All changes done in the Pjs editor are updated in real-time as you type.
 
+Fragment automatically change the `size` `width` and `height` arguments to match the canvas size, it also automatically add a black background in the setup function as protective measure.
+
 ## Pre-defined variables
 
 Fragment add it's own variables to any created Processing.js input which are defined as follow :
+
+`float globalTime`
+
+​	unrelated to the GLSL `globalTime` but with similar use case for Pjs sketches, it is an ever increasing value, it allow sketches to seamlessly continue their execution state between compilations run, you can reset it back to 0 by going through the Pjs input options (right-clicking on the Pjs input thumbnail)
 
 `float baseFrequency`
 
@@ -39,6 +45,10 @@ Fragment add it's own variables to any created Processing.js input which are def
 `float htoy` 
 
 ​	a function with a frequency as argument, return a vertical position (pixels)
+
+`float yfreq` 
+
+​	a function with a vertical position as argument and sample rate, return the oscillator frequency at the corresponding position
 
 ## Images input
 

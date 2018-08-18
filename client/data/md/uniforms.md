@@ -50,6 +50,10 @@
 
 ​	a function with a frequency as argument, return 1 or 0 (a shortcut to draw a horizontal line)
 
+`float yfreq` 
+
+​	a function with a vertical position as argument and a sample rate argument, return the oscillator frequency at the corresponding position for the corresponding sample rate
+
 `vec4[N] keyboard`
 
 ​	MIDI note-on/note-off events : frequency, velocity, elapsed time since the key was pressed, MIDI channel

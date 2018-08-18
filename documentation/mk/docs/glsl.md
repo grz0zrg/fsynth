@@ -43,6 +43,7 @@ Here is a list of Fragment pre-defined uniforms
 - `int frame` The current frame
 - `float htoy` take a frequency as argument and return its vertical position on the canvas (in pixels units)
 - `float fline` take a frequency as argument and return either 1 or 0 (shortcut to draw a horizontal line)
+- `float yfreq` take a vertical position as argument and a sample rate argument, return the oscillator frequency at the corresponding position for the corresponding sample rate
 - `vec4[N] keyboard`MIDI note-on/note-off events : frequency, velocity, elapsed time since the key was pressed, MIDI channel
 - `vec4[N+1] keyboard`Enhanced MIDI (MPE) : pitch bend, timbre (CC74), pressure (aftertouch), release velocity
 - `vec3[N] pKey`store the previous note-off for each channels, frequency, velocity, elapsed time since the key was pressed
@@ -67,6 +68,6 @@ As Fragment can use WebGL 2.0 if your browser has support for it, the reference 
 
 Fragment support GLSL 3.0 version automatically if it detect support for the WebGL 2.0 API (which is recommended), GLSL 3.0 allow to use dynamical indexes with arrays among many other things, it also allow to use shortcuts.
 
-If WebGL 2.0 is supported, there is actually two output in the fragment shader, gl_FragColor or fragColor for the visuals and synthOutput for the pixels data which will be used by the audio synthesis engine, this allow to do visuals alongside stereo audio synthesis, when WebGL 2.0 is enabled and the EXT_color_buffer_float extension is available, the pixels data output will be encoded as 32-bit float, this give higher quality sounds and possibilities.
+If WebGL 2.0 is supported, there is actually two output in the fragment shader, gl_FragColor or fragColor for the visuals and synthOutput for the pixels data which will be used by the audio synthesis engine, this allow to do visuals alongside stereo audio synthesis, when WebGL 2.0 is enabled and the EXT_color_buffer_float extension is available, the pixels data output will be encoded as 32-bit float, this allow higher quality sounds and possibilities.
 
-There is also many applications that let you create stunning visuals in your browser by the same method, one of the most popular one and compatible with Fragment (by using the convert ShaderToy button of the toolbar) is [ShaderToy](https://www.shadertoy.com/), this program let you build visuals and audio at the same time, just like Fragment but with a more conventional approach non-pixels based audio synthesis.
+There is also many applications that let you create stunning visuals in your browser by the same method, one of the most popular one and compatible with Fragment (by using the convert ShaderToy button of the toolbar) is [ShaderToy](https://www.shadertoy.com/), this program let you build visuals and audio at the same time, just like Fragment but with a more conventional approach and a non-pixels based audio synthesis.

@@ -201,18 +201,15 @@ var _glsl_compilation = function () {
             glsl_code += "uniform sampler2D pFrame;";
         }
     }
-    
+
     // add htoy
     glsl_code += "float htoy(float frequency) {return resolution.y - (resolution.y - (log(frequency / baseFrequency) / log(2.)) * floor(resolution.y / octave + 0.5));}"; // round(resolution.y / octave)
-    
-    // add htox
-    //glsl_code += "float htoy(float frequency) {return resolution.x - (resolution.x - (log(frequency / baseFrequency) / log(2.)) * (resolution.x / octave));}";
     
     // add fline
     glsl_code += "float fline(float frequency) {return step(abs(gl_FragCoord.y - htoy(frequency)), 0.5);}";
 
-    // add vline
-    //glsl_code += "float vline(float frequency) {return step(abs(gl_FragCoord.x - htoy(frequency)), 0.5);}";
+    // add yfreq
+    glsl_code += "float getFrequency(float y, float sample_rate) { return (baseFrequency * pow(2., (resolution.y - round(y * resolution.y)) / octave)) / sample_rate; }";
     
     // add inputs uniforms
     for (i = 0; i < _fragment_input_data.length; i += 1) {
