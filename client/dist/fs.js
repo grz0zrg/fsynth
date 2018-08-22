@@ -22197,14 +22197,18 @@ var _dbGetInputs = function (cb) {
     }
     
     var object_store = _db.transaction("inputs").objectStore("inputs");
-    
-    object_store.openCursor().onsuccess = function(event) {
-        var cursor = event.target.result;
-        if (cursor) {
-            cb(cursor.key, cursor.value);
+    var count_query = object_store.count();
+    count_query.onsuccess = function () {
+        var count = count_query.result;
+        
+        object_store.openCursor().onsuccess = function (event) {
+            var cursor = event.target.result;
+            if (cursor) {
+                cb(cursor.key, cursor.value);
             
-            cursor.continue();
-        }
+                cursor.continue();
+            }
+        };
     };
 };
 
@@ -25990,6 +25994,8 @@ var _inputThumbMenu = function (e) {
         items.push({
             icon: "fs-reset-icon", tooltip: "Rewind", on_click: function () {
                 input.globalTime = 0;
+
+                _pjsCompile(input);
             }
         });
     }
@@ -26189,6 +26195,8 @@ var _createInputThumb = function (input_id, image, thumb_title, src) {
         e.target.style = "";
         
         _dragged_input = null;
+
+        _pjsUpdateInputs();
     });
     
     dom_image.addEventListener("dragstart", function (e) {
@@ -26646,7 +26654,8 @@ var _addFragmentInput = function (type, input, settings) {
                 mouse_btn: 0,
                 update_timeout: null,
                 pjs_source_code: db_obj.data,
-                globalTime: 0
+                globalTime: 0,
+                pjs: null
             };
         
         _fragment_input_data.push(input_obj);
@@ -26684,10 +26693,13 @@ var _addFragmentInput = function (type, input, settings) {
 
         _fragment_input_data[input_id].elem.addEventListener("contextmenu", _openProcessingJSEditor);
 
-        try {
-            _fragment_input_data[input_id].pjs = new Processing(canvas.id, db_obj.data);
-        } catch (err) {
+        // don't compile the sketch when it is loaded from the db (it may depend on other inputs; a load order issue)
+        if (!input) {
+            try {
+                _fragment_input_data[input_id].pjs = new Processing(canvas.id, db_obj.data);
+            } catch (err) {
 
+            }
         }
 
         _pjsUpdateInputs();
@@ -26872,6 +26884,8 @@ var _play = function (update_global_time) {
     }
 
     _playWorklet();
+
+    _pjsCompileAll();
 };
 
 var _rewind = function () {
@@ -29692,7 +29706,10 @@ var _pjs_dialog_id = "fs_pjs",
     _current_pjs_input = null,
     
     _pjs_codemirror_instance,
-    _pjs_codemirror_instance_detached;
+    _pjs_codemirror_instance_detached,
+    
+    _pjs_wrapped_code_change,
+    _pjs_wrapped_code_change_detached;
 
 /***********************************************************
     Functions.
@@ -29770,8 +29787,7 @@ var _pjsCodeChange = function (source_code) {
         }
 
         pjs_source_code = pjs_source_code.replace(/size.*?\([\d\w]+.*?[\d\w]+(,*)/gm, fs_pjs_size);
-        pjs_source_code = 'double globalTime = ' + _current_pjs_input.globalTime + ";\n" + fs_pjs_library + inputs_source_code + pjs_source_code.replace(/(void\s+setup\s*\(\)\s*{)/gm, "$1 " + "background(0, 0, 0, 255);" + inputs_load_source_code + "\n");
-
+        pjs_source_code = 'float globalTime = ' + _current_pjs_input.globalTime + ";\n" + fs_pjs_library + inputs_source_code + pjs_source_code.replace(/(void\s+setup\s*\(\)\s*{)/gm, "$1 " + "background(0, 0, 0, 255);" + inputs_load_source_code + "\n");
 
         if (_current_pjs_input.pjs) {
             pjs_canvas = _current_pjs_input.pjs.externals.canvas;
@@ -29840,9 +29856,13 @@ var _pjsDimensionsUpdate = function (new_width, new_height) {
 
 var _pjsCompile = function (input) {
     if (input.type === 4) {
-        _current_pjs_input = input;
+        var user_selected_input = _current_pjs_input;
+
+        _pjsSelectInput(input);
 
         _pjsCodeChange(_current_pjs_input.pjs_source_code);
+
+        _pjsSelectInput(user_selected_input);
     }
 };
 
@@ -29854,6 +29874,22 @@ var _pjsCompileAll = function () {
         fragment_input_data = _fragment_input_data[i];
         
         _pjsCompile(fragment_input_data);
+    }
+};
+
+var _pjsBindCodeChangeEvent = function () {
+    CodeMirror.on(_pjs_codemirror_instance, 'change', _pjs_wrapped_code_change);
+
+    if (_pjs_codemirror_instance_detached) {
+        CodeMirror.on(_pjs_codemirror_instance_detached, 'change', _pjs_wrapped_code_change);
+    }
+};
+
+var _pjsUnbindCodeChangeEvent = function () {
+    CodeMirror.off(_pjs_codemirror_instance, 'change', _pjs_wrapped_code_change);
+
+    if (_pjs_codemirror_instance_detached) {
+        CodeMirror.off(_pjs_codemirror_instance_detached, 'change', _pjs_wrapped_code_change);
     }
 };
 
@@ -29892,6 +29928,8 @@ var _pjsInit = function () {
         },
 
         on_detach: function (new_window) {
+            _pjsUnbindCodeChangeEvent();
+
             var pjs_editor_div = new_window.document.getElementById("fs_pjs_editor"),
                 textarea = document.createElement("textarea"),
                 cm_element;
@@ -29918,15 +29956,13 @@ var _pjsInit = function () {
             cm_element = _pjs_codemirror_instance_detached.getWrapperElement();
             cm_element.style = "font-size: 12pt";
 
-            CodeMirror.on(_pjs_codemirror_instance_detached, 'change', function () {
-                _pjsCodeChange(_pjs_codemirror_instance_detached.getValue());
-
-                _pjs_codemirror_instance.setValue(_pjs_codemirror_instance_detached.getValue());
-            });
+            CodeMirror.on(_pjs_codemirror_instance_detached, 'change', _pjs_wrapped_code_change_detached);
 
             _pjs_codemirror_instance_detached.setValue(_pjs_codemirror_instance.getValue());
 
             _pjs_codemirror_instance_detached.refresh();
+
+            _pjsBindCodeChangeEvent();
         },
     
         header_btn: [
@@ -29955,11 +29991,24 @@ var _pjsInit = function () {
     cm_element = _pjs_codemirror_instance.getWrapperElement();
     cm_element.style = "font-size: 12pt";
 
-    CodeMirror.on(_pjs_codemirror_instance, 'change', function () {
+    _pjs_wrapped_code_change = function () {
         _pjsCodeChange();
-    });
+    };
+
+    _pjs_wrapped_code_change_detached = function () {
+        _pjsCodeChange(_pjs_codemirror_instance_detached.getValue());
+
+        _pjs_codemirror_instance.setValue(_pjs_codemirror_instance_detached.getValue());
+    };
+
+    _pjsBindCodeChangeEvent();
 
     _pjsUpdateInputs();
+
+    var detached_dialog = WUI_Dialog.getDetachedDialog(_pjs_dialog);
+    if (detached_dialog) {
+        _pjsUpdateInputs(detached_dialog.document);
+    }
 };
 
 var _pjsSelectInput = function (input) {
@@ -29969,11 +30018,22 @@ var _pjsSelectInput = function (input) {
 
     _current_pjs_input = input;
 
+    _pjsUnbindCodeChangeEvent();
+
+    if (_pjs_codemirror_instance_detached) {
+        _pjs_codemirror_instance_detached.setValue(input.pjs_source_code);
+    }
+
     _pjs_codemirror_instance.setValue(input.pjs_source_code);
+
+    _pjsBindCodeChangeEvent();
 
     _pjsUpdateInputs();
 
-    _pjsCodeChange();
+    var detached_dialog = WUI_Dialog.getDetachedDialog(_pjs_dialog);
+    if (detached_dialog) {
+        _pjsUpdateInputs(detached_dialog.document);
+    }
 };
 
 var _pjsChangeSourceCb = function (input) {
@@ -29992,9 +30052,13 @@ var _pjsChangeSourceCb = function (input) {
     };
 };
 
-var _pjsUpdateInputs = function () {
+var _pjsUpdateInputs = function (doc) {
+    if (!doc) {
+        doc = document;
+    }
+
     var i = 0,
-        pjs_editor_inputs = document.getElementById("fs_pjs_inputs"),
+        pjs_editor_inputs = doc.getElementById("fs_pjs_inputs"),
         fragment_input_data,
 
         selected_input = _current_pjs_input,
@@ -30009,10 +30073,9 @@ var _pjsUpdateInputs = function () {
         fragment_input_data = _fragment_input_data[i];
         
         if (fragment_input_data.type === 4) {
-            input_name_div = document.createElement("div");
+            input_name_div = doc.createElement("div");
             input_name_div.className = "fs-pjs-input";
             input_name_div.innerHTML = fragment_input_data.elem.title;
-
 
             if (selected_input === fragment_input_data) {
                 input_name_div.classList.add("fs-pjs-selected");

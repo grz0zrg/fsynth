@@ -428,6 +428,8 @@ var _inputThumbMenu = function (e) {
         items.push({
             icon: "fs-reset-icon", tooltip: "Rewind", on_click: function () {
                 input.globalTime = 0;
+
+                _pjsCompile(input);
             }
         });
     }
@@ -627,6 +629,8 @@ var _createInputThumb = function (input_id, image, thumb_title, src) {
         e.target.style = "";
         
         _dragged_input = null;
+
+        _pjsUpdateInputs();
     });
     
     dom_image.addEventListener("dragstart", function (e) {
@@ -1084,7 +1088,8 @@ var _addFragmentInput = function (type, input, settings) {
                 mouse_btn: 0,
                 update_timeout: null,
                 pjs_source_code: db_obj.data,
-                globalTime: 0
+                globalTime: 0,
+                pjs: null
             };
         
         _fragment_input_data.push(input_obj);
@@ -1122,10 +1127,13 @@ var _addFragmentInput = function (type, input, settings) {
 
         _fragment_input_data[input_id].elem.addEventListener("contextmenu", _openProcessingJSEditor);
 
-        try {
-            _fragment_input_data[input_id].pjs = new Processing(canvas.id, db_obj.data);
-        } catch (err) {
+        // don't compile the sketch when it is loaded from the db (it may depend on other inputs; a load order issue)
+        if (!input) {
+            try {
+                _fragment_input_data[input_id].pjs = new Processing(canvas.id, db_obj.data);
+            } catch (err) {
 
+            }
         }
 
         _pjsUpdateInputs();

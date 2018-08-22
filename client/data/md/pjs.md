@@ -1,3 +1,7 @@
+`float globalTime`
+
+​	sketch playback time (seconds)
+
 `float baseFrequency`
 
 ​	score base frequency (hertz)

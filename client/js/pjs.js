@@ -10,7 +10,10 @@ var _pjs_dialog_id = "fs_pjs",
     _current_pjs_input = null,
     
     _pjs_codemirror_instance,
-    _pjs_codemirror_instance_detached;
+    _pjs_codemirror_instance_detached,
+    
+    _pjs_wrapped_code_change,
+    _pjs_wrapped_code_change_detached;
 
 /***********************************************************
     Functions.
@@ -88,8 +91,7 @@ var _pjsCodeChange = function (source_code) {
         }
 
         pjs_source_code = pjs_source_code.replace(/size.*?\([\d\w]+.*?[\d\w]+(,*)/gm, fs_pjs_size);
-        pjs_source_code = 'double globalTime = ' + _current_pjs_input.globalTime + ";\n" + fs_pjs_library + inputs_source_code + pjs_source_code.replace(/(void\s+setup\s*\(\)\s*{)/gm, "$1 " + "background(0, 0, 0, 255);" + inputs_load_source_code + "\n");
-
+        pjs_source_code = 'float globalTime = ' + _current_pjs_input.globalTime + ";\n" + fs_pjs_library + inputs_source_code + pjs_source_code.replace(/(void\s+setup\s*\(\)\s*{)/gm, "$1 " + "background(0, 0, 0, 255);" + inputs_load_source_code + "\n");
 
         if (_current_pjs_input.pjs) {
             pjs_canvas = _current_pjs_input.pjs.externals.canvas;
@@ -158,9 +160,13 @@ var _pjsDimensionsUpdate = function (new_width, new_height) {
 
 var _pjsCompile = function (input) {
     if (input.type === 4) {
-        _current_pjs_input = input;
+        var user_selected_input = _current_pjs_input;
+
+        _pjsSelectInput(input);
 
         _pjsCodeChange(_current_pjs_input.pjs_source_code);
+
+        _pjsSelectInput(user_selected_input);
     }
 };
 
@@ -172,6 +178,22 @@ var _pjsCompileAll = function () {
         fragment_input_data = _fragment_input_data[i];
         
         _pjsCompile(fragment_input_data);
+    }
+};
+
+var _pjsBindCodeChangeEvent = function () {
+    CodeMirror.on(_pjs_codemirror_instance, 'change', _pjs_wrapped_code_change);
+
+    if (_pjs_codemirror_instance_detached) {
+        CodeMirror.on(_pjs_codemirror_instance_detached, 'change', _pjs_wrapped_code_change_detached);
+    }
+};
+
+var _pjsUnbindCodeChangeEvent = function () {
+    CodeMirror.off(_pjs_codemirror_instance, 'change', _pjs_wrapped_code_change);
+
+    if (_pjs_codemirror_instance_detached) {
+        CodeMirror.off(_pjs_codemirror_instance_detached, 'change', _pjs_wrapped_code_change_detached);
     }
 };
 
@@ -210,6 +232,8 @@ var _pjsInit = function () {
         },
 
         on_detach: function (new_window) {
+            _pjsUnbindCodeChangeEvent();
+
             var pjs_editor_div = new_window.document.getElementById("fs_pjs_editor"),
                 textarea = document.createElement("textarea"),
                 cm_element;
@@ -236,15 +260,13 @@ var _pjsInit = function () {
             cm_element = _pjs_codemirror_instance_detached.getWrapperElement();
             cm_element.style = "font-size: 12pt";
 
-            CodeMirror.on(_pjs_codemirror_instance_detached, 'change', function () {
-                _pjsCodeChange(_pjs_codemirror_instance_detached.getValue());
-
-                _pjs_codemirror_instance.setValue(_pjs_codemirror_instance_detached.getValue());
-            });
+            CodeMirror.on(_pjs_codemirror_instance_detached, 'change', _pjs_wrapped_code_change_detached);
 
             _pjs_codemirror_instance_detached.setValue(_pjs_codemirror_instance.getValue());
 
             _pjs_codemirror_instance_detached.refresh();
+
+            _pjsBindCodeChangeEvent();
         },
     
         header_btn: [
@@ -273,11 +295,24 @@ var _pjsInit = function () {
     cm_element = _pjs_codemirror_instance.getWrapperElement();
     cm_element.style = "font-size: 12pt";
 
-    CodeMirror.on(_pjs_codemirror_instance, 'change', function () {
+    _pjs_wrapped_code_change = function () {
         _pjsCodeChange();
-    });
+    };
+
+    _pjs_wrapped_code_change_detached = function () {
+        _pjsCodeChange(_pjs_codemirror_instance_detached.getValue());
+
+        _pjs_codemirror_instance.setValue(_pjs_codemirror_instance_detached.getValue());
+    };
+
+    _pjsBindCodeChangeEvent();
 
     _pjsUpdateInputs();
+
+    var detached_dialog = WUI_Dialog.getDetachedDialog(_pjs_dialog);
+    if (detached_dialog) {
+        _pjsUpdateInputs(detached_dialog.document);
+    }
 };
 
 var _pjsSelectInput = function (input) {
@@ -287,11 +322,22 @@ var _pjsSelectInput = function (input) {
 
     _current_pjs_input = input;
 
+    _pjsUnbindCodeChangeEvent();
+
+    if (_pjs_codemirror_instance_detached) {
+        _pjs_codemirror_instance_detached.setValue(input.pjs_source_code);
+    }
+
     _pjs_codemirror_instance.setValue(input.pjs_source_code);
+
+    _pjsBindCodeChangeEvent();
 
     _pjsUpdateInputs();
 
-    _pjsCodeChange();
+    var detached_dialog = WUI_Dialog.getDetachedDialog(_pjs_dialog);
+    if (detached_dialog) {
+        _pjsUpdateInputs(detached_dialog.document);
+    }
 };
 
 var _pjsChangeSourceCb = function (input) {
@@ -310,9 +356,13 @@ var _pjsChangeSourceCb = function (input) {
     };
 };
 
-var _pjsUpdateInputs = function () {
+var _pjsUpdateInputs = function (doc) {
+    if (!doc) {
+        doc = document;
+    }
+
     var i = 0,
-        pjs_editor_inputs = document.getElementById("fs_pjs_inputs"),
+        pjs_editor_inputs = doc.getElementById("fs_pjs_inputs"),
         fragment_input_data,
 
         selected_input = _current_pjs_input,
@@ -327,10 +377,9 @@ var _pjsUpdateInputs = function () {
         fragment_input_data = _fragment_input_data[i];
         
         if (fragment_input_data.type === 4) {
-            input_name_div = document.createElement("div");
+            input_name_div = doc.createElement("div");
             input_name_div.className = "fs-pjs-input";
             input_name_div.innerHTML = fragment_input_data.elem.title;
-
 
             if (selected_input === fragment_input_data) {
                 input_name_div.classList.add("fs-pjs-selected");

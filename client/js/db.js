@@ -86,14 +86,18 @@ var _dbGetInputs = function (cb) {
     }
     
     var object_store = _db.transaction("inputs").objectStore("inputs");
-    
-    object_store.openCursor().onsuccess = function(event) {
-        var cursor = event.target.result;
-        if (cursor) {
-            cb(cursor.key, cursor.value);
+    var count_query = object_store.count();
+    count_query.onsuccess = function () {
+        var count = count_query.result;
+        
+        object_store.openCursor().onsuccess = function (event) {
+            var cursor = event.target.result;
+            if (cursor) {
+                cb(cursor.key, cursor.value);
             
-            cursor.continue();
-        }
+                cursor.continue();
+            }
+        };
     };
 };
 

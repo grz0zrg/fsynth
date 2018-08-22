@@ -43,6 +43,8 @@ var _play = function (update_global_time) {
     }
 
     _playWorklet();
+
+    _pjsCompileAll();
 };
 
 var _rewind = function () {
