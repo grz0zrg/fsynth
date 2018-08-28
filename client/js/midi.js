@@ -440,15 +440,17 @@ var _midiDataOut = function (pixels_data) {
                     if (midi_obj.custom_midi_message_fn) {
                         midi_message = midi_obj.custom_midi_message_fn("on", l, r, b, a, chn).on;
                     }
-
-                    midi_message = midi_message.concat([0xE0 + chn, midi_bend & 0x7F, (midi_bend >> 7),
+                    
+                    if (midi_message) {
+                        midi_message = midi_message.concat([0xE0 + chn, midi_bend & 0x7F, (midi_bend >> 7),
                         0xB0 + chn, 0x0A, midi_panning,
                         0x90 + chn, midi_note, midi_volume]);
                     
-                    _midiSendToDevice(midi_message, "output", midi_obj.device_uids);
+                        _midiSendToDevice(midi_message, "output", midi_obj.device_uids);
 
-                    midi_note_obj.on = true;
-                    midi_note_obj.chn = chn;
+                        midi_note_obj.on = true;
+                        midi_note_obj.chn = chn;
+                    }
                 }
                 
                 if (pl !== l || pr !== r) {
@@ -476,9 +478,11 @@ var _midiDataOut = function (pixels_data) {
                             midi_message = midi_message.concat(midi_obj.custom_midi_message_fn("off", l, r, b, a, midi_note_obj.chn).off);
                         }
 
-                        _midiSendToDevice(midi_message, "output", midi_obj.device_uids);
+                        if (midi_message) {
+                            _midiSendToDevice(midi_message, "output", midi_obj.device_uids);
                         
-                        midi_note_obj.on = false;
+                            midi_note_obj.on = false;
+                        }
                     }
                 }
             }
@@ -554,8 +558,7 @@ var _MIDInotesUpdate = function (date) {
 
 // general MIDI messages processing
 var _onMIDIMessage = function (midi_message) {
-    var i = 0, midi_device = _midi_devices.input[this.id],
-        key, frq, value, value2, channel = midi_message.data[0] & 0x0f;
+    var i = 0, midi_device = _midi_devices.input[this.id];
 
     if (!midi_device.enabled) {
         return;

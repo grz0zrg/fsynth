@@ -11,15 +11,12 @@
 var _canvasInputUpdate = function (input_obj) {
     clearTimeout(input_obj.update_timeout);
     input_obj.update_timeout = setTimeout(function () {
-            var image_data,
-                tmp_image_data = null,    
+            var image_data,   
                 m;
 
                 if (input_obj.db_obj.settings.flip) {
                     var tmp_canvas = document.createElement('canvas'),
-                        tmp_canvas_context = tmp_canvas.getContext('2d'),
-                
-                        tmp_image_data;
+                        tmp_canvas_context = tmp_canvas.getContext('2d');
                     
                     tmp_canvas.width = input_obj.canvas.width;
                     tmp_canvas.height = input_obj.canvas.height;

@@ -801,15 +801,16 @@ var _frame = function (raf_time) {
                 }
             }
 
-            if (play_position_marker.midi_out.device_uids.length > 0) {
-                channel_data = _midi_data[channel];
-                _midi_data[_output_channels + channel] = play_position_marker.midi_out;
+            if (play_position_marker.midi_out.enabled) {
+                if (play_position_marker.midi_out.device_uids.length > 0) {
+                    channel_data = _midi_data[channel];
+                    _midi_data[_output_channels + channel] = play_position_marker.midi_out;
 
-                for (j = 0; j < _canvas_height_mul4; j += 1) {
-                    channel_data[j] = channel_data[j] + _temp_data[j];
+                    for (j = 0; j < _canvas_height_mul4; j += 1) {
+                        channel_data[j] = channel_data[j] + _temp_data[j];
+                    }
                 }
             }
-
         }
 
         for (i = 0; i < _output_channels; i += 1) {

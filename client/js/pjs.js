@@ -316,7 +316,7 @@ var _pjsInit = function () {
 };
 
 var _pjsSelectInput = function (input) {
-    if (_current_pjs_input === input) {
+    if (_current_pjs_input === input || input === null) {
         return;
     }
 

@@ -362,6 +362,9 @@ var _createMarkerSettings = function (marker_obj) {
         midi_dev_list_label = document.createElement("div"),
         midi_dev_list = document.createElement("select"),
         midi_dev_list_container_legend = document.createElement("legend"),
+        midi_dev_list_ck = document.createElement("div"),
+        midi_dev_list_ck_label = document.createElement("label"),
+        midi_dev_list_ck_input = document.createElement("input"),
         midi_dev_option,
 
         midi_custom_codemirror = null,
@@ -412,7 +415,7 @@ var _createMarkerSettings = function (marker_obj) {
     osc_label.className = "fs-ck-label";
     osc_input.type = "checkbox";
 
-    if (marker_obj.osc_out) {
+    if (marker_obj.osc_out.enabled) {
         osc_input.checked = true;
     }
 
@@ -424,7 +427,7 @@ var _createMarkerSettings = function (marker_obj) {
     _applyCollapsible(osc_container, osc_container_legend, true);
 
     osc_input.addEventListener("change", _cbMarkerSettingsChange(marker_obj, function (self, instance, marker_obj) {
-        marker_obj.osc_out = self.checked;
+        marker_obj.osc_out.enabled = self.checked;
         _saveMarkersSettings();
     }));
 
@@ -445,6 +448,23 @@ var _createMarkerSettings = function (marker_obj) {
     midi_dev_list.id = "fs_slice_settings_midi_device_" + marker_obj.id;
     midi_dev_list.className = "fs-multiple-select";
     midi_dev_list.multiple = true;
+
+    midi_dev_list_ck.innerHTML = "on/off &nbsp;";
+    midi_dev_list_ck_label.className = "fs-ck-label";
+    midi_dev_list_ck_input.type = "checkbox";
+
+    if (marker_obj.midi_out.enabled) {
+        midi_dev_list_ck_input.checked = true;
+    }
+
+    midi_dev_list_ck_input.addEventListener("change", _cbMarkerSettingsChange(marker_obj, function (self, instance, marker_obj) {
+        marker_obj.midi_out = self.checked;
+        _saveMarkersSettings();
+    }));
+
+    midi_dev_list_ck_label.appendChild(midi_dev_list_ck);
+    midi_dev_list_ck_label.appendChild(midi_dev_list_ck_input);
+    midi_dev_list_container.appendChild(midi_dev_list_ck_label);
 
     midi_dev_list_container.className = "fs-fieldset";
     midi_dev_list_container_legend.innerHTML = "MIDI out";
@@ -492,7 +512,7 @@ var _createMarkerSettings = function (marker_obj) {
 
         _applyCollapsible(midi_dev_list_container, midi_dev_list_container_legend, true);
     } else {
-        _applyCollapsible(midi_dev_list_container, midi_dev_list_container_legend);
+        _applyCollapsible(midi_dev_list_container, midi_dev_list_container_legend, true);
     }
 
     marker_obj.custom_midi_codemirror = midi_custom_codemirror;
@@ -854,6 +874,7 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
                 device_uids: [],
                 custom_midi_message: "",
                 custom_midi_message_fn: null,
+                enableb: false
             },
             osc_out: false,
             audio_out: true,

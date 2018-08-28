@@ -24019,15 +24019,16 @@ var _frame = function (raf_time) {
                 }
             }
 
-            if (play_position_marker.midi_out.device_uids.length > 0) {
-                channel_data = _midi_data[channel];
-                _midi_data[_output_channels + channel] = play_position_marker.midi_out;
+            if (play_position_marker.midi_out.enabled) {
+                if (play_position_marker.midi_out.device_uids.length > 0) {
+                    channel_data = _midi_data[channel];
+                    _midi_data[_output_channels + channel] = play_position_marker.midi_out;
 
-                for (j = 0; j < _canvas_height_mul4; j += 1) {
-                    channel_data[j] = channel_data[j] + _temp_data[j];
+                    for (j = 0; j < _canvas_height_mul4; j += 1) {
+                        channel_data[j] = channel_data[j] + _temp_data[j];
+                    }
                 }
             }
-
         }
 
         for (i = 0; i < _output_channels; i += 1) {
@@ -25431,15 +25432,12 @@ _addPreloaded();/* jslint browser: true */
 var _canvasInputUpdate = function (input_obj) {
     clearTimeout(input_obj.update_timeout);
     input_obj.update_timeout = setTimeout(function () {
-            var image_data,
-                tmp_image_data = null,    
+            var image_data,   
                 m;
 
                 if (input_obj.db_obj.settings.flip) {
                     var tmp_canvas = document.createElement('canvas'),
-                        tmp_canvas_context = tmp_canvas.getContext('2d'),
-                
-                        tmp_image_data;
+                        tmp_canvas_context = tmp_canvas.getContext('2d');
                     
                     tmp_canvas.width = input_obj.canvas.width;
                     tmp_canvas.height = input_obj.canvas.height;
@@ -29881,7 +29879,7 @@ var _pjsBindCodeChangeEvent = function () {
     CodeMirror.on(_pjs_codemirror_instance, 'change', _pjs_wrapped_code_change);
 
     if (_pjs_codemirror_instance_detached) {
-        CodeMirror.on(_pjs_codemirror_instance_detached, 'change', _pjs_wrapped_code_change);
+        CodeMirror.on(_pjs_codemirror_instance_detached, 'change', _pjs_wrapped_code_change_detached);
     }
 };
 
@@ -29889,7 +29887,7 @@ var _pjsUnbindCodeChangeEvent = function () {
     CodeMirror.off(_pjs_codemirror_instance, 'change', _pjs_wrapped_code_change);
 
     if (_pjs_codemirror_instance_detached) {
-        CodeMirror.off(_pjs_codemirror_instance_detached, 'change', _pjs_wrapped_code_change);
+        CodeMirror.off(_pjs_codemirror_instance_detached, 'change', _pjs_wrapped_code_change_detached);
     }
 };
 
@@ -30012,7 +30010,7 @@ var _pjsInit = function () {
 };
 
 var _pjsSelectInput = function (input) {
-    if (_current_pjs_input === input) {
+    if (_current_pjs_input === input || input === null) {
         return;
     }
 
@@ -30452,6 +30450,9 @@ var _createMarkerSettings = function (marker_obj) {
         midi_dev_list_label = document.createElement("div"),
         midi_dev_list = document.createElement("select"),
         midi_dev_list_container_legend = document.createElement("legend"),
+        midi_dev_list_ck = document.createElement("div"),
+        midi_dev_list_ck_label = document.createElement("label"),
+        midi_dev_list_ck_input = document.createElement("input"),
         midi_dev_option,
 
         midi_custom_codemirror = null,
@@ -30502,7 +30503,7 @@ var _createMarkerSettings = function (marker_obj) {
     osc_label.className = "fs-ck-label";
     osc_input.type = "checkbox";
 
-    if (marker_obj.osc_out) {
+    if (marker_obj.osc_out.enabled) {
         osc_input.checked = true;
     }
 
@@ -30514,7 +30515,7 @@ var _createMarkerSettings = function (marker_obj) {
     _applyCollapsible(osc_container, osc_container_legend, true);
 
     osc_input.addEventListener("change", _cbMarkerSettingsChange(marker_obj, function (self, instance, marker_obj) {
-        marker_obj.osc_out = self.checked;
+        marker_obj.osc_out.enabled = self.checked;
         _saveMarkersSettings();
     }));
 
@@ -30535,6 +30536,23 @@ var _createMarkerSettings = function (marker_obj) {
     midi_dev_list.id = "fs_slice_settings_midi_device_" + marker_obj.id;
     midi_dev_list.className = "fs-multiple-select";
     midi_dev_list.multiple = true;
+
+    midi_dev_list_ck.innerHTML = "on/off &nbsp;";
+    midi_dev_list_ck_label.className = "fs-ck-label";
+    midi_dev_list_ck_input.type = "checkbox";
+
+    if (marker_obj.midi_out.enabled) {
+        midi_dev_list_ck_input.checked = true;
+    }
+
+    midi_dev_list_ck_input.addEventListener("change", _cbMarkerSettingsChange(marker_obj, function (self, instance, marker_obj) {
+        marker_obj.midi_out = self.checked;
+        _saveMarkersSettings();
+    }));
+
+    midi_dev_list_ck_label.appendChild(midi_dev_list_ck);
+    midi_dev_list_ck_label.appendChild(midi_dev_list_ck_input);
+    midi_dev_list_container.appendChild(midi_dev_list_ck_label);
 
     midi_dev_list_container.className = "fs-fieldset";
     midi_dev_list_container_legend.innerHTML = "MIDI out";
@@ -30582,7 +30600,7 @@ var _createMarkerSettings = function (marker_obj) {
 
         _applyCollapsible(midi_dev_list_container, midi_dev_list_container_legend, true);
     } else {
-        _applyCollapsible(midi_dev_list_container, midi_dev_list_container_legend);
+        _applyCollapsible(midi_dev_list_container, midi_dev_list_container_legend, true);
     }
 
     marker_obj.custom_midi_codemirror = midi_custom_codemirror;
@@ -30944,6 +30962,7 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
                 device_uids: [],
                 custom_midi_message: "",
                 custom_midi_message_fn: null,
+                enableb: false
             },
             osc_out: false,
             audio_out: true,
@@ -31517,15 +31536,17 @@ var _midiDataOut = function (pixels_data) {
                     if (midi_obj.custom_midi_message_fn) {
                         midi_message = midi_obj.custom_midi_message_fn("on", l, r, b, a, chn).on;
                     }
-
-                    midi_message = midi_message.concat([0xE0 + chn, midi_bend & 0x7F, (midi_bend >> 7),
+                    
+                    if (midi_message) {
+                        midi_message = midi_message.concat([0xE0 + chn, midi_bend & 0x7F, (midi_bend >> 7),
                         0xB0 + chn, 0x0A, midi_panning,
                         0x90 + chn, midi_note, midi_volume]);
                     
-                    _midiSendToDevice(midi_message, "output", midi_obj.device_uids);
+                        _midiSendToDevice(midi_message, "output", midi_obj.device_uids);
 
-                    midi_note_obj.on = true;
-                    midi_note_obj.chn = chn;
+                        midi_note_obj.on = true;
+                        midi_note_obj.chn = chn;
+                    }
                 }
                 
                 if (pl !== l || pr !== r) {
@@ -31553,9 +31574,11 @@ var _midiDataOut = function (pixels_data) {
                             midi_message = midi_message.concat(midi_obj.custom_midi_message_fn("off", l, r, b, a, midi_note_obj.chn).off);
                         }
 
-                        _midiSendToDevice(midi_message, "output", midi_obj.device_uids);
+                        if (midi_message) {
+                            _midiSendToDevice(midi_message, "output", midi_obj.device_uids);
                         
-                        midi_note_obj.on = false;
+                            midi_note_obj.on = false;
+                        }
                     }
                 }
             }
@@ -31631,8 +31654,7 @@ var _MIDInotesUpdate = function (date) {
 
 // general MIDI messages processing
 var _onMIDIMessage = function (midi_message) {
-    var i = 0, midi_device = _midi_devices.input[this.id],
-        key, frq, value, value2, channel = midi_message.data[0] & 0x0f;
+    var i = 0, midi_device = _midi_devices.input[this.id];
 
     if (!midi_device.enabled) {
         return;
