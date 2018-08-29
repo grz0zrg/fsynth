@@ -14,6 +14,8 @@ var _pause = function () {
     _pause_time = performance.now();
 
     _resetMIDIDevice();
+
+    _pjsPauseAll();
 };
 
 var _play = function (update_global_time) {
@@ -42,9 +44,15 @@ var _play = function (update_global_time) {
         console.log(e);
     }
 
+    if (_first_play) {
+        _pjsCompileAll();
+
+        _first_play = false;
+    }
+
     _playWorklet();
 
-    _pjsCompileAll();
+    _pjsResumeAll();
 };
 
 var _rewind = function () {

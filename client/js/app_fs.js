@@ -340,6 +340,8 @@ var FragmentSynth = function (params) {
         _xyf_grid = false,
 
         _glsl_error = false,
+
+        _first_play = true,
         
         _OES_texture_float_linear = null,
         _EXT_color_buffer_float = null,

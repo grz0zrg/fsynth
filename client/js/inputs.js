@@ -1072,7 +1072,7 @@ var _addFragmentInput = function (type, input, settings) {
         canvas.className = "fs-pjs-canvas";
 
         var main_canvas_offset = _getElementOffset(_canvas);
-        canvas.style.top = main_canvas_offset.top + "px";
+        canvas.style.top = "0";
         canvas.style.left = main_canvas_offset.left + "px";
         canvas.style.zIndex = "-1";
         
@@ -1104,7 +1104,7 @@ var _addFragmentInput = function (type, input, settings) {
             _canvasInputUpdate(input_obj);
         }*/
         
-        document.body.appendChild(canvas);
+        _canvas_container.appendChild(canvas);
 
         if (settings !== undefined) {
             _setTextureFilter(data.texture, settings.f);
@@ -1131,6 +1131,9 @@ var _addFragmentInput = function (type, input, settings) {
         if (!input) {
             try {
                 _fragment_input_data[input_id].pjs = new Processing(canvas.id, db_obj.data);
+                if (_fs_state !== 0 && _glsl_error !== false) {
+                    input.pjs.noLoop();
+                }
             } catch (err) {
 
             }

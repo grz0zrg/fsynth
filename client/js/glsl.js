@@ -279,11 +279,13 @@ var _glsl_compilation = function () {
             _glsl_error = false;
 
             if (_fs_state === 0) {
-                _play(false);   
+                _play(false);
             }
         }
     } else {
         _glsl_error = true;
+
+        _pjsPauseAll();
     }
 };
 

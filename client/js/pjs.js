@@ -93,6 +93,7 @@ var _pjsCodeChange = function (source_code) {
         pjs_source_code = pjs_source_code.replace(/size.*?\([\d\w]+.*?[\d\w]+(,*)/gm, fs_pjs_size);
         pjs_source_code = 'float globalTime = ' + _current_pjs_input.globalTime + ";\n" + fs_pjs_library + inputs_source_code + pjs_source_code.replace(/(void\s+setup\s*\(\)\s*{)/gm, "$1 " + "background(0, 0, 0, 255);" + inputs_load_source_code + "\n");
 
+        // NOTE : we must delete the old 3D context when using 3D mode
         if (_current_pjs_input.pjs) {
             pjs_canvas = _current_pjs_input.pjs.externals.canvas;
 
@@ -181,6 +182,48 @@ var _pjsCompileAll = function () {
     }
 };
 
+var _pjsPause = function (input) {
+    if (input.type !== 4) {
+        return;
+    }
+
+    if (input.pjs) {
+        input.pjs.noLoop();
+    }
+};
+
+var _pjsResume = function (input) {
+    if (input.type !== 4) {
+        return;
+    }
+
+    if (input.pjs) {
+        input.pjs.loop();
+    }
+}
+
+var _pjsResumeAll = function () {
+    var i = 0,
+        fragment_input_data;
+
+    for (i = 0; i < _fragment_input_data.length; i += 1) {
+        fragment_input_data = _fragment_input_data[i];
+        
+        _pjsResume(fragment_input_data);
+    }
+};
+
+var _pjsPauseAll = function () {
+    var i = 0,
+        fragment_input_data;
+
+    for (i = 0; i < _fragment_input_data.length; i += 1) {
+        fragment_input_data = _fragment_input_data[i];
+        
+        _pjsPause(fragment_input_data);
+    }
+};
+
 var _pjsBindCodeChangeEvent = function () {
     CodeMirror.on(_pjs_codemirror_instance, 'change', _pjs_wrapped_code_change);
 
@@ -232,6 +275,8 @@ var _pjsInit = function () {
         },
 
         on_detach: function (new_window) {
+            _current_pjs_input = null;
+
             _pjsUnbindCodeChangeEvent();
 
             var pjs_editor_div = new_window.document.getElementById("fs_pjs_editor"),
@@ -260,11 +305,11 @@ var _pjsInit = function () {
             cm_element = _pjs_codemirror_instance_detached.getWrapperElement();
             cm_element.style = "font-size: 12pt";
 
-            CodeMirror.on(_pjs_codemirror_instance_detached, 'change', _pjs_wrapped_code_change_detached);
-
             _pjs_codemirror_instance_detached.setValue(_pjs_codemirror_instance.getValue());
 
             _pjs_codemirror_instance_detached.refresh();
+
+            CodeMirror.on(_pjs_codemirror_instance_detached, 'change', _pjs_wrapped_code_change_detached);'('
 
             _pjsBindCodeChangeEvent();
         },
@@ -302,7 +347,11 @@ var _pjsInit = function () {
     _pjs_wrapped_code_change_detached = function () {
         _pjsCodeChange(_pjs_codemirror_instance_detached.getValue());
 
+        _pjsUnbindCodeChangeEvent();
+
         _pjs_codemirror_instance.setValue(_pjs_codemirror_instance_detached.getValue());
+
+        _pjsBindCodeChangeEvent();
     };
 
     _pjsBindCodeChangeEvent();
@@ -324,13 +373,11 @@ var _pjsSelectInput = function (input) {
 
     _pjsUnbindCodeChangeEvent();
 
+    _pjs_codemirror_instance.setValue(input.pjs_source_code);
+
     if (_pjs_codemirror_instance_detached) {
         _pjs_codemirror_instance_detached.setValue(input.pjs_source_code);
     }
-
-    _pjs_codemirror_instance.setValue(input.pjs_source_code);
-
-    _pjsBindCodeChangeEvent();
 
     _pjsUpdateInputs();
 
@@ -338,12 +385,14 @@ var _pjsSelectInput = function (input) {
     if (detached_dialog) {
         _pjsUpdateInputs(detached_dialog.document);
     }
+
+    _pjsBindCodeChangeEvent();
 };
 
 var _pjsChangeSourceCb = function (input) {
     return function (e) {
         var elem = e.target;
-
+        
         _pjsSelectInput(input);
 
         if (elem.parentElement !== null) {
