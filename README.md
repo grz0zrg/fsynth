@@ -17,7 +17,7 @@ Table of Contents
             * [Sampler (<a href="https://github.com/grz0zrg/fas">FAS only)</a>](#sampler-fas-only)
             * [PM (<a href="https://github.com/grz0zrg/fas">FAS only)</a>](#pm-fas-only)
             * [Subtractive (<a href="https://github.com/grz0zrg/fas">FAS only)</a>](#subtractive-fas-only)
-            * [Wavetable synthesis (<a href="https://github.com/grz0zrg/fas">FAS only)</a>](#wavetable-synthesis-fas-only)
+            * [Wavetable synthesis WIP (<a href="https://github.com/grz0zrg/fas">FAS only)</a>](#wavetable-synthesis-fas-only)
             * [Physical modelling (<a href="https://github.com/grz0zrg/fas">FAS only)</a>](#Physical-modelling-synthesis-fas-only)
       * [MIDI Features](#midi)
       * [OSC](#osc)
@@ -183,7 +183,7 @@ Dynamics parameters
 - Blue = Moog filter cutoff parameter
 - Alpha = Moog filter resonance [0, 1] & waveform selection on integral part (0.x, 1.x, 2.x etc)
 
-#### Wavetable synthesis ([FAS](https://github.com/grz0zrg/fas) only)
+#### Wavetable synthesis ([FAS](https://github.com/grz0zrg/fas) only, WIP)
 
 Wavetable synthesis is a sound synthesis technique that employs arbitrary periodic waveforms in the production of musical tones or notes.
 

@@ -8,6 +8,9 @@ var _pjs_dialog_id = "fs_pjs",
     _pjs_dialog,
 
     _current_pjs_input = null,
+
+    _pjs_code_change_timeout = null,
+    _pjs_code_change_ms = 750,
     
     _pjs_codemirror_instance,
     _pjs_codemirror_instance_detached,
@@ -341,11 +344,13 @@ var _pjsInit = function () {
     cm_element.style = "font-size: 12pt";
 
     _pjs_wrapped_code_change = function () {
-        _pjsCodeChange();
+        clearTimeout(_pjs_code_change_timeout);
+        _pjs_code_change_timeout = setTimeout(_pjsCodeChange, _pjs_code_change_ms);
     };
 
     _pjs_wrapped_code_change_detached = function () {
-        _pjsCodeChange(_pjs_codemirror_instance_detached.getValue());
+        clearTimeout(_pjs_code_change_timeout);
+        _pjs_code_change_timeout = setTimeout(_pjsCodeChange, _pjs_code_change_ms, _pjs_codemirror_instance_detached.getValue());
 
         _pjsUnbindCodeChangeEvent();
 

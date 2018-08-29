@@ -29284,6 +29284,9 @@ var _pjs_dialog_id = "fs_pjs",
     _pjs_dialog,
 
     _current_pjs_input = null,
+
+    _pjs_code_change_timeout = null,
+    _pjs_code_change_ms = 750,
     
     _pjs_codemirror_instance,
     _pjs_codemirror_instance_detached,
@@ -29617,11 +29620,13 @@ var _pjsInit = function () {
     cm_element.style = "font-size: 12pt";
 
     _pjs_wrapped_code_change = function () {
-        _pjsCodeChange();
+        clearTimeout(_pjs_code_change_timeout);
+        _pjs_code_change_timeout = setTimeout(_pjsCodeChange, _pjs_code_change_ms);
     };
 
     _pjs_wrapped_code_change_detached = function () {
-        _pjsCodeChange(_pjs_codemirror_instance_detached.getValue());
+        clearTimeout(_pjs_code_change_timeout);
+        _pjs_code_change_timeout = setTimeout(_pjsCodeChange, _pjs_code_change_ms, _pjs_codemirror_instance_detached.getValue());
 
         _pjsUnbindCodeChangeEvent();
 
@@ -31984,6 +31989,18 @@ var _oscInit = function () {
     _canvas.style.height = _canvas_height + 'px';
 
     _canvas_container.appendChild(_canvas);
+
+    /*
+    _canvas_container.addEventListener("click", function () {
+        var childs = _canvas_container.children;
+        var i = 0;
+        for (i = 0; i < childs.length; i++) {
+            if (childs[i].nodeName === "CANVAS") {
+                childs[i].dispatchEvent(new UIEvent('click'));
+            }
+        }
+    });
+    */
     
     _record_canvas.width = _canvas_width;
     _record_canvas.height = _canvas_height;
