@@ -50,7 +50,7 @@ The $bold($tlink(Fragment synthesizer)(https://www.fsynth.com)) is a collaborati
 
 Fragment is stereophonic, polyphonic, multitimbral and support live coding of audio and visuals at the same time.
 
-Fragment main synthesis method is additive, spectral and granular, phase modulation and subtractive synthesis is also available.
+Fragment main synthesis method is additive, spectral and granular, phase modulation, Karplus-strong, wavetable and subtractive synthesis is also available.
 
 Fragment has many features making it a bliss to produce any kind of sounds or visuals, it is aimed at artists seeking a creative environment with direct visual feedback and few limitations to experiment with, a programmable noise-of-all-kinds software.
 
@@ -73,9 +73,9 @@ After many hours spent crafting the software, the first version of Fragment was 
 $nl
 $subsection(Capabilities)
 $list(
-	$item Powerful additive/spectral/granular synthesizer
+	$item Powerful additive/spectral synthesizer
 		$list($item Powered by WebAudio oscillators (additive only) $item Powered by $ref(fas)(FAS), an independent program $item Powered by WebAudio AudioWorklet (fast, additive only) )
-	$item Phase modulation / Subtractive synthesizer (powered by FAS, alternative methods)
+	$item Granular / Phase modulation / Karplus-strong / Wavetable / Subtractive synthesizer (powered by FAS, alternative methods)
 	$item Stereophonic / Monaural
 	$item Polyphonic
 		$list($item Automatically detected from the GPU capabilities $item 16 notes minimum $item 704 notes with a GeForce GTX 970 GPU)
@@ -85,7 +85,7 @@ $list(
 	$item 8-bit or 32-bit floating point processing of pixels data (WebGL 2.0 only)
 	$item Adjustable audio output channel per slices
 		$list($item Multiple audio channels are only supported with $ref(fas)(FAS))
-	$item Shader inputs, webcam, textures, videos, audio files, canvas
+	$item Shader inputs, webcam, textures, videos, audio files, canvas, Processing sketches
 	$item WebGL 2.0 and GLSL 3.0 support when compatibility is detected
 	$item OSC support, a $tlink(SuperCollider)(http://supercollider.github.io/) synth. which use OSC data from Fragment is also available
 	$item MIDI IN/OUT Enabled
@@ -117,7 +117,7 @@ Fragment may be quite hungry in term of computing resources, a dual core with hi
 
 Several methods are provided to synthesize sounds, each with performances pros and cons:
 $list(
-	$item $ref(fas)(FAS) ($bold(recommended method)): $list($item Fastest $item Has more synthesis methods like granular, PM and subtractive type $item Multiple output support with soundcard choice $item Many audio settings $item Can run on a dedicated computer such as a Raspberry PI $item Dedicated program which receive Fragment data over the network $item Enhanced noise modeling with band-limited noise $item Advanced granular synthesis)
+	$item $ref(fas)(FAS) ($bold(recommended method)): $list($item Fastest $item Has more synthesis methods like granular, PM, subtractive etc. type $item Multiple output support with soundcard choice $item Many audio settings $item Can run on a dedicated computer such as a Raspberry PI $item Dedicated program which receive Fragment data over the network $item Enhanced noise modeling with band-limited noise $item Advanced granular synthesis)
 	$item WebAudio oscillators: $list($item Fastest with Chrome $item May not work with Firefox if the canvas is too high vertically $item Require a fast CPU $item Integrated global "release" envelope)
 	$item AudioWorklet $bold(recommended): $list($item Fast, additive only, may require recent browser))
 $subsubsection(GPU)
@@ -350,6 +350,9 @@ $list(
 		$item Y Shift: pitch the slice audio up or down (there is no visual representation of this)
 		$item Increment per frame: This allow the slice to move left or right automatically, this is the increment value per frames
 		$item $ref(fas)(FAS) Output channel: the l/r output channel which will be used by FAS for that slice)
+    $item AUDIO on/off
+    $item OSC on/off
+    $item MIDI on/off
     $item MIDI out device: The MIDI device which will receive MIDI data from pixels data. (see MIDI)
     $item MIDI script: A JS MIDI script which allow to define user-defined MIDI messages on note on/off/change
 	$item deletion)
@@ -389,7 +392,6 @@ $list(
   	$item clone the code editor in a separate window)
 	$item fragment inputs
 	$list(
-		$item $ref(uniformsdialog)(uniforms)
 		$item $ref(finputs)(GLSL inputs import)))
 
 $label(finputs)
@@ -420,6 +422,7 @@ $list(
 		$item Height: A value of 0 will automatically create an input with the height equal to the score height
 		$item Min. freq.: A value of 0 will automatically assign the score min. frequency
 		$item Max. freq.: A value of 0 will automatically assign a max. frequency related to the score settings)
+    $item Linear interpolation: Enable linearly interpolated bins (can improve the conversion result)
 		$item Import mov. audio: Enabling it allow to import videos audio track as an image
 	$item Import toolbar
 	$list(
@@ -427,7 +430,8 @@ $list(
 		$item Snd: This will open a file selection window to import audio files
 		$item Mov: This will open a file selection window to import video files
 		$item Cam; WebCam
-		$item Cvs: Drawing canvas)
+		$item Cvs: Drawing canvas
+    $item Pjs: Processing.js sketch)
 	$item Dropzone: You can use this to import many files at the same time)
 
 Once added, by left clicking on a complex input thumbnail the following actions appear:
@@ -514,7 +518,7 @@ $pagewidthgif(glsl_inline_report)
 $nl
 The changes that you make in the code editor are automatically saved per named sessions, changes are also synchronized in real-time between all the users of the session you are currently in, this is the collaborative nature of Fragment.
 
-The code editor is powered by the CodeMirror library, it feature many neat things such as:
+The code editor is powered by the CodeMirror library, it feature many things such as:
 $list(
 	$item GLSL syntax highlighting
 	$item highlight matches
@@ -578,9 +582,12 @@ $list(
 	$item Show poly. infos
 	$list(
 		$item Hide/Show the polyphony infos for per output channels in the informations bar)
-	$item Show slices bar
+	$item Show slices
 	$list(
-		$item Hide/Show slices vertical bar)
+		$item Hide/Show slices)
+	$item Quickstart startup
+	$list(
+		$item Enable/disable quickstart startup dialog at launch)
 	$item Show line numbers
 	$list(
 		$item Hide/Show the line number in the code editor)
@@ -590,29 +597,32 @@ $list(
 	$item Highlight matches
 	$list(
 		$item Enable/disable matches highlight in the code editor (when something is selected))
-	$item Show slices
+	$item Show slice channel
 	$list(
-		$item Hide/Show slices, can be useful for visuals, this settings is not saved)
+		$item Hide/Show slice channel)
+	$item Disable audio
+	$list(
+		$item Enable/disable audio)
+	$item Editor theme
+	$list(
+		$item A list of themes for the code editor)
 	$item Monophonic
 	$list(
 		$item Enable/disable monophonic mode
 		$item If monophonic is enabled, only the alpha value is used by the synthesis engine, the full RGB output can then be used for visuals)
-	$item Wavetable
+	$item Feedback
 	$list(
-		$item Enable/disable the synthesis engine wavetable feature (uglier audio output but may be the less CPU intensive mode))
+		$item Enable/disable the availability of the previous frame in the fragment shader (aka feedback), this is useful for complex effects, may be CPU/GPU intensive)
 	$item OSC IN
 	$list(
 		$item Enable/disable OSC input, you can add and controls uniform variables through OSC, you will need an $tlink(OSC relay)(https://github.com/grz0zrg/fsynth/tree/master/osc_relay) to use this feature)
 	$item OSC OUT
 	$list(
 		$item Enable/disable OSC output, pixels data will be send as an OSC bundle, you will need an $tlink(OSC relay)(https://github.com/grz0zrg/fsynth/tree/master/osc_relay) to use this feature)
-	$item Feedback
+	$item AudioWorklet
 	$list(
-		$item Enable/disable the availability of the previous frame in the fragment shader (aka feedback), this is useful for complex effects, may be CPU/GPU intensive)
-	$item Editor theme
-	$list(
-		$item A list of themes for the code editor)
-	$item OSC address
+		$item Enable/disable experimental in-browser additive synthesis which use AudioWorklet)
+  $item OSC address
 	$list(
 		$item OSC in/out (relay) network address)
 	$item FAS address
@@ -649,11 +659,15 @@ The recording canvas width is linked to the score width.
 Recording toolbar buttons (in order from left to right):
 $list(
 	$item Reset & clear
+  $item Show MIDI output only
+  $item Show OSC output only
+  $item Show FAS output only
+  $item Show All output
 	$item Additive mode
 	$item Substractive mode
 	$item Multiply mode
 	$item Add the recorded image as a new GLSL input
-	$item Save to disk as a WAV file
+	$item Save to disk as a WAV file (additive synthesis only)
 	$item Export as PNG (open a new dialog))
 
 $nl
@@ -677,36 +691,6 @@ You can send a message to all users in the session by clicking on the input then
 
 Each messages received has a timestamp assigned that you can read by hovering your mouse cursor on the message.
 
-$nl
-$label(uniformsdialog)
-$subsection(Uniforms dialog)
-The uniforms dialog is a very powerful functionality.
-
-It enable you to define fragment program uniforms (aka variables) which are synced with all users in the session and are controllable by any MIDI input devices enabled.
-
-All the uniforms added will be shown in the uniforms dialog and will be defined automatically in the fragment program, you can then just use the symbol name in the code editor.
-
-You can add the following scalar uniforms types:
-$list(
-	$item bool
-	$item int
-	$item float)
-If count is higher than 1, Fragment will add the scalar uniforms as an array.
-
-
-
-You can also add vector uniforms of the following types (note: the components field determine the number of components for the following uniform type):
-$list(
-	$item bvec2
-	$item bvec3
-	$item bvec4
-	$item ivec2
-	$item ivec3
-	$item ivec4
-	$item vec2
-	$item vec3
-	$item vec4)
-If count is higher than 1, Fragment will add the vector uniforms as an array.
 $nl
 $section(How to produce sounds by programming your GPU)
 Fragment usage of the GPU is restricted to a single fragment program which will be executed by the GPU for each pixels of the graphical score.
@@ -782,9 +766,16 @@ $list(
 	$item $bold(sampler2D) $rgb(0,100,100)(iInput)$rgb(0,100,100)($bold(N))
 	$list(
 		$item typical usage: texture(iInput0, uv))
+	$item $bold(float) $rgb(0,100,100)(fvidN)
+	$list(
+		$item video playback position (0 - 1 range))
 	$item $bold(sampler2D) $rgb(0,100,100)(pFrame)
 	$list(
 		$item this uniform will be available when feedback is enabled and contain the previous frame
+		$item typical usage: texture(pFrame, uv))
+	$item $bold(sampler2D) $rgb(0,100,100)(pFrameSynth)
+	$list(
+		$item this uniform will be available when feedback is enabled and contain the previous synth. frame (WebGL 2 only)
 		$item typical usage: texture(pFrame, uv))
 	$item $bold(int) $rgb(0,100,100)(frame)
 	$list(
@@ -795,12 +786,21 @@ $list(
 		$item note-on velocity
 		$item note-on elapsed time
 		$item note-on MIDI channel)
+	$item $bold(vec4[N+1]) $rgb(0,100,100)(keyboard)
+	$list(
+		$item pitch bend
+		$item timbre (CC74)
+		$item pressure (aftertouch)
+		$item release velocity
 	$item $bold(function) $rgb(0,100,100)(htoy)
 	$list(
 		$item take a frequency as argument and return its vertical position on the canvas (in pixels units))
 	$item $bold(function) $rgb(0,100,100)(fline)
 	$list(
 		$item take a frequency as argument and return either 1 or 0, this is a shortcut to draw a line at a specified frequency, it use the htoy function internally)
+	$item $bold(function) $rgb(0,100,100)(yfreq)
+	$list(
+		$item a function with a vertical position as argument and a sample rate argument, return the oscillator frequency at the corresponding position for the corresponding sample rate)
 	$item $bold(vec3[N]) $rgb(0,100,100)(pKey)
 	$list(
 		$item Store the previous note-off event for each channels (typically used for gliding)
@@ -1604,111 +1604,6 @@ Now that we have all the essential components of any modern synthesizers, we can
 $glslcode(
 Coming soon...
 )
-
-$nl
-$subsection(Sequence)
-We will see in this section how to do a 16 or N steps sequences with Fragment, we will use the $ref(uniformsdialog)(uniforms dialog) to define an array of values which will hold the frequency data of our sequence.
-
-You can do that by opening the $ref(uniformsdialog)(uniforms dialog) and then adding an array of uniforms named $bold(sequence) as pictured below:
-$tlink($center($image(235)(images/sequence.png)))(images/sequence.png)
-$nl
-Many values should appear now in the uniforms dialog, you can change the frequency value for each steps with your keyboard, mouse or by assigning a MIDI control to each steps.
-
-Here is the code to play a sequence automatically:
-$glslcode(
-// we define the PI constant
-// note: the "#define" keyword cannot start on the very first line
-#define pi 3.141592653
-
-float impulse(float k, float x) {
-    float h = k * x;
-    return h * exp(1.0 - h);
-}
-
-void main () {
-    float l = 0.;
-    float r = 0.;
-    float base_frequency = 440.;
-
-    // we just redefine globalTime for convenience
-    // globalTime is a pre-defined Fragment uniform
-    // which hold the time since Fragment started to play
-    // you can "rewind" it by clicking on the corresponding toolbar button
-    float time = globalTime;
-
-    // increase the number of harmonics so we get a richer sound
-    const float harmonics = 16.;
-
-    // we will override "keyboard" because GLSL
-    // does not permit us to assign by index dynamically
-    // we will have 8 notes polyphony (copied from "keyboard" + the sequence)
-    vec4 notes[9];
-
-    // our sequence have 16 steps
-    float seq_length = 16.;
-
-    // we use the "mod" function with the length of the sequence
-    // this play our sequence over and over, 4 notes per seconds
-    int seq_index = int(floor(mod(time * 4., seq_length)));
-
-    // this is a GLSL trick to get the current step frequency
-    // we do that because "sequence[seq_index]" is not accepted
-    // this is a limitation of the most compatible WebGL spec.
-    // which do not allow dynamical indexes for arrays...
-    // if your browser has support for WebGL 2, this can be
-    // MUCH simpler!
-    float seq_frq = 0.;
-    for (int k = 0; k < 16; k += 1) {
-      if (k == seq_index) {
-        seq_frq = sequence[k];
-      }
-    }
-
-    // now we just copy 8 notes from the "keyboard" array
-    // which will allow us to play 8 notes at the same time
-    // with a MIDI keyboard
-    for (int k = 0; k < 16; k += 2) {
-      notes[k] = keyboard[k];
-    }
-
-    // we assign the current sequence note
-    // notice how we make the note duration
-    // perfectly fit within its lifetime
-    // it goes on, hit its peak and go down
-    // before passing to the next
-    notes[7] = vec4(seq_frq, 1., 0.5 * (1. + sin((pi * 1.5) + 2. * pi * time)), 0.);
-
-    // we loop over our 9 notes
-    for (int k = 0; k < 9; k += 1) {
-      // notice that we no more use "keyboard"
-      // but our overriden "keyboard" array with our sequence within
-      vec4 data = notes[k];
-
-      float kfrq = data.x;
-      float kvel = data.y;
-      float ktim = data.z;
-      float kchn = data.w;
-
-      float env = kvel * impulse(1., ktim);
-
-      for (float i = 1.; i < harmonics; i += 1.) {
-        float a = 1. / pow(i, 1.95);
-
-        l += fline(kfrq * i) * a * env;
-        r += fline(kfrq * i) * a * env;
-      }
-    }
-
-    gl_FragColor = vec4(l, r, 0., 1.);
-    synthOutput = vec4(l, r, (l + r) / 2., 0.); // WebGL 2.0 only
-  }
-)
-$ifhtml($center($ogg(audio/fsynth_sequence.ogg)))
-You should hear a sequence of notes which you can play along with a MIDI keyboard.
-
-An autonomous sequence is relatively easy and can also be done by using the $bold(mod) function or by simpler means.
-
-We strongly recommend that peoples use Fragment with a MIDI sequencer such as $tlink(LMMS)(https://www.lmms.io), $tlink(IanniX)(https://www.iannix.org), $tlink(Renoise)(https://www.renoise.com/), $tlink(MusE)(http://muse-sequencer.org) or any other MIDI capable sequencers, sequences can be done very easily within a sequencer and many effects can be added to the audio output.
 
 $nl
 $subsection(Note on globalTime)

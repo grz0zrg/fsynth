@@ -1,6 +1,6 @@
 ## About
 
-> **OpenGL Shading Language** (abbreviated: **GLSL** or **GLslang**), is a [high-level](https://en.wikipedia.org/wiki/High_level_programming_language) [shading language](https://en.wikipedia.org/wiki/Shading_language) with a syntax based on the [C programming language](https://en.wikipedia.org/wiki/C_(programming_language)). It was created by the [OpenGL ARB](https://en.wikipedia.org/wiki/OpenGL_ARB) (OpenGL Architecture Review Board) to give developers more direct control of the [graphics pipeline](https://en.wikipedia.org/wiki/Graphics_pipeline).
+> **OpenGL Shading Language** (abbreviated: **GLSL** or **GLslang**), is a [high-level](https://en.wikipedia.org/wiki/High_level_programming_language) [shading language](https://en.wikipedia.org/wiki/Shading_language) with a syntax based on the [C programming language](https://en.wikipedia.org/wiki/C_(programming_language)). It was created by the [OpenGL ARB](https://en.wikipedia.org/wiki/OpenGL_ARB) (OpenGL Architecture Review Board) to give developers more direct control over the [graphics pipeline](https://en.wikipedia.org/wiki/Graphics_pipeline).
 >
 > Some benefits of using GLSL are:
 >
@@ -12,11 +12,11 @@
 
 Fragment usage of the graphics pipeline is restricted to a single fragment program which will be executed by the GPU for each pixels of the graphical score/canvas.
 
-The fragment program is written in GLSL (OpenGL Shading Language) which has a syntax quite similar to the C language but is much simpler to learn.
+The fragment program is written in GLSL (OpenGL Shading Language) which has a syntax similar to the C language without all the complex bits, it is much simpler to learn.
 
 You can do anything from ray-traced 3D to drawing simple lines and define their behaviors with Fragment, the only requirement is high school mathematics.
 
-Here is a simple example of GLSL code that Fragment accept which just set all pixels to black and all oscillators to off:
+Here is a simple example of GLSL code that Fragment accept which just set all pixels to black and subsequently all oscillators off:
 
 ```glsl
 void main () {
@@ -27,7 +27,7 @@ void main () {
 
 ## Pre-defined uniforms
 
-Fragment has many pre-defined uniforms which can be used to access different informations.
+Fragment has many pre-defined uniforms (global variables) which can be used to access different informations.
 
 Here is a list of Fragment pre-defined uniforms
 
@@ -38,6 +38,7 @@ Here is a list of Fragment pre-defined uniforms
 - `vec4 mouse`normalized mouse pixel coords.
 - `vec4 date`year, month, day, time in seconds
 - `sampler2D iInputN`Imported data access, typical usage : texture2D(iInput0, uv);
+- `float fvidN`video current playback position (0-1 range)
 - `sampler2D pFrame` The previous frame available as a texture
 - `sampler2D pFrameSynth`The previous synth frame available as a texture (WebGL 2)
 - `int frame` The current frame
@@ -66,8 +67,10 @@ As Fragment can use WebGL 2.0 if your browser has support for it, the reference 
 
 ## Note
 
-Fragment support GLSL 3.0 version automatically if it detect support for the WebGL 2.0 API (which is recommended), GLSL 3.0 allow to use dynamical indexes with arrays among many other things, it also allow to use shortcuts.
+Fragment support GLSL 3.0 version automatically if it detect *browser support* for the WebGL 2.0 API (which is recommended), GLSL 3.0 allow to use dynamical indexes with arrays among many other things, it also allow to use shortcuts.
 
-If WebGL 2.0 is supported, there is actually two output in the fragment shader, gl_FragColor or fragColor for the visuals and synthOutput for the pixels data which will be used by the audio synthesis engine, this allow to do visuals alongside stereo audio synthesis, when WebGL 2.0 is enabled and the EXT_color_buffer_float extension is available, the pixels data output will be encoded as 32-bit float, this allow higher quality sounds and possibilities.
+If WebGL 2.0 is supported, there is actually two output in the fragment shader, gl_FragColor or fragColor for the visuals and synthOutput for the synth pixels data which will be used by the audio synthesis engine, this allow to do visuals alongside stereo audio synthesis.
 
-There is also many applications that let you create stunning visuals in your browser by the same method, one of the most popular one and compatible with Fragment (by using the convert ShaderToy button of the toolbar) is [ShaderToy](https://www.shadertoy.com/), this program let you build visuals and audio at the same time, just like Fragment but with a more conventional approach and a non-pixels based audio synthesis.
+When WebGL 2.0 is enabled and the EXT_color_buffer_float extension is available, the pixels data output will be encoded as 32-bit float, this allow higher quality sounds and possibilities.
+
+There is also many applications that let you create stunning visuals in your browser by the same method, one of the most popular one and compatible with Fragment (by using the convert ShaderToy button of the toolbar) is [ShaderToy](https://www.shadertoy.com/), this program let you build visuals and audio at the same time, just like Fragment with a more conventional approach.

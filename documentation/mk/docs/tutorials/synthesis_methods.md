@@ -1,10 +1,10 @@
 ## About
 
-Fragment has support for simultaneous additive and granular sound synthesis, subtractive synthesis is also available.
+Fragment has support for simultaneous additive and granular sound synthesis, subtractive synthesis, PM and Wavetable is also available.
 
-Granular synthesis only work with the Fragment Audio Server.
+Additive synthesis is the only one supported in-browser.
 
-The two main synthesis method that Fragment support can be combined in real-time to enhance the synthesized sound.
+All synthesis method that Fragment support can be combined in real-time to enhance the synthesized sound.
 
 When using the Fragment Audio Server, you can configure the synthesis methods per channels with the FAS settings dialog accessible by right-clicking on the waveform icon of the main toolbar
 
@@ -12,11 +12,13 @@ When using the Fragment Audio Server, you can configure the synthesis methods pe
 
 Channels settings appear automatically when they are assigned to slices. 
 
-You can rescan the grain folder on the audio server by clicking on the corresponding button.
+You can rescan the grain folder on the audio server by clicking on the corresponding 'Reload samples' button.
 
 Synthesis
 
-- The synthesis method to use for this particular channel
+- The synthesis method to use for particular channels
+
+Synth. parameters (Granular synthesis only)
 
 Granular envelope
 
@@ -71,22 +73,71 @@ Granular synthesis is recommended to be used with additive synthesis as it is ab
 
 Subtractive synthesis start from harmonically rich waveforms which are then filtered.
 
-This is WIP, it is somewhat slow and there is only one low-pass filter (Moog type) implemented.
+Subtractive synthesis use one low-pass filter (Moog type)
 
-There is three type of band-limited (no aliasing!) waveforms : sawtooth, square, triangle
+There is three type of band-limited PolyBLEP (no aliasing!) waveforms : sawtooth, square, triangle
 
-The filter drive is a channel settings.
+Plus noise waveform.
 
-The parameter are
+The RGBA parameters are
 
 - RED : Left amplitude
 - GREEN : Right amplitude
-- BLUE : Moog filter cutoff multiplier; the cutoff is set to the fundamental frequency, 1.0 = cutoof at fundamental frequency
+- BLUE : Moog filter cutoff multiplier; the cutoff is calibrated to the fundamental frequency, 1.0 = cutoff at fundamental frequency
 - ALPHA : Moog filter resonance [0, 1] & waveform selection on integral part (0.x, 1.x, 2.x etc)
 
 Subtractive synthesis can be used with additive synthesis and granular synthesis to improve the sound richness.
 
-**Note** : The waveforms are constitued of a maximum of 64 partials
+Subtractive synthesis can also use additive synthesis (much slower).
+
+### PM (Phase modulation)
+
+Phase modulation (PM) is a mean to generate sounds by modulating the phase of an oscillator (carrier) from another oscillator (modulator), it is very similar to frequency modulation (FM).
+
+PM synthesis in Fragment use a simple algorithm with one carrier and one modulator, the modulator amplitude and frequency can be set with B or A channel.
+
+PM synthesis is one of the fastest method to generate sounds with Fragment and is able to do re-synthesis.
+
+The RGBA parameters are
+
+- RED : Left amplitude
+- GREEN : Right amplitude
+- BLUE : Modular amplitude between 0,1 feedback on integer part
+- ALPHA : Modulator frequency
+
+### Physical modelling
+
+Physical modelling synthesis refers to sound synthesis methods in which the waveform of the sound to be generated is computed using a mathematical model, a set of equations and algorithms to simulate a physical source of sound, usually a musical instrument.
+
+Physical modelling in Fragment use Karplus-Strong string synthesis algorithm.
+
+This is a fast method which generate pleasant string-like sounds.
+
+The RGBA parameters are
+
+- RED : Left amplitude
+- GREEN : Right amplitude
+- BLUE : Noise wavetable cutoff lp filter / fractional part : stretching factor
+- ALPHA : Noise wavetable res. lp filter
+
+### Wavetable
+
+Wavetable synthesis is a sound synthesis technique that employs arbitrary periodic waveforms in the production of musical tones or notes.
+
+Wavetable synthesis use single cycle waveforms / samples loaded from the waves folder.
+
+The wavetable can be switched with the alpha channel (integral part), a linear interpolation will happen between current & next wavetable upon switch.
+
+Wavetable synthesis is fast.
+
+There is only one high quality low-pass filter (Moog type) implemented.
+
+The RGBA parameters are
+
+- RED : Left amplitude
+- GREEN : Right amplitude
+- BLUE : Todo
+- ALPHA : Todo
 
 ### Sampler synthesis
 

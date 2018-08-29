@@ -36,7 +36,7 @@ This control the starting point of the video, the video duration is normalized t
 
 This also seek automatically the video to the start point when changed
 
-##### VIdeo end
+##### Video end
 
 This control the ending point of the video, the video duration is normalized to 0 - 1 range
 

@@ -8,7 +8,7 @@ Fragment does not import the audio data as-is but convert it to a stereophonic s
 
 Imported sounds can be used for re-synthesis, vocoder effects etc., transformations and various processing can be applied in real-time to the resulting spectogram which will be played back by any of the synthesis methods that Fragment support, it is for example possible to do re-synthesis based on granular synthesis or granular synthesis and additive synthesis at the same time.
 
-Once a sound file is added, a conversion phase which perform audio analysis and conversion to pixels data will execute, this conversion phase may take several minutes depending on the sound duration and audio settings
+Once a sound file is added, a conversion phase which perform audio analysis and conversion to bitmap data will execute, this conversion phase may take several minutes depending on the sound duration and audio settings
 
 Once the sound is converted to an image, several actions are available by clicking on the resulting image thumbnail, see *images import* section for the actions details.
 

@@ -28,15 +28,15 @@ The information panel at the top convey minor and major informations such as (in
 
 ### Canvas / Graphical score
 
-![anvas - Graphical score](tutorials/gifs/canvas.gif)
+![Canvas - Graphical score](tutorials/gifs/canvas.gif)
 
 ### Canvas
 
-The canvas is an area of a chosen dimension where the output of the fragment shader is displayed.
+The canvas is an area of a chosen dimension where the visual output is displayed.
 
 ### Graphical score
 
-The canvas is also a graphical score for pixels-based sound synthesis.
+The canvas is also a graphical score for bitmap-based sound synthesis.
 
 The graphical score represent a kind of sonic canvas where the **X axis represent time** and the **Y axis represent frequencies**.
 
@@ -51,7 +51,7 @@ Where:
 - **n** the number of oscillators (which is the height of the canvas)
 - **o** the octave count
 
-What you hear in Fragment is determined by the position of **slices** which are added on the graphical score, slices are vertical chunks of the graphical score which are merged together and produce an audible result.
+What you hear in Fragment is determined by the position of **slices** added onto the graphical score, slices are vertical chunks of the graphical score which capture bitmap-data and convert it as note events.
 
 The pixels are captured by the vertical slices, any number of **slices can be added on the canvas by right-clicking on it and by clicking on the + icon** as demonstrated above, this will add a vertical bar which will capture that score part.
 
@@ -83,8 +83,7 @@ The toolbar is a collection of tools and settings which are grouped by sections,
   - GLSL functions and uniforms outline dialog
   - clone the code editor in a separate window
 - fragment inputs
-  - Uniform dialog
-  - GLSL inputs import dialog
+  - inputs import dialog (can be accessed with `texture(iInput0, vec2(uv.x, uv.y))` where 0 is the input ID)
 
 ### Inputs
 
@@ -102,17 +101,17 @@ GLSL inputs can be ordered in real-time by drag & drop as shown above.
 
 ### Collaborative Code editor
 
-The code editor is one of the most important tool of Fragment since it allow the user to generate the visuals which are fed to the audio synthesis engine.
+The code editor is one of the most important tool of Fragment, it allow the user to generate the visuals which are then fed to the audio synthesis engine.
 
 [GLSL](https://www.khronos.org/files/opengles_shading_language.pdf) code is what you type in the code editor to generate the visuals and sound synthesis data.
 
 ![Fragment GLSL code editor](tutorials/gifs/glsl_inline_report.gif)
 
-The fragment program is compiled as you type, if the compilation fail, the code editor will notice you with a floating message and with a red message at the line that cause the compilation to fail, all of that without interrupting sounds/visuals output, this enable **powerful live coding**.
+The fragment program is compiled as you type, if the compilation fail, the code editor will notice you with a floating message and a red message at the line that cause the compilation to fail, all of that without interrupting sounds/visuals output, this enable **powerful live coding**.
 
 The changes that you make in the code editor are automatically saved per sessions, **changes are also synchronized in real-time between all the users** of the session you are currently in, **this is the collaborative nature of Fragment**.
 
-The code editor is powered by the [CodeMirror](https://codemirror.net/) library, it feature many neat things such as:
+The code editor is powered by the [CodeMirror](https://codemirror.net/) library, it feature many things such as:
 
 - compilation as you type which does not interrupt sounds/visuals
 - GLSL syntax highlighting
@@ -152,7 +151,7 @@ To resize a dialogs, place the mouse cursor on the bottom right corner of the di
 
 ### Inputs & MIDI learn
 
-Inputs are widgets which accept user values.
+Inputs are widgets accepting user values.
 
 Some inputs have a red square which indicate MIDI learn functionality support for this widget
 

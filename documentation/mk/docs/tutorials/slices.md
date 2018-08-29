@@ -2,7 +2,7 @@
 
 Slices are an important part of Fragment, no sounds is produced if you don't add at least one slice.
 
-The purpose of slices is to capture the pixels from vertical parts of the canvas, the pixels will be fed to the audio synthesis engine, they are like turntable needles, they can be dragged around in real-time with the mouse.
+The purpose of slices is to capture the bitmap-data of the canvas, the captured pixels will be fed to the audio synthesis engine, they are like turntable needles, they can be dragged around in real-time with the mouse.
 
 When multiple slices are assigned to the same output channel, the pixels data is merged additively into one slice, this may result in non-wanted sounds with granular synthesis if not careful due to the addition of the Green and Alpha parameters.
 
@@ -35,7 +35,11 @@ slice settings dialog
 
 - [FAS](https://www.fsynth.com/documentation.html#fas) Output channel: the l/r output channel which will be used by FAS for that slice
 
-- MIDI out device: The MIDI device which will receive MIDI data from pixels data. (see MIDI)
+- AUDIO out: Enable/disable audio output for this slice
+
+- OSC out: Enable/disable OSC output for this slice
+
+- MIDI out device: The MIDI device which will receive MIDI data from the bitmap data. (see MIDI)
 
 
 

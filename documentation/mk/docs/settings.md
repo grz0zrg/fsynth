@@ -4,7 +4,7 @@ Fragment support a variety of global and session related settings through the se
 
 ![Session & global settings dialog](images/settings.png)
 
-Detailed description of the settings
+Detailed description of the settings dialog
 
 Score width
 
@@ -47,9 +47,13 @@ Show poly. infos
 
 - Hide/Show the polyphony infos for per output channels in the informations bar
 
-Show slices bar
+Show slices
 
-- Hide/Show slices vertical bar
+- Hide/Show slices, can be useful for visuals, this settings is not saved
+
+Quickstart startup
+
+- Enable/Disable quickstart startup dialog on launch
 
 Show line numbers
 
@@ -63,19 +67,25 @@ Highlight matches
 
 - Enable/disable matches highlight in the code editor (when something is selected)
 
-Show slices
+Show slice channel
 
-- Hide/Show slices, can be useful for visuals, this settings is not saved
-  Monophonic
+- Hide/Show slice channel
 
-Enable/disable monophonic mode
+Disable audio
 
-- If monophonic is enabled, only the alpha value is used by 
-  the synthesis engine, the full RGB output can then be used for visuals
+- Enable/Disable audio
 
-AudioWorklet
+Editor theme
 
-- Enable/disable WebAudio AudioWorklet, a fast in-browser additive synthesis engine (enabled by default if supported, this may require a recent browsers)
+- A list of code editor themes
+
+Monophonic
+
+- If monophonic is enabled, only the alpha value is used by the synthesis engine, the full RGB output can then be used for visuals
+
+Feedback
+
+- Enable/disable the previous frame in the Fragment shader (aka feedback), this is useful for complex effects, may be CPU/GPU intensive
 
 OSC IN
 
@@ -83,20 +93,16 @@ OSC IN
 
 OSC OUT
 
-- Enable/disable OSC output, slices data will be sent through OSC bundles via WebSockets, you will need an [OSC relay](https://github.com/grz0zrg/fsynth/tree/master/osc_relay) to use this feature
+- Enable/disable OSC output, slices data will be sent through OSC bundles via WebSockets, you will need an [OSC relay (https://github.com/grz0zrg/fsynth/tree/master/osc_relay) to use this feature
 
-Feedback
+AudioWorklet
 
-- Enable/disable the availability of the previous frame in the Fragment shader (aka feedback), this is useful for complex effects, may be CPU/GPU intensive
-
-Editor theme
-
-- A list of code editor themes
-
-OSC address
-
-- The location of the OSC relay on the network
+- Enable/disable WebAudio AudioWorklet, experimental but fast in-browser additive synthesis engine (enabled by default if supported, this may require a recent browsers)
 
 FAS address
 
 - The location of [FAS (Fragment Audio Server)(https://www.fsynth.com/documentation.html#fas) on the network
+
+OSC address
+
+- The location of the OSC relay on the network

@@ -1,10 +1,10 @@
 ## About
 
-Fragment multitimbrality is done by splitting the canvas in a multitude of independant parts and assigning (not mandatory) an output channel to the different part slices.
+Fragment multitimbrality is done by splitting the canvas in a multitude of independant parts and assigning (not mandatory) an output channel to the different slices.
 
 ## How-to
 
-Example by splitting the canvas into two parts with a condition which check the current fragment position on the horizontal axis lie between a defined boundary, if `uv.x`is less than 0.25, draw something there, if `uv.x`is between 0.25 and 0.5, draw something else.
+Example by splitting the canvas into two parts with a condition checking the current fragment position on the horizontal axis lie between a defined boundary, if `uv.x`is less than 0.25, draw something there, if `uv.x`is between 0.25 and 0.5, draw something else.
 
 To hear the sound, you must add two slices, one on the first part and another one on the second part.
 

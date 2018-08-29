@@ -1,6 +1,6 @@
 ## About
 
-Feedback is a powerful feature which allow Fragment to have access to the previously rendered frame.
+Feedback is a powerful feature which allow Fragment access to the previously rendered frame.
 
 The previously rendered frame can then be manipulated in the main fragment and displayed back generating a feedback loop, effects such as **delay**, **reverberation** etc. can be produced that way.
 
@@ -19,6 +19,7 @@ void main () {
   synthOutput = s;
 }
 ```
+
 ### Usage
 
 The previous frame is accessible as a texture within the main shader, example

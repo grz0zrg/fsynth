@@ -43,7 +43,7 @@ void main () {
 ```
 #### Image settings
 
-Imported images have several settings which can be accessed by clicking on the image thumbnail and by clicking on the *settings* button, the image settings dialog will be shown
+Imported images have several settings which can be quickly accessed by right-clicking on the image thumbnail or by left-clicking on the image thumbnail and by clicking on the *settings* button, the image settings dialog will be shown
 
 ![Fragment image settings](images/image_settings.png)
 

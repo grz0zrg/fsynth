@@ -23994,8 +23994,6 @@ var _glsl_compilation = function () {
         }
     } else {
         _glsl_error = true;
-
-        _pjsPauseAll();
     }
 };
 

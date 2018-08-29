@@ -1,6 +1,6 @@
 ## FAS: Fragment Audio Server
 
-The Fragment Audio Server is a program written with the C language for very fast real-time audio synthesis.
+The Fragment Audio Server is a program written with the C language for fast real-time audio synthesis.
 
 It is recommended to use Fragment with the Fragment Audio Server enabled.
 
@@ -22,7 +22,7 @@ The graphical launcher is available on the [homepage](https://www.fsynth.com).
 
 The integrated GLSL editor can be too cumbersome to use sometimes with complex sessions and can make the sound choppy when you type.
 
-A solution is to use the independent editor which is only the Fragment GLSL editor portion in a webpage, the independent editor can connect to any sessions and has about the same features as the integrated code editor.
+A solution is to use the independent editor which is the Fragment GLSL editor as an entirely separate application, the independent editor can connect to any sessions and has the same features as the integrated code editor.
 
 The independent GLSL editor can be found [here](https://github.com/grz0zrg/fsynth/tree/master/editor), the [development server](https://github.com/grz0zrg/fsynth/tree/master/fsws) is needed in order to execute it, some instructions can be found on the [GitHub page](https://github.com/grz0zrg/fsynth)
 

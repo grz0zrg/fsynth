@@ -1,6 +1,6 @@
 ## About
 
-The source inspiration for all of this is [Alexander Zolotov Virtual ANS software](http://www.warmplace.ru/soft/ans/), thank to him.
+The source inspiration for this software is [Alexander Zolotov Virtual ANS software](http://www.warmplace.ru/soft/ans/).
 
 Fragment is heavily inspired by [Shadertoy](https://www.shadertoy.com/) as well.
 
@@ -16,14 +16,14 @@ Fragment is heavily inspired by [Shadertoy](https://www.shadertoy.com/) as well.
 
 ## Tools
 
-- [HotShots](https://sourceforge.net/projects/hotshots) for the UI quick reference
+- [HotShots](https://sourceforge.net/projects/hotshots) UI quick reference
 - [GIMP](https://www.gimp.org/) some graphics
-- [Inkscape](https://www.inkscape.org/) for the logo and some graphics
-- [Geogebra](https://kdenlive.org/) for the logo
-- [KDEnlive](https://kdenlive.org/) to edit the videos
+- [Inkscape](https://www.inkscape.org/) logo and some graphics
+- [Geogebra](https://kdenlive.org/) logo
+- [KDEnlive](https://kdenlive.org/) videos editing
 
 
-- [SimpleScreenRecorder](http://www.maartenbaert.be/simplescreenrecorder/) for videos recording
+- [SimpleScreenRecorder](http://www.maartenbaert.be/simplescreenrecorder/) videos recording
 - [desmos](https://www.desmos.com/)
 - [Brackets](http://brackets.io/)
 - [Atom](https://atom.io/)

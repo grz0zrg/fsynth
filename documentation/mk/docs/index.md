@@ -1,10 +1,10 @@
 # About
 
-[Fragment](https://www.fsynth.com) is a collaborative cross-platform audiovisual live coding environment with **pixels based** *image-synth*, the sound synthesis is **powered by pixels data** produced by live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language).
+[Fragment](https://www.fsynth.com) is a collaborative cross-platform audiovisual live coding environment with **bitmap-based** *image-synth* approach, the sound synthesis is **powered by pixels data** produced algorithmically or by drawing over a canvas.
 
-Fragment has a progressive learning curve, anyone can start to experiment with sounds and visuals really quickly.
+Fragment has a progressive learning curve, anyone can start to experiment with sounds and visuals quickly.
 
-Fragment has many features making it a bliss to produce any kind of sounds which can be associated with visuals, it is aimed at artists seeking a creative environment with few limitations to experiment with, a programmable noise-of-all-kinds software, Fragment potential is almost boundless.
+Fragment has many features making it a bliss to produce any kind of sounds and visuals, it is aimed at artists seeking a creative environment with few limitations to experiment with, a programmable noise-of-all-kinds software.
 
 Many videos of most features are available on [the official YouTube channel](https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ)
 
@@ -19,7 +19,7 @@ The PDF documentation can be found [here](https://www.fsynth.com/pdf/fragment_do
 ## Requirement
 
 - Web. browser such as [Chromium](https://fr.wikipedia.org/wiki/Chromium_(navigateur_web)) (recommended), Opera, Safari or [Firefox](https://www.mozilla.org/fr/firefox/new) (MIDI is not supported by Firefox at the moment)
-- Mid-range GPU, Fragment was made and regularly used with a GeForce GTX 970
+- Mid-range GPU, Fragment was developed with a GeForce GTX 970
 - Mid-range multi-core CPU, a beefy CPU may be needed for advanced features
 - Not necessary but a MIDI device such as a MIDI keyboard is recommended
 

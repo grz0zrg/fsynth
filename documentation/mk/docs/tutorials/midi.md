@@ -1,6 +1,6 @@
 ## MIDI inputs
 
-*You must have a WebMIDI supported browser (such as Chrome or Opera) to use Fragment MIDI.*
+*You must have a WebMIDI supported browser (such as Chrome or Opera) to use MIDI.*
 
 Fragment support MIDI inputs and output, it has built-in support for MIDI **keyboards** (see OSC for controllers).
 
