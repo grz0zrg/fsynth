@@ -656,6 +656,18 @@ var FragmentSynth = function (params) {
     _canvas.style.height = _canvas_height + 'px';
 
     _canvas_container.appendChild(_canvas);
+
+    /*
+    _canvas_container.addEventListener("click", function () {
+        var childs = _canvas_container.children;
+        var i = 0;
+        for (i = 0; i < childs.length; i++) {
+            if (childs[i].nodeName === "CANVAS") {
+                childs[i].dispatchEvent(new UIEvent('click'));
+            }
+        }
+    });
+    */
     
     _record_canvas.width = _canvas_width;
     _record_canvas.height = _canvas_height;

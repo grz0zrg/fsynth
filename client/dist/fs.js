@@ -25671,7 +25671,7 @@ var _removeInputChannel = function (input_id) {
     }
     
     if (fragment_input_data.canvas) {
-        document.body.removeChild(fragment_input_data.canvas);   
+        fragment_input_data.canvas.remove();
     }
 
     _cbChannelSettingsClose(_parseInt10(input_id))();
@@ -25949,7 +25949,7 @@ var _addFragmentInput = function (type, input, settings) {
             if (navigator.getUserMedia) {
                 navigator.getUserMedia({ video: { mandatory: { /*minWidth: 640, maxWidth: 1280, minHeight: 320, maxHeight: 720, minFrameRate: 30*/ }, optional: [ { minFrameRate: 60 } ] },
                     audio: false }, function (media_stream) {
-                        video_element.src = window.URL.createObjectURL(media_stream);
+                        video_element.srcObject = /*window.URL.createObjectURL(*/media_stream/*)*/;
 
                         data = _create2DTexture(video_element, false, false);
 
