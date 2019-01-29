@@ -84,6 +84,7 @@ Fragment is also able to do real-time distributed sound synthesis with the sound
   - Webcam (no audio support)
   - Images
   - Videos with rate & rewind & loop settings (can import the audio track as an image)
+  - Desktop capture (screen region, specific window or browser tab via `getDisplayMedia`)
   - Audio files (translated to images)
   - Drawing canvas with drawing and compositing operations which use images Fragment input as brushes, Fragment is bundled with 20 high-quality brushes, a pack of 969 high-quality brushes is also available as a [separate download](https://www.fsynth.com/data/969_png_brushes_pack.7z)
   - [Processing.js](http://processingjs.org/) sketchs

@@ -84,7 +84,8 @@ var _createChannelSettingsDialog = function (input_channel_id) {
         if (!_isPowerOf2(fragment_input_channel.image.width) || 
             !_isPowerOf2(fragment_input_channel.image.height) || 
             fragment_input_channel.type === 1 || 
-            fragment_input_channel.type === 3) {
+            fragment_input_channel.type === 3 || 
+            fragment_input_channel.type === 5) {
             power_of_two_wrap_options = "";
             mipmap_option = "";
         }
@@ -93,6 +94,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     if (fragment_input_channel.type === 1 ||
         fragment_input_channel.type === 3 ||
         fragment_input_channel.type === 4 ||
+        fragment_input_channel.type === 5 ||
         fragment_input_channel.type === 404) {
         vflip_style = "display: none";
     }
@@ -124,7 +126,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     channel_wrap_t_select = document.getElementById("fs_channel_wrap_t"+input_channel_id);
     channel_vflip = document.getElementById("fs_channel_vflip"+input_channel_id);
     
-    if (fragment_input_channel.type === 3) {
+    if (fragment_input_channel.type === 3) { // video settings
         dialog_height = "340px";
         
         content_element.innerHTML += '&nbsp;<div id="' + video_playrate_element + '"></div><div id="' + video_start_element + '"></div><div id="' + video_end_element + '"></div>';
@@ -799,7 +801,7 @@ var _addFragmentInput = function (type, input, settings) {
         _fragment_input_data[input_id].elem.addEventListener("contextmenu", _cbChannelSettings(_fragment_input_data[input_id].dialog_id));
 
         _compile();
-    } else if (type === "camera" || type === "video") {
+    } else if (type === "camera" || type === "video" || type === "desktop") {
         video_element = document.createElement('video');
         video_element.autoplay = true;
         video_element.loop = true;
@@ -809,57 +811,119 @@ var _addFragmentInput = function (type, input, settings) {
             video_element.width = 320;
             video_element.height = 240;
             
-            navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia  || navigator.msGetUserMedia || navigator.oGetUserMedia;
+            navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia || navigator.oGetUserMedia;
             
             if (navigator.getUserMedia) {
-                navigator.getUserMedia({ video: { mandatory: { /*minWidth: 640, maxWidth: 1280, minHeight: 320, maxHeight: 720, minFrameRate: 30*/ }, optional: [ { minFrameRate: 60 } ] },
-                    audio: false }, function (media_stream) {
-                        video_element.srcObject = /*window.URL.createObjectURL(*/media_stream/*)*/;
+                navigator.getUserMedia({
+                    video: { mandatory: { /*minWidth: 640, maxWidth: 1280, minHeight: 320, maxHeight: 720, minFrameRate: 30*/ }, optional: [{ minFrameRate: 60 }] },
+                    audio: false
+                }, function (media_stream) {
+                    video_element.srcObject = /*window.URL.createObjectURL(*/media_stream/*)*/;
 
-                        data = _create2DTexture(video_element, false, false);
+                    data = _create2DTexture(video_element, false, false);
 
-                        _setTextureWrapS(data.texture, "clamp");
-                        _setTextureWrapT(data.texture, "clamp");
+                    _setTextureWrapS(data.texture, "clamp");
+                    _setTextureWrapT(data.texture, "clamp");
 
-                        db_obj.settings.wrap.s = data.wrap.ws;
-                        db_obj.settings.wrap.t = data.wrap.wt;
-                        db_obj.settings.flip = false;
+                    db_obj.settings.wrap.s = data.wrap.ws;
+                    db_obj.settings.wrap.t = data.wrap.wt;
+                    db_obj.settings.flip = false;
 
-                        _dbStoreInput(input_id, db_obj);
+                    _dbStoreInput(input_id, db_obj);
 
-                        if (settings !== undefined) {
-                            _setTextureFilter(data.texture, settings.f);
-                            _setTextureWrapS(data.texture, settings.wrap.s);
-                            _setTextureWrapT(data.texture, settings.wrap.t);
+                    if (settings !== undefined) {
+                        _setTextureFilter(data.texture, settings.f);
+                        _setTextureWrapS(data.texture, settings.wrap.s);
+                        _setTextureWrapT(data.texture, settings.wrap.t);
 
-                            db_obj.settings.f = settings.f;
-                            db_obj.settings.wrap.s = settings.wrap.s;
-                            db_obj.settings.wrap.t = settings.wrap.t;
-                            db_obj.settings.flip = settings.flip;
-                        }
+                        db_obj.settings.f = settings.f;
+                        db_obj.settings.wrap.s = settings.wrap.s;
+                        db_obj.settings.wrap.t = settings.wrap.t;
+                        db_obj.settings.flip = settings.flip;
+                    }
 
-                        _fragment_input_data.push({
-                                type: 1,
-                                image: data.image,
-                                texture: data.texture,
-                                video_elem: video_element,
-                                elem: null,
-                                media_stream: media_stream,
-                                db_obj: db_obj
-                            });
-
-                        _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/camera.png");
-                        
-                        _createChannelSettingsDialog(input_id);
-
-                        _fragment_input_data[input_id].elem.addEventListener("contextmenu", _cbChannelSettings(_fragment_input_data[input_id].dialog_id));
-
-                        _compile();
-                    }, function (e) {
-                        _notification("Unable to capture video/camera.");
+                    _fragment_input_data.push({
+                        type: 1,
+                        image: data.image,
+                        texture: data.texture,
+                        video_elem: video_element,
+                        elem: null,
+                        media_stream: media_stream,
+                        db_obj: db_obj
                     });
+
+                    _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/camera.png");
+                        
+                    _createChannelSettingsDialog(input_id);
+
+                    _fragment_input_data[input_id].elem.addEventListener("contextmenu", _cbChannelSettings(_fragment_input_data[input_id].dialog_id));
+
+                    _compile();
+                }, function (e) {
+                    _notification("Unable to capture video/camera.");
+                });
             } else {
                 _notification("Cannot capture video/camera, getUserMedia function is not supported by your browser.");
+            }
+        } else if (type === "desktop") {
+            var gdm = new Function("notification", "resultCb", "" +
+                "navigator.getDisplayMedia = navigator.getDisplayMedia || navigator.mediaDevices.getDisplayMedia;" +
+                "if (!navigator.getDisplayMedia) {" +
+                "   notification('Cannot capture desktop, getDisplayMedia function is not supported by your browser.');" +
+                "   return;" +
+                "}" +
+                "(async function () {" +
+                "    resultCb(await navigator.getDisplayMedia({" +
+                "        video: true" +
+                "    }));" +
+                "})();");
+            
+            try {
+                gdm(_notification, function (media_stream) {
+                    video_element.srcObject = media_stream;
+
+                    data = _create2DTexture(video_element, false, false);
+        
+                    _setTextureWrapS(data.texture, "clamp");
+                    _setTextureWrapT(data.texture, "clamp");
+        
+                    db_obj.settings.wrap.s = data.wrap.ws;
+                    db_obj.settings.wrap.t = data.wrap.wt;
+                    db_obj.settings.flip = false;
+        
+                    _dbStoreInput(input_id, db_obj);
+        
+                    if (settings !== undefined) {
+                        _setTextureFilter(data.texture, settings.f);
+                        _setTextureWrapS(data.texture, settings.wrap.s);
+                        _setTextureWrapT(data.texture, settings.wrap.t);
+        
+                        db_obj.settings.f = settings.f;
+                        db_obj.settings.wrap.s = settings.wrap.s;
+                        db_obj.settings.wrap.t = settings.wrap.t;
+                        db_obj.settings.flip = settings.flip;
+                    }
+        
+                    _fragment_input_data.push({
+                        type: 5,
+                        image: data.image,
+                        texture: data.texture,
+                        video_elem: video_element,
+                        elem: null,
+                        media_stream: media_stream,
+                        db_obj: db_obj
+                    });
+        
+                    _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/desktop.png");
+                        
+                    _createChannelSettingsDialog(input_id);
+        
+                    _fragment_input_data[input_id].elem.addEventListener("contextmenu", _cbChannelSettings(_fragment_input_data[input_id].dialog_id));
+        
+                    _compile();
+                });
+            } catch (e) {
+                _notification("Unable to capture desktop.");
             }
         } else { // Video
             // a "video without data" Fragment input; a dummy image basically which tell the user that a video was here

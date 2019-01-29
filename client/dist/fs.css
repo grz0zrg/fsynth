@@ -1114,6 +1114,10 @@ span.CodeMirror-selectedtext { background: none; }
     background-image: url("../data/ui-icons/users.png");
 }
 
+.fs-dsk-icon {
+    background-image: url("../data/ui-icons/desktop.png");
+}
+
 .fs-pjs-icon {
     background-image: url("../data/ui-icons/pjs.png");
 }

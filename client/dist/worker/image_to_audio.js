@@ -4005,6 +4005,10 @@ var STFT = new (function() {
 })();
 /* jslint browser: true */
 
+/***********************************************************
+    Fields.
+************************************************************/
+
 var _fs_palette = {
         0:   [0,   0,   0],
         10:  [75,  0, 159],
@@ -4378,6 +4382,18 @@ var _fnToImageData = function (img, done) {
 
         done(tmp_image_data);
     };
+};
+
+var _imageToDataURL = function (image) {
+    var canvas = document.createElement("canvas"),
+        ctx = canvas.getContext("2d");
+    
+    canvas.width = image.width;
+    canvas.height = image.height;
+
+    ctx.drawImage(image, 0, 0);
+
+    return canvas.toDataURL("image/png");
 };
 
 var _fnCanvasToImage = function (tmp_canvas, done) {

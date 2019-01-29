@@ -209,7 +209,7 @@ var _glsl_compilation = function () {
     glsl_code += "float fline(float frequency) {return step(abs(gl_FragCoord.y - htoy(frequency)), 0.5);}";
 
     // add yfreq
-    glsl_code += "float getFrequency(float y, float sample_rate) { return (baseFrequency * pow(2., (resolution.y - round(y * resolution.y)) / octave)) / sample_rate; }";
+    glsl_code += "float getFrequency(float y, float sample_rate) { return (baseFrequency * pow(2., (resolution.y - floor((y * resolution.y) + 0.5)) / octave)) / sample_rate; }";
     
     // add inputs uniforms
     for (i = 0; i < _fragment_input_data.length; i += 1) {
@@ -219,6 +219,7 @@ var _glsl_compilation = function () {
             fragment_input.type === 1 ||
             fragment_input.type === 2 ||
             fragment_input.type === 4 ||
+            fragment_input.type === 5 ||
             fragment_input.type === 404) { // 2D texture from either image, webcam, canvas, pjs
             glsl_code += "uniform sampler2D " + _input_channel_prefix + "" + i + ";";
         } else if (fragment_input.type === 3) { // video type

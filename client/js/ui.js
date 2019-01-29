@@ -1424,7 +1424,7 @@ var _uiInit = function () {
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
             title: "Import dialog (images etc.)",
 
-            width: "480px",
+            width: "550px",
             height: "auto",
             min_height: "80px",
 
@@ -1478,6 +1478,12 @@ var _uiInit = function () {
                         on_click: (function () { _addFragmentInput("camera"); }),
                         tooltip: "Webcam",
                         text: "Cam"
+                    },
+                    {
+                        icon: "fs-dsk-icon",
+                        on_click: (function () { _addFragmentInput("desktop"); }),
+                        tooltip: "Desktop",
+                        text: "Dsk"
                     },
                     {
                         icon: "fs-canvas-icon",

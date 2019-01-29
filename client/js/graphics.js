@@ -661,7 +661,7 @@ var _frame = function (raf_time) {
             _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
 
             fragment_input.globalTime += 1;
-        } else if (fragment_input.type === 1 || fragment_input.type === 3) { // video/camera
+        } else if (fragment_input.type === 1 || fragment_input.type === 3 || fragment_input.type === 5) { // video/camera/desktop
             if (fragment_input.video_elem.readyState === fragment_input.video_elem.HAVE_ENOUGH_DATA) {
                 if (fragment_input.type === 3) {
                     _gl.uniform1f(_getUniformLocation(_input_video_prefix + i), fragment_input.video_elem.currentTime / fragment_input.video_elem.duration);
