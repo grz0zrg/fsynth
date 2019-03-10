@@ -24043,7 +24043,7 @@ _glsl_parser_worker.onmessage = function(m) {
             }
             
             elem.innerHTML = '<span class="fs-outline-item-type">' + statement.returnType.name + "</span> " + statement.name + " (" + tmp.join(", ") + ")";
-            elem.title = "line: " + statement.position.start.line;
+            elem.title = "line: " + (statement.position.start.line - 1);
                 
             _outline_element.appendChild(elem);
             
@@ -24054,7 +24054,7 @@ _glsl_parser_worker.onmessage = function(m) {
             elem.className = "fs-outline-item fs-outline-declarator";
             
             elem.innerHTML = '<span class="fs-outline-item-type">' + statement.returnType + "</span> " + statement.name;
-            elem.title = "line: " + statement.position.start.line;
+            elem.title = "line: " + (statement.position.start.line - 1);
 
             _outline_element.appendChild(elem);
             
@@ -24065,7 +24065,7 @@ _glsl_parser_worker.onmessage = function(m) {
             elem.className = "fs-outline-item fs-outline-preprocessor";
             
             elem.innerHTML = statement.name + " = " + statement.value;
-            elem.title = "line: " + statement.position.start.line;
+            elem.title = "line: " + (statement.position.start.line - 1);
 
             _outline_element.appendChild(elem);
             
@@ -25468,7 +25468,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
 
         closable: true,
         draggable: true,
-        minimizable: false,
+        minimizable: true,
 
         resizable: false,
 
@@ -26016,9 +26016,7 @@ var _addFragmentInput = function (type, input, settings) {
             
             try {
                 gdm(_notification, function (media_stream) {
-                    console.log(media_stream);
-
-                    video_element.srcObject = /*window.URL.createObjectURL(*/media_stream/*)*/;
+                    video_element.srcObject = media_stream;
 
                     data = _create2DTexture(video_element, false, false);
         
@@ -26725,6 +26723,11 @@ var _icon_class = {
     
     _outline_dialog_id = "fs_outline_dialog",
     _outline_dialog,
+
+    _slices_dialog_id = "fs_slices_dialog",
+    _slices_dialog,
+
+    _slices_dialog_timeout = null,
     
     _import_dialog_id = "fs_import_dialog",
     _import_dialog,
@@ -26752,7 +26755,7 @@ var _icon_class = {
     _remove_slice_timeout,
 
     _synthesis_types = ["Additive", "Spectral", "Granular", "PM/FM", "Subtractive", "Karplus", "Wavetable"],
-    _synthesis_enabled = [1, 0, 1, 1, 1, 1, 1],
+    _synthesis_enabled = [1, 0, 1, 1, 1, 1, 0],
     _synthesis_params = [0, 0, 3, 0, 0, 0, 0],
     
     _fas_content_list = [];
@@ -26844,6 +26847,58 @@ var _applyCollapsible = function (element, bind_to, collapsed) {
     }
 
     _collapsible_id += 1;
+};
+
+var _updateSlicesDialog = function () {
+    var slices_dialog_ul = document.createElement("ul");
+    slices_dialog_ul.classList.add("fs-slices-list");
+    var slices_dialog_content = document.getElementById(_slices_dialog_id).lastElementChild;
+    slices_dialog_content.innerHTML = "";
+
+    var i = 0;
+    for (i = 0; i < _play_position_markers.length; i += 1) {
+        var play_position_marker = _play_position_markers[i];
+
+        var slices_dialog_li = document.createElement("li");
+
+        var li_content = [
+            "<span>CHN " + play_position_marker.output_channel + "</span>"];
+
+        if (play_position_marker.mute) {
+            //li_content.push("<span>MUTED</span>");
+            slices_dialog_li.style = "text-decoration: line-through";
+        }
+        if (play_position_marker.audio_out) {
+            li_content.push("<span>AUDIO OUT</span>");
+        }
+        if (play_position_marker.osc_out) {
+            li_content.push("<span>OSC OUT</span>");
+        }
+        if (play_position_marker.midi_out.enabled) {
+            li_content.push("<span>MIDI OUT</span>");
+        }
+
+        slices_dialog_li.addEventListener("click", _openSliceSettingsDialogFn(play_position_marker));
+        slices_dialog_li.addEventListener("contextmenu", _showSliceSettingsMenuFn(play_position_marker.element));
+        
+        slices_dialog_li.innerHTML = play_position_marker.id + ": " + li_content.join(' - ');
+
+        slices_dialog_ul.appendChild(slices_dialog_li);
+    }
+
+    slices_dialog_content.appendChild(slices_dialog_ul);
+
+    _slices_dialog_timeout = setTimeout(_updateSlicesDialog, 3000);
+};
+
+var _openedSlicesDialog = function () {
+    _updateSlicesDialog();
+
+    _slices_dialog_timeout = setTimeout(_updateSlicesDialog, 3000);
+};
+
+var _closedSlicesDialog = function () {
+    clearTimeout(_slices_dialog_timeout);
 };
 
 var _createFxSettingsContent = function () {
@@ -27584,6 +27639,7 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: false,
+            minimizable: true,
             draggable: true,
         
             header_btn: [
@@ -27956,6 +28012,7 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: true,
+            minimizable: true,
             draggable: true,
         
             on_detach: function (new_window) {
@@ -27986,6 +28043,7 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: true,
+            minimizable: true,
             draggable: true,
         
             on_close: _onRecordDialogClose,
@@ -28026,6 +28084,7 @@ var _uiInit = function () {
 
         status_bar: false,
         detachable: true,
+        minimizable: true,
         draggable: true,
     
         on_detach: function (new_window) {
@@ -28059,6 +28118,7 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: true,
+            minimizable: true,
             draggable: true,
         
             on_detach: function (new_window) {
@@ -28092,6 +28152,7 @@ var _uiInit = function () {
 
         status_bar: false,
         detachable: true,
+        minimizable: true,
         draggable: true,
     
         on_detach: function (new_window) {
@@ -28123,6 +28184,7 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: true,
+            minimizable: true,
             draggable: true,
         
             on_close: _onImportDialogClose,
@@ -28203,6 +28265,7 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: true,
+            minimizable: true,
             draggable: true,
         
             on_detach: function (new_window) {
@@ -28227,6 +28290,38 @@ var _uiInit = function () {
         status_bar: false,
         detachable: false,
         draggable: true
+    });
+
+    _slices_dialog = WUI_Dialog.create(_slices_dialog_id, {
+        title: "Slices",
+
+        width: "280px",
+        height: "auto",
+    
+        min_height: 16,
+
+        halign: "center",
+        valign: "center",
+
+        on_open: _openedSlicesDialog,
+        on_close: _closedSlicesDialog,
+
+        open: false,
+
+        status_bar: false,
+        detachable: false,
+        draggable: true,
+        minimizable: true,
+    
+        header_btn: [
+            {
+                title: "Help",
+                on_click: function () {
+                    window.open(_documentation_link + "tutorials/slices_dialog/"); 
+                },
+                class_name: "fs-help-icon"
+            }
+        ]
     });
     
 /*
@@ -28263,6 +28358,7 @@ var _uiInit = function () {
             status_bar: false,
             detachable: true,
             draggable: true,
+            minimizable: true,
             
             top: 200
         });
@@ -28283,6 +28379,7 @@ var _uiInit = function () {
 
             status_bar: false,
             draggable: true,
+            minimizable: true,
         
             on_detach: function (new_window) {
                 new_window.document.body.style.overflow = "hidden";
@@ -28315,6 +28412,7 @@ var _uiInit = function () {
             status_bar: true,
             status_bar_content: _motd,
             draggable: true,
+            minimizable: true,
         
             header_btn: [
                 {
@@ -29818,6 +29916,12 @@ var _selected_slice_marker = null,
     Functions.
 ************************************************************/
 
+var _openSliceSettingsDialogFn = function (slice_obj) {
+    return function () {
+        WUI_Dialog.open(_slice_settings_dialog_prefix + slice_obj.dialog_id);
+    }
+};
+
 var _updateSliceSettingsDialog = function (slice_obj, show) {
     var i = 0;
     
@@ -30212,7 +30316,7 @@ var _createMarkerSettings = function (marker_obj) {
     osc_label.className = "fs-ck-label";
     osc_input.type = "checkbox";
 
-    if (marker_obj.osc_out.enabled) {
+    if (marker_obj.osc_out) {
         osc_input.checked = true;
     }
 
@@ -30224,7 +30328,7 @@ var _createMarkerSettings = function (marker_obj) {
     _applyCollapsible(osc_container, osc_container_legend, true);
 
     osc_input.addEventListener("change", _cbMarkerSettingsChange(marker_obj, function (self, instance, marker_obj) {
-        marker_obj.osc_out.enabled = self.checked;
+        marker_obj.osc_out = self.checked;
         _saveMarkersSettings();
     }));
 
@@ -30241,7 +30345,7 @@ var _createMarkerSettings = function (marker_obj) {
 
     midi_dev_list_label.className = "fs-select-label";
     midi_dev_list_label.htmlFor = "fs_slice_settings_midi_device_" + marker_obj.id;
-    midi_dev_list_label.innerHTML = "MIDI out device";
+    midi_dev_list_label.innerHTML = "Device";
     midi_dev_list.id = "fs_slice_settings_midi_device_" + marker_obj.id;
     midi_dev_list.className = "fs-multiple-select";
     midi_dev_list.multiple = true;
@@ -30255,7 +30359,7 @@ var _createMarkerSettings = function (marker_obj) {
     }
 
     midi_dev_list_ck_input.addEventListener("change", _cbMarkerSettingsChange(marker_obj, function (self, instance, marker_obj) {
-        marker_obj.midi_out = self.checked;
+        marker_obj.midi_out.enabled = self.checked;
         _saveMarkersSettings();
     }));
 
@@ -30494,6 +30598,7 @@ var _createMarkerSettings = function (marker_obj) {
         detachable: false,
 
         status_bar: false,
+        minimizable: true,
         draggable: true,
     
         header_btn: [
@@ -30592,6 +30697,64 @@ var _unmuteSlice = function (slice_obj, submit) {
     }
 };
 
+var _showSliceSettingsMenuFn = function (play_position_marker_element) {
+    return function (ev) {
+        ev.preventDefault();
+
+        var play_position_marker = _play_position_markers[parseInt(play_position_marker_element.dataset.slice, 10)],
+            
+            mute_obj = { icon: "fs-mute-icon", tooltip: "Mute",  on_click: function () {
+                    _muteSlice(play_position_marker, true);
+                } },
+            unmute_obj = { icon: "fs-unmute-icon", tooltip: "Unmute",  on_click: function () {
+                    _unmuteSlice(play_position_marker, true);
+                } },
+            fx_obj = { icon: "fs-fx-icon", tooltip: "FX",  on_click: function () {
+                _changeSliceType(play_position_marker, 1, true);
+            } },
+            synth_obj = { icon: "fs-fas-icon", tooltip: "Synth",  on_click: function () {
+                _changeSliceType(play_position_marker, 0, true);
+            } },
+            obj,
+            type_obj;
+
+        if (play_position_marker.type === 0 || play_position_marker.type === undefined) {
+            type_obj = fx_obj;
+        } else {
+            type_obj = synth_obj;
+        }
+
+        if (!play_position_marker.mute) {
+            obj = mute_obj;
+        } else {
+            obj = unmute_obj;
+        }
+
+        WUI_CircularMenu.create(
+            {
+                x: _mx,
+                y: _my,
+
+                rx: 32,
+                ry: 32,
+
+                item_width:  32,
+                item_height: 32
+            },
+            [
+                obj,
+                { icon: "fs-gear-icon", tooltip: "Settings",  on_click: function () {
+                        _updateSliceSettingsDialog(play_position_marker, true);
+                    }},
+                //type_obj,
+                { icon: "fs-cross-45-icon", tooltip: "Delete",  on_click: function () {
+                        _removePlayPositionMarker(play_position_marker_element.dataset.slice, true, true);
+                    }}
+            ]);
+
+        return false;
+    }
+}
 
 var _changeSliceType = function (slice_obj, type, submit) {
     var play_position_top_hook_element = slice_obj.element.firstElementChild.nextElementSibling,
@@ -30671,7 +30834,7 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
                 device_uids: [],
                 custom_midi_message: "",
                 custom_midi_message_fn: null,
-                enableb: false
+                enabled: false
             },
             osc_out: false,
             audio_out: true,
@@ -30734,66 +30897,7 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
             _updateSliceSettingsDialog(play_position_marker, true);
         });
     
-    play_position_marker_element.addEventListener('contextmenu', function(ev) {
-            ev.preventDefault();
-        
-            if (!this.mute) {
-                this.mute = false;
-            }
-        
-            var play_position_marker = _play_position_markers[parseInt(play_position_marker_element.dataset.slice, 10)],
-                
-                mute_obj = { icon: "fs-mute-icon", tooltip: "Mute",  on_click: function () {
-                        _muteSlice(play_position_marker, true);
-                    } },
-                unmute_obj = { icon: "fs-unmute-icon", tooltip: "Unmute",  on_click: function () {
-                        _unmuteSlice(play_position_marker, true);
-                    } },
-                fx_obj = { icon: "fs-fx-icon", tooltip: "FX",  on_click: function () {
-                    _changeSliceType(play_position_marker, 1, true);
-                } },
-                synth_obj = { icon: "fs-fas-icon", tooltip: "Synth",  on_click: function () {
-                    _changeSliceType(play_position_marker, 0, true);
-                } },
-                obj,
-                type_obj;
-
-            if (play_position_marker.type === 0 || play_position_marker.type === undefined) {
-                type_obj = fx_obj;
-            } else {
-                type_obj = synth_obj;
-            }
-        
-            if (!play_position_marker.mute) {
-                obj = mute_obj;
-            } else {
-                obj = unmute_obj;
-            }
-
-            WUI_CircularMenu.create(
-                {
-                    x: _mx,
-                    y: _my,
-
-                    rx: 32,
-                    ry: 32,
-
-                    item_width:  32,
-                    item_height: 32
-                },
-                [
-                    obj,
-                    { icon: "fs-gear-icon", tooltip: "Settings",  on_click: function () {
-                            _updateSliceSettingsDialog(play_position_marker, true);
-                        }},
-                    //type_obj,
-                    { icon: "fs-cross-45-icon", tooltip: "Delete",  on_click: function () {
-                            _removePlayPositionMarker(play_position_marker_element.dataset.slice, true, true);
-                        }}
-                ]);
-
-            return false;
-        }, false);
+    play_position_marker_element.addEventListener('contextmenu', _showSliceSettingsMenuFn(play_position_marker_element), false);
     
     _createMarkerSettings(play_position_marker);  
     
@@ -32301,6 +32405,10 @@ _canvas.addEventListener('contextmenu', function(ev) {
         return false;
     }, false);
 
+
+_canvas.addEventListener('dblclick', function() {
+    WUI_Dialog.open(_slices_dialog);
+});
 /*
 // slow
 _canvas.addEventListener('dblclick', function() {

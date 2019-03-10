@@ -37,6 +37,11 @@ var _icon_class = {
     
     _outline_dialog_id = "fs_outline_dialog",
     _outline_dialog,
+
+    _slices_dialog_id = "fs_slices_dialog",
+    _slices_dialog,
+
+    _slices_dialog_timeout = null,
     
     _import_dialog_id = "fs_import_dialog",
     _import_dialog,
@@ -64,7 +69,7 @@ var _icon_class = {
     _remove_slice_timeout,
 
     _synthesis_types = ["Additive", "Spectral", "Granular", "PM/FM", "Subtractive", "Karplus", "Wavetable"],
-    _synthesis_enabled = [1, 0, 1, 1, 1, 1, 1],
+    _synthesis_enabled = [1, 0, 1, 1, 1, 1, 0],
     _synthesis_params = [0, 0, 3, 0, 0, 0, 0],
     
     _fas_content_list = [];
@@ -156,6 +161,58 @@ var _applyCollapsible = function (element, bind_to, collapsed) {
     }
 
     _collapsible_id += 1;
+};
+
+var _updateSlicesDialog = function () {
+    var slices_dialog_ul = document.createElement("ul");
+    slices_dialog_ul.classList.add("fs-slices-list");
+    var slices_dialog_content = document.getElementById(_slices_dialog_id).lastElementChild;
+    slices_dialog_content.innerHTML = "";
+
+    var i = 0;
+    for (i = 0; i < _play_position_markers.length; i += 1) {
+        var play_position_marker = _play_position_markers[i];
+
+        var slices_dialog_li = document.createElement("li");
+
+        var li_content = [
+            "<span>CHN " + play_position_marker.output_channel + "</span>"];
+
+        if (play_position_marker.mute) {
+            //li_content.push("<span>MUTED</span>");
+            slices_dialog_li.style = "text-decoration: line-through";
+        }
+        if (play_position_marker.audio_out) {
+            li_content.push("<span>AUDIO OUT</span>");
+        }
+        if (play_position_marker.osc_out) {
+            li_content.push("<span>OSC OUT</span>");
+        }
+        if (play_position_marker.midi_out.enabled) {
+            li_content.push("<span>MIDI OUT</span>");
+        }
+
+        slices_dialog_li.addEventListener("click", _openSliceSettingsDialogFn(play_position_marker));
+        slices_dialog_li.addEventListener("contextmenu", _showSliceSettingsMenuFn(play_position_marker.element));
+        
+        slices_dialog_li.innerHTML = play_position_marker.id + ": " + li_content.join(' - ');
+
+        slices_dialog_ul.appendChild(slices_dialog_li);
+    }
+
+    slices_dialog_content.appendChild(slices_dialog_ul);
+
+    _slices_dialog_timeout = setTimeout(_updateSlicesDialog, 3000);
+};
+
+var _openedSlicesDialog = function () {
+    _updateSlicesDialog();
+
+    _slices_dialog_timeout = setTimeout(_updateSlicesDialog, 3000);
+};
+
+var _closedSlicesDialog = function () {
+    clearTimeout(_slices_dialog_timeout);
 };
 
 var _createFxSettingsContent = function () {
@@ -896,6 +953,7 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: false,
+            minimizable: true,
             draggable: true,
         
             header_btn: [
@@ -1268,6 +1326,7 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: true,
+            minimizable: true,
             draggable: true,
         
             on_detach: function (new_window) {
@@ -1298,6 +1357,7 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: true,
+            minimizable: true,
             draggable: true,
         
             on_close: _onRecordDialogClose,
@@ -1338,6 +1398,7 @@ var _uiInit = function () {
 
         status_bar: false,
         detachable: true,
+        minimizable: true,
         draggable: true,
     
         on_detach: function (new_window) {
@@ -1371,6 +1432,7 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: true,
+            minimizable: true,
             draggable: true,
         
             on_detach: function (new_window) {
@@ -1404,6 +1466,7 @@ var _uiInit = function () {
 
         status_bar: false,
         detachable: true,
+        minimizable: true,
         draggable: true,
     
         on_detach: function (new_window) {
@@ -1435,6 +1498,7 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: true,
+            minimizable: true,
             draggable: true,
         
             on_close: _onImportDialogClose,
@@ -1515,6 +1579,7 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: true,
+            minimizable: true,
             draggable: true,
         
             on_detach: function (new_window) {
@@ -1539,6 +1604,38 @@ var _uiInit = function () {
         status_bar: false,
         detachable: false,
         draggable: true
+    });
+
+    _slices_dialog = WUI_Dialog.create(_slices_dialog_id, {
+        title: "Slices",
+
+        width: "280px",
+        height: "auto",
+    
+        min_height: 16,
+
+        halign: "center",
+        valign: "center",
+
+        on_open: _openedSlicesDialog,
+        on_close: _closedSlicesDialog,
+
+        open: false,
+
+        status_bar: false,
+        detachable: false,
+        draggable: true,
+        minimizable: true,
+    
+        header_btn: [
+            {
+                title: "Help",
+                on_click: function () {
+                    window.open(_documentation_link + "tutorials/slices/"); 
+                },
+                class_name: "fs-help-icon"
+            }
+        ]
     });
     
 /*
@@ -1575,6 +1672,7 @@ var _uiInit = function () {
             status_bar: false,
             detachable: true,
             draggable: true,
+            minimizable: true,
             
             top: 200
         });
@@ -1595,6 +1693,7 @@ var _uiInit = function () {
 
             status_bar: false,
             draggable: true,
+            minimizable: true,
         
             on_detach: function (new_window) {
                 new_window.document.body.style.overflow = "hidden";
@@ -1627,6 +1726,7 @@ var _uiInit = function () {
             status_bar: true,
             status_bar_content: _motd,
             draggable: true,
+            minimizable: true,
         
             header_btn: [
                 {

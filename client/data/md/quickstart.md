@@ -20,13 +20,13 @@ Videos of most features are available on [YouTube](https://www.youtube.com/chann
 
 - With web. browser audio, Fragment is **limited to additive synthesis** and two output channels.
 
-Please consider the Fragment Audio Server (available on the [homepage](https://www.fsynth.com)) for fast additive/granular/subtractive/PM sound synthesis, multi-output channels (DAW connection) and many other features.
+Please consider the Fragment Audio Server (available on the [homepage](https://www.fsynth.com)) for fast additive/granular/karplus/subtractive/PM sound synthesis, multi-output channels (DAW connection) and many other features.
 
 ## Quickstart
 
 ### Sessions
 
-You are in a Fragment session, a session is a public, anonymous and collaborative space containing session-specific GLSL code and settings (such as canvas parameters, including slices), all the sessions you joined in are saved locally and can be joined back by going to the [homepage](https://www.fsynth.com)
+This is a Fragment session, a session is a public, anonymous and collaborative space containing session-specific GLSL code and settings (such as canvas parameters and slices parameters), all the sessions you joined in are saved locally and can be joined back by going to the [homepage](https://www.fsynth.com)
 
 You can invite friends to join your session and collaborate online by sharing the link shown in the address bar
 
@@ -51,6 +51,8 @@ Any number of slices can be added, slices can be removed, muted or tweaked by ri
 
 The slices can be moved by clicking on it, holding it and by moving the cursor around.
 
+You can also open the slices dialog which show an overview of all slices by double clicking anywhere on the canvas.
+
 You can experiment right away with the sound/visual by tweaking the values of this sample program in the GLSL code editor, any modifications is updated in real-time as you type.
 
 ### MIDI
@@ -59,7 +61,7 @@ To play a saw-like waveform with a MIDI keyboard, click on the Jack plug icon on
 
 ### Fragment Audio Server
 
-The Fragment audio server (FAS) is necessary for fast sound synthesis, additive/granular/subtractive/PM synthesis, multiple output channels and many other professional grade features.
+The Fragment audio server (FAS) is necessary for fast sound synthesis, additive/granular/subtractive/Karplus/PM synthesis, multiple output channels and many other professional grade features.
 
 [Please checkout the software documentation to setup the audio server on your machine.](https://www.fsynth.com/documentation/tutorials/audio_server/)
 

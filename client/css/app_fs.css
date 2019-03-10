@@ -610,6 +610,22 @@ canvas {
     cursor: text;
 }
 
+.fs-slices-list {
+    list-style: none;
+    margin: 0;
+    padding: 8px;
+}
+
+.fs-slices-list li {
+    color: white;
+    font-size: 12px;
+}
+
+.fs-slices-list li:hover {
+    cursor: pointer;
+    color: #ff8000;
+}
+
 .fs-bottom-panel {
 /*
     display: -webkit-box;

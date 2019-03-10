@@ -333,7 +333,7 @@ _glsl_parser_worker.onmessage = function(m) {
             }
             
             elem.innerHTML = '<span class="fs-outline-item-type">' + statement.returnType.name + "</span> " + statement.name + " (" + tmp.join(", ") + ")";
-            elem.title = "line: " + statement.position.start.line;
+            elem.title = "line: " + (statement.position.start.line - 1);
                 
             _outline_element.appendChild(elem);
             
@@ -344,7 +344,7 @@ _glsl_parser_worker.onmessage = function(m) {
             elem.className = "fs-outline-item fs-outline-declarator";
             
             elem.innerHTML = '<span class="fs-outline-item-type">' + statement.returnType + "</span> " + statement.name;
-            elem.title = "line: " + statement.position.start.line;
+            elem.title = "line: " + (statement.position.start.line - 1);
 
             _outline_element.appendChild(elem);
             
@@ -355,7 +355,7 @@ _glsl_parser_worker.onmessage = function(m) {
             elem.className = "fs-outline-item fs-outline-preprocessor";
             
             elem.innerHTML = statement.name + " = " + statement.value;
-            elem.title = "line: " + statement.position.start.line;
+            elem.title = "line: " + (statement.position.start.line - 1);
 
             _outline_element.appendChild(elem);
             

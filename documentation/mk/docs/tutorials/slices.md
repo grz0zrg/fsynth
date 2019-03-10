@@ -1,10 +1,12 @@
 ## About
 
-Slices are an important part of Fragment, no sounds is produced if you don't add at least one slice.
+Slices is an important concept of the Fragment Synthesizer, no sounds is produced if you don't add at least one slice.
 
 The purpose of slices is to capture the bitmap-data of the canvas, the captured pixels will be fed to the audio synthesis engine, they are like turntable needles, they can be dragged around in real-time with the mouse.
 
 When multiple slices are assigned to the same output channel, the pixels data is merged additively into one slice, this may result in non-wanted sounds with granular synthesis if not careful due to the addition of the Green and Alpha parameters.
+
+Double-clicking on the canvas bring the slices dialog which show an overview of all current slices and short informations about it, you can click on an item to open the slice settings dialog or right-click on an item to bring the slice menu.
 
 ## How-to
 
@@ -42,6 +44,7 @@ slice settings dialog
 - MIDI out device: The MIDI device which will receive MIDI data from the bitmap data. (see MIDI)
 
 
+You can also double click on the canvas to open the slices dialog.
 
 ##### Muting a slice
 

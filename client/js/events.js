@@ -43,6 +43,10 @@ _canvas.addEventListener('contextmenu', function(ev) {
         return false;
     }, false);
 
+
+_canvas.addEventListener('dblclick', function() {
+    WUI_Dialog.open(_slices_dialog);
+});
 /*
 // slow
 _canvas.addEventListener('dblclick', function() {

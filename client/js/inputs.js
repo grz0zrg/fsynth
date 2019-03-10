@@ -332,7 +332,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
 
         closable: true,
         draggable: true,
-        minimizable: false,
+        minimizable: true,
 
         resizable: false,
 

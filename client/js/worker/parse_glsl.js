@@ -9,7 +9,8 @@ var parse_statements = function (statements, root) {
         
         statement_exceptions = {
             htoy: true,
-            fline: true
+            fline: true,
+            getFrequency: true
         },
         
         root_declarator_exceptions = {

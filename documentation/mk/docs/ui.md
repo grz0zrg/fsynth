@@ -1,6 +1,6 @@
 ## About
 
-Fragment user interface use a simple layout with five different parts.
+Fragment user interface has a simple layout with five different parts.
 
 [![Fragment UI guide](tutorials/images/ui_help.png)](tutorials/images/ui_help.png)
 
@@ -12,19 +12,19 @@ Fragment user interface use a simple layout with five different parts.
 
 The information panel at the top convey minor and major informations such as (in order from left to right)
 
-- connectivity status
+- connectivity status for each services (SERVER, CHAT, AUDIO SERVER)
   - a red indicator signal that the connection to this service failed
   - a green indicator signal that Fragment is currently connected to this service
   - the service name can be found by hovering the icon with the cursor
 - username
-  - the username can be edited by clicking on it
+  - the username can be edited by clicking on it (affect all sessions)
 - various informations which can be enabled or disabled in the settings dialog such as
   - FAS CPU load (if Fragment Audio Server is enabled)
   - the actual number of simultaneous MIDI notes for each channels (polyphony)
   - the actual number of oscillators
   - the current frequency under the mouse cursor
 - the playback time (at the center)
-- a gain controller (master volume)
+- a gain controller on the top right corner (master volume)
 
 ### Canvas / Graphical score
 
