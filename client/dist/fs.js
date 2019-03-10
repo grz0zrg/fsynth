@@ -23950,8 +23950,8 @@ var _glsl_compilation = function () {
     temp_program = _createAndLinkProgram(
             _createShader(_gl.VERTEX_SHADER, vertex_shader_code),
             _createShader(_gl.FRAGMENT_SHADER, glsl_code)
-        );
-
+    );
+    
     if (temp_program) {
         _parseGLSL(glsl_code);
         
@@ -25166,7 +25166,9 @@ var _cbChannelSettingsClose = function (input_channel_id) {
         WUI_RangeSlider.destroy("fs_channel_settings_videoend" + fragment_input_channel.dialog_id);
         
         if (fragment_input_channel) {
-            WUI_Dialog.destroy(_input_settings_dialog_prefix + fragment_input_channel.dialog_id);
+            if (fragment_input_channel.dialog_id) {
+                WUI_Dialog.destroy(_input_settings_dialog_prefix + fragment_input_channel.dialog_id);
+            }
         }    
     };
 };
@@ -26003,16 +26005,18 @@ var _addFragmentInput = function (type, input, settings) {
             }
         } else if (type === "desktop") {
             var gdm = new Function("notification", "resultCb", "" +
-                "navigator.getDisplayMedia = navigator.getDisplayMedia || navigator.mediaDevices.getDisplayMedia;" +
-                "if (!navigator.getDisplayMedia) {" +
-                "   notification('Cannot capture desktop, getDisplayMedia function is not supported by your browser.');" +
-                "   return;" +
-                "}" +
+                "(async function () {" +
+                "    resultCb(await navigator.mediaDevices.getDisplayMedia({" +
+                "        video: true" +
+                "    }));" +
+                "})().then(null, function () {" +
                 "(async function () {" +
                 "    resultCb(await navigator.getDisplayMedia({" +
                 "        video: true" +
                 "    }));" +
-                "})();");
+                "})().then(null, function () {" +
+                "   notification('Cannot capture desktop, getDisplayMedia function is not supported by your browser.');" +
+                "});});");
             
             try {
                 gdm(_notification, function (media_stream) {
@@ -28317,7 +28321,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "tutorials/slices_dialog/"); 
+                    window.open(_documentation_link + "tutorials/slices/"); 
                 },
                 class_name: "fs-help-icon"
             }

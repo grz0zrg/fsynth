@@ -240,8 +240,8 @@ var _glsl_compilation = function () {
     temp_program = _createAndLinkProgram(
             _createShader(_gl.VERTEX_SHADER, vertex_shader_code),
             _createShader(_gl.FRAGMENT_SHADER, glsl_code)
-        );
-
+    );
+    
     if (temp_program) {
         _parseGLSL(glsl_code);
         
