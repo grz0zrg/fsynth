@@ -38,7 +38,7 @@ Table of Contents
 
 Fragment is a collaborative audiovisual live coding web. environment with pixels based (image-synth) live additive/spectral/granular synthesis and sequencing, the **sound synthesis** is **powered by pixels data** generated from live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) and [Processing.js](http://processingjs.org/) code with many different types of input data.
 
-Many videos of most features are available on [YouTube](https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ)
+Many videos of most features are available on [YouTube](https://www.youtube.com/c/FragmentSynthesizer)
 
 Fragment has only one fragment shader which has the particularity to be shared between the users of an online session, it update and compile on-the-fly as you or other peoples type, some settings are also synchronized between users such as slices and some global settings.
 
@@ -418,11 +418,9 @@ The repository for the early proof of concept can be found [here](https://github
 
 ## Fragment on social medias
 
-[YouTube](https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ)
+[YouTube](https://www.youtube.com/c/FragmentSynthesizer)
 
 [Twitter](https://twitter.com/fragmentsynth)
-
-[Instagram](https://www.instagram.com/fsynthesizer/)
 
 [Facebook](https://www.facebook.com/fsynth/)
 

@@ -179,6 +179,7 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
         i;
     
     WUI.undraggable(slice.element);
+    WUI.undraggable(slice.element.firstElementChild);
     WUI.undraggable(slice.element.firstElementChild.nextElementSibling);
     WUI.undraggable(slice.element.lastElementChild);
 
@@ -984,6 +985,10 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
 
     _setPlayPosition(play_position_marker_id, play_position_marker.x, 0);
 
+    WUI.draggable(play_position_marker.out_txt_div, function (element, x, y) {
+        _setSlicePositionFromAbsolute(element.dataset.slice, x, y);
+    }, false, play_position_marker_element);
+    WUI.lockDraggable(play_position_marker.out_txt_div, 'y');
     WUI.draggable(play_position_top_hook_element, function (element, x, y) {
             _setSlicePositionFromAbsolute(element.dataset.slice, x, y);
         }, false, play_position_marker_element);

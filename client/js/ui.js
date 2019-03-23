@@ -1357,7 +1357,7 @@ var _uiInit = function () {
 
             status_bar: false,
             detachable: true,
-            minimizable: true,
+            minimizable: false,
             draggable: true,
         
             on_close: _onRecordDialogClose,
@@ -2001,6 +2001,7 @@ var _uiInit = function () {
         {
             "Help": [
                 {
+                    id: "fs_tb_help",
                     icon: "fs-help-icon",
                     on_click: _showHelpDialog,
                     tooltip: "Help"
@@ -2008,6 +2009,7 @@ var _uiInit = function () {
             ],
             "Social": [
                 {
+                    id: "fs_tb_chat",
                     icon: "fs-discuss-icon",
                     on_click: function () {
                         WUI_Dialog.open(_discuss_dialog_id);
@@ -2015,6 +2017,7 @@ var _uiInit = function () {
                     tooltip: "Session chat"
                 },
                 {
+                    id: "fs_tb_forum",
                     icon: "fs-board-icon",
                     on_click: function () {
                         window.open("https://quiet.fsynth.com", '_blank');
@@ -2024,11 +2027,13 @@ var _uiInit = function () {
             ],
             "Settings": [
                 {
+                    id: "fs_tb_settings",
                     icon: "fs-gear-icon",
                     on_click: _showSettingsDialog,
                     tooltip: "Settings"
                 },
                 {
+                    id: "fs_tb_midi_settings",
                     icon: "fs-midi-icon",
                     on_click: _showMIDISettingsDialog,
                     tooltip: "MIDI Settings"
@@ -2036,11 +2041,13 @@ var _uiInit = function () {
             ],
             "Transport": [
                 {
+                    id: "fs_tb_reset",
                     icon: "fs-reset-icon",
                     on_click: _rewind,
                     tooltip: "Rewind (globalTime = 0)"
                 },
                 {
+                    id: "fs_tb_pause",
                     icon: "fs-pause-icon",
                     type: "toggle",
                     toggle_state: (_fs_state === 1 ? true : false),
@@ -2048,6 +2055,7 @@ var _uiInit = function () {
                     tooltip: "Play/Pause"
                 },
                 {
+                    id: "fs_tb_record",
                     icon: "fs-record-icon",
                     on_click: _showRecordDialog,
                     tooltip: "Record"
@@ -2055,6 +2063,7 @@ var _uiInit = function () {
             ],
             "FAS": [
                 {
+                    id: "fs_tb_fas",
                     icon: "fs-fas-icon",
                     type: "toggle",
                     toggle_state: _fasEnabled(),
@@ -2062,6 +2071,7 @@ var _uiInit = function () {
                     tooltip: "Enable/Disable audio server connection (the audio server is available on the homepage)"
                 },
                 {
+                    id: "fs_tb_fas_settings",
                     icon: "fs-gear-icon",
                     on_click: _showFasDialog,
                     tooltip: "Audio server settings"
@@ -2074,6 +2084,8 @@ var _uiInit = function () {
             ],
             "Tools": [
                 {
+                    id: "fs_tb_shadertoy",
+
                     icon: "fs-shadertoy-icon",
 
                     toggle_state: false,
@@ -2098,6 +2110,7 @@ var _uiInit = function () {
                     }
                 },
                 {
+                    id: "fs_tb_xyf",
                     icon: "fs-xyf-icon",
                     type: "toggle",
                     toggle_state: _xyf_grid,
@@ -2110,27 +2123,21 @@ var _uiInit = function () {
                     tooltip: "Audio analysis dialog"
                 }*/,
                 {
+                    id: "fs_tb_outline",
                     icon: "fs-function-icon",
                     on_click: _showOutlineDialog,
                     tooltip: "Outline"
                 },
                 {
+                    id: "fs_tb_code",
                     icon: "fs-code-icon",
                     on_click: _detachCodeEditor,
                     tooltip: "Clone the GLSL editor into a separate window"
                 }
             ],
-    /*
-            output: [
-                {
-                    icon: "fs-midi-out-icon",
-                    on_click: _showMIDIOutDialog,
-                    tooltip: "MIDI output"
-                },
-            ],
-    */
             "Import": [
 /*
+                // DISABLED
                 {
                     icon: "fs-controls-icon",
                     on_click: _showControlsDialog,
@@ -2138,6 +2145,7 @@ var _uiInit = function () {
                 },
 */
                 {
+                    id: "fs_tb_import",
                     icon: _icon_class.plus,
                     type: "toggle",
                     on_click: _showImportDialog,

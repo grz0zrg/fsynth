@@ -9,7 +9,10 @@
 }
 
 .wui-dialog-minimized {
-    border-color: rgb(68, 68, 68) !important;
+    border-bottom-color: #111!important;
+    border-left-color: #333!important;
+    border-right-color: #333!important;
+    border-top-color: #333!important;
 }
 
 .wui-toolbar-dropdown-content {

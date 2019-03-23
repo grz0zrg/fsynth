@@ -14,19 +14,19 @@ Fragment is a collaborative cross-platform real-time audiovisual live coding env
 
 The GLSL code is executed on the GPU for each pixels (also called fragments), this approach allow hardware accelerated real-time manipulation of the pixels data, making it a bliss to create stunning visuals or stunning sound design.
 
-Videos of most features are available on [YouTube](https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ)
+Videos of most features are available on [YouTube](https://www.youtube.com/c/FragmentSynthesizer)
 
 **Note**
 
 - With web. browser audio, Fragment is **limited to additive synthesis** and two output channels.
 
-Please consider the Fragment Audio Server (available on the [homepage](https://www.fsynth.com)) for fast additive/granular/karplus/subtractive/PM sound synthesis, multi-output channels (DAW connection) and many other features.
+For more features launch the Fragment Audio Server (available on the [homepage](https://www.fsynth.com)) for fast additive/granular/karplus/subtractive/PM sound synthesis, multi-output channels (linking to any Digital Audio Workstation) and many other features.
 
 ## Quickstart
 
 ### Sessions
 
-This is a Fragment session, a session is a public, anonymous and collaborative space containing session-specific GLSL code and settings (such as canvas parameters and slices parameters), all the sessions you joined in are saved locally and can be joined back by going to the [homepage](https://www.fsynth.com)
+This is a Fragment session, a session is a public, anonymous and collaborative space containing session-specific GLSL code and settings such as canvas parameters and slices parameters, all the sessions you joined in are saved locally and can be joined back by going to the [homepage](https://www.fsynth.com)
 
 You can invite friends to join your session and collaborate online by sharing the link shown in the address bar
 
@@ -41,15 +41,15 @@ Fragment interface is made of 4 parts
 
 ### Making sounds
 
-When a session is created for the first time, an example code is made available with a basic MIDI setup playing an additive synthesis SAW-like waveform and a ~440Hz continuous tone, the audio output is paused by default.
+When a session is created for the first time, an example code is made available with a basic MIDI setup, this setup allow playing with an additive synthesis SAW-like waveform and a ~440Hz continuous tone, the audio output is paused by default.
 
 To hear the tone, slice the graphical canvas by right-clicking anywhere on the canvas, click on the (+) icon which appeared then click on the play button.
 
-Slices capture the pixels data, the captured data is then sent to the sound synthesis engine in real-time, there is two main type of synthesis, additive and granular, **granular synthesis and many other type of synthesis are only available with the sound server/launcher which can be downloaded on the homepage**.
+Slices capture the pixels data, the captured data is then sent to the sound synthesis engine in real-time.
 
 Any number of slices can be added, slices can be removed, muted or tweaked by right-clicking on it.
 
-The slices can be moved by clicking on it, holding it and by moving the cursor around.
+Slices can be moved by clicking on it, holding it and moving the cursor around.
 
 You can also open the slices dialog which show an overview of all slices by double clicking anywhere on the canvas.
 
@@ -67,7 +67,7 @@ The Fragment audio server (FAS) is necessary for fast sound synthesis, additive/
 
 ## Help
 
-- Click on the ? icon on the toolbar, many code snippets and informations are available
+- Click on the ? icon on the toolbar, many code snippets, interactive guides and informations are available
 - Checkout the [software documentation](https://www.fsynth.com/documentation)
 - Post on the [Fragment message board](https://quiet.fsynth.com)
 

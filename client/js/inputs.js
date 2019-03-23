@@ -15,6 +15,8 @@ var _dragged_input = null,
 
     _pjs_canvas_id = 0,
 
+    _clicked_input_ev = null,
+
     _selected_input_canvas = null;
 
 /***********************************************************
@@ -415,6 +417,12 @@ var _inputThumbMenu = function (e) {
             }
         });
     }
+
+    if (input.type === 2) {
+        items.push({
+            icon: "fs-brush-icon", tooltip: "Open draw tools & allow to draw", on_click: _selectCanvasInput
+        });
+    }
     
     if (input.type === 3) {
         items.push({
@@ -436,7 +444,13 @@ var _inputThumbMenu = function (e) {
                 _pjsCompile(input);
             }
         });
+
+        items.push({
+            icon: "fs-code-icon", tooltip: "Pjs code editor", on_click: _openProcessingJSEditor
+        });
     }
+
+    _clicked_input_ev = e;
 
     WUI_CircularMenu.create(
         {
@@ -452,10 +466,18 @@ var _inputThumbMenu = function (e) {
 };
 
 var _openProcessingJSEditor = function (e) {
-    e.preventDefault();
+    var input_id = null,
+        input = null;
 
-    var input_id = _parseInt10(e.target.dataset.inputId),
-        input = _fragment_input_data[input_id];
+    if (e) {
+        e.preventDefault();
+    } else {
+        e = _clicked_input_ev;
+    }
+
+    input_id = _parseInt10(e.target.dataset.inputId);
+
+    input = _fragment_input_data[input_id];
 
     _pjsSelectInput(input);
 
@@ -463,11 +485,20 @@ var _openProcessingJSEditor = function (e) {
 };
 
 var _selectCanvasInput = function (e) {
-    e.preventDefault();
+    var input_id = null,
+        input = null;
+
+    if (e) {
+        e.preventDefault();
+    } else {
+        e = _clicked_input_ev;
+    }
+
+    input_id = _parseInt10(e.target.dataset.inputId);
+
+    input = _fragment_input_data[input_id]
     
-    var input_id = _parseInt10(e.target.dataset.inputId),
-        input = _fragment_input_data[input_id],
-        input_tmp,
+    var input_tmp,
         dom_image = input.elem,
         
         i = 0;
@@ -512,10 +543,12 @@ var _sortInputs = function () {
     for (i = 0; i < _fragment_input_data.length; i += 1) {
         fragment_input_data = _fragment_input_data[i];
 
-        fragment_input_data.elem.title = _input_channel_prefix + i;
-        fragment_input_data.elem.dataset.inputId = i;
+        if (fragment_input_data.elem) {
+            fragment_input_data.elem.title = _input_channel_prefix + i;
+            fragment_input_data.elem.dataset.inputId = i;
 
-        WUI_Dialog.setTitle(_input_settings_dialog_prefix + fragment_input_data.dialog_id, "iInput" + i + " settings");
+            WUI_Dialog.setTitle(_input_settings_dialog_prefix + fragment_input_data.dialog_id, "iInput" + i + " settings");
+        }
     }
 };
 
@@ -552,7 +585,9 @@ var _removeInputChannel = function (input_id) {
     _dbClear();
 
     for (i = 0; i < _fragment_input_data.length; i += 1) {
-         _dbStoreInput(_parseInt10(_fragment_input_data[i].elem.dataset.inputId), _fragment_input_data[i].db_obj);
+        if (_fragment_input_data[i].elem) {
+            _dbStoreInput(_parseInt10(_fragment_input_data[i].elem.dataset.inputId), _fragment_input_data[i].db_obj);
+        }
     }
 
     _pjsUpdateInputs();
@@ -879,7 +914,7 @@ var _addFragmentInput = function (type, input, settings) {
                 "        video: true" +
                 "    }));" +
                 "})().then(null, function () {" +
-                "   notification('Cannot capture desktop, getDisplayMedia function is not supported by your browser.');" +
+                "   notification('Cannot capture desktop, getDisplayMedia function is not supported by your browser or capture was cancelled.');" +
                 "});});");
             
             try {

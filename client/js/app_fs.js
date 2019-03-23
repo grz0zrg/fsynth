@@ -39,6 +39,12 @@
 // https://github.com/eligrey/FileSaver.js/
 /*#include filesaver/FileSaver.min.js*/
 
+// https://anseki.github.io/leader-line/
+/*#include leaderline/leader-line.min.js*/
+
+// https://anseki.github.io/plain-overlay/
+/*#include plainoverlay/plain-overlay.min.js*/
+
 /*#include resize_throttler/resize_throttler.js*/
 
 window.onload = function() {
@@ -467,6 +473,7 @@ var FragmentSynth = function (params) {
     /*#include slices.js*/
     /*#include midi.js*/
     /*#include fas.js*/
+    /*#include guide.js*/
     /*#include osc_handler.js*/
 
     /***********************************************************
@@ -856,8 +863,6 @@ var FragmentSynth = function (params) {
     window.gb_code_editor = _code_editor;
     window.gb_code_editor_theme = _code_editor_theme;
     
-    //document.body.style.overflow = "visible";
-
     if (params.fas || window.location.search.indexOf("?fas=1") !== -1) {
         WUI_ToolBar.toggle(_wui_main_toolbar, 8, false);
         
@@ -869,6 +874,8 @@ var FragmentSynth = function (params) {
     _initDb("fs" + _getSessionName());
     
     _clipboard = new Clipboard(".fs-documentation-keyword");
+
+    //_startUXHelper(_ux_helper_quickstart_scenario);
 };
     
     if (_electronInit()) {

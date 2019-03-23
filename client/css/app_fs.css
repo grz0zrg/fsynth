@@ -1154,6 +1154,7 @@ body .code .CodeMirror-fullscreen {
 
 .fs-link:hover {
     color: greenyellow;
+    cursor: pointer;
 }
 
 .fs-fieldset {
@@ -1390,4 +1391,12 @@ body .code .CodeMirror-fullscreen {
 .fs-pjs-failed {
     font-size: 10pt;
     color: #ff0000;
+}
+
+.leader-line {
+    z-index: 9100;
+}
+
+.plainoverlay {
+    user-select: none;
 }

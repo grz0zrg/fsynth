@@ -6,7 +6,7 @@ Fragment has a progressive learning curve, anyone can start to experiment with s
 
 Fragment has many features making it a bliss to produce any kind of sounds and visuals, it is aimed at artists seeking a creative environment with few limitations to experiment with, a programmable noise-of-all-kinds software.
 
-Many videos of most features are available on [the official YouTube channel](https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ)
+Many videos of most features are available on [the official YouTube channel](https://www.youtube.com/c/FragmentSynthesizer)
 
 For any questions, a message board is available [here](https://quiet.fsynth.com/)
 

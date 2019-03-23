@@ -90,6 +90,10 @@
     background-image: url("../data/ui-icons/osc.png");
 }
 
+.fs-brush-icon {
+    background-image: url("../data/ui-icons/brush.png");
+}
+
 .fs-mute-icon {
     background-image: url("../data/ui-icons/mute.png");
 }
