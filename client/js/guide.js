@@ -20,7 +20,7 @@ var _ux_helper_overlay = new PlainOverlay(),
     _ux_helper_quickstart_scenario = [
         {
             style: "font-size: 19pt; color: white; margin: 4px; padding: 4px; text-align: center;",
-            content: "Quickstart tour",
+            content: "Quickstart",
             sub_content: [
                 "This will show you the interface layout and how to start playing sounds"
             ]
@@ -61,7 +61,7 @@ var _ux_helper_overlay = new PlainOverlay(),
         {
             content: "Right click here then click on the + button to add a slice",
             sub_content: [
-                "Slices capture the pixels data, that data is then sent to the sound synthesis engine in real-time."
+                "Slices capture the pixels data which is sent to the sound synthesis engine in real-time."
             ],
             target: "canvas_container",
             point_anchor: true

@@ -372,10 +372,6 @@ var _playSlice = function (pixels_data) {
 };
 
 var _notesProcessing = function (prev_arr, arr) {   
-    var worker_obj,
-        
-        i = 0;
-    
     if (_osc_mode === _FS_OSC_NODES) {
         _playSlice(arr[0]);
     } else if (_fragment_worklet_node && _osc_mode === _FS_WORKLET) {

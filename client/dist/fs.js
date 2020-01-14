@@ -22235,10 +22235,6 @@ var _playSlice = function (pixels_data) {
 };
 
 var _notesProcessing = function (prev_arr, arr) {   
-    var worker_obj,
-        
-        i = 0;
-    
     if (_osc_mode === _FS_OSC_NODES) {
         _playSlice(arr[0]);
     } else if (_fragment_worklet_node && _osc_mode === _FS_WORKLET) {
@@ -27793,13 +27789,13 @@ var _uiInit = function () {
     if (fs_settings_xscrollbar !== null) {
         _cm_advanced_scrollbar = (fs_settings_xscrollbar === "true");
     }
-    
+/*
     if (fs_settings_quickstart  === "true") {
         settings_ck_quickstart_elem.checked = true;
     } else {
         settings_ck_quickstart_elem.checked = false;
     }
-    
+*/  
     _quickstart_on_startup = fs_settings_quickstart;
     
     if (_cm_advanced_scrollbar) {
@@ -27990,7 +27986,7 @@ var _uiInit = function () {
         
             localStorage.setItem('fs-editor-advanced-scrollbar', _cm_advanced_scrollbar);
         });
-    
+/*
     settings_ck_quickstart_elem.addEventListener("change", function () {
             _quickstart_on_startup = this.checked;
         
@@ -28000,7 +27996,7 @@ var _uiInit = function () {
                 WUI_Dialog.close(_quickstart_dialog);
             }
         });
-    
+*/  
     settings_ck_worklet_elem.addEventListener("change", function () {
         if (this.checked) {
             _osc_mode = _FS_WORKLET;
@@ -28051,7 +28047,7 @@ var _uiInit = function () {
     settings_ck_osc_in_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_osc_out_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_slices_elem.dispatchEvent(new UIEvent('change'));
-    settings_ck_quickstart_elem.dispatchEvent(new UIEvent('change'));
+//    settings_ck_quickstart_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_worklet_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_audio_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_show_slice_chn_elem.dispatchEvent(new UIEvent('change'));
@@ -29181,12 +29177,13 @@ var _uiInit = function () {
                 localStorage.setItem('fs-max-polyphony', _keyboard.polyphony_max);
                 
                 _keyboard.data = [];
-                
                 _keyboard.data_length = _keyboard.polyphony_max * _keyboard.data_components;
-
+/*
                 for (i = 0; i < _keyboard.data_length; i += 1) {
                     _keyboard.data[i] = 0;
                 }
+*/
+                _MIDInotesCleanup();
                 
                 _compile();
             }
@@ -31882,13 +31879,13 @@ var _ux_helper_overlay = new PlainOverlay(),
     _ux_helper_quickstart_scenario = [
         {
             style: "font-size: 19pt; color: white; margin: 4px; padding: 4px; text-align: center;",
-            content: "Quickstart tour",
+            content: "Quickstart",
             sub_content: [
-                "This will show you the interface layout and what to do to get started with sounds"
+                "This will show you the interface layout and how to start playing sounds"
             ]
         },
         {
-            content: "Various informations including master gain level",
+            content: "The top bar contain various informations including master gain level",
             target: "fs_top_panel",
             leaderline: {
                 endSocket: "bottom"
@@ -31923,7 +31920,7 @@ var _ux_helper_overlay = new PlainOverlay(),
         {
             content: "Right click here then click on the + button to add a slice",
             sub_content: [
-                "Slices capture the pixels data, that data is then sent to the sound synthesis engine in real-time."
+                "Slices capture the pixels data which is sent to the sound synthesis engine in real-time."
             ],
             target: "canvas_container",
             point_anchor: true
@@ -32996,7 +32993,7 @@ _red_curtain_element.addEventListener("transitionend", function () {
     
     _clipboard = new Clipboard(".fs-documentation-keyword");
 
-    _startUXHelper(_ux_helper_quickstart_scenario);
+    //_startUXHelper(_ux_helper_quickstart_scenario);
 };
     
     if (_electronInit()) {

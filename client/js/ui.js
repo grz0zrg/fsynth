@@ -2436,12 +2436,9 @@ var _uiInit = function () {
                 localStorage.setItem('fs-max-polyphony', _keyboard.polyphony_max);
                 
                 _keyboard.data = [];
-                
                 _keyboard.data_length = _keyboard.polyphony_max * _keyboard.data_components;
 
-                for (i = 0; i < _keyboard.data_length; i += 1) {
-                    _keyboard.data[i] = 0;
-                }
+                _MIDInotesCleanup();
                 
                 _compile();
             }
