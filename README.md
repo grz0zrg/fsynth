@@ -345,6 +345,8 @@ Once those are installed, it is easy to run it locally:
  * cd fsws & npm install & node fsws
  * point your browser to http://127.0.0.1:3000
 
+ Under Linux : proprietary GPU drivers is recommended due to performance reasons.
+
  If you just want to try it out without the collaborative feature and GLSL code save, you don't need MongoDB and Redis, you just need "fsws" then point your browser to http://127.0.0.1:3000
 
  If you want to use it with an OSC app like the SuperCollider fs.sc file or [Open Stage Control](http://osc.ammd.net), please look at the osc_relay directory.
