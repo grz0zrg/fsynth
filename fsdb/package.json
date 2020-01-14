@@ -12,6 +12,6 @@
     "strong-cluster-control": "^2.2.3",
     "websocket-json-stream": "0.0.3",
     "winston": "~0.8.0",
-    "ws": "1.1.1"
+    "ws": "7.2.1"
   }
 }
