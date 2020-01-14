@@ -1162,6 +1162,7 @@ body .code .CodeMirror-fullscreen {
     background-color: #111;
     color: #ffffff;
     font-size: 11pt;
+    overflow: hidden;
 }
 
 .fs-fieldset.fs-collapsible > legend:before {

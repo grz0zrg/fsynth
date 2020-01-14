@@ -321,11 +321,23 @@ If you want to build it by yourself, install [pyNut](https://github.com/grz0zrg/
 
 **_app_fs\_** and **_app_cm\_** are the entry point files used by the build system to produce a single file and a production ready file in the *dist* directory.
 
+You may need to install these dependencies (code minifier) globally through NPM :
+
+ * sudo npm install csso -g
+ * sudo npm install uglify-es -g
+
 The Anubis build system can be found [here](https://github.com/grz0zrg/nut) and this build system is called by the shell script named `nutbuild` (root folder)
 
 ## How to setup your own server
 
-Fragment make use of NodeJS, NPM, MongoDB and Redis database, once those are installed, it is easy to run it locally:
+Fragment make use of NodeJS, NPM, MongoDB and Redis database, install steps with APT (adapt to your package manager) :
+
+ * sudo apt install nodejs
+ * sudo apt install npm
+ * sudo apt install mongodb
+ * sudo apt install redis-server
+
+Once those are installed, it is easy to run it locally:
 
  * clone this repository
  * cd fss & npm install & node fss
@@ -354,8 +366,6 @@ Fragment make use of NodeJS, NPM, MongoDB and Redis database, once those are ins
 ## The future
 
 Maybe a VST/LV2 plugin for accessibility and of course many new features are coming soon. ;)
-
-A native app. will be done soon but with a totally different paradigm, it may be extremely simple technically and very flexible/accessible, it will also fix the main limitation of Fragment by allowing > 60 FPS capture (configurable so not limited to the display refresh rate...) which mean basically unlimited granularity as the hardware get faster.
 
 ## Stuff used to make this
 
@@ -432,6 +442,6 @@ Simplified BSD license
 
 ## Credits
 
-The main inspiration for all of this is [Alexander Zolotov Virtual ANS software](http://www.warmplace.ru/soft/ans/), thank to him.
+The main inspiration for all of this is [Alexander Zolotov Virtual ANS software](http://www.warmplace.ru/soft/ans/)
 
 Heavily inspired by [Shadertoy](https://www.shadertoy.com) as well.

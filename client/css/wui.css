@@ -59,6 +59,10 @@
     overflow: hidden;
 }
 
+#fs_help_tabs .wui-tab-content {
+    overflow: auto;
+}
+
 .fs-input-label {
     font-size: 9pt;
 }
