@@ -4,7 +4,7 @@
     "description": "Fragment Audio Server Relay",
     "dependencies": {
         "winston": "~0.8.0",
-        "minimist": "1.2.0",
+        "minimist": "1.2.5",
         "ws": "3.2.0"
     }
 }
