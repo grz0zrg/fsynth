@@ -85,17 +85,27 @@ var _dbGetInputs = function (cb) {
         return;
     }
     
-    var object_store = _db.transaction("inputs").objectStore("inputs");
+    var transaction = _db.transaction("inputs");
+    var object_store = transaction.objectStore("inputs");
     var count_query = object_store.count();
     count_query.onsuccess = function () {
-        var count = count_query.result;
+        var count = count_query.result,
+            open_cursor = object_store.openCursor(),
+            
+            inputs = [];
         
-        object_store.openCursor().onsuccess = function (event) {
+        open_cursor.onsuccess = function (event) {
             var cursor = event.target.result;
             if (cursor) {
-                cb(cursor.key, cursor.value);
+                inputs[parseInt(cursor.key, 10)] = cursor.value;
             
                 cursor.continue();
+            }
+        };
+
+        transaction.oncomplete = async function (e) {
+            for (var i = 0; i < inputs.length; i += 1) {
+                await cb(i, inputs[i]);
             }
         };
     };
@@ -116,19 +126,20 @@ var _initDb = function (db_name) {
                 _notification("IndexedDB error '" + ev.error + "'");
             };
 
-            _dbGetInputs(function (name, value) {
+            _dbGetInputs(async function (name, value) {
                 var image_element = null;
                 
                 if (!value) {
                     return;
                 }
 
+                var input_id = parseInt(name, 10);
+
                 if (value.type === "image" ||
                     value.type === "canvas") {
                     if (value.data.length === 0) {
-                        _addFragmentInput(value.type);
-                        
-                        return true;
+                        await _addFragmentInput(value.type, undefined, undefined, input_id);
+                        return;
                     }
                     
                     image_element = document.createElement("img");
@@ -136,17 +147,21 @@ var _initDb = function (db_name) {
                     image_element.width = value.width;
                     image_element.height = value.height;
 
-                    image_element.onload = function () {
-                        image_element.onload = null;
+                    await new Promise(function (resolve, reject) {
+                        image_element.onload = function () {
+                            image_element.onload = null;
 
-                        _addFragmentInput(value.type, image_element, value.settings);
-                    };
+                            _addFragmentInput(value.type, image_element, value.settings, input_id);
+
+                            resolve();
+                        }
+                    });
                 } else if (value.type === "video") {
-                    _addFragmentInput(value.type);
+                    await _addFragmentInput(value.type, undefined, undefined, input_id);
                 } else if (value.type === "processing.js") {
-                    _addFragmentInput(value.type, value.data);
+                    await _addFragmentInput(value.type, value.data, undefined, input_id);
                 } else {
-                    _addFragmentInput(value.type);
+                    await _addFragmentInput(value.type, undefined, undefined, input_id);
                 }
             });
         };

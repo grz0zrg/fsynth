@@ -1921,7 +1921,7 @@ var WUI_Dialog = new (function() {
             element;
 
         if (widget === undefined) {
-            _log("Element id '" + id + "' is not a WUI_Dialog, destroying aborted.");_focus(_dragged_dialog);
+            _log("Element id '" + id + "' is not a WUI_Dialog, destroying aborted.");
 
             return;
         }
@@ -1986,6 +1986,27 @@ var WUI_Dialog = new (function() {
             widget = _widget_list[id];
             if (widget) {
                 _close(widget.dialog, true, propagate, true);
+            }
+        }
+    };
+
+    this.centerAll = function () {
+        var id, widget;
+        for (id in _widget_list) {
+            widget = _widget_list[id];
+            if (widget) {
+                var opts = widget.opts,
+                
+                    dialog = widget.dialog,
+    
+                    parent_width = dialog.parentElement.offsetWidth,
+                    parent_height = dialog.parentElement.offsetHeight,
+    
+                    dialog_width = dialog.offsetWidth,
+                    dialog_height = dialog.offsetHeight;
+
+                dialog.style.left = Math.round((parent_width - dialog_width) / 2 + opts.left) + "px";
+                dialog.style.top = Math.round((parent_height - dialog_height) / 2 + opts.top) + "px";
             }
         }
     };
@@ -21418,6 +21439,8 @@ _utter_fail_element.innerHTML = "";
         _poly_infos_element = document.getElementById("fs_polyphony_infos"),
         _fas_stream_load = document.getElementById("fs_fas_stream_load"),
 
+        _synth_output_element = document.getElementById("fs_synth_output"),
+
         _haxis_infos = document.getElementById("fs_haxis_infos"),
         _vaxis_infos = document.getElementById("fs_vaxis_infos"),
 
@@ -21787,17 +21810,27 @@ var _dbGetInputs = function (cb) {
         return;
     }
     
-    var object_store = _db.transaction("inputs").objectStore("inputs");
+    var transaction = _db.transaction("inputs");
+    var object_store = transaction.objectStore("inputs");
     var count_query = object_store.count();
     count_query.onsuccess = function () {
-        var count = count_query.result;
+        var count = count_query.result,
+            open_cursor = object_store.openCursor(),
+            
+            inputs = [];
         
-        object_store.openCursor().onsuccess = function (event) {
+        open_cursor.onsuccess = function (event) {
             var cursor = event.target.result;
             if (cursor) {
-                cb(cursor.key, cursor.value);
+                inputs[parseInt(cursor.key, 10)] = cursor.value;
             
                 cursor.continue();
+            }
+        };
+
+        transaction.oncomplete = async function (e) {
+            for (var i = 0; i < inputs.length; i += 1) {
+                await cb(i, inputs[i]);
             }
         };
     };
@@ -21818,19 +21851,20 @@ var _initDb = function (db_name) {
                 _notification("IndexedDB error '" + ev.error + "'");
             };
 
-            _dbGetInputs(function (name, value) {
+            _dbGetInputs(async function (name, value) {
                 var image_element = null;
                 
                 if (!value) {
                     return;
                 }
 
+                var input_id = parseInt(name, 10);
+
                 if (value.type === "image" ||
                     value.type === "canvas") {
                     if (value.data.length === 0) {
-                        _addFragmentInput(value.type);
-                        
-                        return true;
+                        await _addFragmentInput(value.type, undefined, undefined, input_id);
+                        return;
                     }
                     
                     image_element = document.createElement("img");
@@ -21838,17 +21872,21 @@ var _initDb = function (db_name) {
                     image_element.width = value.width;
                     image_element.height = value.height;
 
-                    image_element.onload = function () {
-                        image_element.onload = null;
+                    await new Promise(function (resolve, reject) {
+                        image_element.onload = function () {
+                            image_element.onload = null;
 
-                        _addFragmentInput(value.type, image_element, value.settings);
-                    };
+                            _addFragmentInput(value.type, image_element, value.settings, input_id);
+
+                            resolve();
+                        }
+                    });
                 } else if (value.type === "video") {
-                    _addFragmentInput(value.type);
+                    await _addFragmentInput(value.type, undefined, undefined, input_id);
                 } else if (value.type === "processing.js") {
-                    _addFragmentInput(value.type, value.data);
+                    await _addFragmentInput(value.type, value.data, undefined, input_id);
                 } else {
-                    _addFragmentInput(value.type);
+                    await _addFragmentInput(value.type, undefined, undefined, input_id);
                 }
             });
         };
@@ -22022,6 +22060,10 @@ var _getFrequency = function (y) {
     }
         
     return osc.freq;
+};
+
+var _attachMediaStream = function (stream) {
+    _audio_context.createMediaStreamSource(stream)
 };
 
 var _generatePeriodicWaves = function (n) {
@@ -22435,6 +22477,7 @@ var _audioInit = function () {
             "        super(context, 'fragment-worklet-processor');" +
             "    }" +
             "}" +
+            //"audio_ctx.audioWorklet.addModule('dist/worker/input_worklet.js');" +
             "audio_ctx.audioWorklet.addModule('dist/worker/fragment_worklet.js').then(() => {" +
             "    let node = new FragmentWorkletNode(audio_ctx);" +
             "    node.connect(mst_gain_node);" +
@@ -22513,6 +22556,8 @@ var _imageProcessingDone = function (image_ready_cb, options) {
 
                         image_ready_cb(image_element);
                     };
+                } else {
+                    image_ready_cb(image_element);
                 }
             } else {
                 image_ready_cb(image_element);
@@ -22566,16 +22611,14 @@ var _loadImageFromURL = function (url, done_cb) {
 var _audio_to_image_worker = new Worker("dist/worker/audio_to_image.min.js"),
     
     _audio_import_settings = {
-        window_length: 4096,
-        window_alpha: 0.6,
-        window_type: "kaiser",
-        overlap: 8,
-        bpm: 60,
-        ppb: 60,
+        mapping: "logarithmic",
+        gain: 30,
+        deviation: 1,
+        padding: 0,
+        pps: 60,
         height: 0,
         minfreq: 0,
         maxfreq: 0,
-        interpolation: false,
         videotrack_import: false
     };
 
@@ -22685,7 +22728,7 @@ _audio_to_image_worker.addEventListener('message', function (m) {
             };
 
         // now image processing step...
-        _imageDataToInput(image_data, { flip: true });
+        _imageDataToInput(image_data, { flip: false });
     
         _notification("Audio file converted to " + image_data.width + "x" + image_data.height + "px image.")
     }, false);/* jslint browser: true */
@@ -22813,6 +22856,8 @@ var _main_program = null,
     _main_attch0 = null,
     _main_attch1 = null,
     _main_fbo = null,
+
+    _readSync = null,
     
     _generic_fragment_shader = [
         "precision mediump float;",
@@ -23583,6 +23628,18 @@ var _frame = function (raf_time) {
 
             if (_gl2) {
                 _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _read_pixels_format, 0);
+/*
+                if (_gl.fenceSync) {
+                    _readSync = _gl.fenceSync(_gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+                    _gl.flush();
+                    var wait_status = _gl.clientWaitSync(_readSync, 0, 0);
+
+                    if (wait_status === _gl.CONDITION_SATISFIED || wait_status === _gl.ALREADY_SIGNALED) {
+                        //_gl.deleteSync(_readSync);
+                        continue;
+                    }
+                }
+*/
                 _gl.getBufferSubData(_gl.PIXEL_PACK_BUFFER, 0, _temp_data);
             } else {
                 _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _read_pixels_format, _temp_data);
@@ -23917,6 +23974,24 @@ var _glsl_compilation = function () {
         vertex_shader_code = document.getElementById("vertex-shader").text;
     }
     
+    // add inputs uniforms
+    for (i = 0; i < _fragment_input_data.length; i += 1) {
+        fragment_input = _fragment_input_data[i];
+
+        if (fragment_input) {
+            if (fragment_input.type === 0 ||
+                fragment_input.type === 1 ||
+                fragment_input.type === 2 ||
+                fragment_input.type === 4 ||
+                fragment_input.type === 5 ||
+                fragment_input.type === 404) { // 2D texture from either image, webcam, canvas, pjs
+                glsl_code += "uniform sampler2D " + _input_channel_prefix + "" + i + ";";
+            } else if (fragment_input.type === 3) { // video type
+                glsl_code += "uniform sampler2D " + _input_channel_prefix + "" + i + ";" + " uniform float " + _input_video_prefix + "" + i + ";";
+            }
+        }
+    }
+    
     // add our uniforms
     glsl_code += "uniform float globalTime; uniform int frame; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "]; uniform vec3 pKey[" + 16 + "];"
     
@@ -23936,22 +24011,6 @@ var _glsl_compilation = function () {
 
     // add yfreq
     glsl_code += "float getFrequency(float y, float sample_rate) { return (baseFrequency * pow(2., (resolution.y - floor((y * resolution.y) + 0.5)) / octave)) / sample_rate; }";
-    
-    // add inputs uniforms
-    for (i = 0; i < _fragment_input_data.length; i += 1) {
-        fragment_input = _fragment_input_data[i];
-
-        if (fragment_input.type === 0 ||
-            fragment_input.type === 1 ||
-            fragment_input.type === 2 ||
-            fragment_input.type === 4 ||
-            fragment_input.type === 5 ||
-            fragment_input.type === 404) { // 2D texture from either image, webcam, canvas, pjs
-            glsl_code += "uniform sampler2D " + _input_channel_prefix + "" + i + ";";
-        } else if (fragment_input.type === 3) { // video type
-            glsl_code += "uniform sampler2D " + _input_channel_prefix + "" + i + ";" + " uniform float " + _input_video_prefix + "" + i + ";";
-        }
-    }
 
     // inputs uniform from OSC
     for (ctrl_name in _osc.inputs) { 
@@ -25169,7 +25228,9 @@ var _dragged_input = null,
 
     _clicked_input_ev = null,
 
-    _selected_input_canvas = null;
+    _selected_input_canvas = null,
+    
+    _input_loading = false;
 
 /***********************************************************
     Functions.
@@ -25182,9 +25243,9 @@ var _cbChannelSettingsClose = function (input_channel_id) {
         WUI_RangeSlider.destroy("fs_channel_settings_playrate" + fragment_input_channel.dialog_id);
         WUI_RangeSlider.destroy("fs_channel_settings_videostart" + fragment_input_channel.dialog_id);
         WUI_RangeSlider.destroy("fs_channel_settings_videoend" + fragment_input_channel.dialog_id);
-        
+
         if (fragment_input_channel) {
-            if (fragment_input_channel.dialog_id) {
+            if (fragment_input_channel.dialog_id !== undefined && fragment_input_channel.dialog_id !== null) {
                 WUI_Dialog.destroy(_input_settings_dialog_prefix + fragment_input_channel.dialog_id);
             }
         }    
@@ -25217,7 +25278,6 @@ var _createChannelSettingsDialog = function (input_channel_id) {
         channel_wrap_s_select,
         channel_wrap_t_select,
         channel_vflip,
-        channel_sloop,
     
         channel_settings_dialog,
         
@@ -25248,6 +25308,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     }
 
     if (fragment_input_channel.type === 1 ||
+        fragment_input_channel.type === 2 ||
         fragment_input_channel.type === 3 ||
         fragment_input_channel.type === 4 ||
         fragment_input_channel.type === 5 ||
@@ -25256,7 +25317,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     }
     
     dialog_element.style.fontSize = "13px";
-    
+
     // create setting widgets
     content_element.innerHTML = '<div><div class="fs-input-settings-label">Filter:</div>&nbsp;<select id="fs_channel_filter' + input_channel_id + '" class="fs-btn">' +
                                 '<option value="nearest">nearest</option>' +
@@ -25286,13 +25347,12 @@ var _createChannelSettingsDialog = function (input_channel_id) {
         dialog_height = "340px";
         
         content_element.innerHTML += '&nbsp;<div id="' + video_playrate_element + '"></div><div id="' + video_start_element + '"></div><div id="' + video_end_element + '"></div>';
-        content_element.innerHTML += '&nbsp;<div><label><div style="vertical-align: top;" class="fs-input-settings-label">Smooth:</div>&nbsp;<input id="fs_channel_sloop' + input_channel_id + '" value="No" type="checkbox"></label></div>';
-
+ 
         WUI_RangeSlider.create(video_playrate_element, {
                     width: 120,
                     height: 8,
 
-                    min: -10000.0,
+                    min: 0,
                     max: 10000.0,
 
                     bar: false,
@@ -25381,18 +25441,6 @@ var _createChannelSettingsDialog = function (input_channel_id) {
                             fic.videoend = parseFloat(v);
                         })
                 });
-        
-        channel_sloop = document.getElementById("fs_channel_sloop" + input_channel_id);
-        
-        if (fragment_input_channel.db_obj.settings.sloop) {
-            channel_sloop.checked = true;
-        } else {
-            channel_sloop.checked = false;
-        }
-
-        channel_sloop.addEventListener("change", function () {
-            fragment_input_channel.sloop = this.checked;
-        });
     }
     
     _gl.bindTexture(_gl.TEXTURE_2D, fragment_input_channel.texture);
@@ -25708,22 +25756,21 @@ var _removeInputChannel = function (input_id) {
     var fragment_input_data = _fragment_input_data[input_id],
         tracks, i;
 
-    _gl.deleteTexture(_fragment_input_data.texture);
+    _gl.deleteTexture(fragment_input_data.texture);
 
-    if (_fragment_input_data.type === 1 || _fragment_input_data.type === 3) {
-        _fragment_input_data.video_elem.pause();
-        window.URL.revokeObjectURL(_fragment_input_data.video_elem.src);
-        _fragment_input_data.video_elem.src = "";
+    if (fragment_input_data.type === 1 || fragment_input_data.type === 3 || fragment_input_data === 5) {
+        fragment_input_data.video_elem.pause();
+        window.URL.revokeObjectURL(fragment_input_data.video_elem.src);
+        fragment_input_data.video_elem.src = "";
 
-        if (_fragment_input_data.media_stream) {
-            tracks = _fragment_input_data.media_stream.getVideoTracks();
-            if (tracks) {
-                tracks[0].stop();
-            }
+        if (fragment_input_data.media_stream) {
+            fragment_input_data.media_stream.getTracks().forEach(function(track) {
+                track.stop();
+            });
         }
-        _fragment_input_data.video_elem = null;
+        fragment_input_data.video_elem = null;
     }
-    
+
     if (fragment_input_data.canvas) {
         fragment_input_data.canvas.remove();
     }
@@ -25865,39 +25912,9 @@ var _createInputThumb = function (input_id, image, thumb_title, src) {
 var _addVideoEvents = function (video_element, input) {
     video_element.addEventListener("ended", function () {
         this.play();
-        if (input.sloop) {
-            input.playrate = -input.playrate;
-            video_element.playbackRate = input.playrate;
-        } else {
-            this.currentTime = input.videostart * this.duration;
-        }
-    });
 
-    video_element.addEventListener("timeupdate", function () {
-        if (this.duration !== NaN) {
-            var video_start_pos = this.duration * input.videostart,
-                video_end_pos = this.duration * input.videoend;
-            if (input.sloop) {
-                if (this.currentTime < video_start_pos) {
-                    video_element.playbackRate = input.playrate;
-                    this.currentTime = video_start_pos;
-                    this.play();
-                } else if (this.currentTime > video_end_pos) {
-                    video_element.playbackRate = -input.playrate;
-                    this.currentTime = video_end_pos;
-                    this.play();
-                }
-            } else {
-                if (this.currentTime < video_start_pos) {
-                    this.currentTime = video_end_pos;
-                    this.play();
-                } else if (this.currentTime >= video_end_pos) {
-                    this.currentTime = video_start_pos;
-                    this.play();
-                }
-            }
-        }
-    }, false);
+        this.currentTime = input.videostart * this.duration;
+    });
 };
 
 var _fnReplaceInputTexture = function (input_id) {
@@ -25924,7 +25941,7 @@ var _addNoneInput = function (type, input_id) {
     _compile();
 };
 
-var _addFragmentInput = function (type, input, settings) {
+var _addFragmentInput = async function (type, input, settings, id) {
     var input_thumb,
 
         data,
@@ -25938,7 +25955,9 @@ var _addFragmentInput = function (type, input, settings) {
         
         db_obj = { type: type, width: null, height: null, data: null, settings: { f: "nearest", wrap: { s: null, t: null }, flip: false } },
 
-        input_id = _fragment_input_data.length;
+        input_id = id ? id : _fragment_input_data.length,
+        
+        promise = null;
 
     if (type === "image") {
         data = _create2DTexture(input, false, true);
@@ -25952,13 +25971,13 @@ var _addFragmentInput = function (type, input, settings) {
         
         _dbStoreInput(input_id, db_obj);
         
-        _fragment_input_data.push({
+        _fragment_input_data[input_id] = {
             type: 0,
             image: data.image,
             texture: data.texture,
             elem: null,
             db_obj: db_obj
-        });
+        };
         
         if (settings !== undefined) {
             _setTextureFilter(data.texture, settings.f);
@@ -26000,13 +26019,13 @@ var _addFragmentInput = function (type, input, settings) {
             video_element.width = 320;
             video_element.height = 240;
             
-            navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia || navigator.oGetUserMedia;
-            
-            if (navigator.getUserMedia) {
-                navigator.getUserMedia({
-                    video: { mandatory: { /*minWidth: 640, maxWidth: 1280, minHeight: 320, maxHeight: 720, minFrameRate: 30*/ }, optional: [{ minFrameRate: 60 }] },
-                    audio: false
-                }, function (media_stream) {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                try {
+                    var media_stream = await navigator.mediaDevices.getUserMedia({
+                        video: { mandatory: { /*minWidth: 640, maxWidth: 1280, minHeight: 320, maxHeight: 720, minFrameRate: 30*/ }, optional: [{ minFrameRate: 60 }] },
+                        audio: _audio_import_settings.videotrack_import
+                    });
+
                     video_element.srcObject = /*window.URL.createObjectURL(*/media_stream/*)*/;
 
                     data = _create2DTexture(video_element, false, false);
@@ -26017,6 +26036,7 @@ var _addFragmentInput = function (type, input, settings) {
                     db_obj.settings.wrap.s = data.wrap.ws;
                     db_obj.settings.wrap.t = data.wrap.wt;
                     db_obj.settings.flip = false;
+                    db_obj.settings.audio = _audio_import_settings.videotrack_import;
 
                     _dbStoreInput(input_id, db_obj);
 
@@ -26029,9 +26049,10 @@ var _addFragmentInput = function (type, input, settings) {
                         db_obj.settings.wrap.s = settings.wrap.s;
                         db_obj.settings.wrap.t = settings.wrap.t;
                         db_obj.settings.flip = settings.flip;
+                        db_obj.settings.audio = settings.audio;
                     }
 
-                    _fragment_input_data.push({
+                    _fragment_input_data[input_id] = {
                         type: 1,
                         image: data.image,
                         texture: data.texture,
@@ -26039,7 +26060,7 @@ var _addFragmentInput = function (type, input, settings) {
                         elem: null,
                         media_stream: media_stream,
                         db_obj: db_obj
-                    });
+                    };
 
                     _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/camera.png");
                         
@@ -26048,29 +26069,25 @@ var _addFragmentInput = function (type, input, settings) {
                     _fragment_input_data[input_id].elem.addEventListener("contextmenu", _cbChannelSettings(_fragment_input_data[input_id].dialog_id));
 
                     _compile();
-                }, function (e) {
+
+                    promise = media_stream;
+
+                    if (db_obj.settings.audio) {
+                        await _addFragmentInput("canvas", null, { linked: { input: input_id} });
+                    }
+                } catch (e) {
                     _notification("Unable to capture video/camera.");
-                });
+                }
             } else {
-                _notification("Cannot capture video/camera, getUserMedia function is not supported by your browser.");
+                _notification("Unable to capture video/camera, getUserMedia may be not supported by your browser.");
             }
         } else if (type === "desktop") {
-            var gdm = new Function("notification", "resultCb", "" +
-                "(async function () {" +
-                "    resultCb(await navigator.mediaDevices.getDisplayMedia({" +
-                "        video: true" +
-                "    }));" +
-                "})().then(null, function () {" +
-                "(async function () {" +
-                "    resultCb(await navigator.getDisplayMedia({" +
-                "        video: true" +
-                "    }));" +
-                "})().then(null, function () {" +
-                "   notification('Cannot capture desktop, getDisplayMedia function is not supported by your browser or capture was cancelled.');" +
-                "});});");
-            
-            try {
-                gdm(_notification, function (media_stream) {
+            if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+                try {
+                    const media_stream = await navigator.mediaDevices.getDisplayMedia({
+                        video: true
+                    });
+
                     video_element.srcObject = media_stream;
 
                     data = _create2DTexture(video_element, false, false);
@@ -26095,7 +26112,7 @@ var _addFragmentInput = function (type, input, settings) {
                         db_obj.settings.flip = settings.flip;
                     }
         
-                    _fragment_input_data.push({
+                    _fragment_input_data[input_id] = {
                         type: 5,
                         image: data.image,
                         texture: data.texture,
@@ -26103,7 +26120,7 @@ var _addFragmentInput = function (type, input, settings) {
                         elem: null,
                         media_stream: media_stream,
                         db_obj: db_obj
-                    });
+                    };
         
                     _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/desktop.png");
                         
@@ -26112,9 +26129,13 @@ var _addFragmentInput = function (type, input, settings) {
                     _fragment_input_data[input_id].elem.addEventListener("contextmenu", _cbChannelSettings(_fragment_input_data[input_id].dialog_id));
         
                     _compile();
-                });
-            } catch (e) {
-                _notification("Unable to capture desktop.");
+
+                    promise = media_stream;
+                } catch (e) {
+                    _notification("Unable to capture desktop.");
+                }
+            } else {
+                _notification("Unable to capture desktop, getDisplayMedia may be not supported by your browser.");
             }
         } else { // Video
             // a "video without data" Fragment input; a dummy image basically which tell the user that a video was here
@@ -26161,11 +26182,10 @@ var _addFragmentInput = function (type, input, settings) {
                     db_obj: db_obj,
                     videostart: 0.0,
                     videoend: 1.0,
-                    playrate: 1.0,
-                    sloop: false // smooth video loop
+                    playrate: 1.0
             };
 
-            _fragment_input_data.push(input_obj);
+            _fragment_input_data[input_id] = input_obj;
 
             _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/video.png");
             
@@ -26180,6 +26200,12 @@ var _addFragmentInput = function (type, input, settings) {
             video_element.play();
         }
     } else if (type === "canvas") {
+        var linked_input = null;
+
+        if (settings && settings.linked) {
+            linked_input = settings.linked.input;
+        }
+
         data = _create2DTexture({
                 empty: true,
                 width: _canvas_width,
@@ -26219,7 +26245,7 @@ var _addFragmentInput = function (type, input, settings) {
                 update_timeout: null
             };
         
-        _fragment_input_data.push(input_obj);
+        _fragment_input_data[input_id] = input_obj;
 
         var co = _getElementOffset(_canvas);
             
@@ -26240,54 +26266,68 @@ var _addFragmentInput = function (type, input, settings) {
         
         document.body.appendChild(canvas);
         
-        canvas.addEventListener('mousedown', function (e) {
-            if (!input_obj.canvas_enable) {
-                return false;
-            }
-            
-            var e = e || window.event,
-
-                canvas_offset = _getElementOffset(canvas),
-
-                x = e.pageX - canvas_offset.left,
-                y = e.pageY - canvas_offset.top;
-
-            input_obj.mouse_btn = e.which;
-
-            if (input_obj.mouse_btn === 1 ||
-               input_obj.mouse_btn === 3) {
-                _paintStart(x, y);
+        if (linked_input === null) {
+            canvas.addEventListener('mousedown', function (e) {
+                if (!input_obj.canvas_enable) {
+                    return false;
+                }
                 
-                _canvasInputDraw(input_obj, x, y, true);
-                
-                document.body.classList.add("fs-no-select");
-            }
-        });
+                var e = e || window.event,
+
+                    canvas_offset = _getElementOffset(canvas),
+
+                    x = e.pageX - canvas_offset.left,
+                    y = e.pageY - canvas_offset.top;
+
+                input_obj.mouse_btn = e.which;
+
+                if (input_obj.mouse_btn === 1 ||
+                input_obj.mouse_btn === 3) {
+                    _paintStart(x, y);
+                    
+                    _canvasInputDraw(input_obj, x, y, true);
+                    
+                    document.body.classList.add("fs-no-select");
+                }
+            });
+        }
 
         canvas.addEventListener('contextmenu', function (e) {
             e.preventDefault();
         });
         
         if (settings !== undefined) {
-            _setTextureFilter(data.texture, settings.f);
-            _setTextureWrapS(data.texture, settings.wrap.s);
-            _setTextureWrapT(data.texture, settings.wrap.t);
+            if (settings.f) {
+                _setTextureFilter(data.texture, settings.f);
+                db_obj.settings.f = settings.f;
+            }
+
+            if (settings.wrap) {
+                _setTextureWrapS(data.texture, settings.wrap.s);
+                db_obj.settings.wrap.s = settings.wrap.s;
+
+                _setTextureWrapT(data.texture, settings.wrap.t);
+                db_obj.settings.wrap.t = settings.wrap.t;
+            }
             
-            db_obj.settings.f = settings.f;
-            db_obj.settings.wrap.s = settings.wrap.s;
-            db_obj.settings.wrap.t = settings.wrap.t;
-            db_obj.settings.flip = settings.flip;
+            if (settings.flip) {
+                db_obj.settings.flip = settings.flip;
+            }
         }
 
-        _dbStoreInput(input_id, db_obj);
+        if (linked_input === null) {
+            _dbStoreInput(input_id, db_obj);
+        }
 
         input_thumb = input;
 
-        _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/paint_brush.png" );
+        _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, linked_input !== null ? "data/ui-icons/mic.png" : "data/ui-icons/paint_brush.png" );
 
         _createChannelSettingsDialog(input_id);
 
-        _fragment_input_data[input_id].elem.addEventListener("contextmenu", _selectCanvasInput);
+        if (linked_input === null) {
+            _fragment_input_data[input_id].elem.addEventListener("contextmenu", _selectCanvasInput);
+        }
         
         _compile();
     } else if (type === "processing.js") {
@@ -26347,7 +26387,7 @@ var _addFragmentInput = function (type, input, settings) {
                 pjs: null
             };
         
-        _fragment_input_data.push(input_obj);
+        _fragment_input_data[input_id] = input_obj;
 
         var co = _getElementOffset(_canvas);
             
@@ -26399,6 +26439,12 @@ var _addFragmentInput = function (type, input, settings) {
         _compile();
 
         _pjs_canvas_id += 1;
+    }
+
+    if (promise) {
+        return promise;
+    } else {
+        return Promise.resolve();
     }
 };
 
@@ -26796,9 +26842,6 @@ var _icon_class = {
     _fas_synth_params_dialog_id = "fs_fas_synth_params_dialog",
     _fas_synth_params_dialog,
 
-    _fx_dialog_id = "fs_fx_dialog",
-    _fx_dialog,
-    
     _fas_chn_notify_timeout,
     
     _wui_main_toolbar,
@@ -26809,9 +26852,710 @@ var _icon_class = {
     _add_slice_timeout,
     _remove_slice_timeout,
 
-    _synthesis_types = ["Additive", "Spectral", "Granular", "PM/FM", "Subtractive", "Karplus", "Wavetable"],
-    _synthesis_enabled = [1, 0, 1, 1, 1, 1, 0],
-    _synthesis_params = [0, 0, 3, 0, 0, 0, 0],
+    _synthesis_types = ["Additive", "Spectral", "Granular", "PM/FM", "Subtractive", "Physical Model", "Wavetable", "Bandpass (M)", "Formant (M)", "Phase Distorsion (M)", "String resonance (M)", "Modal (M)", "In"],
+    _synthesis_enabled = [1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1],
+    _synthesis_params = [0, 3, 3, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0],
+
+    _efx = [{
+            name: "Convolution",
+            color: "#00ffff",
+            params: [{
+                name: "Impulse index",
+                type: 0,
+                min: 0,
+                step: 1,
+                value: 0,
+                decimals: 0
+            }, {
+                name: "Partition length",
+                type: [256, 512, 1024, 2048, 4096, 8192, 16384],
+                value: 4
+            },
+            {
+                name: "Dry",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 1,
+                decimals: 4
+            },
+            {
+                name: "Wet",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.02,
+                decimals: 4
+            }]
+        },
+        {
+            name: "Zitareverb",
+            color: "#00bfff",
+            params: [{
+                name: "In delay",
+                type: 0,
+                min: 0,
+                step: 1,
+                value: 60,
+                decimals: 0
+            }, {
+                name: "Crossover freq.",
+                type: 0,
+                min: 0,
+                step: 1,
+                value: 200,
+                decimals: 0
+            }, {
+                name: "RT60 low time",
+                type: 0,
+                min: 0,
+                step: 0.1,
+                value: 3.0,
+                decimals: 4
+            }, {
+                name: "RT60 mid time",
+                type: 0,
+                min: 0,
+                step: 0.1,
+                value: 2.0,
+                decimals: 4
+            }, {
+                name: "HF damping",
+                type: 0,
+                min: 0,
+                step: 1,
+                value: 6000.0,
+                decimals: 4
+            }, {
+                name: "EQ1 frequency",
+                type: 0,
+                min: 0,
+                step: 0.1,
+                value: 315.0,
+                decimals: 4
+            }, {
+                name: "EQ1 level",
+                type: 0,
+                min: 0,
+                step: 0.1,
+                value: 0,
+                decimals: 4
+            }, {
+                name: "EQ2 frequency",
+                type: 0,
+                min: 0,
+                step: 1,
+                value: 1500.0,
+                decimals: 4
+            }, {
+                name: "EQ2 level",
+                type: 0,
+                min: 0,
+                step: 0.1,
+                value: 0,
+                decimals: 4
+            }, {
+                name: "Mix",
+                type: 0,
+                min: 0,
+                step: 0.01,
+                value: 1,
+                decimals: 4
+            }, {
+                name: "level",
+                type: 0,
+                step: 1,
+                value: 0,
+                decimals: 0
+            }]
+        },{
+            name: "Chowning Reverb",
+            color: "#8b4513",
+            params: []
+        },{
+            name: "8 FDN Stereo Reverb",
+            color: "#483d8b",
+            params: [{
+                name: "feedback",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.1,
+                decimals: 4
+            }, {
+                name: "lpfreq",
+                type: 0,
+                min: 1000,
+                step: 1,
+                value: 10000,
+                decimals: 0
+            }]
+        },{
+            name: "Autowah",
+            color: "#000080",
+            params: [{
+                name: "level",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.1,
+                decimals: 4
+            }, {
+                name: "wah",
+                type: 0,
+                min: 0,
+                step: 0.01,
+                value: 0,
+                decimals: 4
+            }, {
+                name: "mix",
+                type: 0,
+                min: 0,
+                max: 100,
+                step: 1,
+                value: 50,
+                decimals: 0
+            }]
+        },{
+            name: "Phaser",
+            color: "#9acd32",
+            params: [{
+                name: "MaxNotch1Freq",
+                type: 0,
+                min: 20,
+                max: 10000,
+                step: 1,
+                value: 800,
+                decimals: 0
+            }, {
+                name: "MinNotch1Freq",
+                type: 0,
+                min: 20,
+                max: 5000,
+                step: 1,
+                value: 100,
+                decimals: 0
+            }, {
+                name: "NotchWidth",
+                type: 0,
+                min: 10,
+                max: 5000,
+                step: 1,
+                value: 100,
+                decimals: 0
+            }, {
+                name: "NotchFreq",
+                type: 0,
+                min: 1.1,
+                max: 4,
+                step: 0.01,
+                value: 1.5,
+                decimals: 4
+            }, {
+                name: "VibratoMode",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 1,
+                value: 1,
+                decimals: 0
+            }, {
+                name: "Depth",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 1,
+                decimals: 4
+            }, {
+                name: "Feedback gain",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0,
+                decimals: 4
+            }, {
+                name: "Invert",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 1,
+                value: 1,
+                decimals: 0
+            }, {
+                name: "level",
+                type: 0,
+                min: -60,
+                max: 10,
+                step: 1,
+                value: 0,
+                decimals: 0
+            }, {
+                name: "lfo bpm",
+                type: 0,
+                min: 24,
+                max: 360,
+                step: 1,
+                value: 30,
+                decimals: 0
+            }]
+        },{
+            name: "Comb filter",
+            color: "#daa520",
+            params: [{
+                name: "looptime",
+                type: 0,
+                min: 0,
+                max: 5,
+                step: 0.01,
+                value: 0.1,
+                decimals: 4
+            }, {
+                name: "revtime",
+                type: 0,
+                min: 0,
+                max: 10,
+                step: 0.01,
+                value: 3.5,
+                decimals: 4
+            }]
+        },{
+            name: "V Delay",
+            color: "#8b008b",
+            params: [{
+                name: "maxdel",
+                type: 0,
+                min: 0,
+                max: 20,
+                step: 0.01,
+                value: 1.0,
+                decimals: 4
+            }, {
+                name: "delay time",
+                type: 0,
+                min: 0,
+                max: 20,
+                step: 0.01,
+                value: 0.5,
+                decimals: 4
+            }]
+        },{
+            name: "Smooth Delay",
+            color: "#ff4500",
+            params: [{
+                name: "maxdel",
+                type: 0,
+                min: 0,
+                max: 20,
+                step: 0.01,
+                value: 1,
+                decimals: 4
+            }, {
+                name: "interp. time",
+                type: [64, 128, 256, 512, 1024, 2048, 4096],
+                value: 3
+            }, {
+                name: "feedback",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.1,
+                decimals: 4
+            }, {
+                name: "delay time",
+                type: 0,
+                min: 0,
+                max: 20,
+                step: 0.01,
+                value: 0.5,
+                decimals: 4
+            }]
+        },{
+            name: "Decimator",
+            color: "#ffff00",
+            params: [{
+                name: "bitdepth",
+                type: 0,
+                min: 1,
+                max: 16,
+                step: 1,
+                value: 8,
+                decimals: 0
+            }, {
+                name: "srate",
+                type: 0,
+                min: 1,
+                max: 96000,
+                step: 1,
+                value: 10000,
+                decimals: 0
+            }]
+        },{
+            name: "Distorsion",
+            color: "#7cfc00",
+            params: [{
+                name: "pregain",
+                type: 0,
+                min: 0,
+                max: 4,
+                step: 0.01,
+                value: 2,
+                decimals: 4
+            },{
+                name: "postgain",
+                type: 0,
+                min: 0,
+                max: 4,
+                step: 0.01,
+                value: 0.5,
+                decimals: 4
+            },{
+                name: "shape1",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0,
+                decimals: 4
+            },{
+                name: "shape2",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0,
+                decimals: 4
+            }]
+        },{
+            name: "Saturator",
+            color: "#8a2be2",
+            params: [{
+                name: "drive",
+                type: 0,
+                min: 0,
+                max: 20,
+                step: 1,
+                value: 1,
+                decimals: 0
+            }, {
+                name: "dc offset",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0,
+                decimals: 4
+            }]
+        },{
+            name: "Compressor",
+            color: "#00ff7f",
+            params: [{
+                name: "ratio",
+                type: 0,
+                min: 0,
+                max: 20,
+                step: 0.1,
+                value: 1,
+                decimals: 1
+            }, {
+                name: "tresh",
+                type: 0,
+                min: -40,
+                max: 40,
+                step: 1,
+                value: 0,
+                decimals: 0
+            }, {
+                name: "attack",
+                type: 0,
+                min: 0,
+                max: 4,
+                step: 0.01,
+                value: 0.1,
+                decimals: 2
+            }, {
+                name: "release",
+                type: 0,
+                min: 0,
+                max: 4,
+                step: 0.01,
+                value: 0.1,
+                decimals: 2
+            }]
+        },{
+            name: "Peak Limiter",
+            color: "#dc143c",
+            params: [{
+                name: "attack",
+                type: 0,
+                min: 0,
+                max: 4,
+                step: 0.01,
+                value: 0.01,
+                decimals: 2
+            }, {
+                name: "release",
+                type: 0,
+                min: 0,
+                max: 4,
+                step: 0.01,
+                value: 0.01,
+                decimals: 2
+            }, {
+                name: "tresh",
+                type: 0,
+                min: -20,
+                max: 40,
+                step: 1,
+                value: 0,
+                decimals: 0
+            }]
+        },{
+            name: "Clip",
+            color: "#696969",
+            params: [{
+                name: "tresh",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 1,
+                decimals: 4
+            }]
+        },{
+            name: "Lowpass Butterworth",
+            color: "#856b2f",
+            params: [{
+                name: "cutoff",
+                type: 0,
+                min: 1,
+                max: 96000,
+                step: 1,
+                value: 1000,
+                decimals: 0
+            }]
+        },{
+            name: "Highpass Butterworth",
+            color: "#0000ff",
+            params: [{
+                name: "cutoff",
+                type: 0,
+                min: 1,
+                max: 96000,
+                step: 1,
+                value: 1000,
+                decimals: 0
+            }]
+        },{
+            name: "Bandpass Butterworth",
+            color: "#ff00ff",
+            params: [{
+                name: "cutoff",
+                type: 0,
+                min: 1,
+                max: 96000,
+                step: 1,
+                value: 1000,
+                decimals: 0
+            },{
+                name: "bw",
+                type: 0,
+                min: 1,
+                max: 96000,
+                step: 1,
+                value: 10,
+                decimals: 0
+            }]
+        },{
+            name: "Bandreject Butterworth",
+            color: "#1e90ff",
+            params: [{
+                name: "cutoff",
+                type: 0,
+                min: 1,
+                max: 96000,
+                step: 1,
+                value: 1000,
+                decimals: 0
+            },{
+                name: "bw",
+                type: 0,
+                min: 1,
+                max: 96000,
+                step: 1,
+                value: 1000,
+                decimals: 0
+            }]
+        },{
+            name: "Parametric EQ",
+            color: "#db7093",
+            params: [{
+                name: "fc",
+                type: 0,
+                min: 1,
+                max: 96000,
+                step: 1,
+                value: 1000,
+                decimals: 0
+            },{
+                name: "v",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 1,
+                decimals: 4
+            },{
+                name: "q",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 1,
+                decimals: 4
+            },{
+                name: "eq mode",
+                type: 0,
+                min: 0,
+                max: 2,
+                step: 1,
+                value: 0,
+                decimals: 0
+            }]
+        },{
+            name: "Moog LPF",
+            color: "#eee8aa",
+            params: [{
+                name: "cutoff",
+                type: 0,
+                min: 1,
+                step: 1,
+                value: 1000,
+                decimals: 0
+            }, {
+                name: "res",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.01,
+                decimals: 4
+            }]
+        },{
+            name: "Diode LPF",
+            color: "#ff1493",
+            params: [{
+                name: "cutoff",
+                type: 0,
+                min: 1,
+                step: 1,
+                value: 1000,
+                decimals: 0
+            }, {
+                name: "res",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.01,
+                decimals: 4
+            }]
+        },{
+            name: "Korg35 LPF",
+            color: "#ffa07a",
+            params: [{
+                name: "cutoff",
+                type: 0,
+                min: 1,
+                step: 1,
+                value: 1000,
+                decimals: 0
+            }, {
+                name: "res",
+                type: 0,
+                min: 0,
+                max: 2,
+                step: 0.01,
+                value: 1,
+                decimals: 4
+            }, {
+                name: "saturation",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.01,
+                decimals: 4
+            }]
+        },{
+            name: "18db LPF",
+            color: "#ee82ee",
+            params: [{
+                name: "cutoff",
+                type: 0,
+                min: 1,
+                step: 1,
+                value: 1000,
+                decimals: 0
+            }, {
+                name: "res",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.8,
+                decimals: 4
+            }, {
+                name: "saturation",
+                type: 0,
+                min: 0,
+                max: 4,
+                step: 0.01,
+                value: 2,
+                decimals: 4
+            }]
+        },{
+            name: "TB303 VCF",
+            color: "#f0f8ff",
+            params: [{
+                name: "cutoff",
+                type: 0,
+                min: 1,
+                step: 1,
+                value: 500,
+                decimals: 0
+            }, {
+                name: "res",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.8,
+                decimals: 4
+            }, {
+                name: "distorsion",
+                type: 0,
+                min: 0,
+                max: 4,
+                step: 0.01,
+                value: 2,
+                decimals: 4
+            }, {
+                name: "asym",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.5,
+                decimals: 4
+            }]
+        }],
     
     _fas_content_list = [];
 
@@ -26847,15 +27591,15 @@ var _fasNotifyChnInfos = function () {
     _fasNotify(_FAS_CHN_INFOS, _chn_settings);  
 };
 
-var _onChangeChannelSettings = function (channel, channel_data_index) {
+var _onChangeChannelSettings = function (channel, value_index) {
     return function (value) {
-        _chn_settings[channel][channel_data_index] = value;
+        _chn_settings[channel].osc[value_index] = parseFloat(value);
 
         _local_session_settings.chn_settings[channel] = _chn_settings[channel];
         _saveLocalSessionSettings();
 
         clearTimeout(_fas_chn_notify_timeout);
-        _fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 2000);
+        _fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 1000);
     };
 };
 
@@ -26956,12 +27700,174 @@ var _closedSlicesDialog = function () {
     clearTimeout(_slices_dialog_timeout);
 };
 
-var _createFxSettingsContent = function () {
-
-};
-
 var _openSynthParameters = function () {
     WUI_Dialog.open(_fas_synth_params_dialog);
+};
+
+var _onChangeEfxParameter = function (chn, efx, efxi, pid) {
+    return function (ev_value) {
+        var value,
+            elem = document.getElementById("fs_chn_" + chn + "_fx_" + efx + "_" + efxi);
+
+        if (this) {
+            value = _efx[efx].params[pid].type[this.selectedIndex];
+        } else {
+            value = ev_value;
+        }
+
+        _chn_settings[chn].efx[_parseInt10(elem.dataset.chn_fxid) + 2][pid] = parseFloat(value);
+
+        _local_session_settings.chn_settings[chn] = _chn_settings[chn];
+        _saveLocalSessionSettings();
+
+        clearTimeout(_fas_chn_notify_timeout);
+        _fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 100);
+    };
+};
+
+var _createChnFxSettings = function (chn, ind, efxi, id) {
+    var dialog_id = null,
+        dialog_element = document.createElement("div"),
+        dialog_content = document.createElement("div"),
+
+        slider_div = null,
+
+        fieldset = null,
+        legend = null,
+
+        param = null,
+
+        label = null,
+        select = null,
+        option = null,
+
+        selected_option = 0,
+
+        fx = _efx[ind],
+        
+        i = 0,
+        j = 0;
+
+    dialog_element.id = id + "_dialog";
+
+    WUI_Dialog.destroy(dialog_element.id);
+
+    fieldset = document.createElement("fieldset");
+    legend = document.createElement("legend");
+
+    fieldset.className = "fs-fieldset";
+    legend.innerText = "Parameters";
+
+    for (i = 0; i < fx.params.length; i += 1) {
+        param = fx.params[i];
+
+        if (Array.isArray(param.type)) {
+            label = document.createElement("label");
+            select = document.createElement("select");
+            
+            for (j = 0; j < param.type.length; j += 1) {
+                option = document.createElement("option");
+                option.innerHTML = param.type[j];
+                
+                select.appendChild(option);
+            }
+
+            label.classList.add("fs-input-label");
+            label.style.width = "148px";
+            label.innerHTML = param.name + ": &nbsp;";
+            label.htmlFor = id + "_" + i + "_param";
+            
+            select.classList.add("fs-btn");
+            select.style = "margin-top: 4px";
+            select.dataset.chnId = chn;
+            select.dataset.efxId = ind;
+            select.id = label.htmlFor;
+
+            selected_option = _chn_settings[chn].efx[efxi + 2][i];
+
+            if (selected_option) {
+                selected_option = _efx[ind].params[i].type.indexOf(selected_option);
+
+                select.childNodes[selected_option].selected = true;
+            } else {
+                select.childNodes[_efx[ind].params[i].value].selected = true;
+            }
+
+            select.addEventListener("change", _onChangeEfxParameter(chn, ind, efxi, i));
+            fieldset.appendChild(label);
+            fieldset.appendChild(select);
+
+            select.dispatchEvent(new UIEvent('change'));
+        } else if (param.type == 0) {
+            slider_div = document.createElement("div");
+            slider_div.id = id + "_slider_" + i;
+
+            WUI_RangeSlider.destroy(slider_div.id);
+
+            var value = _chn_settings[chn].efx[efxi + 2][i];
+
+            WUI_RangeSlider.create(slider_div, {
+                width: 120,
+                height: 8,
+    
+                min: param.min,
+                max: param.max,
+    
+                bar: false,
+    
+                step: param.step,
+                scroll_step: param.step,
+    
+                default_value: param.value,
+                value: value !== undefined ? value : param.value,
+    
+                decimals: param.decimals,
+
+                midi: true,
+                
+                title: param.name,
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeEfxParameter(chn, ind, efxi, i)
+            });
+
+            fieldset.appendChild(slider_div);
+        }
+    }
+
+    fieldset.appendChild(legend);
+
+    dialog_content.appendChild(fieldset);
+
+    dialog_element.appendChild(dialog_content);
+    document.body.appendChild(dialog_element);
+
+    dialog_id = WUI_Dialog.create(dialog_element.id, {
+        title: fx.name + " (" + chn + ":" + (efxi / 3) + ")",
+
+        width: "auto",
+        height: "auto",
+    
+        min_width: 340,
+        min_height: 80,
+
+        halign: "center",
+        valign: "center",
+
+        open: false,
+
+        status_bar: false,
+//        detachable: true,
+        minimizable: true,
+        draggable: true,
+/*    
+        on_detach: function (new_window) {
+
+        },
+*/  
+    });
 };
 
 var _createSynthParametersContent = function () {
@@ -27005,7 +27911,7 @@ var _createSynthParametersContent = function () {
     for (j = 0; j < _output_channels; j += 1) {
         chn_settings = _chn_settings[j];
 
-        synth_type = _chn_settings[j][0];
+        synth_type = _chn_settings[j].osc[1];
 
         if (_synthesis_params[synth_type] <= 0) {
             continue;
@@ -27016,7 +27922,7 @@ var _createSynthParametersContent = function () {
 
         chn_fieldset.className = "fs-fieldset";
         
-        chn_legend.innerHTML = "Chn " + j + " / " + _synthesis_types[synth_type];
+        chn_legend.innerHTML = "Chn " + (j + 1) + " / " + _synthesis_types[synth_type];
 
         chn_fieldset.appendChild(chn_legend);
 
@@ -27051,23 +27957,24 @@ var _createSynthParametersContent = function () {
             chn_genv_type_select.dataset.chnId = j;
             chn_genv_type_select.id = chn_genv_type_label.htmlFor;
 
-            chn_genv_type_select.childNodes[chn_settings[1]].selected = true;
+            chn_genv_type_select.childNodes[chn_settings.osc[5]].selected = true;
 
-            gmin = chn_settings[2];
-            gmax = chn_settings[3];
-            gden = chn_settings[4];
+            gmin = chn_settings.osc[7];
+            gmax = chn_settings.osc[9];
+            gden = chn_settings.osc[11];
 
             chn_genv_type_select.addEventListener("change", function() {
                 var j = parseInt(this.dataset.chnId, 10),
                     value = parseInt(this.selectedIndex, 10);
 
-                _chn_settings[j][1] = value;
+                _chn_settings[j].osc[5] = value;
 
                 _local_session_settings.chn_settings[j] = _chn_settings[j];
                 _saveLocalSessionSettings();
             
-                clearTimeout(_fas_chn_notify_timeout);
-                _fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 2000);
+                _fasNotifyChnInfos();
+                //clearTimeout(_fas_chn_notify_timeout);
+                //_fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 1000);
             });
 
             chn_fieldset.appendChild(chn_genv_type_label);
@@ -27100,7 +28007,7 @@ var _createSynthParametersContent = function () {
                 title_min_width: 140,
                 value_min_width: 88,
     
-                on_change: _onChangeChannelSettings(j, 2)
+                on_change: _onChangeChannelSettings(j, 7)
             }));
             
             _fas_content_list.push(WUI_RangeSlider.create(chn_gmax_size_input, {
@@ -27127,7 +28034,7 @@ var _createSynthParametersContent = function () {
                 title_min_width: 140,
                 value_min_width: 88,
     
-                on_change: _onChangeChannelSettings(j, 3)
+                on_change: _onChangeChannelSettings(j, 9)
             }));
     
             _fas_content_list.push(WUI_RangeSlider.create(chn_gden_input, {
@@ -27154,10 +28061,203 @@ var _createSynthParametersContent = function () {
                 title_min_width: 140,
                 value_min_width: 88,
     
-                on_change: _onChangeChannelSettings(j, 4)
+                on_change: _onChangeChannelSettings(j, 11)
             }));
 
             chn_genv_type_select.dispatchEvent(new UIEvent('change'));
+        } else if (_synthesis_types[synth_type] === "Spectral") {
+            var chn_input = document.createElement("div");
+            chn_input.id = "fs_chn_" + j + "_chn_input";
+            var chn_mode = document.createElement("div");
+            chn_mode.id = "fs_chn_" + j + "_chn_mode";
+
+            var chn_win_size_label = document.createElement("label");
+            var chn_win_size_select = document.createElement("select");
+            var chn_win_size_options = [32, 64, 128, 256, 512, 1024];
+            
+            for (i = 0; i < chn_win_size_options.length; i += 1) {
+                var chn_win_size_option = document.createElement("option");
+                chn_win_size_option.innerHTML = chn_win_size_options[i];
+                
+                chn_win_size_select.appendChild(chn_win_size_option);
+            }
+            
+            chn_win_size_label.classList.add("fs-input-label");
+
+            chn_win_size_label.innerHTML = "Window size: &nbsp;";
+            chn_win_size_label.htmlFor = "fs_chn_" + j + "_win_size_settings";
+            
+            chn_win_size_select.classList.add("fs-btn");
+            chn_win_size_select.style = "margin-top: 4px";
+
+            chn_win_size_select.dataset.chnId = j;
+            chn_win_size_select.id = chn_win_size_label.htmlFor;
+
+            chn_win_size_select.childNodes[chn_win_size_options.indexOf(chn_settings.osc[7])].selected = true;
+
+            var input = chn_settings.osc[5];
+            var mode = chn_settings.osc[9];
+
+            chn_win_size_select.addEventListener("change", function() {
+                var j = parseInt(this.dataset.chnId, 10),
+                    value = parseInt(this.selectedIndex, 10);
+
+                _chn_settings[j].osc[7] = chn_win_size_options[value];
+
+                _local_session_settings.chn_settings[j] = _chn_settings[j];
+                _saveLocalSessionSettings();
+            
+                _fasNotifyChnInfos();
+            });
+
+            chn_fieldset.appendChild(chn_win_size_label);
+            chn_fieldset.appendChild(chn_win_size_select);
+            chn_fieldset.appendChild(chn_input);
+            chn_fieldset.appendChild(chn_mode);
+
+            _fas_content_list.push(WUI_RangeSlider.create(chn_input, {
+                width: 120,
+                height: 8,
+    
+                min: 0,
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: input,
+                value: input,
+    
+                decimals: 0,
+
+                midi: true,
+                
+                title: "Input channel",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 5)
+            }));
+            
+            _fas_content_list.push(WUI_RangeSlider.create(chn_mode, {
+                width: 120,
+                height: 8,
+    
+                min: 0,
+                max: 1,
+    
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: mode,
+                value: mode,
+
+                midi: true,
+                
+                decimals: 0,
+    
+                title: "Mode (factor / direct)",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 9)
+            }));
+
+            chn_win_size_select.dispatchEvent(new UIEvent('change'));
+        } else if (_synthesis_types[synth_type] === "Subtractive") {
+            var chn_filter_type_label,
+                chn_filter_type_select,
+                chn_filter_option,
+                chn_filters_option = ["Moog-ladder LPF", "Diode-ladder LPF", "Korg 35 LPF", "18db LPF"];
+
+            chn_filter_type_label = document.createElement("label");
+            chn_filter_type_select = document.createElement("select");
+            
+            for (i = 0; i < chn_filters_option.length; i += 1) {
+                chn_filter_option = document.createElement("option");
+                chn_filter_option.innerHTML = chn_filters_option[i];
+                
+                chn_filter_type_select.appendChild(chn_filter_option);
+            }
+            chn_filter_type_label.classList.add("fs-input-label");
+            chn_filter_type_label.innerHTML = "Filter type: &nbsp;";
+            chn_filter_type_label.htmlFor = "fs_chn_" + j + "_filter_type_settings";
+            
+            chn_filter_type_select.classList.add("fs-btn");
+            chn_filter_type_select.style = "margin-top: 4px";
+            chn_filter_type_select.dataset.chnId = j;
+            chn_filter_type_select.id = chn_filter_type_label.htmlFor;
+
+            var selected_option = chn_settings.osc[5];
+            chn_filter_type_select.childNodes[selected_option >= chn_filters_option.length ? 0 : selected_option].selected = true;
+
+            chn_filter_type_select.addEventListener("change", function() {
+                var j = parseInt(this.dataset.chnId, 10),
+                    value = parseInt(this.selectedIndex, 10);
+
+                _chn_settings[j].osc[5] = value;
+
+                _local_session_settings.chn_settings[j] = _chn_settings[j];
+                _saveLocalSessionSettings();
+
+                _fasNotifyChnInfos();
+            
+                //clearTimeout(_fas_chn_notify_timeout);
+                //_fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 2000);
+            });
+            chn_fieldset.appendChild(chn_filter_type_label);
+            chn_fieldset.appendChild(chn_filter_type_select);
+
+            chn_filter_type_select.dispatchEvent(new UIEvent('change'));
+        } else if (_synthesis_types[synth_type] === "Physical Model") {
+            var chn_model_type_label,
+                chn_model_type_select,
+                chn_model_option,
+                chn_models_option = ["Karplus-strong", "Water drop"];
+
+                chn_model_type_label = document.createElement("label");
+                chn_model_type_select = document.createElement("select");
+            
+            for (i = 0; i < chn_models_option.length; i += 1) {
+                chn_model_option = document.createElement("option");
+                chn_model_option.innerHTML = chn_models_option[i];
+                
+                chn_model_type_select.appendChild(chn_model_option);
+            }
+            chn_model_type_label.classList.add("fs-input-label");
+            chn_model_type_label.innerHTML = "Model: &nbsp;";
+            chn_model_type_label.htmlFor = "fs_chn_" + j + "_physical_model_type_settings";
+            
+            chn_model_type_select.classList.add("fs-btn");
+            chn_model_type_select.style = "margin-top: 4px";
+            chn_model_type_select.dataset.chnId = j;
+            chn_model_type_select.id = chn_model_type_label.htmlFor;
+
+            var selected_option = chn_settings.osc[5];
+            chn_model_type_select.childNodes[selected_option >= chn_models_option.length ? 0 : selected_option].selected = true;
+
+            chn_model_type_select.addEventListener("change", function() {
+                var j = parseInt(this.dataset.chnId, 10),
+                    value = parseInt(this.selectedIndex, 10);
+
+                _chn_settings[j].osc[5] = value;
+
+                _local_session_settings.chn_settings[j] = _chn_settings[j];
+                _saveLocalSessionSettings();
+
+                _fasNotifyChnInfos();
+            
+                //clearTimeout(_fas_chn_notify_timeout);
+                //_fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 2000);
+            });
+            chn_fieldset.appendChild(chn_model_type_label);
+            chn_fieldset.appendChild(chn_model_type_select);
+
+            chn_model_type_select.dispatchEvent(new UIEvent('change'));
         }
 
         _applyCollapsible(chn_fieldset, chn_legend);
@@ -27170,6 +28270,310 @@ var _createSynthParametersContent = function () {
     }
 };
 
+var _onChnFxDblClick = function (ev) {
+    WUI_Dialog.open(ev.target.dataset.dialog_id);
+};
+
+var _onChnFxContextMenu = function (ev) {
+    var elem = ev.target,
+        mute_icon = elem.classList.contains("fx-fx-mute") ? "fs-unmute-icon" : "fs-mute-icon",
+        mute_tooltip = elem.classList.contains("fx-fx-mute") ? "Unbypass" : "Bypass";
+
+    ev.preventDefault();
+
+    WUI_CircularMenu.create({
+        element: elem,
+
+        angle: 90,
+        rx: 32,
+        ry: 32,
+
+        item_width:  32,
+        item_height: 32,
+
+        window: null
+    }, [{
+            icon: "fs-cross-45-icon", tooltip: "Delete", on_click: function () {
+                var id = null, chn, efx;
+
+                id = Array.from(elem.parentElement.children).indexOf(elem) * 3;
+
+                chn = _parseInt10(elem.parentElement.dataset.chn);
+                efx = _chn_settings[chn].efx;
+
+                efx.splice(id, 3);
+
+                elem.parentElement.removeChild(elem);
+
+                // save settings
+                _local_session_settings.chn_settings[chn] = _chn_settings[chn];
+                _saveLocalSessionSettings();
+            
+                _fasNotifyChnInfos();
+
+                WUI_Dialog.destroy(elem.dataset.dialog_id);
+        }}, {
+            icon: mute_icon, tooltip: mute_tooltip, on_click: function () {
+                var id = null, chn, efx, muted;
+
+                id = Array.from(elem.parentElement.children).indexOf(elem) * 3;
+                chn = _parseInt10(elem.parentElement.dataset.chn);
+                efx = _chn_settings[chn].efx;
+                muted = efx[id + 1];
+
+                efx[id + 1] = muted ? 0 : 1;
+
+                if (muted) {
+                    elem.classList.remove("fs-fx-mute");
+                } else {
+                    elem.classList.add("fs-fx-mute");
+                }
+
+                // save settings
+                _local_session_settings.chn_settings[chn] = _chn_settings[chn];
+                _saveLocalSessionSettings();
+
+                _fasNotifyChnInfos();
+            }
+        }]);
+
+    return false;
+};
+
+var _dragChnFx = function (ev) {
+    ev.dataTransfer.setData("text", ev.target.id);
+
+    ev.dataTransfer.dropEffect = "move";
+};
+
+var _dragOverChnFx = function (ev) {
+    ev.preventDefault();
+};
+
+var _dropChnFx = function (ev) {
+    ev.preventDefault();
+
+    var data = ev.dataTransfer.getData("text"),
+        src_node = document.getElementById(data),
+        cpy_node = null,
+        
+        chn = null,
+        efx = null,
+        fxid = null,
+
+        update = false,
+
+        chn_content_node = ev.target;
+
+    if (ev.target.classList.contains("fs-fx-chn-content")) {
+        cpy_node = src_node.cloneNode(true);
+
+        chn = _parseInt10(chn_content_node.dataset.chn);
+        fxid = _parseInt10(cpy_node.dataset.fxid);
+
+        cpy_node.innerText = "";
+        cpy_node.style.width = "16px";
+        cpy_node.style.border = "none";
+        cpy_node.style.backgroundColor = _efx[fxid].color;
+        cpy_node.style.borderLeft = "none";
+
+        efx = _chn_settings[chn].efx;
+
+        efx.push(fxid); // fx id
+        efx.push(0); // muted
+        efx.push([]); // params
+
+        cpy_node.id = "fs_chn_" + chn + "_fx_" + fxid + "_" + (efx.length - 3);
+        cpy_node.dataset.dialog_id = cpy_node.id + "_dialog";
+        cpy_node.dataset.chn_fxid = (efx.length - 3);
+
+        cpy_node.addEventListener("dragstart", _dragChnFx)
+        ev.target.appendChild(cpy_node);
+
+        cpy_node.addEventListener("contextmenu", _onChnFxContextMenu);
+
+        cpy_node.addEventListener("dblclick", _onChnFxDblClick);
+        _createChnFxSettings(chn, fxid, efx.length - 3, cpy_node.id);
+
+        update = true;
+    } else {
+        if (ev.target.id !== src_node.id && ev.target.parentElement.classList.contains("fs-fx-chn-content")) {
+            var curr_style = ev.target.style.backgroundColor,
+                curr_title = ev.target.title,
+                curr_class = ev.target.className,
+                id = null, id2 = null;
+
+            chn = _parseInt10(ev.target.parentElement.dataset.chn);
+            efx = _chn_settings[chn].efx;
+
+            ev.target.title = src_node.title;
+            ev.target.className = src_node.className;
+
+            fxid = _parseInt10(src_node.dataset.fxid);
+
+            chn_content_node = ev.target.parentElement;
+            
+            id = Array.from(chn_content_node.children).indexOf(ev.target) * 3;
+
+            if (src_node.parentElement.classList.contains("fs-fx-chn-content")) {
+                id2 = Array.from(chn_content_node.children).indexOf(src_node) * 3;
+
+                ev.target.style.backgroundColor = src_node.style.backgroundColor;
+
+                src_node.style.backgroundColor = curr_style;
+                src_node.title = curr_title;
+                src_node.className = curr_class;
+
+                var src_chn_fx_id = src_node.dataset.chn_fxid;
+                src_node.dataset.chn_fxid = ev.target.dataset.chn_fxid;
+                ev.target.dataset.chn_fxid = src_chn_fx_id;
+
+                var src_dialog_id = src_node.dataset.dialog_id;
+                src_node.dataset.dialog_id = ev.target.dataset.dialog_id;
+                ev.target.dataset.dialog_id = src_dialog_id;
+
+                var pfxid = efx[id2];
+                var pfxmu = efx[id2+1];
+                var pfxpa = efx[id2+2];
+
+                efx[id2] = efx[id];
+                efx[id2 + 1] = efx[id+1];
+                efx[id2 + 2] = efx[id+2];
+                efx[id] = pfxid;
+                efx[id + 1] = pfxmu;
+                efx[id + 2] = pfxpa;
+
+                WUI_Dialog.setTitle(ev.target.dataset.dialog_id, _efx[efx[id]].name + " (" + chn + ":" + id / 3 + ")");
+                WUI_Dialog.setTitle(src_node.dataset.dialog_id, _efx[efx[id2]].name + " (" + chn + ":" + id2 / 3 + ")");
+            } else {
+                efx[id] = fxid;
+                efx[id + 1] = 0;
+                efx[id + 2] = [];
+
+                ev.target.style.backgroundColor = _efx[fxid].color;
+                
+                ev.target.dataset.chn_fxid = id;
+
+                WUI_Dialog.destroy(ev.target.dataset.dialog_id);
+
+                ev.target.id = "fs_chn_" + chn + "_fx_" + fxid + "_" + id;
+                ev.target.dataset.dialog_id = ev.target.id + "_dialog";
+
+                _createChnFxSettings(chn, fxid, id, ev.target.id);
+            }
+
+            update = true;
+        }
+    }
+
+    if (update) {
+        // save settings
+        _local_session_settings.chn_settings[chn] = _chn_settings[chn];
+        _saveLocalSessionSettings();
+    
+        _fasNotifyChnInfos();
+    }
+};
+
+var _createFasFxCard = function (elem, fxid, muted, chn, index) {
+    var fx_card = document.createElement("div");
+
+    fx_card.classList.add("fs-fx-card");
+
+    fx_card.draggable = "true";
+
+    fx_card.dataset.fxid = fxid;
+
+    fx_card.addEventListener("dragstart", _dragChnFx);
+
+    if (muted) {
+        fx_card.classList.add("fs-fx-mute");
+    }
+    
+    fx_card.id = "fs_chn_" + chn + "_fx_" + fxid;
+    if (index !== undefined) {
+        fx_card.id += "_" + index;
+        fx_card.dataset.dialog_id = fx_card.id + "_dialog";
+        fx_card.dataset.chn_fxid = index;
+        fx_card.style.width = "16px";
+        fx_card.style.border = "none";
+        fx_card.style.backgroundColor = _efx[fxid].color;
+    } else {
+        fx_card.innerText = _efx[fxid].name;
+        //fx_card.style.borderTop = "solid 2px " + _efx[fxid].color;
+        fx_card.style.borderLeft = "solid 2px " + _efx[fxid].color;
+    }
+
+    fx_card.title = _efx[fxid].name;
+
+    elem.appendChild(fx_card);
+
+    return fx_card;
+};
+
+var _createFasFxContent = function (div) {
+    var fx_fieldset = document.createElement("fieldset"),
+        fx_fieldset_legend = document.createElement("legend"),
+
+        fx_card = null,
+        
+        i = 0, j = 0;
+
+    fx_fieldset.className = "fs-fieldset";
+    
+    fx_fieldset_legend.innerHTML = "Channels Effects";
+    
+    fx_fieldset.appendChild(fx_fieldset_legend);
+
+    _applyCollapsible(fx_fieldset, fx_fieldset_legend, false);
+
+    // fx list
+    var fx_div = document.createElement("div");
+    fx_div.classList.add("fs-fx-container");
+    for (i = 0; i < _efx.length; i += 1) {
+        var fx_card = _createFasFxCard(fx_div, i);
+    }
+
+    fx_fieldset.appendChild(fx_div);
+
+    div.appendChild(fx_fieldset);
+
+    // channels
+    for (i = 0; i < _output_channels; i += 1) {
+        var fx_chn_div = document.createElement("div"),
+            fx_chn_legend = document.createElement("div"),
+            fx_chn_content = document.createElement("div"),
+            
+            chn_settings = _chn_settings[i],
+            chn_fx = chn_settings.efx;
+
+        fx_chn_div.style.display = "flex";
+        fx_chn_content.classList.add("fs-fx-chn-content");
+
+        fx_chn_content.addEventListener("dragover", _dragOverChnFx);
+        fx_chn_content.addEventListener("drop", _dropChnFx);
+
+        fx_chn_content.dataset.chn = i;
+
+        fx_chn_legend.innerHTML = (i + 1) + " :";
+
+        fx_chn_div.appendChild(fx_chn_legend);
+        fx_chn_div.appendChild(fx_chn_content);
+
+        fx_fieldset.appendChild(fx_chn_div);
+
+        if (chn_fx) {
+            for (j = 0; j < chn_fx.length; j += 3) {
+                fx_card = _createFasFxCard(fx_chn_content, chn_fx[j], chn_fx[j + 1], i, j);
+                fx_card.addEventListener("contextmenu", _onChnFxContextMenu);
+                fx_card.addEventListener("dblclick", _onChnFxDblClick);
+
+                _createChnFxSettings(i, chn_fx[j], j, fx_card.id);
+            }
+        }
+    }
+};
+
 var _createFasSettingsContent = function () {
     var dialog_div = document.getElementById(_fas_dialog).lastElementChild,
         detached_dialog = WUI_Dialog.getDetachedDialog(_fas_dialog),
@@ -27178,33 +28582,23 @@ var _createFasSettingsContent = function () {
         open_synth_params_btn = document.createElement("button"),
         
         synthesis_matrix_fieldset = document.createElement("fieldset"),
-        fx_matrix_fieldset = document.createElement("fieldset"),
         actions_fieldset = document.createElement("fieldset"),
 
-        fx_matrix_fx_fieldset = document.createElement("fieldset"),
-        fx_matrix_chn_fieldset = document.createElement("fieldset"),
-
         synthesis_matrix_table = document.createElement("table"),
-        fx_matrix_table = document.createElement("table"),
         
         synthesis_matrix_fieldset_legend = document.createElement("legend"),
-        fx_matrix_fieldset_legend = document.createElement("legend"),
-        actions_fieldset_legend = document.createElement("legend"),
-
-        fx_matrix_fx_fieldset_legend = document.createElement("legend"),
-        fx_matrix_chn_fieldset_legend = document.createElement("legend"),
         
-        fx_types = ["Waveshaping"],
+        actions_fieldset_legend = document.createElement("legend"),
 
         ck_tmp = [],
 
         chn_settings,
 
-        slice,
-
         row,
         cell,
         checkbox,
+
+        triggered = true,
         
         i = 0, j = 0;
     
@@ -27214,28 +28608,18 @@ var _createFasSettingsContent = function () {
     
     // fieldset
     synthesis_matrix_fieldset.className = "fs-fieldset";
-    fx_matrix_fieldset.className = "fs-fieldset";
     actions_fieldset.className = "fs-fieldset";
-    fx_matrix_fx_fieldset.className = "fs-fieldset";
-    fx_matrix_chn_fieldset.className = "fs-fieldset";
     
     dialog_div.style = "overflow: auto";
     dialog_div.innerHTML = "";
     
     synthesis_matrix_fieldset_legend.innerHTML = "Synthesis";
-    fx_matrix_fieldset_legend.innerHTML = "FX";
     actions_fieldset_legend.innerHTML = "Actions";
-    fx_matrix_fx_fieldset_legend.innerHTML = "Type";
-    fx_matrix_chn_fieldset_legend.innerHTML = "Chn";
     
     synthesis_matrix_fieldset.appendChild(synthesis_matrix_fieldset_legend);
-//    fx_matrix_fieldset.appendChild(fx_matrix_fieldset_legend);
     actions_fieldset.appendChild(actions_fieldset_legend);
-//    fx_matrix_fx_fieldset.appendChild(fx_matrix_fx_fieldset_legend);
-//    fx_matrix_chn_fieldset.appendChild(fx_matrix_chn_fieldset_legend);
 
     _applyCollapsible(synthesis_matrix_fieldset, synthesis_matrix_fieldset_legend);
-//    _applyCollapsible(fx_matrix_fieldset, fx_matrix_fieldset_legend, true);
     _applyCollapsible(actions_fieldset, actions_fieldset_legend, true);
 
     // synthesis matrix
@@ -27247,9 +28631,42 @@ var _createFasSettingsContent = function () {
     cell = document.createElement("th");
     row.appendChild(cell);
     for (i = 0; i < _output_channels; i += 1) {
+        chn_settings = _chn_settings[i];
+
         cell = document.createElement("th");
         cell.innerHTML = i + 1;
+        cell.title = "mute / unmute channel";
+        cell.classList.add("fs-fas-chn-id");
         row.appendChild(cell);
+
+        if (chn_settings && chn_settings.osc[3]) {
+            cell.style.textDecoration = "line-through";
+            cell.style.color = "red";
+        }
+
+        // mute channel
+        cell.addEventListener("click", function () {
+            var chn = parseInt(this.innerText, 10) - 1;
+
+            if (_chn_settings[chn].osc[3]) {
+                this.style.textDecoration = "none";
+                this.style.color = "white";
+
+                _chn_settings[chn].osc[3] = 0;
+            } else {
+                this.style.textDecoration = "line-through";
+                this.style.color = "red";
+
+                _chn_settings[chn].osc[3] = 1;
+            }
+
+            // save settings
+            _local_session_settings.chn_settings[chn] = _chn_settings[chn];
+            _saveLocalSessionSettings();
+        
+            // notify FAS
+            _fasNotifyChnInfos();
+        });
     }
 
     synthesis_matrix_table.appendChild(row);    
@@ -27278,27 +28695,47 @@ var _createFasSettingsContent = function () {
 
             // create channel settings if it does not exist
             if (!chn_settings) {
-                _chn_settings[j] = [0, 6, 0.01, 0.1, 0.00001, 0];
+                _chn_settings[j] = {
+                    osc: [0, 0, 1, 0],
+                    efx: []
+                };
                 chn_settings = _chn_settings[j];
             }
             
             // check synthesis type from saved settings
-            if (chn_settings[0] === i) {
+            if (chn_settings.osc[1] === i) {
                 checkbox.checked = true;
             }
 
             checkbox.addEventListener("change", function () {
                 var chn = parseInt(this.name, 10);
 
-                _chn_settings[chn][0] = parseInt(this.value, 10);
+                _chn_settings[chn].osc[1] = parseInt(this.value, 10);
+
+                var osc_settings = _chn_settings[chn].osc;
+                var synth_type = osc_settings[1];
+
+                // load default settings
+                if (!triggered) {
+                    if (_synthesis_types[synth_type] === "Physical Model") {
+                        _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
+                    } else if (_synthesis_types[synth_type] === "Subtractive") {
+                        _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
+                    } else if (_synthesis_types[synth_type] === "Granular") {
+                        _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 1, 3, 0.01, 4, 0.1, 5, 0.00001];
+                    } else if (_synthesis_types[synth_type] === "Spectral") {
+                        _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0, 3, 1024, 4, 0];
+                    }
+                }
 
                 // save settings
                 _local_session_settings.chn_settings[chn] = _chn_settings[chn];
                 _saveLocalSessionSettings();
             
                 // notify FAS
-                clearTimeout(_fas_chn_notify_timeout);
-                _fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 2000);
+                _fasNotifyChnInfos();
+                //clearTimeout(_fas_chn_notify_timeout);
+                //_fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 2000);
 
                 _createSynthParametersContent();
             });
@@ -27346,15 +28783,12 @@ var _createFasSettingsContent = function () {
     actions_fieldset.appendChild(load_samples_btn);
     
     dialog_div.appendChild(synthesis_matrix_fieldset);
-    //dialog_div.appendChild(fx_matrix_fieldset);
+    _createFasFxContent(dialog_div);
     dialog_div.appendChild(actions_fieldset);  
 
-    _createSynthParametersContent();    
-};
+    _createSynthParametersContent();
 
-var _showFxDialog = function (toggle_ev) {
-    _createFxSettingsContent();
-    WUI_Dialog.open(_fx_dialog);
+    triggered = false;
 };
 
 var _showFasDialog = function (toggle_ev) {
@@ -28123,39 +29557,6 @@ var _uiInit = function () {
             }
         });
     
-    _fx_dialog = WUI_Dialog.create(_fx_dialog_id, {
-        title: "FX Settings",
-
-        width: "auto",
-        height: "auto",
-    
-        min_width: 340,
-        min_height: 80,
-
-        halign: "center",
-        valign: "center",
-
-        open: false,
-
-        status_bar: false,
-        detachable: true,
-        minimizable: true,
-        draggable: true,
-    
-        on_detach: function (new_window) {
-            _createFxSettingsContent();
-        },
-    
-        header_btn: [
-            {
-                title: "Help",
-                on_click: function () {
-                    window.open(_documentation_link + "tutorials/audio_server_fx/"); 
-                },
-                class_name: "fs-help-icon"
-            }
-        ]
-    });
     
     _fas_dialog = WUI_Dialog.create(_fas_dialog_id, {
             title: "FAS Settings",
@@ -28816,12 +30217,7 @@ var _uiInit = function () {
                     icon: "fs-gear-icon",
                     on_click: _showFasDialog,
                     tooltip: "Audio server settings"
-                }/*,
-                {
-                    icon: "fs-fx-icon",
-                    on_click: _showFxDialog,
-                    tooltip: "Audio server fx settings"
-                }*/
+                }
             ],
             "Tools": [
                 {
@@ -29166,8 +30562,6 @@ var _uiInit = function () {
             value_min_width: 88,
 
             on_change: function (polyphony) {
-                var i = 0;
-                
                 if (polyphony <= 0) {
                     return;
                 }
@@ -29178,11 +30572,7 @@ var _uiInit = function () {
                 
                 _keyboard.data = [];
                 _keyboard.data_length = _keyboard.polyphony_max * _keyboard.data_components;
-/*
-                for (i = 0; i < _keyboard.data_length; i += 1) {
-                    _keyboard.data[i] = 0;
-                }
-*/
+
                 _MIDInotesCleanup();
                 
                 _compile();
@@ -29285,12 +30675,11 @@ var _uiInit = function () {
             }
         });
     
-    WUI_RangeSlider.create("fs_import_audio_winalpha_settings", {
+    WUI_RangeSlider.create("fs_import_audio_gain_settings", {
             width: 100,
             height: 8,
 
             min: 0,
-            max: 10,
 
             bar: false,
 
@@ -29301,20 +30690,20 @@ var _uiInit = function () {
 
             midi: false,
 
-            default_value: _audio_import_settings.window_alpha,
-            value: _audio_import_settings.window_alpha,
+            default_value: _audio_import_settings.gain,
+            value: _audio_import_settings.gain,
 
-            title: "Window alpha",
+            title: "Gain factor",
 
             title_min_width: 84,
             value_min_width: 64,
 
             on_change: function (value) {
-                _audio_import_settings.window_alpha = value;
+                _audio_import_settings.gain = value;
             }
         });
 
-    WUI_RangeSlider.create("fs_import_audio_winlength_settings", {
+    WUI_RangeSlider.create("fs_import_audio_deviation_settings", {
             width: 100,
             height: 8,
 
@@ -29323,24 +30712,26 @@ var _uiInit = function () {
             bar: false,
 
             step: "any",
-            scroll_step: 1024,
+            scroll_step: 0.001,
+        
+            decimals: 4,
 
             midi: false,
 
-            default_value: _audio_import_settings.window_length,
-            value: _audio_import_settings.window_length,
+            default_value: _audio_import_settings.deviation,
+            value: _audio_import_settings.deviation,
 
-            title: "Window length",
+            title: "Deviation",
 
             title_min_width: 84,
             value_min_width: 64,
 
             on_change: function (value) {
-                _audio_import_settings.window_length = parseInt(value, 10);
+                _audio_import_settings.deviation = value;
             }
         });
     
-    WUI_RangeSlider.create("fs_import_audio_overlap_settings", {
+    WUI_RangeSlider.create("fs_import_audio_padding_settings", {
             width: 100,
             height: 8,
 
@@ -29349,50 +30740,24 @@ var _uiInit = function () {
             bar: false,
 
             step: "any",
-            scroll_step: 1024,
+            scroll_step: 16,
 
             midi: false,
 
-            default_value: _audio_import_settings.overlap,
-            value: _audio_import_settings.overlap,
+            default_value: _audio_import_settings.padding,
+            value: _audio_import_settings.padding,
 
-            title: "Overlap",
+            title: "Padding",
 
             title_min_width: 84,
             value_min_width: 64,
 
             on_change: function (value) {
-                _audio_import_settings.overlap = parseInt(value, 10);
+                _audio_import_settings.padding = parseInt(value, 10);
             }
         });
     
-    WUI_RangeSlider.create("fs_import_audio_bpm_settings", {
-            width: 100,
-            height: 8,
-
-            min: 0,
-
-            bar: false,
-
-            step: "any",
-            scroll_step: 1,
-
-            midi: false,
-
-            default_value: _audio_import_settings.bpm,
-            value: _audio_import_settings.bpm,
-
-            title: "BPM",
-
-            title_min_width: 84,
-            value_min_width: 64,
-
-            on_change: function (value) {
-                _audio_import_settings.bpm = parseInt(value, 10);
-            }
-        });
-    
-    WUI_RangeSlider.create("fs_import_audio_ppb_settings", {
+    WUI_RangeSlider.create("fs_import_audio_pps_settings", {
             width: 100,
             height: 8,
 
@@ -29405,19 +30770,19 @@ var _uiInit = function () {
 
             midi: false,
 
-            default_value: _audio_import_settings.ppb,
-            value: _audio_import_settings.ppb,
+            default_value: _audio_import_settings.pps,
+            value: _audio_import_settings.pps,
 
-            title: "PPB",
+            title: "PPS",
 
             title_min_width: 84,
             value_min_width: 64,
 
             on_change: function (value) {
-                _audio_import_settings.ppb = parseInt(value, 10);
+                _audio_import_settings.pps = parseInt(value, 10);
             }
         });
-    
+
     WUI_RangeSlider.create("fs_import_audio_height_settings", {
             width: 100,
             height: 8,
@@ -29555,8 +30920,10 @@ var _pjsMouseMoveEvent = function () {
     for (i = 0; i < _fragment_input_data.length; i += 1) {
         fragment_input = _fragment_input_data[i];
 
-        if (fragment_input.type === 4) {
-            fragment_input.canvas.dispatchEvent(new Event('mousemove'));
+        if (fragment_input) {
+            if (fragment_input.type === 4) {
+                fragment_input.canvas.dispatchEvent(new Event('mousemove'));
+            }
         }
     }
 };
@@ -29823,7 +31190,7 @@ var _pjsInit = function () {
 
             _pjs_codemirror_instance_detached.refresh();
 
-            CodeMirror.on(_pjs_codemirror_instance_detached, 'change', _pjs_wrapped_code_change_detached);'('
+            CodeMirror.on(_pjs_codemirror_instance_detached, 'change', _pjs_wrapped_code_change_detached);
 
             _pjsBindCodeChangeEvent();
         },
@@ -29994,7 +31361,7 @@ var _updateSliceSettingsDialog = function (slice_obj, show) {
     if (show) {
         WUI_Dialog.open(_slice_settings_dialog_prefix + slice_obj.dialog_id);
 
-        slice_obj.custom_midi_codemirror.refresh();
+        //slice_obj.custom_midi_codemirror.refresh();
     }
 };
 
@@ -30170,7 +31537,6 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
     }
     
     _computeOutputChannels();
-    _createFxSettingsContent();
 
     _saveMarkersSettings();
 };
@@ -30257,7 +31623,7 @@ var _changeMarkerSettingsEditor = function (theme) {
     var i = 0;
     
     for (i = 0; i < _play_position_markers.length; i += 1) {
-        _play_position_markers[i].custom_midi_codemirror.setOption("theme", theme);
+        //_play_position_markers[i].custom_midi_codemirror.setOption("theme", theme);
     }
 };
 
@@ -30333,10 +31699,14 @@ var _createMarkerSettings = function (marker_obj) {
         midi_dev_list_ck_input = document.createElement("input"),
         midi_dev_option,
 
+        midi_out_editor_btn = document.createElement("button"),
+
         midi_custom_codemirror = null,
         cm_element,
 
-        midi_custom_message_area = document.createElement("textarea"),
+        //midi_custom_message_area = document.createElement("textarea"),
+        midi_device_fieldset = document.createElement("fieldset"),
+        midi_device_legend = document.createElement("legend"),
 
         midi_devices,
 
@@ -30398,6 +31768,11 @@ var _createMarkerSettings = function (marker_obj) {
     }));
 
     // MIDI pane
+    midi_device_fieldset.className = "fs-fieldset";
+    midi_device_legend.innerHTML = "Devices :";
+    midi_device_fieldset.appendChild(midi_device_legend);
+
+/*
     midi_custom_message_area.innerHTML = '// User-defined MIDI messages for note events\n// Pixels data ([0,1) float data) : l, r, b, a\n// MIDI channel : c\n\nif (type === "on") {\n    on = [];\n} else if (type === "change") {\n    change = [];\n} else if (type === "off") {\n    off = [];\n}';
     midi_custom_message_area.style.width = "94%";
     midi_custom_message_area.style.height = "180px";
@@ -30407,10 +31782,23 @@ var _createMarkerSettings = function (marker_obj) {
     if (marker_obj.midi_out.custom_midi_message.length > 0) {
         midi_custom_message_area.innerHTML = marker_obj.midi_out.custom_midi_message;
     }
+*/
 
+/*
     midi_dev_list_label.className = "fs-select-label";
     midi_dev_list_label.htmlFor = "fs_slice_settings_midi_device_" + marker_obj.id;
     midi_dev_list_label.innerHTML = "Device";
+*/
+
+    midi_out_editor_btn.innerHTML = "Open MIDI OUT editor";
+    midi_out_editor_btn.className = "fs-btn fs-btn-default";
+
+    midi_out_editor_btn.style.width = "100%";
+
+    midi_out_editor_btn.addEventListener("click", function () {
+        
+    });
+
     midi_dev_list.id = "fs_slice_settings_midi_device_" + marker_obj.id;
     midi_dev_list.className = "fs-multiple-select";
     midi_dev_list.multiple = true;
@@ -30435,15 +31823,20 @@ var _createMarkerSettings = function (marker_obj) {
     midi_dev_list_container.className = "fs-fieldset";
     midi_dev_list_container_legend.innerHTML = "MIDI out";
 
-    midi_dev_out_container.appendChild(midi_dev_list_label);
-    midi_dev_out_container.innerHTML += "&nbsp;";
-    midi_dev_out_container.appendChild(midi_dev_list);
+    //midi_dev_out_container.appendChild(midi_dev_list_label);
+    //midi_dev_out_container.innerHTML += "&nbsp;";
+    //midi_dev_out_container.appendChild(midi_dev_list);
 
     midi_dev_list_container.appendChild(midi_dev_list_container_legend);
 
-    midi_dev_out_container.style = "text-align: center";
+    midi_device_fieldset.appendChild(midi_dev_list);
+    midi_dev_list_container.appendChild(midi_device_fieldset);
+    midi_dev_list_container.appendChild(midi_out_editor_btn);
 
-    midi_dev_list_container.appendChild(midi_dev_out_container);
+    //midi_dev_out_container.style = "text-align: center";
+
+    //midi_dev_list_container.appendChild(midi_dev_out_container);
+    /*
     midi_dev_list_container.appendChild(midi_custom_message_area);
 
     midi_custom_codemirror = CodeMirror.fromTextArea(midi_custom_message_area, {
@@ -30454,7 +31847,7 @@ var _createMarkerSettings = function (marker_obj) {
         theme: ((_code_editor_theme === null) ? "seti" : _code_editor_theme),
         matchBrackets: true
     });
-
+    
     cm_element = midi_custom_codemirror.getWrapperElement();
     cm_element.style = "font-size: 10pt";
 
@@ -30466,7 +31859,7 @@ var _createMarkerSettings = function (marker_obj) {
     
         _saveMarkersSettings();
     }));
-
+    */
     if (!_webMIDISupport()) {
         midi_dev_out_container.style.display = "none";
         cm_element.style.display = "none";
@@ -30481,7 +31874,7 @@ var _createMarkerSettings = function (marker_obj) {
         _applyCollapsible(midi_dev_list_container, midi_dev_list_container_legend, true);
     }
 
-    marker_obj.custom_midi_codemirror = midi_custom_codemirror;
+    //marker_obj.custom_midi_codemirror = midi_custom_codemirror;
 
     _buildMarkerMIDIDevices(marker_obj, midi_dev_list);
 
@@ -30840,7 +32233,6 @@ var _changeSliceType = function (slice_obj, type, submit) {
     }
 
     _createFasSettingsContent();
-    _createFxSettingsContent();
 
     if (submit) {
         _submitSliceUpdate(4, slice_obj.element.dataset.slice, { type : type });
@@ -31567,7 +32959,7 @@ var _mpeMIDIMessage = function (notes) {
             if (_fasEnabled()) {
                 // re-trigger on FAS side for physical modelling (because this type of synthesis require it)
                 if (_chn_settings[chn] !== undefined) {
-                    if ((_chn_settings[chn][0] === 5) && note) {
+                    if ((_chn_settings[chn].osc[1] === 5) && note) {
                         if (note.noteoff) {
                             var osc = _hzToOscillator(data.frq, _audio_infos.base_freq, _audio_infos.octaves, _audio_infos.h);
                             _fasNotify(_FAS_ACTION, { type: 1, note: osc, chn: chn + 1 });
@@ -31612,7 +33004,7 @@ var _mpeMIDIMessage = function (notes) {
                 }
             } else { // note-on
                 if (_keyboard.data.length > _keyboard.data_length) {
-                    _notification("Cannot process more notes. Please increase maximum polyphony.");
+                    _notification("Maximum polyphony reached. Please increase maximum polyphony.");
                 }
 
                 // remove the empty data
@@ -31655,8 +33047,6 @@ var _mpeMIDIMessage = function (notes) {
 };
 
 var _midiAccessSuccess = function (midi_access) {
-    var midi_settings_element = document.getElementById(_midi_settings_dialog_id).lastElementChild;
-    
     _midi_access = midi_access;
     
     _mpe_instrument = mpe({
@@ -31682,6 +33072,8 @@ var _midiAccessSuccess = function (midi_access) {
 };
 
 var _midiAccessFailure = function (msg) {
+    var midi_settings_element = document.getElementById(_midi_settings_dialog_id).lastElementChild;
+
     midi_settings_element.innerHTML = "<center>Failed to get WebMIDI API access : " + msg + "</center>";
 };
 
@@ -32395,7 +33787,7 @@ var _oscInit = function () {
         } else {
             _local_session_settings = {
                 gain: _volume,
-                chn_settings: [],
+                chn_settings: [{ osc: [], efx: [] }],
                 markers: []
             };
         }
@@ -32502,6 +33894,8 @@ var _oscInit = function () {
     /***********************************************************
         Init.
     ************************************************************/
+
+    document.getElementById("copy_year").innerHTML = new Date().getFullYear();
     
     _record_opts.f = _record_opts.default;
     
@@ -32632,6 +34026,9 @@ var _oscInit = function () {
         
         _wgl_float_support_element.innerHTML = "Not supported (8-bit)";
         _wgl_float_support_element.style.color = "#ff0000";
+
+        // remove WebGL 2 settings
+        //_synth_output_element.parentElement.parentElement.removeChild(_synth_output_element.parentElement);
     } else {
         _gl2 = true;
         
@@ -32842,10 +34239,10 @@ document.getElementById("fs_select_editor_themes").addEventListener('change', fu
     _changeEditorTheme(theme);
 });
 
-document.getElementById("fs_import_audio_window_settings").addEventListener('change', function (e) {
-    var window_type = e.target.value;
+document.getElementById("fs_import_audio_mapping").addEventListener('change', function (e) {
+    var mapping_type = e.target.value;
     
-    _audio_import_settings.window_type = window_type;
+    _audio_import_settings.mapping = mapping_type;
 });
 
 document.getElementById("fs_import_audio_ck_videotrack").addEventListener('change', function (e) {
@@ -32879,6 +34276,8 @@ document.getElementById("fs_remove_spaces").addEventListener('click', function (
     
     _compile();
 });
+
+document.getElementById("fs_center_all_dialogs").addEventListener('click', WUI_Dialog.centerAll);
 
 document.addEventListener('mouseup', function (e) {
     _mouse_btn = 0;

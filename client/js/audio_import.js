@@ -7,16 +7,14 @@
 var _audio_to_image_worker = new Worker("dist/worker/audio_to_image.min.js"),
     
     _audio_import_settings = {
-        window_length: 4096,
-        window_alpha: 0.6,
-        window_type: "kaiser",
-        overlap: 8,
-        bpm: 60,
-        ppb: 60,
+        mapping: "logarithmic",
+        gain: 30,
+        deviation: 1,
+        padding: 0,
+        pps: 60,
         height: 0,
         minfreq: 0,
         maxfreq: 0,
-        interpolation: false,
         videotrack_import: false
     };
 
@@ -126,7 +124,7 @@ _audio_to_image_worker.addEventListener('message', function (m) {
             };
 
         // now image processing step...
-        _imageDataToInput(image_data, { flip: true });
+        _imageDataToInput(image_data, { flip: false });
     
         _notification("Audio file converted to " + image_data.width + "x" + image_data.height + "px image.")
     }, false);

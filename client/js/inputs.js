@@ -17,7 +17,9 @@ var _dragged_input = null,
 
     _clicked_input_ev = null,
 
-    _selected_input_canvas = null;
+    _selected_input_canvas = null,
+    
+    _input_loading = false;
 
 /***********************************************************
     Functions.
@@ -30,9 +32,9 @@ var _cbChannelSettingsClose = function (input_channel_id) {
         WUI_RangeSlider.destroy("fs_channel_settings_playrate" + fragment_input_channel.dialog_id);
         WUI_RangeSlider.destroy("fs_channel_settings_videostart" + fragment_input_channel.dialog_id);
         WUI_RangeSlider.destroy("fs_channel_settings_videoend" + fragment_input_channel.dialog_id);
-        
+
         if (fragment_input_channel) {
-            if (fragment_input_channel.dialog_id) {
+            if (fragment_input_channel.dialog_id !== undefined && fragment_input_channel.dialog_id !== null) {
                 WUI_Dialog.destroy(_input_settings_dialog_prefix + fragment_input_channel.dialog_id);
             }
         }    
@@ -65,7 +67,6 @@ var _createChannelSettingsDialog = function (input_channel_id) {
         channel_wrap_s_select,
         channel_wrap_t_select,
         channel_vflip,
-        channel_sloop,
     
         channel_settings_dialog,
         
@@ -96,6 +97,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     }
 
     if (fragment_input_channel.type === 1 ||
+        fragment_input_channel.type === 2 ||
         fragment_input_channel.type === 3 ||
         fragment_input_channel.type === 4 ||
         fragment_input_channel.type === 5 ||
@@ -104,7 +106,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
     }
     
     dialog_element.style.fontSize = "13px";
-    
+
     // create setting widgets
     content_element.innerHTML = '<div><div class="fs-input-settings-label">Filter:</div>&nbsp;<select id="fs_channel_filter' + input_channel_id + '" class="fs-btn">' +
                                 '<option value="nearest">nearest</option>' +
@@ -134,13 +136,12 @@ var _createChannelSettingsDialog = function (input_channel_id) {
         dialog_height = "340px";
         
         content_element.innerHTML += '&nbsp;<div id="' + video_playrate_element + '"></div><div id="' + video_start_element + '"></div><div id="' + video_end_element + '"></div>';
-        content_element.innerHTML += '&nbsp;<div><label><div style="vertical-align: top;" class="fs-input-settings-label">Smooth:</div>&nbsp;<input id="fs_channel_sloop' + input_channel_id + '" value="No" type="checkbox"></label></div>';
-
+ 
         WUI_RangeSlider.create(video_playrate_element, {
                     width: 120,
                     height: 8,
 
-                    min: -10000.0,
+                    min: 0,
                     max: 10000.0,
 
                     bar: false,
@@ -229,18 +230,6 @@ var _createChannelSettingsDialog = function (input_channel_id) {
                             fic.videoend = parseFloat(v);
                         })
                 });
-        
-        channel_sloop = document.getElementById("fs_channel_sloop" + input_channel_id);
-        
-        if (fragment_input_channel.db_obj.settings.sloop) {
-            channel_sloop.checked = true;
-        } else {
-            channel_sloop.checked = false;
-        }
-
-        channel_sloop.addEventListener("change", function () {
-            fragment_input_channel.sloop = this.checked;
-        });
     }
     
     _gl.bindTexture(_gl.TEXTURE_2D, fragment_input_channel.texture);
@@ -556,22 +545,21 @@ var _removeInputChannel = function (input_id) {
     var fragment_input_data = _fragment_input_data[input_id],
         tracks, i;
 
-    _gl.deleteTexture(_fragment_input_data.texture);
+    _gl.deleteTexture(fragment_input_data.texture);
 
-    if (_fragment_input_data.type === 1 || _fragment_input_data.type === 3) {
-        _fragment_input_data.video_elem.pause();
-        window.URL.revokeObjectURL(_fragment_input_data.video_elem.src);
-        _fragment_input_data.video_elem.src = "";
+    if (fragment_input_data.type === 1 || fragment_input_data.type === 3 || fragment_input_data === 5) {
+        fragment_input_data.video_elem.pause();
+        window.URL.revokeObjectURL(fragment_input_data.video_elem.src);
+        fragment_input_data.video_elem.src = "";
 
-        if (_fragment_input_data.media_stream) {
-            tracks = _fragment_input_data.media_stream.getVideoTracks();
-            if (tracks) {
-                tracks[0].stop();
-            }
+        if (fragment_input_data.media_stream) {
+            fragment_input_data.media_stream.getTracks().forEach(function(track) {
+                track.stop();
+            });
         }
-        _fragment_input_data.video_elem = null;
+        fragment_input_data.video_elem = null;
     }
-    
+
     if (fragment_input_data.canvas) {
         fragment_input_data.canvas.remove();
     }
@@ -713,39 +701,9 @@ var _createInputThumb = function (input_id, image, thumb_title, src) {
 var _addVideoEvents = function (video_element, input) {
     video_element.addEventListener("ended", function () {
         this.play();
-        if (input.sloop) {
-            input.playrate = -input.playrate;
-            video_element.playbackRate = input.playrate;
-        } else {
-            this.currentTime = input.videostart * this.duration;
-        }
-    });
 
-    video_element.addEventListener("timeupdate", function () {
-        if (this.duration !== NaN) {
-            var video_start_pos = this.duration * input.videostart,
-                video_end_pos = this.duration * input.videoend;
-            if (input.sloop) {
-                if (this.currentTime < video_start_pos) {
-                    video_element.playbackRate = input.playrate;
-                    this.currentTime = video_start_pos;
-                    this.play();
-                } else if (this.currentTime > video_end_pos) {
-                    video_element.playbackRate = -input.playrate;
-                    this.currentTime = video_end_pos;
-                    this.play();
-                }
-            } else {
-                if (this.currentTime < video_start_pos) {
-                    this.currentTime = video_end_pos;
-                    this.play();
-                } else if (this.currentTime >= video_end_pos) {
-                    this.currentTime = video_start_pos;
-                    this.play();
-                }
-            }
-        }
-    }, false);
+        this.currentTime = input.videostart * this.duration;
+    });
 };
 
 var _fnReplaceInputTexture = function (input_id) {
@@ -772,7 +730,7 @@ var _addNoneInput = function (type, input_id) {
     _compile();
 };
 
-var _addFragmentInput = function (type, input, settings) {
+var _addFragmentInput = async function (type, input, settings, id) {
     var input_thumb,
 
         data,
@@ -786,7 +744,9 @@ var _addFragmentInput = function (type, input, settings) {
         
         db_obj = { type: type, width: null, height: null, data: null, settings: { f: "nearest", wrap: { s: null, t: null }, flip: false } },
 
-        input_id = _fragment_input_data.length;
+        input_id = id ? id : _fragment_input_data.length,
+        
+        promise = null;
 
     if (type === "image") {
         data = _create2DTexture(input, false, true);
@@ -800,13 +760,13 @@ var _addFragmentInput = function (type, input, settings) {
         
         _dbStoreInput(input_id, db_obj);
         
-        _fragment_input_data.push({
+        _fragment_input_data[input_id] = {
             type: 0,
             image: data.image,
             texture: data.texture,
             elem: null,
             db_obj: db_obj
-        });
+        };
         
         if (settings !== undefined) {
             _setTextureFilter(data.texture, settings.f);
@@ -848,13 +808,13 @@ var _addFragmentInput = function (type, input, settings) {
             video_element.width = 320;
             video_element.height = 240;
             
-            navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia || navigator.oGetUserMedia;
-            
-            if (navigator.getUserMedia) {
-                navigator.getUserMedia({
-                    video: { mandatory: { /*minWidth: 640, maxWidth: 1280, minHeight: 320, maxHeight: 720, minFrameRate: 30*/ }, optional: [{ minFrameRate: 60 }] },
-                    audio: false
-                }, function (media_stream) {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                try {
+                    var media_stream = await navigator.mediaDevices.getUserMedia({
+                        video: { mandatory: { /*minWidth: 640, maxWidth: 1280, minHeight: 320, maxHeight: 720, minFrameRate: 30*/ }, optional: [{ minFrameRate: 60 }] },
+                        audio: _audio_import_settings.videotrack_import
+                    });
+
                     video_element.srcObject = /*window.URL.createObjectURL(*/media_stream/*)*/;
 
                     data = _create2DTexture(video_element, false, false);
@@ -865,6 +825,7 @@ var _addFragmentInput = function (type, input, settings) {
                     db_obj.settings.wrap.s = data.wrap.ws;
                     db_obj.settings.wrap.t = data.wrap.wt;
                     db_obj.settings.flip = false;
+                    db_obj.settings.audio = _audio_import_settings.videotrack_import;
 
                     _dbStoreInput(input_id, db_obj);
 
@@ -877,9 +838,10 @@ var _addFragmentInput = function (type, input, settings) {
                         db_obj.settings.wrap.s = settings.wrap.s;
                         db_obj.settings.wrap.t = settings.wrap.t;
                         db_obj.settings.flip = settings.flip;
+                        db_obj.settings.audio = settings.audio;
                     }
 
-                    _fragment_input_data.push({
+                    _fragment_input_data[input_id] = {
                         type: 1,
                         image: data.image,
                         texture: data.texture,
@@ -887,7 +849,7 @@ var _addFragmentInput = function (type, input, settings) {
                         elem: null,
                         media_stream: media_stream,
                         db_obj: db_obj
-                    });
+                    };
 
                     _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/camera.png");
                         
@@ -896,29 +858,25 @@ var _addFragmentInput = function (type, input, settings) {
                     _fragment_input_data[input_id].elem.addEventListener("contextmenu", _cbChannelSettings(_fragment_input_data[input_id].dialog_id));
 
                     _compile();
-                }, function (e) {
+
+                    promise = media_stream;
+
+                    if (db_obj.settings.audio) {
+                        await _addFragmentInput("canvas", null, { linked: { input: input_id} });
+                    }
+                } catch (e) {
                     _notification("Unable to capture video/camera.");
-                });
+                }
             } else {
-                _notification("Cannot capture video/camera, getUserMedia function is not supported by your browser.");
+                _notification("Unable to capture video/camera, getUserMedia may be not supported by your browser.");
             }
         } else if (type === "desktop") {
-            var gdm = new Function("notification", "resultCb", "" +
-                "(async function () {" +
-                "    resultCb(await navigator.mediaDevices.getDisplayMedia({" +
-                "        video: true" +
-                "    }));" +
-                "})().then(null, function () {" +
-                "(async function () {" +
-                "    resultCb(await navigator.getDisplayMedia({" +
-                "        video: true" +
-                "    }));" +
-                "})().then(null, function () {" +
-                "   notification('Cannot capture desktop, getDisplayMedia function is not supported by your browser or capture was cancelled.');" +
-                "});});");
-            
-            try {
-                gdm(_notification, function (media_stream) {
+            if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+                try {
+                    const media_stream = await navigator.mediaDevices.getDisplayMedia({
+                        video: true
+                    });
+
                     video_element.srcObject = media_stream;
 
                     data = _create2DTexture(video_element, false, false);
@@ -943,7 +901,7 @@ var _addFragmentInput = function (type, input, settings) {
                         db_obj.settings.flip = settings.flip;
                     }
         
-                    _fragment_input_data.push({
+                    _fragment_input_data[input_id] = {
                         type: 5,
                         image: data.image,
                         texture: data.texture,
@@ -951,7 +909,7 @@ var _addFragmentInput = function (type, input, settings) {
                         elem: null,
                         media_stream: media_stream,
                         db_obj: db_obj
-                    });
+                    };
         
                     _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/desktop.png");
                         
@@ -960,9 +918,13 @@ var _addFragmentInput = function (type, input, settings) {
                     _fragment_input_data[input_id].elem.addEventListener("contextmenu", _cbChannelSettings(_fragment_input_data[input_id].dialog_id));
         
                     _compile();
-                });
-            } catch (e) {
-                _notification("Unable to capture desktop.");
+
+                    promise = media_stream;
+                } catch (e) {
+                    _notification("Unable to capture desktop.");
+                }
+            } else {
+                _notification("Unable to capture desktop, getDisplayMedia may be not supported by your browser.");
             }
         } else { // Video
             // a "video without data" Fragment input; a dummy image basically which tell the user that a video was here
@@ -1009,11 +971,10 @@ var _addFragmentInput = function (type, input, settings) {
                     db_obj: db_obj,
                     videostart: 0.0,
                     videoend: 1.0,
-                    playrate: 1.0,
-                    sloop: false // smooth video loop
+                    playrate: 1.0
             };
 
-            _fragment_input_data.push(input_obj);
+            _fragment_input_data[input_id] = input_obj;
 
             _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/video.png");
             
@@ -1028,6 +989,12 @@ var _addFragmentInput = function (type, input, settings) {
             video_element.play();
         }
     } else if (type === "canvas") {
+        var linked_input = null;
+
+        if (settings && settings.linked) {
+            linked_input = settings.linked.input;
+        }
+
         data = _create2DTexture({
                 empty: true,
                 width: _canvas_width,
@@ -1067,7 +1034,7 @@ var _addFragmentInput = function (type, input, settings) {
                 update_timeout: null
             };
         
-        _fragment_input_data.push(input_obj);
+        _fragment_input_data[input_id] = input_obj;
 
         var co = _getElementOffset(_canvas);
             
@@ -1088,54 +1055,68 @@ var _addFragmentInput = function (type, input, settings) {
         
         document.body.appendChild(canvas);
         
-        canvas.addEventListener('mousedown', function (e) {
-            if (!input_obj.canvas_enable) {
-                return false;
-            }
-            
-            var e = e || window.event,
-
-                canvas_offset = _getElementOffset(canvas),
-
-                x = e.pageX - canvas_offset.left,
-                y = e.pageY - canvas_offset.top;
-
-            input_obj.mouse_btn = e.which;
-
-            if (input_obj.mouse_btn === 1 ||
-               input_obj.mouse_btn === 3) {
-                _paintStart(x, y);
+        if (linked_input === null) {
+            canvas.addEventListener('mousedown', function (e) {
+                if (!input_obj.canvas_enable) {
+                    return false;
+                }
                 
-                _canvasInputDraw(input_obj, x, y, true);
-                
-                document.body.classList.add("fs-no-select");
-            }
-        });
+                var e = e || window.event,
+
+                    canvas_offset = _getElementOffset(canvas),
+
+                    x = e.pageX - canvas_offset.left,
+                    y = e.pageY - canvas_offset.top;
+
+                input_obj.mouse_btn = e.which;
+
+                if (input_obj.mouse_btn === 1 ||
+                input_obj.mouse_btn === 3) {
+                    _paintStart(x, y);
+                    
+                    _canvasInputDraw(input_obj, x, y, true);
+                    
+                    document.body.classList.add("fs-no-select");
+                }
+            });
+        }
 
         canvas.addEventListener('contextmenu', function (e) {
             e.preventDefault();
         });
         
         if (settings !== undefined) {
-            _setTextureFilter(data.texture, settings.f);
-            _setTextureWrapS(data.texture, settings.wrap.s);
-            _setTextureWrapT(data.texture, settings.wrap.t);
+            if (settings.f) {
+                _setTextureFilter(data.texture, settings.f);
+                db_obj.settings.f = settings.f;
+            }
+
+            if (settings.wrap) {
+                _setTextureWrapS(data.texture, settings.wrap.s);
+                db_obj.settings.wrap.s = settings.wrap.s;
+
+                _setTextureWrapT(data.texture, settings.wrap.t);
+                db_obj.settings.wrap.t = settings.wrap.t;
+            }
             
-            db_obj.settings.f = settings.f;
-            db_obj.settings.wrap.s = settings.wrap.s;
-            db_obj.settings.wrap.t = settings.wrap.t;
-            db_obj.settings.flip = settings.flip;
+            if (settings.flip) {
+                db_obj.settings.flip = settings.flip;
+            }
         }
 
-        _dbStoreInput(input_id, db_obj);
+        if (linked_input === null) {
+            _dbStoreInput(input_id, db_obj);
+        }
 
         input_thumb = input;
 
-        _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/paint_brush.png" );
+        _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, linked_input !== null ? "data/ui-icons/mic.png" : "data/ui-icons/paint_brush.png" );
 
         _createChannelSettingsDialog(input_id);
 
-        _fragment_input_data[input_id].elem.addEventListener("contextmenu", _selectCanvasInput);
+        if (linked_input === null) {
+            _fragment_input_data[input_id].elem.addEventListener("contextmenu", _selectCanvasInput);
+        }
         
         _compile();
     } else if (type === "processing.js") {
@@ -1195,7 +1176,7 @@ var _addFragmentInput = function (type, input, settings) {
                 pjs: null
             };
         
-        _fragment_input_data.push(input_obj);
+        _fragment_input_data[input_id] = input_obj;
 
         var co = _getElementOffset(_canvas);
             
@@ -1247,6 +1228,12 @@ var _addFragmentInput = function (type, input, settings) {
         _compile();
 
         _pjs_canvas_id += 1;
+    }
+
+    if (promise) {
+        return promise;
+    } else {
+        return Promise.resolve();
     }
 };
 

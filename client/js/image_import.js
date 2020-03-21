@@ -48,6 +48,8 @@ var _imageProcessingDone = function (image_ready_cb, options) {
 
                         image_ready_cb(image_element);
                     };
+                } else {
+                    image_ready_cb(image_element);
                 }
             } else {
                 image_ready_cb(image_element);

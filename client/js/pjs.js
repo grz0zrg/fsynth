@@ -44,8 +44,10 @@ var _pjsMouseMoveEvent = function () {
     for (i = 0; i < _fragment_input_data.length; i += 1) {
         fragment_input = _fragment_input_data[i];
 
-        if (fragment_input.type === 4) {
-            fragment_input.canvas.dispatchEvent(new Event('mousemove'));
+        if (fragment_input) {
+            if (fragment_input.type === 4) {
+                fragment_input.canvas.dispatchEvent(new Event('mousemove'));
+            }
         }
     }
 };
@@ -312,7 +314,7 @@ var _pjsInit = function () {
 
             _pjs_codemirror_instance_detached.refresh();
 
-            CodeMirror.on(_pjs_codemirror_instance_detached, 'change', _pjs_wrapped_code_change_detached);'('
+            CodeMirror.on(_pjs_codemirror_instance_detached, 'change', _pjs_wrapped_code_change_detached);
 
             _pjsBindCodeChangeEvent();
         },

@@ -119,10 +119,10 @@ document.getElementById("fs_select_editor_themes").addEventListener('change', fu
     _changeEditorTheme(theme);
 });
 
-document.getElementById("fs_import_audio_window_settings").addEventListener('change', function (e) {
-    var window_type = e.target.value;
+document.getElementById("fs_import_audio_mapping").addEventListener('change', function (e) {
+    var mapping_type = e.target.value;
     
-    _audio_import_settings.window_type = window_type;
+    _audio_import_settings.mapping = mapping_type;
 });
 
 document.getElementById("fs_import_audio_ck_videotrack").addEventListener('change', function (e) {
@@ -156,6 +156,8 @@ document.getElementById("fs_remove_spaces").addEventListener('click', function (
     
     _compile();
 });
+
+document.getElementById("fs_center_all_dialogs").addEventListener('click', WUI_Dialog.centerAll);
 
 document.addEventListener('mouseup', function (e) {
     _mouse_btn = 0;
