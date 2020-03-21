@@ -176,6 +176,8 @@ var FragmentSynth = function (params) {
         _poly_infos_element = document.getElementById("fs_polyphony_infos"),
         _fas_stream_load = document.getElementById("fs_fas_stream_load"),
 
+        _synth_output_element = document.getElementById("fs_synth_output"),
+
         _haxis_infos = document.getElementById("fs_haxis_infos"),
         _vaxis_infos = document.getElementById("fs_vaxis_infos"),
 
@@ -531,7 +533,7 @@ var FragmentSynth = function (params) {
         } else {
             _local_session_settings = {
                 gain: _volume,
-                chn_settings: [],
+                chn_settings: [{ osc: [], efx: [] }],
                 markers: []
             };
         }
@@ -638,6 +640,8 @@ var FragmentSynth = function (params) {
     /***********************************************************
         Init.
     ************************************************************/
+
+    document.getElementById("copy_year").innerHTML = new Date().getFullYear();
     
     _record_opts.f = _record_opts.default;
     
@@ -768,6 +772,9 @@ var FragmentSynth = function (params) {
         
         _wgl_float_support_element.innerHTML = "Not supported (8-bit)";
         _wgl_float_support_element.style.color = "#ff0000";
+
+        // remove WebGL 2 settings
+        //_synth_output_element.parentElement.parentElement.removeChild(_synth_output_element.parentElement);
     } else {
         _gl2 = true;
         

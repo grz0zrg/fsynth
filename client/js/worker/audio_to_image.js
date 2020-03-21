@@ -11,25 +11,10 @@
 ************************************************************/
 
 // dependency
-/*#include ../dsp.js/dsp.js*/
+/*#include ../ccwt/ccwt.js*/
 
-// browserified modules for stft / ndarray implementation
-/*#include ../stft/stft_libs.js*/
+CCWT.onReady = function () {
 
-var ndarray     = require("ndarray"),
-    ndarray_fft = require("ndarray-fft");
-
-// enhanced stft - https://github.com/mikolalysenko/stft
-/*#include ../stft/stft.js*/
-
-/*#include ../tools.js*/
-
-var logScale = function (index, total, opt_base) {
-    var base = opt_base || 2, 
-        logmax = Math.log(total + 1) / Math.log(base),
-        exp = logmax * index / total;
-    
-    return Math.pow(base, exp) - 1;
 };
 
 /***********************************************************
@@ -45,6 +30,7 @@ var _progress = 0,
 ************************************************************/
 
 var _convert = function (params, data) {
+/*
     var note_time = params.note_time,
         note_samples = Math.round(note_time * params.sample_rate),
 
@@ -88,130 +74,98 @@ var _convert = function (params, data) {
         i,
         
         frame = 0;
-
-    if (note_samples > (window_size * 2)) {
-        postMessage("Conversion failed, there is " + note_samples + " samples to process for a window length (* 2) of " + (window_size * 2) + ", please use different settings.");
-    }
-
-    if (_stereo) {
-        progress_step /= 2;
-    }
+*/
+    var length_in_seconds = data.length / params.sample_rate,
     
-    STFT.initializeForwardWindow(window_size, window_type, window_alpha);
+        height = params.settings.height,
 
-    stft = STFT.forward(window_size, function (real, imag) {
-        overlap_frame_buffer.push({ r: real, i: imag });
+        minimum_frequency = params.settings.minfreq * length_in_seconds,
+        maximum_frequency = params.settings.maxfreq * length_in_seconds,
+    
+        deviation = params.settings.deviation,
 
-        if (overlap_frame_buffer.length === hop_divisor) {
-            var index = 0,
+        // linear
+        frequency_basis_linear = 0,
+        frequency_range_linear = maximum_frequency - minimum_frequency,
+        frequency_offset_linear = minimum_frequency,
 
-                k = 0, j = 0, n = 0,
+        // logarithmic
+        frequency_basis_log = 2.0, // each octave double the frequency
+        minimum_octave = Math.log(minimum_frequency) / Math.log(frequency_basis_log),
+        maximum_octave = Math.log(maximum_frequency) / Math.log(frequency_basis_log),
 
-                real_final = [],
-                imag_final = [],
-                
-                avgdi, avgdr,
-                
-                stft_data_index,
-                stft_data_index2,
-                
-                im, r, im1, r1, im2, r2,
-                
-                mag,
-                phase,
-                
-                ls,
-                
-                amp,
-                db;
-            
-                // overlap-add
-                for (k = 0; k < imag.length; k += 1) {
-                    avgdi = 0;
-                    avgdr = 0;
-                    
-                    for (j = 0; j < hop_divisor; j += 2) {
-                        avgdi += overlap_frame_buffer[j].i[k] + overlap_frame_buffer[j + 1].i[k];
-                        avgdr += overlap_frame_buffer[j].r[k] + overlap_frame_buffer[j + 1].r[k];
-                    }
+        frequency_range_log = maximum_octave - minimum_octave,
+        frequency_offset_log = minimum_octave,
 
-                    real_final[k] = avgdr / hop_divisor;
-                    imag_final[k] = avgdi / hop_divisor;
-                }
+        frequencies = null,
 
-                // get magnitude data
-                if (params.interpolation) {
-                    for (k = start; k < end; k += 1) {
-                        ls = lid + logScale(k - start, hid);
-                        
-                        stft_data_index = lid + _logScale(k - start, hid);
-                        stft_data_index2 = stft_data_index + 1;
-                    
-                        im1 = imag_final[stft_data_index];
-                        im2 = imag_final[stft_data_index2];
-                        r1 = real_final[stft_data_index];
-                        r2 = real_final[stft_data_index2];
-                        
-                        n = ls - stft_data_index;
-                        
-                        im = im1 + n * (im2 - im1);
-                        r = r1 + n * (r2 - r1);
-                    
-                        amp = (Math.sqrt(r * r + im * im) / hop_divisor);
+        padding = params.settings.padding,
+
+        gain_factor = params.settings.gain,
+        fourier_transformed_signal,
+
+        pixels_per_second = params.settings.pps,
+
+        output_width,
+
+        row_callback,
         
-                        mag = Math.round(amp * 255);
-                        phase = Math.round(Math.atan2(mag, r) * 180 / Math.PI) / hop_divisor * 255;
-                        
-                        index = Math.round((((k - start) / hid * image_height))) * image_width * 4 + frame;
+        image_data;
 
-                        image_data[index] = mag;
-                        image_data[index + 1] = mag;
-                        image_data[index + 2] = mag;
-                        image_data[index + 3] = phase;
-                    }
-                } else {
-                    for (k = start; k < end; k += 1) {
-                        ls = lid + logScale(k - start, hid);
-                        
-                        stft_data_index = lid + _logScale(k - start, hid);
-                    
-                        im = imag_final[stft_data_index];
-                        r = real_final[stft_data_index];
-                    
-                        amp = (Math.sqrt(r * r + im * im) / hop_divisor);
-        
-                        mag = Math.round(amp * 255);
-                        phase = Math.round(Math.atan2(mag, r) * 180 / Math.PI) / hop_divisor * 255;
-                        
-                        index = Math.round((((k - start) / hid * image_height))) * image_width * 4 + frame;
+    
+    if (params.settings.mapping === "linear") {
+        // linear
+        frequencies = CCWT.frequencyBand(height, frequency_range_linear, frequency_offset_linear, frequency_basis_linear, deviation);
+    } else {
+        // logarithmic
+        frequencies = CCWT.frequencyBand(height, frequency_range_log, frequency_offset_log, frequency_basis_log, deviation);
+    }
 
-                        image_data[index] = mag;
-                        image_data[index + 1] = mag;
-                        image_data[index + 2] = mag;
-                        image_data[index + 3] = phase;
-                    }
-                }
-            
-                frame += 4;
+    // add some padding to avoid start / end oddities (when there is data at one/both end of the signal)
+    fourier_transformed_signal = CCWT.fft1d(data, padding, gain_factor);
 
-                overlap_frame_buffer = [];
-            }
-        }, hop_length);
+    output_width = Math.floor(length_in_seconds * pixels_per_second);
 
-    // stft processing
-    for (i = 0; i < data_buffer.length; i += note_samples) {
-        _prev_progress = parseInt(_progress, 10);
-        _progress += progress_step;
+    image_data = new Uint8ClampedArray(output_width * height * 4);
 
-        stft(data_buffer.subarray(i, i + note_samples));
+    row_callback = function (y, row_data, output_padding) {
+        var _progress = Math.round(y / height * 100);
 
-        if (parseInt(_progress, 10) !== _prev_progress) {
-            if ((parseInt(_progress, 10) % 5) === 0) {
-                postMessage(_parseInt10(_progress, 10));
+        if (_progress != _prev_progress) {
+            _prev_progress = _progress;
+
+            var current_progress = _stereo ? _prev_progress / 2 : _prev_progress;
+
+            if (current_progress % 5 === 0) {
+                postMessage(current_progress);
             }
         }
-    }
-    
+        
+        var x = 0
+        for (x = 0; x < output_width; ++x) {
+            var r = row_data[output_padding * 2 + x * 2];
+            var i = row_data[output_padding * 2 + x * 2 + 1];
+
+            var amplitude_raw = Math.hypot(r, i);
+
+            // linear intensity
+            var value_sign = (0 < amplitude_raw) - (amplitude_raw < 0);
+            var amplitude = Math.min(amplitude_raw * value_sign, 1.0) * value_sign;
+            
+            var color = Math.round(amplitude * 255);
+
+            var index = y * output_width * 4 + x * 4;
+            image_data[index] = color;
+            image_data[index + 1] = color;
+            image_data[index + 2] = color;
+            image_data[index + 3] = 255;
+        }
+    };
+
+    CCWT.numericOutput(fourier_transformed_signal, padding, frequencies, 0, frequencies.length / 2, output_width, row_callback);
+
+    var i, n, amax = 0, amin = 255, adiff;
+
     // mag. normalization
     for (i = 0; i < image_data.length; i += 4) {
         n = image_data[i];
@@ -230,9 +184,8 @@ var _convert = function (params, data) {
         image_data[i + 1] *= adiff;
         image_data[i + 2] *= adiff;
     }
-
-
-    return { width: image_width, height: image_height, data: image_data };
+   
+    return { width: output_width, height: height, data: image_data };
 };
 
 // when in stereo, we basically assign R = L, G = R and G = (L + R) / 2

@@ -35,7 +35,7 @@ var _updateSliceSettingsDialog = function (slice_obj, show) {
     if (show) {
         WUI_Dialog.open(_slice_settings_dialog_prefix + slice_obj.dialog_id);
 
-        slice_obj.custom_midi_codemirror.refresh();
+        //slice_obj.custom_midi_codemirror.refresh();
     }
 };
 
@@ -211,7 +211,6 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
     }
     
     _computeOutputChannels();
-    _createFxSettingsContent();
 
     _saveMarkersSettings();
 };
@@ -298,7 +297,7 @@ var _changeMarkerSettingsEditor = function (theme) {
     var i = 0;
     
     for (i = 0; i < _play_position_markers.length; i += 1) {
-        _play_position_markers[i].custom_midi_codemirror.setOption("theme", theme);
+        //_play_position_markers[i].custom_midi_codemirror.setOption("theme", theme);
     }
 };
 
@@ -374,10 +373,14 @@ var _createMarkerSettings = function (marker_obj) {
         midi_dev_list_ck_input = document.createElement("input"),
         midi_dev_option,
 
+        midi_out_editor_btn = document.createElement("button"),
+
         midi_custom_codemirror = null,
         cm_element,
 
-        midi_custom_message_area = document.createElement("textarea"),
+        //midi_custom_message_area = document.createElement("textarea"),
+        midi_device_fieldset = document.createElement("fieldset"),
+        midi_device_legend = document.createElement("legend"),
 
         midi_devices,
 
@@ -439,6 +442,11 @@ var _createMarkerSettings = function (marker_obj) {
     }));
 
     // MIDI pane
+    midi_device_fieldset.className = "fs-fieldset";
+    midi_device_legend.innerHTML = "Devices :";
+    midi_device_fieldset.appendChild(midi_device_legend);
+
+/*
     midi_custom_message_area.innerHTML = '// User-defined MIDI messages for note events\n// Pixels data ([0,1) float data) : l, r, b, a\n// MIDI channel : c\n\nif (type === "on") {\n    on = [];\n} else if (type === "change") {\n    change = [];\n} else if (type === "off") {\n    off = [];\n}';
     midi_custom_message_area.style.width = "94%";
     midi_custom_message_area.style.height = "180px";
@@ -448,10 +456,23 @@ var _createMarkerSettings = function (marker_obj) {
     if (marker_obj.midi_out.custom_midi_message.length > 0) {
         midi_custom_message_area.innerHTML = marker_obj.midi_out.custom_midi_message;
     }
+*/
 
+/*
     midi_dev_list_label.className = "fs-select-label";
     midi_dev_list_label.htmlFor = "fs_slice_settings_midi_device_" + marker_obj.id;
     midi_dev_list_label.innerHTML = "Device";
+*/
+
+    midi_out_editor_btn.innerHTML = "Open MIDI OUT editor";
+    midi_out_editor_btn.className = "fs-btn fs-btn-default";
+
+    midi_out_editor_btn.style.width = "100%";
+
+    midi_out_editor_btn.addEventListener("click", function () {
+        
+    });
+
     midi_dev_list.id = "fs_slice_settings_midi_device_" + marker_obj.id;
     midi_dev_list.className = "fs-multiple-select";
     midi_dev_list.multiple = true;
@@ -476,15 +497,20 @@ var _createMarkerSettings = function (marker_obj) {
     midi_dev_list_container.className = "fs-fieldset";
     midi_dev_list_container_legend.innerHTML = "MIDI out";
 
-    midi_dev_out_container.appendChild(midi_dev_list_label);
-    midi_dev_out_container.innerHTML += "&nbsp;";
-    midi_dev_out_container.appendChild(midi_dev_list);
+    //midi_dev_out_container.appendChild(midi_dev_list_label);
+    //midi_dev_out_container.innerHTML += "&nbsp;";
+    //midi_dev_out_container.appendChild(midi_dev_list);
 
     midi_dev_list_container.appendChild(midi_dev_list_container_legend);
 
-    midi_dev_out_container.style = "text-align: center";
+    midi_device_fieldset.appendChild(midi_dev_list);
+    midi_dev_list_container.appendChild(midi_device_fieldset);
+    midi_dev_list_container.appendChild(midi_out_editor_btn);
 
-    midi_dev_list_container.appendChild(midi_dev_out_container);
+    //midi_dev_out_container.style = "text-align: center";
+
+    //midi_dev_list_container.appendChild(midi_dev_out_container);
+    /*
     midi_dev_list_container.appendChild(midi_custom_message_area);
 
     midi_custom_codemirror = CodeMirror.fromTextArea(midi_custom_message_area, {
@@ -495,7 +521,7 @@ var _createMarkerSettings = function (marker_obj) {
         theme: ((_code_editor_theme === null) ? "seti" : _code_editor_theme),
         matchBrackets: true
     });
-
+    
     cm_element = midi_custom_codemirror.getWrapperElement();
     cm_element.style = "font-size: 10pt";
 
@@ -507,7 +533,7 @@ var _createMarkerSettings = function (marker_obj) {
     
         _saveMarkersSettings();
     }));
-
+    */
     if (!_webMIDISupport()) {
         midi_dev_out_container.style.display = "none";
         cm_element.style.display = "none";
@@ -522,7 +548,7 @@ var _createMarkerSettings = function (marker_obj) {
         _applyCollapsible(midi_dev_list_container, midi_dev_list_container_legend, true);
     }
 
-    marker_obj.custom_midi_codemirror = midi_custom_codemirror;
+    //marker_obj.custom_midi_codemirror = midi_custom_codemirror;
 
     _buildMarkerMIDIDevices(marker_obj, midi_dev_list);
 
@@ -881,7 +907,6 @@ var _changeSliceType = function (slice_obj, type, submit) {
     }
 
     _createFasSettingsContent();
-    _createFxSettingsContent();
 
     if (submit) {
         _submitSliceUpdate(4, slice_obj.element.dataset.slice, { type : type });

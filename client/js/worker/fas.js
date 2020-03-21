@@ -30,6 +30,13 @@ var _fas = false,
     Functions.
 ************************************************************/
 
+var _appendBuffer = function(buffer1, buffer2) {
+    var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+    tmp.set(new Uint8Array(buffer1), 0);
+    tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
+    return tmp.buffer;
+  };
+
 var _getAudioInfosBuffer = function (audio_infos) {
     if (audio_infos.h <= 0 ||
         audio_infos.octaves <= 0 ||
@@ -145,50 +152,91 @@ var _sendChnInfos = function (chn_infos) {
         return;
     }
 
-    var buffer = new ArrayBuffer(8 + 8 + (32 * chn_infos.length)),
+    var max_effects_slot = 24; // must match server limit TODO : should get it from server...
+    var max_double_params = 11; // same as above
+
+    var buffer = new ArrayBuffer(8 + 8 + (40 * chn_infos.length)),
+        buffer_efx = new ArrayBuffer((max_effects_slot * (8 + (max_double_params * 8))) * chn_infos.length),
         uint8_view = new Uint8Array(buffer, 0, 1),
         uint32_view = new Uint32Array(buffer, 8, 1),
+        int32_view,
         float64_view,
-        i = 0;
+        i = 0, j = 0, k = 0;
 
     uint8_view[0] = 3;
     uint32_view[0] = chn_infos.length;
 
     // for all channels
     for (i = 0; i < chn_infos.length; i += 1) {
-        uint8_view = new Uint32Array(buffer, 16 + i * 32, 2);
-        float64_view = new Float64Array(buffer, 16 + 8 + i * 32);
+        uint8_view = new Uint32Array(buffer, 16 + i * 40, 3);
+        float64_view = new Float64Array(buffer, 16 + 16 + i * 40);
         
         uint8_view[0] = 0;
         uint8_view[1] = 0;
+        uint8_view[2] = 0;
         
         float64_view[0] = 0;
         float64_view[1] = 0;
         float64_view[2] = 0;
+
+        var chn_info = chn_infos[i];
+        var chn_osc_settings = chn_info.osc;
             
-        if (chn_infos[i][0]) {
-            uint8_view[0] = chn_infos[i][0];
+        if (chn_osc_settings[1]) {
+            uint8_view[0] = chn_osc_settings[1];
         }
     
-        if (chn_infos[i][1]) {
-            uint8_view[1] = chn_infos[i][1];
+        if (chn_osc_settings[3]) {
+            uint8_view[1] = chn_osc_settings[3];
+        }
+
+        if (chn_osc_settings[5]) {
+            uint8_view[2] = chn_osc_settings[5];
         }
         
-        if (chn_infos[i][2]) {
-            float64_view[0] = chn_infos[i][2];
+        if (chn_osc_settings[7]) {
+            float64_view[0] = chn_osc_settings[7]
         }
     
-        if (chn_infos[i][3]) {
-            float64_view[1] = chn_infos[i][3];
+        if (chn_osc_settings[9]) {
+            float64_view[1] = chn_osc_settings[9];
         }
         
-        if (chn_infos[i][4]) {
-            float64_view[2] = chn_infos[i][4];
+        if (chn_osc_settings[11]) {
+            float64_view[2] = chn_osc_settings[11];
+        }
+
+        var offset = (max_effects_slot * (8 + (max_double_params * 8))) * i;
+
+        for (j = 0; j < max_effects_slot * 3; j += 3) {
+            int32_view = new Int32Array(buffer_efx, offset, 2);
+            int32_view[0] = -1;
+
+            if (chn_info.efx[j] === undefined) {
+                break;
+            }
+
+            int32_view[0] = chn_info.efx[j]; // fx id
+            int32_view[1] = chn_info.efx[j+1]; // mute flag
+            var fx_params = chn_info.efx[j+2]; // params
+
+            float64_view = new Float64Array(buffer_efx, offset + 8, max_double_params);
+            for (k = 0; k < max_double_params; k += 1) {
+                if (fx_params[k] === undefined) {
+                    break;
+                }
+
+                float64_view[k] = fx_params[k];
+            }
+
+            offset += 8 + (max_double_params * 8);
         }
     }
-    
+
+    var result_buffer = _appendBuffer(buffer, buffer_efx);
+
     try {
-        _fas_ws.send(buffer);
+        _fas_ws.send(result_buffer);
     } finally {
 
     }

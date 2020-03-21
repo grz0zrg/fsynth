@@ -589,7 +589,7 @@ var _mpeMIDIMessage = function (notes) {
             if (_fasEnabled()) {
                 // re-trigger on FAS side for physical modelling (because this type of synthesis require it)
                 if (_chn_settings[chn] !== undefined) {
-                    if ((_chn_settings[chn][0] === 5) && note) {
+                    if ((_chn_settings[chn].osc[1] === 5) && note) {
                         if (note.noteoff) {
                             var osc = _hzToOscillator(data.frq, _audio_infos.base_freq, _audio_infos.octaves, _audio_infos.h);
                             _fasNotify(_FAS_ACTION, { type: 1, note: osc, chn: chn + 1 });
@@ -634,7 +634,7 @@ var _mpeMIDIMessage = function (notes) {
                 }
             } else { // note-on
                 if (_keyboard.data.length > _keyboard.data_length) {
-                    _notification("Cannot process more notes. Please increase maximum polyphony.");
+                    _notification("Maximum polyphony reached. Please increase maximum polyphony.");
                 }
 
                 // remove the empty data
@@ -677,8 +677,6 @@ var _mpeMIDIMessage = function (notes) {
 };
 
 var _midiAccessSuccess = function (midi_access) {
-    var midi_settings_element = document.getElementById(_midi_settings_dialog_id).lastElementChild;
-    
     _midi_access = midi_access;
     
     _mpe_instrument = mpe({
@@ -704,6 +702,8 @@ var _midiAccessSuccess = function (midi_access) {
 };
 
 var _midiAccessFailure = function (msg) {
+    var midi_settings_element = document.getElementById(_midi_settings_dialog_id).lastElementChild;
+
     midi_settings_element.innerHTML = "<center>Failed to get WebMIDI API access : " + msg + "</center>";
 };
 

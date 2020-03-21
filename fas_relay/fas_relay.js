@@ -52,7 +52,8 @@ var WebSocket = require("ws"),
     data_length = 0,
     data_length_rgba = 0,
 
-    logger = new (winston.Logger)({
+    logger = winston.createLogger({
+        format: winston.format.combine(winston.format.splat(), winston.format.simple()),
         transports: [
             new (winston.transports.Console)({ 'timestamp': true, 'colorize': true, 'level': 'debug' })
         ]
@@ -113,16 +114,16 @@ if ("h" in args) {
 }
 
 if (distribution_method === DSPLIT) {
-    logger.info("Distribution algorithm: DSPLIT");
+    logger.log("info", "Distribution algorithm: DSPLIT");
 } else if (distribution_method === DINTER) {
-    logger.info("Distribution algorithm: DINTER");
+    logger.log("info", "Distribution algorithm: DINTER");
 } else if (distribution_method === DSMART) {
-    logger.info("Distribution algorithm: DSMART");
+    logger.log("info", "Distribution algorithm: DSMART");
 }
 
 function sendError(error) {
     if (error) {
-        logger.error(error);
+        logger.log("error", error);
     }
 }
 
@@ -135,7 +136,7 @@ function websocketConnect() {
     wss.on("connection", function (socket) {
         client_socket = socket;
 
-        logger.info("Client successfully connected.");
+        logger.log("info", "Client successfully connected.");
 
         socket.binaryType = "arraybuffer";
 
@@ -167,7 +168,7 @@ function websocketConnect() {
 
             uint8_view = new Uint8Array(data, 0, 1);
 
-            logger.silly("Packet id '%s' received from client.", uint8_view[0]);
+            logger.log("silly", "Packet id '%s' received from client.", uint8_view[0]);
             if (uint8_view[0] !== FRAME_DATA) {
                 if (uint8_view[0] === SYNTH_SETTINGS) {
                     uint32_view = new Uint32Array(data, 8, 3);
@@ -178,7 +179,7 @@ function websocketConnect() {
                         frame_array_type = Float32Array;
                         frame_data_comp = 4;
 
-                        logger.info("Frame data set to float.");
+                        logger.log("info", "Frame data set to float.");
                     } else {
                         frame_array_type = Uint8Array;
                         frame_data_comp = 1;
@@ -188,7 +189,7 @@ function websocketConnect() {
 
                     channels = uint32_view[0];
 
-                    logger.info("%s Channels.", channels);
+                    logger.log("info", "%s Channels.", channels);
 
                     for (i = 0; i < channels; i += 1) {
                         uint8_view = new Uint32Array(data, 16 + i * 24, 2);
@@ -374,19 +375,19 @@ function websocketConnect() {
         });
 
         socket.on("close", function close() {
-            logger.info("Client disconnected.");
+            logger.log("info", "Client disconnected.");
         });
     });
 }
 
 function onFASOpen(i, port, cb) {
   return function open() {
-      logger.info("Relay successfully connected to FAS %s on port %s.", i, port);
+      logger.log("info", "Relay successfully connected to FAS %s on port %s.", i, port);
 
       fas_wss_count++;
 
       if (fas_wss_count === fas_servers.length) {
-          logger.info("Relay successfully connected to all servers.");
+          logger.log("info", "Relay successfully connected to all servers.");
           
           cb();
       }
@@ -395,7 +396,7 @@ function onFASOpen(i, port, cb) {
 
 function onFASClose(fas_obj) {
   return function close() {
-      logger.info("FAS %s disconnected from port %s.", fas_obj.i, fas_obj.p);
+      logger.log("info", "FAS %s disconnected from port %s.", fas_obj.i, fas_obj.p);
 
       for (i = 0; i < fas_wss_count; i += 1) {
           if (fas_wss[i].socket === fas_obj.s) {
@@ -418,14 +419,14 @@ function onFASMessage(i) {
           return;
         }
 
-        logger.info("Server %s stream load: %s.", i, parseInt(stream_load[0] * 100, 10) + "%");
+        logger.log("info", "Server %s stream load: %s.", i, parseInt(stream_load[0] * 100, 10) + "%");
     };
 }
 
 function onFASError(i, addr) {
     return function msg(message) {
-        logger.error("Cannot connect to server '%s' (id %s).", addr, i);
-        logger.error("Network error message : %s", message);
+        logger.log("error", "Cannot connect to server '%s' (id %s).", addr, i);
+        logger.log("error", "Network error message : %s", message);
     };
 }
 
@@ -448,7 +449,7 @@ function printOverallLoad() {
       return;
     }
 
-    logger.info("Overall stream load: %s.", parseInt(l * 100, 10) + "%");
+    logger.log("info", "Overall stream load: %s.", parseInt(l * 100, 10) + "%");
 
     var load_buffer = new ArrayBuffer(8),
         float64_view = new Float64Array(load_buffer, 0);
@@ -559,11 +560,11 @@ function fasConnect(cb) {
     });
 
     if (!fas_servers.length) {
-        logger.info("Please specify a valid target.");
+        logger.log("info", "Please specify a valid target.");
     }
     
     for (i = 0; i < fas_servers.length; i += 1) {
-        logger.info("Connecting to '" + fas_servers[i] + "' (FAS " + i + ")");
+        logger.log("info", "Connecting to '" + fas_servers[i] + "' (FAS " + i + ")");
 
         s = fas_servers[i].split(":");
 

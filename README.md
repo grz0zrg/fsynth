@@ -36,13 +36,15 @@ Table of Contents
 
 ## About Fragment
 
-Fragment is a collaborative audiovisual live coding web. environment with pixels based (image-synth) live additive/spectral/granular synthesis and sequencing, the **sound synthesis** is **powered by pixels data** generated from live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) and [Processing.js](http://processingjs.org/) code with many different types of input data.
+Fragment is a graphical audio synth. / collaborative audiovisual live coding web. environment with pixels based (image-synth) live sound synthesis, the **sound synthesis** is **powered by pixels data** generated from live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) and [Processing.js](http://processingjs.org/) code with many different types of input data.
 
 Many videos of most features are available on [YouTube](https://www.youtube.com/c/FragmentSynthesizer)
 
 Fragment has only one fragment shader which has the particularity to be shared between the users of an online session, it update and compile on-the-fly as you or other peoples type, some settings are also synchronized between users such as slices and some global settings.
 
 Fragment has many features making it a bliss to produce any kind of sounds associated (or not) with visuals, it is aimed at artists seeking a creative environment with few limitations to experiment with, a programmable noise-of-all-kinds software.
+
+Fragment can work as a standalone or as a client for the [Fragment Audio Server](https://github.com/grz0zrg/fas) which extend its possibilities to a pro quality level.
 
 With WebGL 2 capable web browser, audio can be produced independently from the visuals with the *synthOutput* **vec4** uniform, with WebGL 1 you can use the default pixels output (**gl_FragColor** or **fragColor**) to produce sounds and visuals, use the monophonic mode if you want independent audio & visuals with WebGL 1.
 
@@ -54,7 +56,7 @@ You can support this project through [Patreon](https://www.patreon.com/fsynth)
 
 - Recent web browser such as Chrome, Opera, Safari or Firefox (MIDI is not supported by Firefox at the moment)
 - Mid-range GPU, this app. was made and tested with a GeForce GTX 970
-- Mid-range multi-core CPU (a dual core should be ok with the FAS, a beefy CPU is needed if you use more than one output channel)
+- Mid-range multi-core CPU (a dual core should be ok with FAS sound server, a beefy CPU is needed if you use more than one output channel)
 - Not necessary but a MIDI device such as a MIDI keyboard is recommended
 
 **Note on performances :** Fragment has excellent performances with a modern multi-core system and a browser such as Chrome, if you experience crackles or need advanced audio features, it is recommended that you use the sound server and the independent code editor, the things that may cause poor performances is due to the browser reflow (UI side)
@@ -63,10 +65,25 @@ Fragment is also able to do real-time distributed sound synthesis with the sound
 
 ## Features
 
-- Additive, spectral, granular, subtractive, wavetable, phase modulation synthesizer powered by WebAudio oscillators (additive only, work best in Chrome), a Wavetable with AudioWorklet (additive only, probably the best in the future) OR a [C native audio server](https://github.com/grz0zrg/fas) (fastest/best)
+- Standalone additive synthesis powered by WebAudio oscillators / AudioWorklet (work best in Chrome, limited to one stereo output channel)
+- Client for fast & powerful [C native graphical synth. server](https://github.com/grz0zrg/fas) which has a versatile sound engine :
+  - additive / spectral synthesis with per partial effect (bitcrush, phase distorsion, waveshaping, fold, convolve etc.)
+  - spectral (modify or synthesizer sounds)
+  - phase modulation (PM/FM)
+  - granular
+  - subtractive synthesis
+  - physical modelling (Karplus-strong, droplet)
+  - wavetable
+  - formant synthesis (formant filter bank)
+  - string resonator (complex filter bank similar to Karplus-Strong)
+  - modal synthesis (resonant filter bank)
+  - second-order band-pass Butterworth filter (bandpass filter bank)
+  - phase distorsion
+  - unlimited input channels / output channels
+  - effect slots (reverb, convolution, comb, delay, chorus, flanger...)
+  - distributed sound synthesis, multi-machines/multi-core support (with fas_relay)
 - Live coding/JIT compilation of shader code
 - Real-time, collaborative app.
-- Distributed sound synthesis, multi-machines/multi-core support (Fragment Audio Server with fas_relay)
 - Stereophonic or monaural
 - Polyphonic
 - Multitimbral
@@ -85,12 +102,11 @@ Fragment is also able to do real-time distributed sound synthesis with the sound
   - Images
   - Videos with rate & rewind & loop settings (can import the audio track as an image)
   - Desktop capture (screen region, specific window or browser tab via `getDisplayMedia`)
-  - Audio files (translated to images)
+  - Audio files (converted to images using Continuous Wavelet Transform)
   - Drawing canvas with drawing and compositing operations which use images Fragment input as brushes, Fragment is bundled with 20 high-quality brushes, a pack of 969 high-quality brushes is also available as a [separate download](https://www.fsynth.com/data/969_png_brushes_pack.7z)
   - [Processing.js](http://processingjs.org/) sketchs
 - Uniform controllers via OSC [Open Stage Control is recommended](http://osc.ammd.net)
 - Per-sessions discussion system
-- Global and per sessions settings smart save/load; make use of *localStorage*
 - No authentifications needed, anonymous (make use of *localStorage* and is *sessions* based)
 
 ### Sound Synthesis
@@ -98,6 +114,8 @@ Fragment is also able to do real-time distributed sound synthesis with the sound
 Fragment capture pixels data (1px wide slices) from a WebGL drawing surface at the browser display refresh rate and translate the RGBA pixels value to notes, the notes are then interpreted and played by one or more synthesis method in real-time.
 
 Common to all synthesis methods, the canvas represent frequencies (exponential mapping) on the vertical axis and time on the horizontal axis.
+
+It can be seen as a front-end for a huge bank of oscillators / filters.
 
 The [Fragment audio server](https://github.com/grz0zrg/fas) is necessary for very fast sound synthesis and other features such as different output channels per slices.
 
@@ -111,9 +129,9 @@ Fragment default sound synthesis is additive, with additive synthesis, Fragment 
 
 With additive synthesis and stereo mode, the Red channel is the left oscillator amplitude and the Green channel is the right oscillator amplitude.
 
-With FAS (Fragment Audio Server), the Blue channel value is used to add bandwidth noise to the oscillator which may enhance the sound by adding a noise component to the oscillator.
+In monophonic mode, the alpha value is used for both L&R oscillator amplitude so that RGB is available for visuals. This is usefull when the browser does not support WebGL 2 or to improve performance.
 
-In monophonic mode, the alpha value is used for both L&R oscillator amplitude.
+With [FAS](https://github.com/grz0zrg/fas) (Fragment Audio Server), the Blue channel value may be used to add per partial effects which may add characters. (Alpha channel may be used to change effect parameters)
 
 #### Granular Synthesis ([FAS](https://github.com/grz0zrg/fas) only)
 
@@ -171,18 +189,20 @@ Dynamics parameters
 
 Subtractive synthesis start from harmonically rich waveforms which are then filtered.
 
-It is fast, can use additive synthesized waveforms or Poly BLEP waveforms, there is only one high quality low-pass filter (Moog type) implemented.
+It is fast, can use additive synthesized waveforms or Poly BLEP anti-aliased waveforms and many filters are available: moog, diode, korg 35, lpf18...
 
-There is four type of waveforms : sawtooth, square, triangle, noise
+There is three type of band-limited waveforms : sawtooth, square, triangle
 
-**Note** : The waveforms are constitued of a maximum of 64 partials with additive synthesis
+There is also a noise waveform with PolyBLEP and additional brownian / pink noise waveform
+
+**Note** : The waveforms are constitued of a maximum of 128 partials with additive synthesis
 
 Dynamics parameters
 
 - Red = Amplitude value of the LEFT channel
 - Green = Amplitude value of the RIGHT channel
-- Blue = Moog filter cutoff parameter
-- Alpha = Moog filter resonance [0, 1] & waveform selection on integral part (0.x, 1.x, 2.x etc)
+- Blue = filter cutoff multiplier; the cutoff is set to the fundamental frequency, 1.0 = cutoff at fundamental frequency
+- Alpha = filter resonance [0, 1] & waveform selection on integral part (0.x, 1.x, 2.x etc)
 
 #### Wavetable synthesis ([FAS](https://github.com/grz0zrg/fas) only, WIP)
 
@@ -207,9 +227,9 @@ Dynamics parameters
 
 Physical modelling synthesis refers to sound synthesis methods in which the waveform of the sound to be generated is computed using a mathematical model, a set of equations and algorithms to simulate a physical source of sound, usually a musical instrument.
 
-Physical modelling in Fragment use Karplus-Strong string synthesis (for now).
+Physical modelling in Fragment use Karplus-Strong string synthesis, there is also a droplet model.
 
-This is a fast method which generate pleasant string-like sounds.
+Karplus-Strong is a fast method which generate pleasant string-like sounds.
 
 Dynamics parameters
 
@@ -217,6 +237,24 @@ Dynamics parameters
 - Green = Amplitude value of the RIGHT channel
 - Blue = Noise wavetable cutoff lp filter / fractional part : stretching factor
 - Alpha = Noise wavetable res. lp filter
+
+### Spectral synthesis ([FAS](https://github.com/grz0zrg/fas) only)
+
+### Bandpass synthesis ([FAS](https://github.com/grz0zrg/fas) only)
+
+### Formant synthesis ([FAS](https://github.com/grz0zrg/fas) only)
+
+### Phase Distorsion synthesis ([FAS](https://github.com/grz0zrg/fas) only)
+
+### String resonator synthesis ([FAS](https://github.com/grz0zrg/fas) only)
+
+### Modal synthesis ([FAS](https://github.com/grz0zrg/fas) only)
+
+### Input ([FAS](https://github.com/grz0zrg/fas) only)
+
+### Effects ([FAS](https://github.com/grz0zrg/fas) only)
+
+Fragment with FAS support unlimited number of effects chain per channels with bypass support: phaser, comb, reverb, delay...
 
 ## MIDI
 
@@ -238,7 +276,7 @@ Fragment support MIDI inputs and MIDI outputs with compatible browsers.
 - Hot plugging of MIDI devices
 - MIDI output
   - MIDI devices can be assigned to each slices
-  - user-defined MIDI messages interpretation of RGBA values
+  - user-defined MIDI messages interpretation of RGBA values via bundled editor
   - polyphony/stereo panning through 16 channels
   - microtonal capabilities (frequency mapping is respected)
 
@@ -278,14 +316,14 @@ Many tools are available to enhance Fragment.
 
 ## Limitations
 
-* The main limitation of Fragment is the events granularity caused by the monitor refresh rate (60 or 120 FPS), this can be solved by running the browser without VSYNC, example for Chrome with the command-line parameter **--disable-gpu-vsync** this may be not ideal for visuals however.
+* The main limitation of Fragment is the events granularity caused by the monitor refresh rate (60 or 120 FPS), this can be solved by running the browser without VSYNC, example for Chrome with the command-line parameter **--disable-gpu-vsync** this may be not ideal for visuals. This will be solved as monitor / gpu progress is made with hopefully ideal granularity (granularity of human auditory system ENV / TFS is typically 1 to 3ms which mean ideal would be something like 500 FPS or double than that)
 * Discrete mapping of frequencies can be seen as a limitation, especially for additive synthesis, this is mostly solved by increasing the resolution of the canvas.
 * Additive synthesis : Phases are randomly assigned
-* Many synthesis parameters cannot be mapped well due to RGBA, this is a limitation which apply mainly to PM/FM, this limit the number of algorithm for example.
+* Many synthesis parameters cannot be mapped well due to RGBA data, this limit the number of algorithms / modulation for example. This would require multiple output framebuffers, it was already tried and is relatively easy to implement but it come with a high performance hit. (the client basically send data * 2 or more)
 
 ## Notes
 
-- WebAudio oscillators and the WebAudio Worklet mode can only have two output channels (L/R) due to performances issues (this may change in the future!)
+- WebAudio oscillators and the WebAudio Worklet mode can only have two output channels (L/R) due to performances issues
 
 
 ## Tips and tricks
@@ -345,6 +383,8 @@ Once those are installed, it is easy to run it locally:
  * cd fsws & npm install & node fsws
  * point your browser to http://127.0.0.1:3000
 
+ Under Linux : proprietary GPU drivers is recommended due to performance reasons.
+
  If you just want to try it out without the collaborative feature and GLSL code save, you don't need MongoDB and Redis, you just need "fsws" then point your browser to http://127.0.0.1:3000
 
  If you want to use it with an OSC app like the SuperCollider fs.sc file or [Open Stage Control](http://osc.ammd.net), please look at the osc_relay directory.
@@ -367,7 +407,7 @@ Once those are installed, it is easy to run it locally:
 
 Maybe a VST/LV2 plugin for accessibility and of course many new features are coming soon. ;)
 
-## Stuff used to make this
+## Credits
 
 Client :
  * [Vanilla JS](http://vanilla-js.com/) yup!
@@ -383,11 +423,11 @@ Client :
  * [Skeleton](http://getskeleton.com/) for the landing page
  * [Showdown](https://github.com/showdownjs/showdown) in-app markdown
  * [Mikola Lysenko stft (enhanced version)](https://github.com/mikolalysenko/stft)
+ * [CCWT.js](https://github.com/grz0zrg/ccwt.js)
 
 Papers :
  * [The Scientist and Engineer's Guide to Digital Signal Processing](http://www.dspguide.com)
  * [L'audionumérique 3°ed by Curtis Road](http://www.audionumerique.com/)
- * [Fabrice Neyret Desmos page](http://www-evasion.imag.fr/Membres/Fabrice.Neyret/demos/DesmosGraph/indexImages.html)
 
 Servers :
  * [NodeJS](https://nodejs.org/en/)
@@ -404,8 +444,6 @@ Utilities :
  * [FontAwesome](http://fontawesome.io/)
  * [pegjs](https://www.pegjs.org)
  * [fa2png](http://fa2png.io/)
- * [Brackets](http://brackets.io/)
- * [Atom](https://atom.io/)
  * [desmos](https://www.desmos.com)
  * [libwebsockets](https://libwebsockets.org/) for [fas](https://github.com/grz0zrg/fas)
  * [portaudio](http://www.portaudio.com/) for [fas](https://github.com/grz0zrg/fas)

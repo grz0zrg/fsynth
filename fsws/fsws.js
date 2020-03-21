@@ -12,11 +12,12 @@ var compression = require('compression'),
     clusterControl = require('strong-cluster-control'),
     http = require('http').Server(app),
     
-    logger = new (winston.Logger)({
-            transports: [
-                new (winston.transports.Console)({ 'timestamp': true, 'colorize': true })
-            ]
-        }),
+    logger = winston.createLogger({
+        format: winston.format.combine(winston.format.splat(), winston.format.simple()),
+        transports: [
+            new (winston.transports.Console)({ 'timestamp': true, 'colorize': true })
+        ]
+    }),
     
     index = __dirname + '/../www/index.html';
 
@@ -26,26 +27,26 @@ clusterControl.start({
         terminateTimeout: 5000,
         throttleDelay: 5000
     }).on('error', function(er) {
-        logger.error("Cluster error occured: ", er);
+        logger.log("error", "Cluster error occured: ", er);
     }).on('startWorker', function(worker) {
-        logger.info("Worker %s %s", worker.process.pid, "started");
+        logger.log("info", "Worker %s %s", worker.process.pid, "started");
     }).on('stopWorker', function(worker, code, signal) {
         if (code) {
-            logger.warn("Worker %s stopped with code: %s", worker.process.pid, code);
+            logger.log("warn", "Worker %s stopped with code: %s", worker.process.pid, code);
         } else {
-            logger.warn("Worker %s was stopped.", worker.process.pid);
+            logger.log("warn", "Worker %s was stopped.", worker.process.pid);
         }
     });
 
 if (cluster.isMaster) {
     process.on('SIGUSR1', function() {
-        logger.warn("SIGUSR1 received, restarting workers in progress...");
+        logger.log("warn", "SIGUSR1 received, restarting workers in progress...");
 
         clusterControl.restart();
     });
     
     process.on('SIGUSR2', function() {
-        logger.info("Workers status:", clusterControl.status().workers);
+        logger.log("info", "Workers status:", clusterControl.status().workers);
     });
 
 	return;
@@ -91,5 +92,5 @@ app.get('/ed/:session', function (req, res) {
 });
 
 http.listen(3000, "127.0.0.1", function () {
-    logger.info('Fragment - Web Server listening on *:3000');
+    logger.log("info", 'Fragment - Web Server listening on *:3000');
 });

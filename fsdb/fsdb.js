@@ -10,7 +10,8 @@ var WebSocketJSONStream = require('websocket-json-stream');
 var winston = require('winston');
 var shareDbRedisPubSub = require('sharedb-redis-pubsub');
 
-var logger = new (winston.Logger)({
+var logger = winston.createLogger({
+    format: winston.format.combine(winston.format.splat(), winston.format.simple()),
     transports: [
         new (winston.transports.Console)({ 'timestamp': true, 'colorize': true })
     ]
@@ -22,26 +23,26 @@ clusterControl.start({
         terminateTimeout: 5000,
         throttleDelay: 5000
     }).on('error', function(er) {
-        logger.error("Cluster error occured: ", er);
+        logger.log("warn", "Cluster error occured: ", er);
     }).on('startWorker', function(worker) {
-        logger.info("Worker %s %s", worker.process.pid, "started");
+        logger.log("info", "Worker %s %s", worker.process.pid, "started");
     }).on('stopWorker', function(worker, code, signal) {
         if (code) {
-            logger.warn("Worker %s stopped with code: %s", worker.process.pid, code);
+            logger.log("warn", "Worker %s stopped with code: %s", worker.process.pid, code);
         } else {
-            logger.warn("Worker %s was stopped.", worker.process.pid);
+            logger.log("warn", "Worker %s was stopped.", worker.process.pid);
         }
     });
 
 if (cluster.isMaster) {
     process.on('SIGUSR1', function() {
-        logger.warn("SIGUSR1 received, restarting workers in progress...");
+        logger.log("warn", "SIGUSR1 received, restarting workers in progress...");
 
         clusterControl.restart();
     });
 
     process.on('SIGUSR2', function() {
-        logger.info("Workers status:", clusterControl.status().workers);
+        logger.log("info", "Workers status:", clusterControl.status().workers);
     });
 
 	return;
@@ -49,13 +50,13 @@ if (cluster.isMaster) {
 
 var clientVerification = function (info) {
     if (fsynthcommon.allow_fsdb_origin.indexOf(info.origin) !== -1) {
-        logger.info("%s %s %s %s %s", process.pid, info.req.socket.remoteAddress, 'Client', 'user-agent:', info.req.headers['user-agent']);
-        logger.info("%s %s %s %s %s", process.pid, info.req.socket.remoteAddress, 'Client', 'accept-language:', info.req.headers['accept-language']);
+        logger.log("info", "%s %s %s %s %s", process.pid, info.req.socket.remoteAddress, 'Client', 'user-agent:', info.req.headers['user-agent']);
+        logger.log("info", "%s %s %s %s %s", process.pid, info.req.socket.remoteAddress, 'Client', 'accept-language:', info.req.headers['accept-language']);
 
         return true;
     }
 
-    logger.warn("%s %s %s %s", process.pid, info.req.socket.remoteAddress, 'Client refused:\n', info.req.rawHeaders);
+    logger.log("warn", "%s %s %s %s", process.pid, info.req.socket.remoteAddress, 'Client refused:\n', info.req.rawHeaders);
 
     return false;
 };
@@ -108,7 +109,7 @@ wss.on('connection', function(ws, req) {
     if (real_ip !== "127.0.0.1" && real_ip !== "::ffff:127.0.0.1" && real_ip !== "::1") {
         ws.close();
 
-        logger.warn("%s %s %s", process.pid, real_ip, "has invalid address.");
+        logger.log("warn", "%s %s %s", process.pid, real_ip, "has invalid address.");
     }
 
     if (ws.upgradeReq !== undefined) {
@@ -117,15 +118,15 @@ wss.on('connection', function(ws, req) {
         }
     }
 
-    logger.info("%s %s %s", process.pid, real_ip, "connected");
-    logger.info('%s Total clients: %s', process.pid, wss.clients.length);
+    logger.log("info", "%s %s %s", process.pid, real_ip, "connected");
+    logger.log("info", '%s Total clients: %s', process.pid, wss.clients.size);
 
     var stream = new WebSocketJSONStream(ws);
     share.listen(stream);
 });
 
 wss.on('close', function(ws, req) {
-    logger.info("client disconnected");
+    logger.log("info", "client disconnected");
 });
 
 server.listen(fsynthcommon.fsdb_port);

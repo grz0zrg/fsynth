@@ -1916,7 +1916,7 @@ var WUI_Dialog = new (function() {
             element;
 
         if (widget === undefined) {
-            _log("Element id '" + id + "' is not a WUI_Dialog, destroying aborted.");_focus(_dragged_dialog);
+            _log("Element id '" + id + "' is not a WUI_Dialog, destroying aborted.");
 
             return;
         }
@@ -1981,6 +1981,27 @@ var WUI_Dialog = new (function() {
             widget = _widget_list[id];
             if (widget) {
                 _close(widget.dialog, true, propagate, true);
+            }
+        }
+    };
+
+    this.centerAll = function () {
+        var id, widget;
+        for (id in _widget_list) {
+            widget = _widget_list[id];
+            if (widget) {
+                var opts = widget.opts,
+                
+                    dialog = widget.dialog,
+    
+                    parent_width = dialog.parentElement.offsetWidth,
+                    parent_height = dialog.parentElement.offsetHeight,
+    
+                    dialog_width = dialog.offsetWidth,
+                    dialog_height = dialog.offsetHeight;
+
+                dialog.style.left = Math.round((parent_width - dialog_width) / 2 + opts.left) + "px";
+                dialog.style.top = Math.round((parent_height - dialog_height) / 2 + opts.top) + "px";
             }
         }
     };

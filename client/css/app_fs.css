@@ -436,7 +436,8 @@ canvas {
     
     font-size: 11pt;
 
-    height: 40px;
+    width: 100%;
+    max-height: 120px;
     
     margin-bottom: 4px;
     margin-top: 4px;
@@ -681,7 +682,7 @@ canvas {
 
         width: 100%;
 
-        display: block;
+        display: flex;
         
         overflow-y: auto;
     }
@@ -707,7 +708,7 @@ canvas {
     .fs-input-panel {
         width: calc(100% - 618px - 16px);
 
-        display: inline;
+        display: inline-flex;
         
         overflow-y: auto;
     }
@@ -1203,6 +1204,46 @@ body .code .CodeMirror-fullscreen {
 
 .fs-fieldset.fs-collapsed *:not(legend) {
     display: none;
+}
+
+.fs-fas-chn-id:hover {
+    cursor: pointer;
+}
+
+.fs-fx-card {
+    padding-left: 2px;
+    width: 64px;
+    height: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 11px;
+    text-align: left;
+    display: inline-block;
+    font-family: monospace;
+    cursor: pointer;
+}
+
+.fs-fx-mute {
+    background-image: url("../data/ui-icons/mute.png");
+    background-size: contain;
+    opacity: 0.25;
+}
+
+.fs-fx-container {
+    display: flex;
+    width: 340px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.fs-fx-chn-content {
+    background-color: #1f1f1f;
+    flex-grow: 1;
+    margin-left: 8px;
+    display: flex;
+    align-items: center;
+    border: 1px solid #111111;
 }
 
 .fs-matrix {

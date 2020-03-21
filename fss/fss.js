@@ -9,11 +9,12 @@ var fsynthcommon = require('../common'),
     os = require('os'),
     redis = require('redis'),
     
-    logger = new (winston.Logger)({
-            transports: [
-                new (winston.transports.Console)({ 'timestamp': true, 'colorize': true })
-            ]
-        }),
+    logger = winston.createLogger({
+        format: winston.format.combine(winston.format.splat(), winston.format.simple()),
+        transports: [
+            new (winston.transports.Console)({ 'timestamp': true, 'colorize': true })
+        ]
+    }),
     
     workers = new Array(),
     cores,
@@ -27,9 +28,9 @@ clusterControl.start({
         terminateTimeout: 5000,
         throttleDelay: 5000
     }).on('error', function(er) {
-        logger.error("Cluster error occured: ", er);
+        logger.log("error", "Cluster error occured: ", er);
     }).on('startWorker', function(worker) {
-        logger.info("Worker %s %s", worker.process.pid, "started");
+        logger.log("info", "Worker %s %s", worker.process.pid, "started");
     
 		worker.on("message", function (message) {
             if (message.payload) {
@@ -49,9 +50,9 @@ clusterControl.start({
         var i = 0;
     
         if (code) {
-            logger.warn("Worker %s stopped with code: %s", worker.process.pid, code);
+            logger.log("warn", "Worker %s stopped with code: %s", worker.process.pid, code);
         } else {
-            logger.warn("Worker %s was stopped.", worker.process.pid);
+            logger.log("warn", "Worker %s was stopped.", worker.process.pid);
         }
     
         for (i = 0; i < workers.length; i += 1) {
@@ -77,13 +78,13 @@ if (cluster.isMaster) {
     redisClient.set("conn_uid", 0);
     
     process.on('SIGUSR1', function() {
-        logger.warn("SIGUSR1 received, restarting workers in progress...");
+        logger.log("warn", "SIGUSR1 received, restarting workers in progress...");
 
         clusterControl.restart();
     });
     
     process.on('SIGUSR2', function() {
-        logger.info("SIGUSR2 received, workers status:", clusterControl.status().workers);
+        logger.log("info", "SIGUSR2 received, workers status:", clusterControl.status().workers);
     });
 
 	return;
@@ -101,13 +102,13 @@ var prepareMessage = function (type, obj) {
 
 var clientVerification = function (info) {
     if (fsynthcommon.allow_fss_origin.indexOf(info.origin) !== -1) {
-        logger.info("%s %s %s %s %s", process.pid, info.req.socket.remoteAddress, 'Client', 'user-agent:', info.req.headers['user-agent']);
-        logger.info("%s %s %s %s %s", process.pid, info.req.socket.remoteAddress, 'Client', 'accept-language:', info.req.headers['accept-language']);
+        logger.log("info", "%s %s %s %s %s", process.pid, info.req.socket.remoteAddress, 'Client', 'user-agent:', info.req.headers['user-agent']);
+        logger.log("info", "%s %s %s %s %s", process.pid, info.req.socket.remoteAddress, 'Client', 'accept-language:', info.req.headers['accept-language']);
         
         return true;
     }
     
-    logger.warn("%s %s %s %s", process.pid, info.req.socket.remoteAddress, 'Client refused:\n', info.req.rawHeaders);
+    logger.log("warn", "%s %s %s %s", process.pid, info.req.socket.remoteAddress, 'Client refused:\n', info.req.rawHeaders);
 
     return false;
 };
@@ -138,7 +139,7 @@ var clusterWideBroadcast = function (curr_ws, payload, session) {
                                     ws.send(payload);
                                 }
                             } catch (e) {
-                                logger.error('JSON.parse failed %s', reply, e.message);
+                                logger.log("error", 'JSON.parse failed %s', reply, e.message);
                             }
                         }
                     });
@@ -150,7 +151,7 @@ var clusterWideBroadcast = function (curr_ws, payload, session) {
 };
 
 redisClient.on('connect', function() {
-    logger.info("%s %s", process.pid, 'Connected to database');
+    logger.log("info", "%s %s", process.pid, 'Connected to database');
 
     wss = new webSocketServer({
             port: fsynthcommon.fss_port,
@@ -173,7 +174,7 @@ redisClient.on('connect', function() {
                                         ws.send(obj.payload);
                                     }
                                 } catch (e) {
-                                    logger.error('JSON.parse failed %s - %s', reply, e.message);
+                                    logger.log("error", 'JSON.parse failed %s - %s', reply, e.message);
                                 }
                             }
                         });
@@ -189,7 +190,7 @@ redisClient.on('connect', function() {
     });
 
     wss.on('error', function error (ws) {
-            logger.error("An unknown error occured!");
+            logger.log("error", "An unknown error occured!");
         });
 
     wss.on('connection', function connection (ws) {
@@ -198,7 +199,7 @@ redisClient.on('connect', function() {
         if (real_ip !== "127.0.0.1" && real_ip !== "::ffff:127.0.0.1" && real_ip !== "::1") {
             ws.close();
 
-            logger.warn("%s %s %s", process.pid, real_ip, "has invalid address.");
+            logger.log("warn", "%s %s %s", process.pid, real_ip, "has invalid address.");
         }
 
         if (ws.upgradeReq !== undefined) {
@@ -207,8 +208,8 @@ redisClient.on('connect', function() {
             }
         }
 
-        logger.info("%s %s %s", process.pid, real_ip, "connected");
-        logger.info('%s Total clients: %s', process.pid, wss.clients.length);
+        logger.log("info", "%s %s %s", process.pid, real_ip, "connected");
+        logger.log("info", '%s Total clients: %s', process.pid, wss.clients.size);
 
         ws.on('message', function incoming (message) {
             var msg, session;
@@ -220,7 +221,7 @@ redisClient.on('connect', function() {
                     session = msg.session;
 
                     if (session.length <= 0 && session.length > 256) {
-                        logger.warn("%s %s %s", process.pid, real_ip, "has invalid session name.");
+                        logger.log("warn", "%s %s %s", process.pid, real_ip, "has invalid session name.");
                         ws.close();
 
                         return;
@@ -279,7 +280,7 @@ redisClient.on('connect', function() {
                     var client = fs.clients[ws.uid];
                     
                     if (client === undefined) {
-                        logger.error('Cannot find client id "%s"', ws.uid);
+                        logger.log("error", 'Cannot find client id "%s"', ws.uid);
 
                         return;
                     }
@@ -299,7 +300,7 @@ redisClient.on('connect', function() {
                     var client = fs.clients[ws.uid];
                     
                     if (client === undefined) {
-                        logger.error('Cannot find client id "%s"', ws.uid);
+                        logger.log("error", 'Cannot find client id "%s"', ws.uid);
 
                         return;
                     }
@@ -319,7 +320,7 @@ redisClient.on('connect', function() {
                     var client = fs.clients[ws.uid];
 
                     if (client === undefined) {
-                        logger.error('Cannot find client id "%s"', ws.uid);
+                        logger.log("error", 'Cannot find client id "%s"', ws.uid);
 
                         return;
                     }
@@ -360,7 +361,7 @@ redisClient.on('connect', function() {
                         }); 
                 }
             } catch (e) {
-                logger.error('Client connection closed due to occuring exception for payload "%s" %s', message, e.message);
+                logger.log("error", 'Client connection closed due to occuring exception for payload "%s" %s', message, e.message);
                 
                 ws.close();
             }
@@ -386,7 +387,7 @@ redisClient.on('connect', function() {
                     
                     redisClient.del("c" + uid);
 
-                    logger.info(real_ip, "disconnected");
+                    logger.log("info", real_ip, "disconnected");
                 }
             });
     });

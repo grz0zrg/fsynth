@@ -10,7 +10,7 @@ Fragment Quickstart Guide - Table of contents
 
 ## About Fragment
 
-Fragment is a collaborative cross-platform real-time audiovisual live coding environment with a pixels based approach, the sound synthesis is powered by pixels data produced by live GLSL code.
+Fragment is a collaborative cross-platform real-time audiovisual live coding environment with a bitmap based approach, the sound synthesis is powered by pixels data produced with live GLSL code.
 
 The GLSL code is executed on the GPU for each pixels (also called fragments), this approach allow hardware accelerated real-time manipulation of the pixels data, making it a bliss to create stunning visuals or stunning sound design.
 

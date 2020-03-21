@@ -191,6 +191,24 @@ var _glsl_compilation = function () {
         vertex_shader_code = document.getElementById("vertex-shader").text;
     }
     
+    // add inputs uniforms
+    for (i = 0; i < _fragment_input_data.length; i += 1) {
+        fragment_input = _fragment_input_data[i];
+
+        if (fragment_input) {
+            if (fragment_input.type === 0 ||
+                fragment_input.type === 1 ||
+                fragment_input.type === 2 ||
+                fragment_input.type === 4 ||
+                fragment_input.type === 5 ||
+                fragment_input.type === 404) { // 2D texture from either image, webcam, canvas, pjs
+                glsl_code += "uniform sampler2D " + _input_channel_prefix + "" + i + ";";
+            } else if (fragment_input.type === 3) { // video type
+                glsl_code += "uniform sampler2D " + _input_channel_prefix + "" + i + ";" + " uniform float " + _input_video_prefix + "" + i + ";";
+            }
+        }
+    }
+    
     // add our uniforms
     glsl_code += "uniform float globalTime; uniform int frame; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "]; uniform vec3 pKey[" + 16 + "];"
     
@@ -210,22 +228,6 @@ var _glsl_compilation = function () {
 
     // add yfreq
     glsl_code += "float getFrequency(float y, float sample_rate) { return (baseFrequency * pow(2., (resolution.y - floor((y * resolution.y) + 0.5)) / octave)) / sample_rate; }";
-    
-    // add inputs uniforms
-    for (i = 0; i < _fragment_input_data.length; i += 1) {
-        fragment_input = _fragment_input_data[i];
-
-        if (fragment_input.type === 0 ||
-            fragment_input.type === 1 ||
-            fragment_input.type === 2 ||
-            fragment_input.type === 4 ||
-            fragment_input.type === 5 ||
-            fragment_input.type === 404) { // 2D texture from either image, webcam, canvas, pjs
-            glsl_code += "uniform sampler2D " + _input_channel_prefix + "" + i + ";";
-        } else if (fragment_input.type === 3) { // video type
-            glsl_code += "uniform sampler2D " + _input_channel_prefix + "" + i + ";" + " uniform float " + _input_video_prefix + "" + i + ";";
-        }
-    }
 
     // inputs uniform from OSC
     for (ctrl_name in _osc.inputs) { 

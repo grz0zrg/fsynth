@@ -161,6 +161,10 @@ var _getFrequency = function (y) {
     return osc.freq;
 };
 
+var _attachMediaStream = function (stream) {
+    _audio_context.createMediaStreamSource(stream)
+};
+
 var _generatePeriodicWaves = function (n) {
     var real   = new Float32Array(2),
         imag   = new Float32Array(2),
@@ -572,6 +576,7 @@ var _audioInit = function () {
             "        super(context, 'fragment-worklet-processor');" +
             "    }" +
             "}" +
+            //"audio_ctx.audioWorklet.addModule('dist/worker/input_worklet.js');" +
             "audio_ctx.audioWorklet.addModule('dist/worker/fragment_worklet.js').then(() => {" +
             "    let node = new FragmentWorkletNode(audio_ctx);" +
             "    node.connect(mst_gain_node);" +

@@ -8,6 +8,8 @@ var _main_program = null,
     _main_attch0 = null,
     _main_attch1 = null,
     _main_fbo = null,
+
+    _readSync = null,
     
     _generic_fragment_shader = [
         "precision mediump float;",
@@ -778,6 +780,18 @@ var _frame = function (raf_time) {
 
             if (_gl2) {
                 _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _read_pixels_format, 0);
+/*
+                if (_gl.fenceSync) {
+                    _readSync = _gl.fenceSync(_gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+                    _gl.flush();
+                    var wait_status = _gl.clientWaitSync(_readSync, 0, 0);
+
+                    if (wait_status === _gl.CONDITION_SATISFIED || wait_status === _gl.ALREADY_SIGNALED) {
+                        //_gl.deleteSync(_readSync);
+                        continue;
+                    }
+                }
+*/
                 _gl.getBufferSubData(_gl.PIXEL_PACK_BUFFER, 0, _temp_data);
             } else {
                 _gl.readPixels(play_position_marker_x, 0, 1, _canvas_height, _gl.RGBA, _read_pixels_format, _temp_data);
