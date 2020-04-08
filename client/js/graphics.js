@@ -875,7 +875,7 @@ var _frame = function (raf_time) {
         if (!_audio_off) {
             if (_fas.status) {
                 _fasNotifyFast(_FAS_FRAME, _data);
-            } else {
+            } else if (!_web_audio_off) {
                 var tmp_buffer = [];
                 for (i = 0; i < _output_channels; i += 1) {
                     tmp_buffer.push(new _synth_data_array(_data[i]));

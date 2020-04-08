@@ -1234,6 +1234,7 @@ body .code .CodeMirror-fullscreen {
     display: flex;
     width: 340px;
     justify-content: center;
+    margin: auto;
     flex-wrap: wrap;
 }
 

@@ -19,7 +19,8 @@ var _fas = {
     _FAS_GAIN_INFOS = 3,
     _FAS_FRAME = 4,
     _FAS_CHN_INFOS = 5,
-    _FAS_ACTION = 6;
+    _FAS_CHN_FX_INFOS = 6,
+    _FAS_ACTION = 7;
 
 /***********************************************************
     Functions.
@@ -134,7 +135,28 @@ var _fasInit = function () {
 
                 _fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
                 _fasNotify(_FAS_GAIN_INFOS, _audio_infos);
-                _fasNotify(_FAS_CHN_INFOS, _chn_settings);
+
+                var i = 0, j = 0, k = 0;
+                for (i = 0; i < _chn_settings.length; i += 1) {
+                    for (j = 0; j < _chn_settings[i].osc.length; j += 2) {
+                        var value = _chn_settings[i].osc[j + 1];
+                        _fasNotify(_FAS_CHN_INFOS, { target: _chn_settings[i].osc[j], chn: i, value: value });
+                    }
+
+                    var slot_index = 0;
+                    for (j = 0; j < _chn_settings[i].efx.length; j += 3) {
+                        _fasNotify(_FAS_CHN_FX_INFOS, { chn: i, slot: slot_index, target: 0, value: _chn_settings[i].efx[j] });
+                        _fasNotify(_FAS_CHN_FX_INFOS, { chn: i, slot: slot_index, target: 1, value: _chn_settings[i].efx[j + 1] });
+
+                        var fx_settings = _chn_settings[i].efx[j + 2];
+                        for (k = 0; k < fx_settings.length; k += 1) {
+                            _fasNotify(_FAS_CHN_FX_INFOS, { chn: i, slot: slot_index, target: 2 + k, value: fx_settings[k] });
+                        }
+
+                        slot_index += 1;
+                    }
+                    _fasNotify(_FAS_CHN_FX_INFOS, { chn: i, slot: slot_index, target: 0, value: -1 });
+                }
             } else if (data.status === "streamload") {
                 _fas_stream_load.textContent = parseInt(data.load * 100, 10) + "%";
             } else if (data.status === "error") {

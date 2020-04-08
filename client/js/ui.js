@@ -65,9 +65,9 @@ var _icon_class = {
     _add_slice_timeout,
     _remove_slice_timeout,
 
-    _synthesis_types = ["Additive", "Spectral", "Granular", "PM/FM", "Subtractive", "Physical Model", "Wavetable", "Bandpass (M)", "Formant (M)", "Phase Distorsion (M)", "String resonance (M)", "Modal (M)", "In"],
-    _synthesis_enabled = [1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1],
-    _synthesis_params = [0, 3, 3, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0],
+    _synthesis_types = ["Additive", "Spectral", "Granular", "PM/FM", "Subtractive", "Physical Model", "Wavetable", "Bandpass (M)", "Formant (M)", "Phase Distorsion (M)", "String resonance (M)", "Modal (M)", "In", "Faust"],
+    _synthesis_enabled = [1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1],
+    _synthesis_params = [0, 3, 3, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 5],
 
     _efx = [{
             name: "Convolution",
@@ -183,10 +183,6 @@ var _icon_class = {
                 value: 0,
                 decimals: 0
             }]
-        },{
-            name: "Chowning Reverb",
-            color: "#8b4513",
-            params: []
         },{
             name: "8 FDN Stereo Reverb",
             color: "#483d8b",
@@ -325,7 +321,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 5,
-                step: 0.01,
+                step: 0.001,
                 value: 0.1,
                 decimals: 4
             }, {
@@ -333,7 +329,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 10,
-                step: 0.01,
+                step: 0.001,
                 value: 3.5,
                 decimals: 4
             }]
@@ -768,6 +764,78 @@ var _icon_class = {
                 value: 0.5,
                 decimals: 4
             }]
+        },
+        {
+            name: "Faust",
+            color: "#ffffff",
+            params: [{
+                name: "Effect ID",
+                type: 0,
+                min: 0,
+                step: 1,
+                value: 0,
+                decimals: 0
+            }, {
+                name: "p0",
+                type: 0,
+                step: 0.001,
+                value: 0,
+                decimals: 4
+            }, {
+                name: "p1",
+                type: 0,
+                step: 0.001,
+                value: 0,
+                decimals: 4
+            }, {
+                name: "p2",
+                type: 0,
+                step: 0.001,
+                value: 0,
+                decimals: 4
+            }, {
+                name: "p3",
+                type: 0,
+                step: 0.001,
+                value: 0,
+                decimals: 4
+            }, {
+                name: "p4",
+                type: 0,
+                step: 0.001,
+                value: 0,
+                decimals: 4
+            }, {
+                name: "p5",
+                type: 0,
+                step: 0.001,
+                value: 0,
+                decimals: 4
+            }, {
+                name: "p6",
+                type: 0,
+                step: 0.001,
+                value: 0,
+                decimals: 4
+            }, {
+                name: "p7",
+                type: 0,
+                step: 0.001,
+                value: 0,
+                decimals: 4
+            }, {
+                name: "p8",
+                type: 0,
+                step: 0.001,
+                value: 0,
+                decimals: 4
+            }, {
+                name: "p9",
+                type: 0,
+                step: 0.001,
+                value: 0,
+                decimals: 4
+            }]
         }],
     
     _fas_content_list = [];
@@ -800,19 +868,16 @@ var _showMIDIOutDialog = function () {
     WUI_Dialog.open(_midi_out_dialog);
 };
 
-var _fasNotifyChnInfos = function () {
-    _fasNotify(_FAS_CHN_INFOS, _chn_settings);  
-};
-
 var _onChangeChannelSettings = function (channel, value_index) {
     return function (value) {
-        _chn_settings[channel].osc[value_index] = parseFloat(value);
+        var v = parseFloat(value);
+
+        _chn_settings[channel].osc[value_index] = v;
 
         _local_session_settings.chn_settings[channel] = _chn_settings[channel];
         _saveLocalSessionSettings();
 
-        clearTimeout(_fas_chn_notify_timeout);
-        _fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 1000);
+        _fasNotify(_FAS_CHN_INFOS, { target: Math.floor(value_index / 2), chn: channel, value: v });
     };
 };
 
@@ -928,13 +993,15 @@ var _onChangeEfxParameter = function (chn, efx, efxi, pid) {
             value = ev_value;
         }
 
-        _chn_settings[chn].efx[_parseInt10(elem.dataset.chn_fxid) + 2][pid] = parseFloat(value);
+        var slot = _parseInt10(elem.dataset.chn_fxid) / 3;
+        var fvalue = parseFloat(value);
+
+        _chn_settings[chn].efx[_parseInt10(elem.dataset.chn_fxid) + 2][pid] = fvalue;
 
         _local_session_settings.chn_settings[chn] = _chn_settings[chn];
         _saveLocalSessionSettings();
 
-        clearTimeout(_fas_chn_notify_timeout);
-        _fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 100);
+        _fasNotify(_FAS_CHN_FX_INFOS, { chn: chn, slot: slot, target: 2 + pid, value: fvalue });
     };
 };
 
@@ -1185,9 +1252,7 @@ var _createSynthParametersContent = function () {
                 _local_session_settings.chn_settings[j] = _chn_settings[j];
                 _saveLocalSessionSettings();
             
-                _fasNotifyChnInfos();
-                //clearTimeout(_fas_chn_notify_timeout);
-                //_fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 1000);
+                _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: j, value: value });
             });
 
             chn_fieldset.appendChild(chn_genv_type_label);
@@ -1319,8 +1384,8 @@ var _createSynthParametersContent = function () {
 
                 _local_session_settings.chn_settings[j] = _chn_settings[j];
                 _saveLocalSessionSettings();
-            
-                _fasNotifyChnInfos();
+
+                _fasNotify(_FAS_CHN_INFOS, { target: 3, chn: j, value: chn_win_size_options[value] });
             });
 
             chn_fieldset.appendChild(chn_win_size_label);
@@ -1381,6 +1446,150 @@ var _createSynthParametersContent = function () {
             }));
 
             chn_win_size_select.dispatchEvent(new UIEvent('change'));
+        } else if (_synthesis_types[synth_type] === "Faust") {
+            var chn_gen = document.createElement("div"),
+                chn_p0 = document.createElement("div"),
+                chn_p1 = document.createElement("div"),
+                chn_p2 = document.createElement("div"),
+                chn_p3 = document.createElement("div");
+            chn_gen.id = "fs_chn_" + j + "_chn_gen";
+            chn_p0.id = "fs_chn_" + j + "_chn_p0";
+            chn_p1.id = "fs_chn_" + j + "_chn_p1";
+            chn_p2.id = "fs_chn_" + j + "_chn_p2";
+            chn_p3.id = "fs_chn_" + j + "_chn_p3";
+
+            var gen = chn_settings.osc[5],
+                p0 = chn_settings.osc[7],
+                p1 = chn_settings.osc[9],
+                p2 = chn_settings.osc[11],
+                p3 = chn_settings.osc[13];
+
+            chn_fieldset.appendChild(chn_gen);
+            chn_fieldset.appendChild(chn_p0);
+            chn_fieldset.appendChild(chn_p1);
+            chn_fieldset.appendChild(chn_p2);
+            chn_fieldset.appendChild(chn_p3);
+
+            _fas_content_list.push(WUI_RangeSlider.create(chn_gen, {
+                width: 120,
+                height: 8,
+    
+                min: 0,
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: gen,
+                value: gen,
+    
+                decimals: 0,
+
+                midi: true,
+                
+                title: "Generator ID",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 5)
+            }));
+
+            _fas_content_list.push(WUI_RangeSlider.create(chn_p0, {
+                width: 120,
+                height: 8,
+
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: p0,
+                value: p0,
+    
+                decimals: 0,
+
+                midi: true,
+                
+                title: "p0",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 7)
+            }));
+
+            _fas_content_list.push(WUI_RangeSlider.create(chn_p1, {
+                width: 120,
+                height: 8,
+    
+                bar: false,
+    
+                step: 0.001,
+                scroll_step: 0.001,
+    
+                default_value: p1,
+                value: p1,
+    
+                decimals: 4,
+
+                midi: true,
+                
+                title: "p1",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 9)
+            }));
+
+            _fas_content_list.push(WUI_RangeSlider.create(chn_p2, {
+                width: 120,
+                height: 8,
+    
+                bar: false,
+    
+                step: 0.001,
+                scroll_step: 0.001,
+    
+                default_value: p2,
+                value: p2,
+    
+                decimals: 4,
+
+                midi: true,
+                
+                title: "p2",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 11)
+            }));
+
+            _fas_content_list.push(WUI_RangeSlider.create(chn_p3, {
+                width: 120,
+                height: 8,
+    
+                bar: false,
+    
+                step: 0.01,
+                scroll_step: 0.001,
+    
+                default_value: p3,
+                value: p3,
+    
+                decimals: 4,
+
+                midi: true,
+                
+                title: "p3",
+
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 13)
+            }));
         } else if (_synthesis_types[synth_type] === "Subtractive") {
             var chn_filter_type_label,
                 chn_filter_type_select,
@@ -1417,10 +1626,7 @@ var _createSynthParametersContent = function () {
                 _local_session_settings.chn_settings[j] = _chn_settings[j];
                 _saveLocalSessionSettings();
 
-                _fasNotifyChnInfos();
-            
-                //clearTimeout(_fas_chn_notify_timeout);
-                //_fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 2000);
+                _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: j, value: value });
             });
             chn_fieldset.appendChild(chn_filter_type_label);
             chn_fieldset.appendChild(chn_filter_type_select);
@@ -1462,10 +1668,7 @@ var _createSynthParametersContent = function () {
                 _local_session_settings.chn_settings[j] = _chn_settings[j];
                 _saveLocalSessionSettings();
 
-                _fasNotifyChnInfos();
-            
-                //clearTimeout(_fas_chn_notify_timeout);
-                //_fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 2000);
+                _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: j, value: value });
             });
             chn_fieldset.appendChild(chn_model_type_label);
             chn_fieldset.appendChild(chn_model_type_select);
@@ -1507,9 +1710,11 @@ var _onChnFxContextMenu = function (ev) {
         window: null
     }, [{
             icon: "fs-cross-45-icon", tooltip: "Delete", on_click: function () {
-                var id = null, chn, efx;
+                var id = null, chn, efx, slot;
 
-                id = Array.from(elem.parentElement.children).indexOf(elem) * 3;
+                slot = Array.from(elem.parentElement.children).indexOf(elem);
+
+                id = slot * 3;
 
                 chn = _parseInt10(elem.parentElement.dataset.chn);
                 efx = _chn_settings[chn].efx;
@@ -1521,15 +1726,17 @@ var _onChnFxContextMenu = function (ev) {
                 // save settings
                 _local_session_settings.chn_settings[chn] = _chn_settings[chn];
                 _saveLocalSessionSettings();
-            
-                _fasNotifyChnInfos();
+
+                _fasNotify(_FAS_CHN_FX_INFOS, { chn: chn, slot: slot, target: 0, value: -1 });
 
                 WUI_Dialog.destroy(elem.dataset.dialog_id);
         }}, {
             icon: mute_icon, tooltip: mute_tooltip, on_click: function () {
-                var id = null, chn, efx, muted;
+                var id = null, chn, efx, muted, slot;
 
-                id = Array.from(elem.parentElement.children).indexOf(elem) * 3;
+                slot = Array.from(elem.parentElement.children).indexOf(elem);
+
+                id = slot * 3;
                 chn = _parseInt10(elem.parentElement.dataset.chn);
                 efx = _chn_settings[chn].efx;
                 muted = efx[id + 1];
@@ -1546,7 +1753,7 @@ var _onChnFxContextMenu = function (ev) {
                 _local_session_settings.chn_settings[chn] = _chn_settings[chn];
                 _saveLocalSessionSettings();
 
-                _fasNotifyChnInfos();
+                _fasNotify(_FAS_CHN_FX_INFOS, { chn: chn, slot: slot, target: 1, value: efx[id + 1] });
             }
         }]);
 
@@ -1684,7 +1891,19 @@ var _dropChnFx = function (ev) {
         _local_session_settings.chn_settings[chn] = _chn_settings[chn];
         _saveLocalSessionSettings();
     
-        _fasNotifyChnInfos();
+        var j = 0, k = 0, slot_index = 0;
+        for (j = 0; j < _chn_settings[chn].efx.length; j += 3) {
+            _fasNotify(_FAS_CHN_FX_INFOS, { chn: chn, slot: slot_index, target: 0, value: _chn_settings[chn].efx[j] });
+            _fasNotify(_FAS_CHN_FX_INFOS, { chn: chn, slot: slot_index, target: 1, value: _chn_settings[chn].efx[j + 1] });
+
+            var fx_settings = _chn_settings[chn].efx[j + 2];
+            for (k = 0; k < fx_settings.length; k += 1) {
+                _fasNotify(_FAS_CHN_FX_INFOS, { chn: chn, slot: slot_index, target: 2 + k, value: fx_settings[k] });
+            }
+
+            slot_index += 1;
+        }
+        _fasNotify(_FAS_CHN_FX_INFOS, { chn: chn, slot: slot_index, target: 0, value: -1 });
     }
 };
 
@@ -1792,6 +2011,10 @@ var _createFasSettingsContent = function () {
         detached_dialog = WUI_Dialog.getDetachedDialog(_fas_dialog),
 
         load_samples_btn = document.createElement("button"),
+        load_faust_gens_btn = document.createElement("button"),
+        load_faust_effs_btn = document.createElement("button"),
+        load_wavs_btn = document.createElement("button"),
+        load_imps_btn = document.createElement("button"),
         open_synth_params_btn = document.createElement("button"),
         
         synthesis_matrix_fieldset = document.createElement("fieldset"),
@@ -1877,8 +2100,7 @@ var _createFasSettingsContent = function () {
             _local_session_settings.chn_settings[chn] = _chn_settings[chn];
             _saveLocalSessionSettings();
         
-            // notify FAS
-            _fasNotifyChnInfos();
+            _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: _chn_settings[chn].osc[3] });
         });
     }
 
@@ -1932,12 +2154,40 @@ var _createFasSettingsContent = function () {
                 if (!triggered) {
                     if (_synthesis_types[synth_type] === "Physical Model") {
                         _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
+                        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 0 });
                     } else if (_synthesis_types[synth_type] === "Subtractive") {
                         _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
+                        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 0 });
                     } else if (_synthesis_types[synth_type] === "Granular") {
                         _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 1, 3, 0.01, 4, 0.1, 5, 0.00001];
+                        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 1 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 3, chn: chn, value: 0.01 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 4, chn: chn, value: 0.1 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 5, chn: chn, value: 0.00001 });
                     } else if (_synthesis_types[synth_type] === "Spectral") {
                         _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0, 3, 1024, 4, 0];
+                        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 1 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 3, chn: chn, value: 1024 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 4, chn: chn, value: 0 });                        
+                    } else if (_synthesis_types[synth_type] === "Faust") {
+                        _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0];
+                        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 0 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 3, chn: chn, value: 0 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 4, chn: chn, value: 0 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 5, chn: chn, value: 0 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 6, chn: chn, value: 0 }); 
+                    } else {
+                        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
                     }
                 }
 
@@ -1945,11 +2195,6 @@ var _createFasSettingsContent = function () {
                 _local_session_settings.chn_settings[chn] = _chn_settings[chn];
                 _saveLocalSessionSettings();
             
-                // notify FAS
-                _fasNotifyChnInfos();
-                //clearTimeout(_fas_chn_notify_timeout);
-                //_fas_chn_notify_timeout = setTimeout(_fasNotifyChnInfos, 2000);
-
                 _createSynthParametersContent();
             });
 
@@ -1975,7 +2220,10 @@ var _createFasSettingsContent = function () {
     open_synth_params_btn.innerHTML = "Synth. parameters";
     open_synth_params_btn.className = "fs-btn fs-btn-default";
 
-    open_synth_params_btn.style.width = "100%";
+    open_synth_params_btn.style.width = "180px";
+    open_synth_params_btn.style.display = "block";
+    open_synth_params_btn.style.marginLeft = "auto";
+    open_synth_params_btn.style.marginRight = "auto";
     open_synth_params_btn.style.marginTop = "12px";
     
     open_synth_params_btn.addEventListener("click", _openSynthParameters);
@@ -1986,14 +2234,72 @@ var _createFasSettingsContent = function () {
     load_samples_btn.innerHTML = "Reload samples";
     load_samples_btn.className = "fs-btn fs-btn-default";
 
-    load_samples_btn.style.width = "100%";
+    load_samples_btn.style.width = "180px";
+    load_samples_btn.style.display = "block";
+    load_samples_btn.style.marginLeft = "auto";
+    load_samples_btn.style.marginRight = "auto";
     
     load_samples_btn.addEventListener("click", function () {
         _fasNotify(_FAS_ACTION, { type: 0 });
-        _fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
+    });
+
+    // load Faust gens action
+    load_faust_gens_btn.innerHTML = "Reload Faust generators";
+    load_faust_gens_btn.className = "fs-btn fs-btn-default";
+
+    load_faust_gens_btn.style.width = "180px";
+    load_faust_gens_btn.style.display = "block";
+    load_faust_gens_btn.style.marginLeft = "auto";
+    load_faust_gens_btn.style.marginRight = "auto";
+
+    load_faust_gens_btn.addEventListener("click", function () {
+        _fasNotify(_FAS_ACTION, { type: 2 });
+    });
+
+    // load Faust effs action
+    load_faust_effs_btn.innerHTML = "Reload Faust effects";
+    load_faust_effs_btn.className = "fs-btn fs-btn-default";
+
+    load_faust_effs_btn.style.width = "180px";
+    load_faust_effs_btn.style.display = "block";
+    load_faust_effs_btn.style.marginLeft = "auto";
+    load_faust_effs_btn.style.marginRight = "auto";
+
+    load_faust_effs_btn.addEventListener("click", function () {
+        _fasNotify(_FAS_ACTION, { type: 3 });
+    });
+
+    // load wavs action
+    load_wavs_btn.innerHTML = "Reload waves (wavetable)";
+    load_wavs_btn.className = "fs-btn fs-btn-default";
+
+    load_wavs_btn.style.width = "180px";
+    load_wavs_btn.style.display = "block";
+    load_wavs_btn.style.marginLeft = "auto";
+    load_wavs_btn.style.marginRight = "auto";
+
+    load_wavs_btn.addEventListener("click", function () {
+        _fasNotify(_FAS_ACTION, { type: 6 });
+    });
+
+    // load wavs action
+    load_imps_btn.innerHTML = "Reload impulses";
+    load_imps_btn.className = "fs-btn fs-btn-default";
+
+    load_imps_btn.style.width = "180px";
+    load_imps_btn.style.display = "block";
+    load_imps_btn.style.marginLeft = "auto";
+    load_imps_btn.style.marginRight = "auto";
+
+    load_imps_btn.addEventListener("click", function () {
+        _fasNotify(_FAS_ACTION, { type: 7 });
     });
 
     actions_fieldset.appendChild(load_samples_btn);
+    actions_fieldset.appendChild(load_faust_gens_btn);
+    actions_fieldset.appendChild(load_faust_effs_btn);
+    actions_fieldset.appendChild(load_wavs_btn);
+    actions_fieldset.appendChild(load_imps_btn);
     
     dialog_div.appendChild(synthesis_matrix_fieldset);
     _createFasFxContent(dialog_div);
@@ -2308,6 +2614,7 @@ var _uiInit = function () {
         settings_ck_quickstart_elem = document.getElementById("fs_settings_ck_quickstart"),
         settings_ck_worklet_elem = document.getElementById("fs_settings_ck_audioworklet"),
         settings_ck_audio_elem = document.getElementById("fs_settings_ck_audio"),
+        settings_ck_web_audio_elem = document.getElementById("fs_settings_ck_web_audio"),
         settings_ck_show_slice_chn_elem = document.getElementById("fs_settings_ck_show_slice_chn"),
         
         fs_settings_note_lifetime = localStorage.getItem('fs-note-lifetime'),
@@ -2326,6 +2633,7 @@ var _uiInit = function () {
         fs_settings_quickstart = localStorage.getItem('fs-quickstart'),
         fs_settings_worklet = localStorage.getItem('fs-worklet'),
         fs_settings_audio = localStorage.getItem('fs-audio'),
+        fs_settings_web_audio = localStorage.getItem('fs-web-audio'),
         fs_settings_show_slice_chn = localStorage.getItem('fs-show-slice-chn');
     
     _settings_dialog = WUI_Dialog.create(_settings_dialog_id, {
@@ -2489,6 +2797,16 @@ var _uiInit = function () {
         settings_ck_audio_elem.checked = true;
     } else {
         settings_ck_audio_elem.checked = false;
+    }
+
+    if (fs_settings_web_audio !== null) {
+        _web_audio_off = (fs_settings_web_audio === "true");
+    }
+
+    if (_web_audio_off) {
+        settings_ck_web_audio_elem.checked = true;
+    } else {
+        settings_ck_web_audio_elem.checked = false;
     }
 
     if (fs_settings_show_slice_chn === "true") {
@@ -2671,6 +2989,20 @@ var _uiInit = function () {
         localStorage.setItem('fs-audio', this.checked);
     });
 
+    settings_ck_web_audio_elem.addEventListener("change", function () {
+        if (this.checked) {
+            _web_audio_off = true;
+
+            _stopOscillators();
+            _pauseWorklet();
+        } else {
+            _playWorklet();
+            _web_audio_off = false;
+        }
+    
+        localStorage.setItem('fs-web-audio', this.checked);
+    });
+
     settings_ck_show_slice_chn_elem.addEventListener("change", function () {
         if (this.checked) {
             _show_output_channels = true;
@@ -2697,6 +3029,7 @@ var _uiInit = function () {
 //    settings_ck_quickstart_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_worklet_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_audio_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_web_audio_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_show_slice_chn_elem.dispatchEvent(new UIEvent('change'));
     
     _midi_settings_dialog = WUI_Dialog.create(_midi_settings_dialog_id, {
@@ -3864,9 +4197,9 @@ var _uiInit = function () {
             bar: false,
 
             step: "any",
-            scroll_step: 0.01,
+            scroll_step: 0.001,
         
-            decimals: 2,
+            decimals: 3,
 
             midi: true,
 
