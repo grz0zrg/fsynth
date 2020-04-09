@@ -1,7 +1,6 @@
 #!/bin/sh
 # this script build the production directory, execute some tasks (minification etc.) and upload its content over SSH to the server then execute the setup script
-cd prod_dir
-rm -rf *
+mkdir prod_dir
 cd ..
 tar -cf - -T prod_files | (cd prod_dir && tar xf -)
 
@@ -19,3 +18,8 @@ fi
 
 # archive from a list of files and unarchive over ssl connection to a specified remote folder
 tar cvzf - * | ssh -v -i /home/mine/.ssh/key -p 22 root@my.server.ip.add "cd /home/fragment/; mkdir -p fsynth_upload; cd fsynth_upload; tar xzf -; rsync -av /home/fragment/fsynth_upload/ /home/fragment/fsynth/; rsync -av /home/fragment/fsynth/placeholder/ /home/fs/www/; rm -rf /home/fs/fsynth/placeholder; cd /home/fs/fsynth; chmod +x setup; $launch_setup"
+
+cd prod_dir
+rm -rf *
+cd ..
+rmdir prod_dir

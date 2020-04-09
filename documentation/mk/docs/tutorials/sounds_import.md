@@ -94,9 +94,9 @@ This settings can be used to alter the frequency mapping of the resulting image.
 
 A value of 0 will automatically assign the score defined maximum frequency
 
-##### Bins: linear interpolation
+##### Linear interpolation
 
-Enable linear interpolation between bins.
+Enable linear interpolation between FFT bins.
 
 ##### Import movie audio
 
