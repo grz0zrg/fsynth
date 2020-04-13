@@ -66,8 +66,8 @@ var _icon_class = {
     _remove_slice_timeout,
 
     _synthesis_types = ["Additive", "Spectral", "Granular", "PM/FM", "Subtractive", "Physical Model", "Wavetable", "Bandpass (M)", "Formant (M)", "Phase Distorsion (M)", "String resonance (M)", "Modal (M)", "In", "Faust"],
-    _synthesis_enabled = [1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1],
-    _synthesis_params = [0, 3, 3, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 5],
+    _synthesis_enabled = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    _synthesis_params = [0, 3, 3, 0, 1, 2, 1, 0, 0, 0, 0, 0, 0, 5],
 
     _efx = [{
             name: "Convolution",
@@ -1276,7 +1276,7 @@ var _createSynthParametersContent = function () {
                 default_value: gmin,
                 value: gmin,
     
-                decimals: 4,
+                decimals: 7,
 
                 midi: true,
                 
@@ -1305,7 +1305,7 @@ var _createSynthParametersContent = function () {
 
                 midi: true,
                 
-                decimals: 4,
+                decimals: 7,
     
                 title: "Max. grain length",
     
@@ -1324,7 +1324,7 @@ var _createSynthParametersContent = function () {
     
                 bar: false,
     
-                step: 0.00001,
+                step: 0.0000001,
                 scroll_step: 0.01,
     
                 default_value: gden,
@@ -1332,7 +1332,7 @@ var _createSynthParametersContent = function () {
 
                 midi: true,
                 
-                decimals: 5,
+                decimals: 7,
     
                 title: "Spread",
     
@@ -1590,7 +1590,7 @@ var _createSynthParametersContent = function () {
     
                 on_change: _onChangeChannelSettings(j, 13)
             }));
-        } else if (_synthesis_types[synth_type] === "Subtractive") {
+        } else if (_synthesis_types[synth_type] === "Subtractive" || _synthesis_types[synth_type] === "Wavetable") {
             var chn_filter_type_label,
                 chn_filter_type_select,
                 chn_filter_option,

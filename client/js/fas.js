@@ -158,7 +158,7 @@ var _fasInit = function () {
                     _fasNotify(_FAS_CHN_FX_INFOS, { chn: i, slot: slot_index, target: 0, value: -1 });
                 }
             } else if (data.status === "streamload") {
-                _fas_stream_load.textContent = parseInt(data.load * 100, 10) + "%";
+                _fas_stream_load.textContent = data.load + "%";
             } else if (data.status === "error") {
                 _fasStatus(false);
 

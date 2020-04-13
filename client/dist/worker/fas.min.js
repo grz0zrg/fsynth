@@ -302,7 +302,7 @@ var _connect = function (opts) {
         };
     
     _fas_ws.onmessage = function (event) {
-            var stream_load = new Float64Array(event.data);
+            var stream_load = new Int32Array(event.data);
             postMessage({
                     status: "streamload",
                     load: stream_load

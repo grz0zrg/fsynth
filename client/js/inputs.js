@@ -397,12 +397,8 @@ var _inputThumbMenu = function (e) {
     if (input.type === 0) {
         items.push({
             icon: "fs-xyf-icon", tooltip: "View image", on_click: function () {
-                _flipImage(dom_image, function (conversion_data) {
-                    _fnCanvasToImage(conversion_data.canvas, function (image_element) {
-                        var win = window.open(image_element.src);
-                        win.document.write("<img src='" + image_element.src + "'/>");
-                    })
-                });
+                var win = window.open(dom_image.src);
+                win.document.write("<img src='" + dom_image.src + "'/>");
             }
         });
     }

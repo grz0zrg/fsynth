@@ -30,51 +30,6 @@ var _progress = 0,
 ************************************************************/
 
 var _convert = function (params, data) {
-/*
-    var note_time = params.note_time,
-        note_samples = Math.round(note_time * params.sample_rate),
-
-        window_size = params.settings.window_length,
-        window_type = params.settings.window_type,
-        
-        window_alpha = params.settings.window_alpha,
-        
-        hop_divisor = params.settings.overlap, // overlap factor
-        hop_length = Math.round(window_size / hop_divisor),
-        
-        stft_result_length = Math.round(window_size / 2),
-
-        data_buffer = data,
-
-        image_width  = Math.ceil(data_buffer.length / note_samples),
-        image_height = params.settings.height,//note_samples,
-        image_height_m1 = params.settings.height - 1,
-                
-        min_freq = params.settings.minfreq,
-        max_freq = params.settings.maxfreq,
-        
-        overlap_frame_buffer = [],
-        stft,
-
-        image_data = new Uint8ClampedArray(image_width * image_height * 4),
-        
-        min_stft_freq = params.sample_rate / window_size,
-        
-        // id boundaries of the stft result matching our scale settings
-        lid = Math.round(min_freq / min_stft_freq),
-        hid = Math.round(max_freq / min_stft_freq),
-        
-        start = stft_result_length + lid,
-        end = stft_result_length + lid + hid,
-        
-        n, adiff, amax = 0, amin = 255,
-        
-        progress_step = note_samples / data_buffer.length * 100,
-    
-        i,
-        
-        frame = 0;
-*/
     var length_in_seconds = data.length / params.sample_rate,
     
         height = params.settings.height,
@@ -106,13 +61,18 @@ var _convert = function (params, data) {
 
         pixels_per_second = params.settings.pps,
 
+        progress_step = 1 / height * 100,
+
         output_width,
 
         row_callback,
         
         image_data;
 
-    
+    if (_stereo) {
+        progress_step /= 2;
+    }
+
     if (params.settings.mapping === "linear") {
         // linear
         frequencies = CCWT.frequencyBand(height, frequency_range_linear, frequency_offset_linear, frequency_basis_linear, deviation);
@@ -129,15 +89,14 @@ var _convert = function (params, data) {
     image_data = new Uint8ClampedArray(output_width * height * 4);
 
     row_callback = function (y, row_data, output_padding) {
-        var _progress = Math.round(y / height * 100);
+        _prev_progress = parseInt(_progress, 10);
+        _progress += progress_step;
 
-        if (_progress != _prev_progress) {
-            _prev_progress = _progress;
-
-            var current_progress = _stereo ? _prev_progress / 2 : _prev_progress;
-
-            if (current_progress % 5 === 0) {
-                postMessage(current_progress);
+        var roundedProgress = parseInt(_progress, 10);
+        
+        if (roundedProgress != _prev_progress) {
+            if (roundedProgress % 5 === 0) {
+                postMessage(roundedProgress);
             }
         }
         
