@@ -251,12 +251,14 @@ var FragmentSynth = function (params) {
                 showToken: /\w/,
                 annotateScrollbar: true
             },
+        _code_editor_marks = [],
         _code_editor_settings = {
             value: "",
             theme: ((_code_editor_theme === null) ? "seti" : _code_editor_theme),
             matchBrackets: true,
             //autoCloseBrackets: true,
             lineNumbers: true,
+            gutters: ["CodeMirror-linenumbers", "fs-mark"],
             styleActiveLine: true,
             scrollbarStyle: "native",
             mode: "text/x-glsl",
@@ -267,16 +269,19 @@ var FragmentSynth = function (params) {
                     cm.setOption("fullScreen", fullscreen);
                     
                     // hide some UI stuff when fullscreen
-                    var mid_panel = document.getElementById("fs_middle_panel");/*,
+                    var mid_panel = document.getElementById("fs_middle_panel"),
+                        app_infos = document.getElementById("fs_app_infos");/*,
                         fs_browser = document.getElementById("fs_browser");*/
                     
                     if (fullscreen) {
                         _code_editor.setOption("lineNumbers", false);
                         mid_panel.style.display = "none";
+                        app_infos.style.display = "none";
                         //fs_browser.style.display = "none";
                     } else {
                         _code_editor.setOption("lineNumbers", _cm_show_linenumbers);
                         mid_panel.style.display = "";
+                        app_infos.style.display = "";
                         //fs_browser.style.display = "";
                     }
                 },
@@ -286,10 +291,12 @@ var FragmentSynth = function (params) {
                         
                         _code_editor.setOption("lineNumbers", _cm_show_linenumbers);
                         
-                        var mid_panel = document.getElementById("fs_middle_panel");/*,
+                        var mid_panel = document.getElementById("fs_middle_panel"),
+                        app_infos = document.getElementById("fs-app-infos");/*,
                             fs_browser = document.getElementById("fs_browser");*/
                         
                         mid_panel.style.display = "";
+                        app_infos.style.display = "";
                         //fs_browser.style.display = "";
                     }
                 }
@@ -343,6 +350,8 @@ var FragmentSynth = function (params) {
         },
 
         _compile_timer,
+        _update_marks_timer,
+        _save_marks_timer,
 
         _undock_code_editor = false,
 
@@ -361,6 +370,7 @@ var FragmentSynth = function (params) {
         _show_polyinfos = false,
         _cm_highlight_matches = false,
         _cm_show_linenumbers = true,
+        _cm_show_inerrors = true,
         _cm_advanced_scrollbar = false,
         _quickstart_on_startup = true,
         
@@ -411,7 +421,9 @@ var FragmentSynth = function (params) {
         _midi_data = [],
         _prev_osc_data = [],
         _osc_data = [],
-        _output_channels = 1,
+        _output_channels = 0,
+
+        _outline_data = [],
 
         _analysis_canvas,
         _analysis_canvas_ctx,
@@ -535,8 +547,107 @@ var FragmentSynth = function (params) {
             _local_session_settings = {
                 gain: _volume,
                 chn_settings: [{ osc: [], efx: [] }],
-                markers: []
+                markers: [],
+                code_marks: []
             };
+        }
+    };
+
+    var _getNewMark = function () {
+        var mark = document.createElement("div");
+        mark.classList.add("fs-mark");
+        mark.innerHTML = "*";
+        
+        return mark;
+    };
+
+    var _findMark = function (line) {
+        var i = 0;
+        for (i = 0; i < _code_editor_marks.length; i += 1) {
+            if (_code_editor.getLineNumber(_code_editor_marks[i]) === line) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    var _deleteMark = function (line) {
+        var i = 0;
+        for (i = 0; i < _code_editor_marks.length; i += 1) {
+            if (_code_editor.getLineNumber(_code_editor_marks[i]) === line) {
+                _code_editor_marks.splice(i, 1);
+                break;
+            }
+        }
+
+        clearTimeout(_save_marks_timer);
+        _save_marks_timer = setTimeout(_saveEditorMarks, 5000);;
+
+        _updateOutline();
+    };
+
+    var _addMarkDeleteEvent = function (lineHandle) {
+        CodeMirror.on(lineHandle, 'delete', function () {
+            _deleteMark(_code_editor.getLineNumber(lineHandle));
+        });
+    };
+
+    var _loadEditorMarks = function () {
+        var line = 0, 
+            i = 0;
+        
+        if (_local_session_settings) {
+            if ('code_marks' in _local_session_settings) {
+                _code_editor_marks = [];
+
+                for (i = 0; i < _local_session_settings.code_marks.length; i += 1) {
+                    line = _local_session_settings.code_marks[i];
+
+                    _code_editor.setGutterMarker(line, "fs-mark", _getNewMark());
+
+                    var lineHandle = _code_editor.getLineHandle(line);
+                    _code_editor_marks.push(lineHandle);
+
+                    _addMarkDeleteEvent(lineHandle);
+                }
+
+                _updateOutline();
+            }
+        }
+    };
+
+    var _saveEditorMarks = function () {
+        var marks = [],
+            i = 0;
+
+        for (i = 0; i < _code_editor_marks.length; i += 1) {
+            marks.push(_code_editor.getLineNumber(_code_editor_marks[i]));
+        }
+        
+        _local_session_settings.code_marks = marks.slice();
+        _saveLocalSessionSettings();
+    };
+
+    var _updateMarks = function () {
+        var found = 0;
+        var i, j;
+        for (i = 0; i < _code_editor_marks.length; i += 1) {
+            var line = _code_editor.getLineNumber(_code_editor_marks[i]);
+            for (j = 0; j < _local_session_settings.code_marks.length; j += 1) {
+                var line2 = _local_session_settings.code_marks[i];
+                if (line == line2) {
+                    found += 1;
+                } 
+            }
+
+            if (found === 0) {
+                break
+            }
+        }
+
+        if (found === 0) {
+            _saveEditorMarks();
         }
     };
     
@@ -704,10 +815,39 @@ var FragmentSynth = function (params) {
         CodeMirror.on(_code_editor, 'change', function (instance, change_obj) {
             clearTimeout(_compile_timer);
             _compile_timer = setTimeout(_compile, 500);
+
+            clearTimeout(_update_marks_timer);
+            _update_marks_timer = setTimeout(_updateMarks, 2000);
         });
 
         CodeMirror.on(_code_editor, 'changes', function (instance, changes) {
             _shareCodeEditorChanges(changes);
+        });
+
+        CodeMirror.on(_code_editor, "gutterClick", function(cm, n) {
+            var info = cm.lineInfo(n),
+                lineHandle = cm.getLineHandle(n),
+
+                i = 0;
+
+            if (info.gutterMarkers) {
+                for (i = 0; i < _code_editor_marks.length; i += 1) {
+                    if (cm.getLineNumber(_code_editor_marks[i]) === n) {
+                        _code_editor_marks.splice(i, 1);
+                        break;
+                    }
+                }
+            } else {
+                _code_editor_marks.push(lineHandle);
+
+                _addMarkDeleteEvent(lineHandle);
+            }
+
+            cm.setGutterMarker(n, "fs-mark", info.gutterMarkers ? null : _getNewMark());
+
+            _saveEditorMarks();
+
+            _updateOutline();
         });
     } else {
         // the "dummy" CodeMirror object when the external editor is used
@@ -850,6 +990,8 @@ var FragmentSynth = function (params) {
     _compile();
 
     _loadLocalSessionSettings();
+
+    _loadEditorMarks();
 
     _allocateFramesData();
     

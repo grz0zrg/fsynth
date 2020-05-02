@@ -306,21 +306,19 @@ var setCursorCb = function (position) {
     };
 };
 
-_glsl_parser_worker.onmessage = function(m) {
+var _updateOutline = function () {
     var i = 0, j = 0,
-        
-        data = m.data,
         statement,
-        
+            
         tmp,
         param,
         
         elem;
-    
+
     _outline_element.innerHTML = "";
 
-    for (i = 0; i < data.length; i += 1) {
-        statement = data[i];
+    for (i = 0; i < _outline_data.length; i += 1) {
+        statement = _outline_data[i];
         
         if (statement.type === "function") {
             elem = document.createElement("div");
@@ -364,4 +362,32 @@ _glsl_parser_worker.onmessage = function(m) {
             elem.addEventListener("click", setCursorCb(statement.position));
         }
     }
+
+    var line = null;
+    for (i = 0; i < _code_editor_marks.length; i += 1) {
+        line = _code_editor.getLineNumber(_code_editor_marks[i]);
+
+        elem = document.createElement("div");
+            
+        elem.className = "fs-outline-item fs-outline-mark";
+
+        var outline_entry = _code_editor.getLine(line).trim();
+
+        if (outline_entry.indexOf("//") !== -1) {
+            outline_entry = outline_entry.replace(/.*\/\//g, '').trim().toUpperCase();
+        }
+        
+        elem.innerHTML = outline_entry;
+        elem.title = "line: " + (line + 1);
+
+        _outline_element.appendChild(elem);
+        
+        elem.addEventListener("click", setCursorCb({ start: { line: line + 2, column: 0 }}));
+    }
+};
+
+_glsl_parser_worker.onmessage = function(m) {
+    _outline_data = m.data.slice();
+
+    _updateOutline();
 };

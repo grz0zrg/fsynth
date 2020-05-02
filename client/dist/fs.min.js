@@ -21823,12 +21823,14 @@ _utter_fail_element.innerHTML = "";
                 showToken: /\w/,
                 annotateScrollbar: true
             },
+        _code_editor_marks = [],
         _code_editor_settings = {
             value: "",
             theme: ((_code_editor_theme === null) ? "seti" : _code_editor_theme),
             matchBrackets: true,
             //autoCloseBrackets: true,
             lineNumbers: true,
+            gutters: ["CodeMirror-linenumbers", "fs-mark"],
             styleActiveLine: true,
             scrollbarStyle: "native",
             mode: "text/x-glsl",
@@ -21839,16 +21841,19 @@ _utter_fail_element.innerHTML = "";
                     cm.setOption("fullScreen", fullscreen);
                     
                     // hide some UI stuff when fullscreen
-                    var mid_panel = document.getElementById("fs_middle_panel");/*,
+                    var mid_panel = document.getElementById("fs_middle_panel"),
+                        app_infos = document.getElementById("fs_app_infos");/*,
                         fs_browser = document.getElementById("fs_browser");*/
                     
                     if (fullscreen) {
                         _code_editor.setOption("lineNumbers", false);
                         mid_panel.style.display = "none";
+                        app_infos.style.display = "none";
                         //fs_browser.style.display = "none";
                     } else {
                         _code_editor.setOption("lineNumbers", _cm_show_linenumbers);
                         mid_panel.style.display = "";
+                        app_infos.style.display = "";
                         //fs_browser.style.display = "";
                     }
                 },
@@ -21858,10 +21863,12 @@ _utter_fail_element.innerHTML = "";
                         
                         _code_editor.setOption("lineNumbers", _cm_show_linenumbers);
                         
-                        var mid_panel = document.getElementById("fs_middle_panel");/*,
+                        var mid_panel = document.getElementById("fs_middle_panel"),
+                        app_infos = document.getElementById("fs-app-infos");/*,
                             fs_browser = document.getElementById("fs_browser");*/
                         
                         mid_panel.style.display = "";
+                        app_infos.style.display = "";
                         //fs_browser.style.display = "";
                     }
                 }
@@ -21915,6 +21922,8 @@ _utter_fail_element.innerHTML = "";
         },
 
         _compile_timer,
+        _update_marks_timer,
+        _save_marks_timer,
 
         _undock_code_editor = false,
 
@@ -21933,6 +21942,7 @@ _utter_fail_element.innerHTML = "";
         _show_polyinfos = false,
         _cm_highlight_matches = false,
         _cm_show_linenumbers = true,
+        _cm_show_inerrors = true,
         _cm_advanced_scrollbar = false,
         _quickstart_on_startup = true,
         
@@ -21983,7 +21993,9 @@ _utter_fail_element.innerHTML = "";
         _midi_data = [],
         _prev_osc_data = [],
         _osc_data = [],
-        _output_channels = 1,
+        _output_channels = 0,
+
+        _outline_data = [],
 
         _analysis_canvas,
         _analysis_canvas_ctx,
@@ -24399,21 +24411,19 @@ var setCursorCb = function (position) {
     };
 };
 
-_glsl_parser_worker.onmessage = function(m) {
+var _updateOutline = function () {
     var i = 0, j = 0,
-        
-        data = m.data,
         statement,
-        
+            
         tmp,
         param,
         
         elem;
-    
+
     _outline_element.innerHTML = "";
 
-    for (i = 0; i < data.length; i += 1) {
-        statement = data[i];
+    for (i = 0; i < _outline_data.length; i += 1) {
+        statement = _outline_data[i];
         
         if (statement.type === "function") {
             elem = document.createElement("div");
@@ -24457,6 +24467,34 @@ _glsl_parser_worker.onmessage = function(m) {
             elem.addEventListener("click", setCursorCb(statement.position));
         }
     }
+
+    var line = null;
+    for (i = 0; i < _code_editor_marks.length; i += 1) {
+        line = _code_editor.getLineNumber(_code_editor_marks[i]);
+
+        elem = document.createElement("div");
+            
+        elem.className = "fs-outline-item fs-outline-mark";
+
+        var outline_entry = _code_editor.getLine(line).trim();
+
+        if (outline_entry.indexOf("//") !== -1) {
+            outline_entry = outline_entry.replace(/.*\/\//g, '').trim().toUpperCase();
+        }
+        
+        elem.innerHTML = outline_entry;
+        elem.title = "line: " + (line + 1);
+
+        _outline_element.appendChild(elem);
+        
+        elem.addEventListener("click", setCursorCb({ start: { line: line + 2, column: 0 }}));
+    }
+};
+
+_glsl_parser_worker.onmessage = function(m) {
+    _outline_data = m.data.slice();
+
+    _updateOutline();
 };/* jslint browser: true */
 
 
@@ -24539,6 +24577,8 @@ var _shareDBConnect = function () {
         } else {
             _code_editor.setValue(_sharedb_doc.data);
         }
+
+        _loadEditorMarks();
         
         _sharedb_doc.on('op', function(op, source) {
             var i = 0, j = 0,
@@ -26802,7 +26842,9 @@ var _parseCompileOutput = function (output) {
         
         result.push({ line: m[1] - 1, msg: m[2]});
 
-        _codemirror_line_widgets.push(_code_editor.addLineWidget(line - 1, msg_container, { coverGutter: false, noHScroll: true }));
+        if (_cm_show_inerrors || _code_editor.getOption("fullScreen")) {
+            _codemirror_line_widgets.push(_code_editor.addLineWidget(line - 1, msg_container, { coverGutter: false, noHScroll: true }));
+        }
     }
     
     return result;
@@ -26835,8 +26877,8 @@ var _changeEditorTheme = function (theme) {
     _code_editor_theme_link.onload = function(){
         _code_editor.setOption("theme", theme);
 
-        // update slice settings MIDI editors
-        _changeMarkerSettingsEditor(theme);
+        _pjs_codemirror_instance.setOption("theme", theme);
+        _midi_codemirror_instance.setOption("theme", theme);
     };
     _code_editor_theme_link.rel = "stylesheet";
     _code_editor_theme_link.media = "all";
@@ -27158,9 +27200,9 @@ var _icon_class = {
     _add_slice_timeout,
     _remove_slice_timeout,
 
-    _synthesis_types = ["Additive", "Spectral", "Granular", "PM/FM", "Subtractive", "Physical Model", "Wavetable", "Bandpass (M)", "Formant (M)", "Phase Distorsion (M)", "String resonance (M)", "Modal (M)", "In", "Faust"],
-    _synthesis_enabled = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    _synthesis_params = [0, 3, 3, 0, 1, 2, 1, 0, 0, 0, 0, 0, 0, 5],
+    _synthesis_types = ["Additive", "Spectral", "Granular", "PM/FM", "Subtractive", "Physical Model", "Wavetable", "Bandpass (M)", "Formant (M)", "Phase Distorsion (M)", "String resonance (M)", "Modal (M)", "Modulation", "In", "Faust"],
+    _synthesis_enabled = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    _synthesis_params = [0, 3, 3, 2, 1, 2, 0, 0, 0, 0, 0, 0, 5, 0, 5],
 
     _efx = [{
             name: "Convolution",
@@ -28539,6 +28581,217 @@ var _createSynthParametersContent = function () {
             }));
 
             chn_win_size_select.dispatchEvent(new UIEvent('change'));
+        } else if (_synthesis_types[synth_type] === "PM/FM") {
+            var chn_wav1 = document.createElement("div"),
+                chn_wav2 = document.createElement("div");
+
+            chn_wav1.id = "fs_chn_" + j + "_chn_wav1";
+            chn_wav2.id = "fs_chn_" + j + "_chn_wav2";
+
+            var wav1 = chn_settings.osc[5],
+                wav2 = chn_settings.osc[7];
+
+            chn_fieldset.appendChild(chn_wav1);
+            chn_fieldset.appendChild(chn_wav2);
+
+            _fas_content_list.push(WUI_RangeSlider.create(chn_wav1, {
+                width: 120,
+                height: 8,
+    
+                min: -1,
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: wav1,
+                value: wav1,
+    
+                decimals: 0,
+
+                midi: true,
+                
+                title: "Wavetable (carrier)",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 5)
+            }));
+
+            _fas_content_list.push(WUI_RangeSlider.create(chn_wav2, {
+                width: 120,
+                height: 8,
+    
+                min: -1,
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: wav2,
+                value: wav2,
+    
+                decimals: 0,
+
+                midi: true,
+                
+                title: "Wavetable (modulator)",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 7)
+            }));
+        } else if (_synthesis_types[synth_type] === "Modulation") {
+            var chn_mod = document.createElement("div"),
+                chn_mod2 = document.createElement("div"),
+                chn_mod3 = document.createElement("div"),
+                chn_mod4 = document.createElement("div"),
+                chn_mod5 = document.createElement("div");
+
+            chn_mod.id = "fs_chn_" + j + "_chn_mod";
+            chn_mod2.id = "fs_chn_" + j + "_chn_mod2";
+            chn_mod3.id = "fs_chn_" + j + "_chn_mod3";
+            chn_mod4.id = "fs_chn_" + j + "_chn_mod4";
+            chn_mod4.id = "fs_chn_" + j + "_chn_mod5";
+
+            var mode = chn_settings.osc[5],
+                mode2 = chn_settings.osc[7],
+                mode3 = chn_settings.osc[9],
+                mode4 = chn_settings.osc[11],
+                mode5 = chn_settings.osc[13];
+
+            chn_fieldset.appendChild(chn_mod);
+            chn_fieldset.appendChild(chn_mod2);
+            chn_fieldset.appendChild(chn_mod3);
+            chn_fieldset.appendChild(chn_mod4);
+            chn_fieldset.appendChild(chn_mod5);
+
+            _fas_content_list.push(WUI_RangeSlider.create(chn_mod, {
+                width: 120,
+                height: 8,
+    
+                min: 0,
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: mode,
+                value: mode,
+    
+                decimals: 0,
+
+                midi: true,
+                
+                title: "Mode",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 5)
+            }));
+
+            _fas_content_list.push(WUI_RangeSlider.create(chn_mod2, {
+                width: 120,
+                height: 8,
+    
+                min: 0,
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: mode2,
+                value: mode2,
+    
+                decimals: 0,
+
+                midi: true,
+                
+                title: "Chn",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 7)
+            }));
+
+            _fas_content_list.push(WUI_RangeSlider.create(chn_mod3, {
+                width: 120,
+                height: 8,
+    
+                min: 0,
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: mode3,
+                value: mode3,
+
+                decimals: 0,
+
+                midi: true,
+                
+                title: "Slot / param",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 9)
+            }));
+
+            _fas_content_list.push(WUI_RangeSlider.create(chn_mod4, {
+                width: 120,
+                height: 8,
+    
+                min: 0,
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: mode4,
+                value: mode4,
+    
+                decimals: 0,
+
+                midi: true,
+                
+                title: "Target",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 11)
+            }));
+
+            _fas_content_list.push(WUI_RangeSlider.create(chn_mod5, {
+                width: 120,
+                height: 8,
+    
+                min: 0,
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: mode5,
+                value: mode5,
+    
+                decimals: 0,
+
+                midi: true,
+                
+                title: "Easing (interpolation)",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 13)
+            }));
         } else if (_synthesis_types[synth_type] === "Faust") {
             var chn_gen = document.createElement("div"),
                 chn_p0 = document.createElement("div"),
@@ -28683,7 +28936,7 @@ var _createSynthParametersContent = function () {
     
                 on_change: _onChangeChannelSettings(j, 13)
             }));
-        } else if (_synthesis_types[synth_type] === "Subtractive" || _synthesis_types[synth_type] === "Wavetable") {
+        } else if (_synthesis_types[synth_type] === "Subtractive") {
             var chn_filter_type_label,
                 chn_filter_type_select,
                 chn_filter_option,
@@ -29255,6 +29508,21 @@ var _createFasSettingsContent = function () {
                         _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
                         _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
                         _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 0 });
+                    } else if (_synthesis_types[synth_type] === "PM/FM") {
+                        _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, -1, 3, -1];
+                        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: -1 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 3, chn: chn, value: -1 });
+                    } else if (_synthesis_types[synth_type] === "Modulation") {
+                        _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0];
+                        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 0 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 3, chn: chn, value: 0 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 4, chn: chn, value: 0 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 5, chn: chn, value: 0 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 6, chn: chn, value: 0 });
                     } else if (_synthesis_types[synth_type] === "Granular") {
                         _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 1, 3, 0.01, 4, 0.1, 5, 0.00001];
                         _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
@@ -29698,6 +29966,7 @@ var _uiInit = function () {
         settings_ck_oscinfos_elem = document.getElementById("fs_settings_ck_oscinfos"),
         settings_ck_hlmatches_elem = document.getElementById("fs_settings_ck_hlmatches"),
         settings_ck_lnumbers_elem = document.getElementById("fs_settings_ck_lnumbers"),
+        settings_ck_inerrors_elem = document.getElementById("fs_settings_ck_inerrors"),
         settings_ck_xscrollbar_elem = document.getElementById("fs_settings_ck_xscrollbar"),
         settings_ck_monophonic_elem = document.getElementById("fs_settings_ck_monophonic"),
         settings_ck_feedback_elem = document.getElementById("fs_settings_ck_feedback"),
@@ -29882,6 +30151,12 @@ var _uiInit = function () {
         settings_ck_lnumbers_elem.checked = false;
     }
 
+    if (_cm_show_inerrors) {
+        settings_ck_inerrors_elem.checked = true;
+    } else {
+        settings_ck_inerrors_elem.checked = false;
+    }
+
     if (fs_settings_audio !== null) {
         _audio_off = (fs_settings_audio === "true");
     }
@@ -30028,7 +30303,13 @@ var _uiInit = function () {
         
             localStorage.setItem('fs-editor-show-linenumbers', _cm_show_linenumbers);
         });
-    
+
+    settings_ck_inerrors_elem.addEventListener("change", function () {
+            _cm_show_inerrors = this.checked;
+        
+            localStorage.setItem('fs-editor-show-inerrors', _cm_show_inerrors);
+        });
+
     settings_ck_xscrollbar_elem.addEventListener("change", function () {
             _cm_advanced_scrollbar = this.checked;
         
@@ -30113,6 +30394,7 @@ var _uiInit = function () {
     settings_ck_globaltime_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_hlmatches_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_lnumbers_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_inerrors_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_xscrollbar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_monophonic_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_feedback_elem.dispatchEvent(new UIEvent('change'));
@@ -32174,6 +32456,8 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
     if (submit) {
         _submitRemoveSlice(marker_id);
     }
+
+    _midiUpdateSlices();
     
     _computeOutputChannels();
 
@@ -32258,35 +32542,15 @@ var _updateSliceChnVisibility = function () {
     }
 };
 
-var _changeMarkerSettingsEditor = function (theme) {
-    var i = 0;
-    
-    for (i = 0; i < _play_position_markers.length; i += 1) {
-        //_play_position_markers[i].custom_midi_codemirror.setOption("theme", theme);
-    }
-};
-
-var _compileMarkerMIDIData = function (marker_obj, codemirror_instance) {
-    var cm_element;
-
+var _compileMarkerMIDIData = function (marker_obj) {
     try {
         marker_obj.midi_out.custom_midi_message_fn = new Function("type", "l", "r", "b", "a", "c", "var on, off, change;" + marker_obj.midi_out.custom_midi_message + "\nreturn { on: on, change: change, off: off };");
-        
-        if (codemirror_instance) {
-            cm_element = codemirror_instance.getWrapperElement();
-            cm_element.style.outline = "";
-        }    
-    } catch (e) {
-        _notification("MIDI message compilation error : " + e, 5000);
 
-        console.log("MIDI message compilation error : " + e);
+        WUI_Dialog.setStatusBarContent(_midi_dialog, '<span class="fs-midi-out-compile-status">Successfully compiled</span<');
+    } catch (e) {
+        WUI_Dialog.setStatusBarContent(_midi_dialog, '<span class="fs-midi-out-compile-failed">' + e + '</span<');
 
         marker_obj.midi_out.custom_midi_message_fn = null;
-
-        if (codemirror_instance) {
-            cm_element = codemirror_instance.getWrapperElement();
-            cm_element.style.outline = "1px solid #ff0000";
-        }
     }
 };
 
@@ -32386,6 +32650,7 @@ var _createMarkerSettings = function (marker_obj) {
     // OSC pane
     osc_container.className = "fs-fieldset";
     osc_container_legend.innerHTML = "OSC out";
+    osc_container_legend.style.fontSize = '10pt';
     osc_div.innerHTML = "on/off &nbsp;";
     osc_label.className = "fs-ck-label";
     osc_input.type = "checkbox";
@@ -32408,9 +32673,21 @@ var _createMarkerSettings = function (marker_obj) {
 
     // MIDI pane
     midi_device_fieldset.className = "fs-fieldset";
+    midi_device_legend.style.fontSize = '10pt';
     midi_device_legend.innerHTML = "Devices :";
     midi_device_fieldset.appendChild(midi_device_legend);
 
+    if (marker_obj.midi_out.custom_midi_message.length === 0) {
+        marker_obj.midi_out.custom_midi_message = [
+            '/*\n',
+            ' User-defined MIDI messages for note events\n',
+            ' Pre-defined variables : \n',
+            '  Pixels data: l, r, b, a\n',
+            '  MIDI channel : c\n',
+            '*/\n\n',
+            'if (type === "on") {\n    on = [];\n} else if (type === "change") {\n    change = [];\n} else if (type === "off") {\n    off = [];\n}'
+        ].join('');
+    }
 /*
     midi_custom_message_area.innerHTML = '// User-defined MIDI messages for note events\n// Pixels data ([0,1) float data) : l, r, b, a\n// MIDI channel : c\n\nif (type === "on") {\n    on = [];\n} else if (type === "change") {\n    change = [];\n} else if (type === "off") {\n    off = [];\n}';
     midi_custom_message_area.style.width = "94%";
@@ -32421,9 +32698,7 @@ var _createMarkerSettings = function (marker_obj) {
     if (marker_obj.midi_out.custom_midi_message.length > 0) {
         midi_custom_message_area.innerHTML = marker_obj.midi_out.custom_midi_message;
     }
-*/
 
-/*
     midi_dev_list_label.className = "fs-select-label";
     midi_dev_list_label.htmlFor = "fs_slice_settings_midi_device_" + marker_obj.id;
     midi_dev_list_label.innerHTML = "Device";
@@ -32435,7 +32710,16 @@ var _createMarkerSettings = function (marker_obj) {
     midi_out_editor_btn.style.width = "100%";
 
     midi_out_editor_btn.addEventListener("click", function () {
-        
+        _midiSelectSlice(marker_obj);
+
+        _midiUpdateSlices();
+
+        var detached_dialog = WUI_Dialog.getDetachedDialog(_midi_dialog);
+        if (detached_dialog) {
+            _midiUpdateSlices(detached_dialog.document);
+        }
+
+        WUI_Dialog.open(_midi_dialog);
     });
 
     midi_dev_list.id = "fs_slice_settings_midi_device_" + marker_obj.id;
@@ -32453,6 +32737,13 @@ var _createMarkerSettings = function (marker_obj) {
     midi_dev_list_ck_input.addEventListener("change", _cbMarkerSettingsChange(marker_obj, function (self, instance, marker_obj) {
         marker_obj.midi_out.enabled = self.checked;
         _saveMarkersSettings();
+
+        _midiUpdateSlices();
+
+        var detached_dialog = WUI_Dialog.getDetachedDialog(_midi_dialog);
+        if (detached_dialog) {
+            _midiUpdateSlices(detached_dialog.document);
+        }
     }));
 
     midi_dev_list_ck_label.appendChild(midi_dev_list_ck);
@@ -32949,8 +33240,9 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
             if (local_session_marker["midi_out"]) {
                 play_position_marker.midi_out.device_uids = local_session_marker["midi_out"].device_uids;
                 play_position_marker.midi_out.custom_midi_message = local_session_marker["midi_out"].custom_midi_message;
+                play_position_marker.midi_out.enabled = local_session_marker["midi_out"].enabled;
 
-                _compileMarkerMIDIData(play_position_marker, null);
+                _compileMarkerMIDIData(play_position_marker);
             }
 
             if (local_session_marker["osc_out"]) {
@@ -33014,7 +33306,21 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
     Fields.
 ************************************************************/
 
-var _midi_access = null,
+var _midi_dialog_id = "fs_midi_output",
+    _midi_dialog,
+
+    _current_midi_out_slice = null,
+
+    _midi_code_change_timeout = null,
+    _midi_code_change_ms = 2000,
+    
+    _midi_codemirror_instance,
+    _midi_codemirror_instance_detached,
+    
+    _midi_wrapped_code_change,
+    _midi_wrapped_code_change_detached,
+
+    _midi_access = null,
     
     _midi_devices = {
         input: {},
@@ -33035,6 +33341,237 @@ var _midi_access = null,
 /***********************************************************
     Functions.
 ************************************************************/
+
+var _midiCodeChange = function () {
+    if (_current_midi_out_slice !== null) {
+        _current_midi_out_slice.midi_out.custom_midi_message = _midi_codemirror_instance.getValue();
+
+        _compileMarkerMIDIData(_current_midi_out_slice);
+
+        _saveMarkersSettings();
+    }
+};
+
+var _midiBindCodeChangeEvent = function () {
+    CodeMirror.on(_midi_codemirror_instance, 'change', _midi_wrapped_code_change);
+
+    if (_midi_codemirror_instance_detached) {
+        CodeMirror.on(_midi_codemirror_instance_detached, 'change', _midi_wrapped_code_change_detached);
+    }
+};
+
+var _midiUnbindCodeChangeEvent = function () {
+    CodeMirror.off(_midi_codemirror_instance, 'change', _midi_wrapped_code_change);
+
+    if (_midi_codemirror_instance_detached) {
+        CodeMirror.off(_midi_codemirror_instance_detached, 'change', _midi_wrapped_code_change_detached);
+    }
+};
+
+var _midiDialogInit = function () {
+    var custom_message_area = document.createElement("textarea"),
+
+        midi_editor_div = document.getElementById("fs_midi_editor"),
+        
+        cm_element;
+    
+    custom_message_area.className = "fs-textarea";
+    custom_message_area.style.border = "1px solid #111111";
+
+    _midi_dialog = WUI_Dialog.create(_midi_dialog_id, {
+        title: "MIDI Out Editor",
+
+        width: "800px",
+        height: "360px",
+        min_height: "80px",
+
+        halign: "center",
+        valign: "center",
+
+        open: false,
+
+        status_bar: true,
+        detachable: true,
+        draggable: true,
+        resizable: true,
+        minimizable: true,
+
+        status_bar_content: "",
+
+        on_open: function () {
+            _midi_codemirror_instance.refresh();
+        },
+
+        on_detach: function (new_window) {
+            _current_midi_output = null;
+
+            _midiUnbindCodeChangeEvent();
+
+            var midi_editor_div = new_window.document.getElementById("fs_midi_editor"),
+                textarea = document.createElement("textarea"),
+                cm_element;
+            
+            new_window.document.head.innerHTML += '<link rel="stylesheet" type="text/css" href="css/codemirror/theme/' + _code_editor_theme + '.css"/>';
+            
+            textarea.className = "fs-textarea";
+            textarea.style.border = "1px solid #111111";
+            
+            midi_editor_div.innerHTML = "";
+
+            midi_editor_div.appendChild(textarea);
+
+            _midi_codemirror_instance = CodeMirror.fromTextArea(textarea, {
+                mode: "text/javascript",
+                styleActiveLine: true,
+                lineNumbers: true,
+                lineWrapping: true,
+                theme: ((_code_editor_theme === null) ? "seti" : _code_editor_theme),
+                matchBrackets: true,
+                scrollbarStyle: "native"
+            });
+
+            cm_element = _midi_codemirror_instance.getWrapperElement();
+            cm_element.style = "font-size: 12pt";
+
+            _midi_codemirror_instance_detached.setValue(_midi_codemirror_instance.getValue());
+
+            _midi_codemirror_instance_detached.refresh();
+
+            CodeMirror.on(_midi_codemirror_instance_detached, 'change', _midi_wrapped_code_change_detached);
+
+            _midiBindCodeChangeEvent();
+        },
+    
+        header_btn: [
+            {
+                title: "Help",
+                on_click: function () {
+                    window.open(_documentation_link + "tutorials/midi_output_editor/");
+                },
+                class_name: "fs-help-icon"
+            }
+        ]
+    });
+
+    midi_editor_div.appendChild(custom_message_area);
+
+    _midi_codemirror_instance = CodeMirror.fromTextArea(custom_message_area, {
+        mode: "text/javascript",
+        styleActiveLine: true,
+        lineNumbers: true,
+        lineWrapping: true,
+        theme: ((_code_editor_theme === null) ? "seti" : _code_editor_theme),
+        matchBrackets: true,
+        scrollbarStyle: "native"
+    });
+
+    cm_element = _midi_codemirror_instance.getWrapperElement();
+    cm_element.style = "font-size: 12pt";
+
+    _midi_wrapped_code_change = function () {
+        clearTimeout(_midi_code_change_timeout);
+        _midi_code_change_timeout = setTimeout(_midiCodeChange, _midi_code_change_ms);
+    };
+
+    _midi_wrapped_code_change_detached = function () {
+        clearTimeout(_midi_code_change_timeout);
+        _midi_code_change_timeout = setTimeout(_midiCodeChange, _midi_code_change_ms, _midi_codemirror_instance_detached.getValue());
+
+        _midiUnbindCodeChangeEvent();
+
+        _midi_codemirror_instance.setValue(_midi_codemirror_instance_detached.getValue());
+
+        _midiBindCodeChangeEvent();
+    };
+
+    _midiBindCodeChangeEvent();
+
+    _midiUpdateSlices();
+
+    var detached_dialog = WUI_Dialog.getDetachedDialog(_midi_dialog);
+    if (detached_dialog) {
+        _midiUpdateSlices(detached_dialog.document);
+    }
+};
+
+var _midiSelectSlice = function (slice) {
+    if (_current_midi_out_slice === slice || slice === null) {
+        return;
+    }
+
+    _current_midi_out_slice = slice;
+
+    _midiUnbindCodeChangeEvent();
+
+    _midi_codemirror_instance.setValue(slice.midi_out.custom_midi_message);
+
+    if (_midi_codemirror_instance_detached) {
+        _midi_codemirror_instance_detached.setValue(slice.midi_out.custom_midi_message);
+    }
+
+    _midiUpdateSlices();
+
+    var detached_dialog = WUI_Dialog.getDetachedDialog(_midi_dialog);
+    if (detached_dialog) {
+        _midiUpdateSlices(detached_dialog.document);
+    }
+
+    _midiBindCodeChangeEvent();
+};
+
+var _midiChangeSourceCb = function (slice) {
+    return function (e) {
+        var elem = e.target;
+        
+        _midiSelectSlice(slice);
+
+        if (elem.parentElement !== null) {
+            elem.parentElement.childNodes.forEach(function (item) {
+                item.classList.remove("fs-midi-selected");
+            });
+
+            elem.classList.add("fs-midi-selected");
+        }
+    };
+};
+
+var _midiUpdateSlices = function (doc) {
+    if (!doc) {
+        doc = document;
+    }
+
+    var i = 0,
+        midi_editor_outputs = doc.getElementById("fs_midi_outputs"),
+        slice,
+
+        selected_output = _current_midi_out_slice,
+        
+        output_name_div;
+    
+    midi_editor_outputs.innerHTML = "";
+
+    _current_midi_out_slice = null;
+
+    for (i = 0; i < _play_position_markers.length; i += 1) {
+        slice = _play_position_markers[i];
+        
+        if (slice.midi_out.enabled) {
+            output_name_div = doc.createElement("div");
+            output_name_div.className = "fs-pjs-input";
+            output_name_div.innerHTML = "Slice " + i;
+
+            if (selected_output === slice) {
+                output_name_div.classList.add("fs-midi-selected");
+
+                _current_midi_out_slice = slice;
+            }
+
+            midi_editor_outputs.appendChild(output_name_div);
+
+            output_name_div.addEventListener("click", _midiChangeSourceCb(slice));
+        }
+    }
+};
 
 var _midiDeviceIOUpdate = function () {
     var key;
@@ -33122,8 +33659,10 @@ var _MIDIDeviceCheckboxChange = function () {
     
     if (this.checked) {
         document.getElementById(midi_enabled_ck_id).setAttribute("checked", "checked");
+        document.getElementById(midi_enabled_ck_id + '_status').style.color = 'lightgreen';
     } else {
         document.getElementById(midi_enabled_ck_id).removeAttribute("checked");
+        document.getElementById(midi_enabled_ck_id + '_status').style.color = 'grey';
     }
     
     _midiDeviceIOUpdate();
@@ -33172,8 +33711,8 @@ var _addMIDIDevice = function (midi, io_type) {
                 midi.name,
                 '</div>',
                 '    <label class="fs-ck-label">',
-                ' <span style="color: ' + ((io_type === "input") ? "lightgreen" : "orange") + '">Enable</span> </div>&nbsp;',
-                '        <input id="' + midi_enabled_ck_id + '" type="checkbox" data-type="' + io_type + '" data-did="' + midi.id + '" ' + midi_device_enabled_ck + '>',
+                ' <span id="' + midi_enabled_ck_id + '_status" style="color: ' + ((midi_device_enabled_ck === "checked") ? "lightgreen" : "grey") + '">Enabled</span> </div>&nbsp;',
+                '        <input id="' + midi_enabled_ck_id + '" type="checkbox" class="fs-checkbox" data-type="' + io_type + '" data-did="' + midi.id + '" ' + midi_device_enabled_ck + '>',
                 '    </label>'].join('');
 
     if (io_type === "input") {
@@ -33637,6 +34176,7 @@ var _mpeMIDIMessage = function (notes) {
                     note.timbre = data.timbre;
                     note.pressure = data.pressure;
 
+                    //_keyboard.data[note.id + 2] = Date.now();
                     _keyboard.data[note.id + 4] = note.pitchBend;
                     _keyboard.data[note.id + 5] = note.timbre;
                     _keyboard.data[note.id + 6] = note.pressure;
@@ -33736,6 +34276,8 @@ var _midiInit = function () {
         midi_settings_element.style.paddingTop = "12px";
         midi_settings_element.innerHTML = _webmidi_support_msg;
     }
+
+    _midiDialogInit();
 }/* jslint browser: true */
 
 /***********************************************************
@@ -34449,8 +34991,107 @@ var _oscInit = function () {
             _local_session_settings = {
                 gain: _volume,
                 chn_settings: [{ osc: [], efx: [] }],
-                markers: []
+                markers: [],
+                code_marks: []
             };
+        }
+    };
+
+    var _getNewMark = function () {
+        var mark = document.createElement("div");
+        mark.classList.add("fs-mark");
+        mark.innerHTML = "*";
+        
+        return mark;
+    };
+
+    var _findMark = function (line) {
+        var i = 0;
+        for (i = 0; i < _code_editor_marks.length; i += 1) {
+            if (_code_editor.getLineNumber(_code_editor_marks[i]) === line) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    var _deleteMark = function (line) {
+        var i = 0;
+        for (i = 0; i < _code_editor_marks.length; i += 1) {
+            if (_code_editor.getLineNumber(_code_editor_marks[i]) === line) {
+                _code_editor_marks.splice(i, 1);
+                break;
+            }
+        }
+
+        clearTimeout(_save_marks_timer);
+        _save_marks_timer = setTimeout(_saveEditorMarks, 5000);;
+
+        _updateOutline();
+    };
+
+    var _addMarkDeleteEvent = function (lineHandle) {
+        CodeMirror.on(lineHandle, 'delete', function () {
+            _deleteMark(_code_editor.getLineNumber(lineHandle));
+        });
+    };
+
+    var _loadEditorMarks = function () {
+        var line = 0, 
+            i = 0;
+        
+        if (_local_session_settings) {
+            if ('code_marks' in _local_session_settings) {
+                _code_editor_marks = [];
+
+                for (i = 0; i < _local_session_settings.code_marks.length; i += 1) {
+                    line = _local_session_settings.code_marks[i];
+
+                    _code_editor.setGutterMarker(line, "fs-mark", _getNewMark());
+
+                    var lineHandle = _code_editor.getLineHandle(line);
+                    _code_editor_marks.push(lineHandle);
+
+                    _addMarkDeleteEvent(lineHandle);
+                }
+
+                _updateOutline();
+            }
+        }
+    };
+
+    var _saveEditorMarks = function () {
+        var marks = [],
+            i = 0;
+
+        for (i = 0; i < _code_editor_marks.length; i += 1) {
+            marks.push(_code_editor.getLineNumber(_code_editor_marks[i]));
+        }
+        
+        _local_session_settings.code_marks = marks.slice();
+        _saveLocalSessionSettings();
+    };
+
+    var _updateMarks = function () {
+        var found = 0;
+        var i, j;
+        for (i = 0; i < _code_editor_marks.length; i += 1) {
+            var line = _code_editor.getLineNumber(_code_editor_marks[i]);
+            for (j = 0; j < _local_session_settings.code_marks.length; j += 1) {
+                var line2 = _local_session_settings.code_marks[i];
+                if (line == line2) {
+                    found += 1;
+                } 
+            }
+
+            if (found === 0) {
+                break
+            }
+        }
+
+        if (found === 0) {
+            _saveEditorMarks();
         }
     };
     
@@ -34618,10 +35259,39 @@ var _oscInit = function () {
         CodeMirror.on(_code_editor, 'change', function (instance, change_obj) {
             clearTimeout(_compile_timer);
             _compile_timer = setTimeout(_compile, 500);
+
+            clearTimeout(_update_marks_timer);
+            _update_marks_timer = setTimeout(_updateMarks, 2000);
         });
 
         CodeMirror.on(_code_editor, 'changes', function (instance, changes) {
             _shareCodeEditorChanges(changes);
+        });
+
+        CodeMirror.on(_code_editor, "gutterClick", function(cm, n) {
+            var info = cm.lineInfo(n),
+                lineHandle = cm.getLineHandle(n),
+
+                i = 0;
+
+            if (info.gutterMarkers) {
+                for (i = 0; i < _code_editor_marks.length; i += 1) {
+                    if (cm.getLineNumber(_code_editor_marks[i]) === n) {
+                        _code_editor_marks.splice(i, 1);
+                        break;
+                    }
+                }
+            } else {
+                _code_editor_marks.push(lineHandle);
+
+                _addMarkDeleteEvent(lineHandle);
+            }
+
+            cm.setGutterMarker(n, "fs-mark", info.gutterMarkers ? null : _getNewMark());
+
+            _saveEditorMarks();
+
+            _updateOutline();
         });
     } else {
         // the "dummy" CodeMirror object when the external editor is used
@@ -34764,6 +35434,8 @@ var _oscInit = function () {
     _compile();
 
     _loadLocalSessionSettings();
+
+    _loadEditorMarks();
 
     _allocateFramesData();
     

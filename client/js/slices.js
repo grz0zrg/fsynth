@@ -209,6 +209,8 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
     if (submit) {
         _submitRemoveSlice(marker_id);
     }
+
+    _midiUpdateSlices();
     
     _computeOutputChannels();
 
@@ -293,35 +295,15 @@ var _updateSliceChnVisibility = function () {
     }
 };
 
-var _changeMarkerSettingsEditor = function (theme) {
-    var i = 0;
-    
-    for (i = 0; i < _play_position_markers.length; i += 1) {
-        //_play_position_markers[i].custom_midi_codemirror.setOption("theme", theme);
-    }
-};
-
-var _compileMarkerMIDIData = function (marker_obj, codemirror_instance) {
-    var cm_element;
-
+var _compileMarkerMIDIData = function (marker_obj) {
     try {
         marker_obj.midi_out.custom_midi_message_fn = new Function("type", "l", "r", "b", "a", "c", "var on, off, change;" + marker_obj.midi_out.custom_midi_message + "\nreturn { on: on, change: change, off: off };");
-        
-        if (codemirror_instance) {
-            cm_element = codemirror_instance.getWrapperElement();
-            cm_element.style.outline = "";
-        }    
-    } catch (e) {
-        _notification("MIDI message compilation error : " + e, 5000);
 
-        console.log("MIDI message compilation error : " + e);
+        WUI_Dialog.setStatusBarContent(_midi_dialog, '<span class="fs-midi-out-compile-status">Successfully compiled</span<');
+    } catch (e) {
+        WUI_Dialog.setStatusBarContent(_midi_dialog, '<span class="fs-midi-out-compile-failed">' + e + '</span<');
 
         marker_obj.midi_out.custom_midi_message_fn = null;
-
-        if (codemirror_instance) {
-            cm_element = codemirror_instance.getWrapperElement();
-            cm_element.style.outline = "1px solid #ff0000";
-        }
     }
 };
 
@@ -421,6 +403,7 @@ var _createMarkerSettings = function (marker_obj) {
     // OSC pane
     osc_container.className = "fs-fieldset";
     osc_container_legend.innerHTML = "OSC out";
+    osc_container_legend.style.fontSize = '10pt';
     osc_div.innerHTML = "on/off &nbsp;";
     osc_label.className = "fs-ck-label";
     osc_input.type = "checkbox";
@@ -443,9 +426,21 @@ var _createMarkerSettings = function (marker_obj) {
 
     // MIDI pane
     midi_device_fieldset.className = "fs-fieldset";
+    midi_device_legend.style.fontSize = '10pt';
     midi_device_legend.innerHTML = "Devices :";
     midi_device_fieldset.appendChild(midi_device_legend);
 
+    if (marker_obj.midi_out.custom_midi_message.length === 0) {
+        marker_obj.midi_out.custom_midi_message = [
+            '/*\n',
+            ' User-defined MIDI messages for note events\n',
+            ' Pre-defined variables : \n',
+            '  Pixels data: l, r, b, a\n',
+            '  MIDI channel : c\n',
+            '*/\n\n',
+            'if (type === "on") {\n    on = [];\n} else if (type === "change") {\n    change = [];\n} else if (type === "off") {\n    off = [];\n}'
+        ].join('');
+    }
 /*
     midi_custom_message_area.innerHTML = '// User-defined MIDI messages for note events\n// Pixels data ([0,1) float data) : l, r, b, a\n// MIDI channel : c\n\nif (type === "on") {\n    on = [];\n} else if (type === "change") {\n    change = [];\n} else if (type === "off") {\n    off = [];\n}';
     midi_custom_message_area.style.width = "94%";
@@ -456,9 +451,7 @@ var _createMarkerSettings = function (marker_obj) {
     if (marker_obj.midi_out.custom_midi_message.length > 0) {
         midi_custom_message_area.innerHTML = marker_obj.midi_out.custom_midi_message;
     }
-*/
 
-/*
     midi_dev_list_label.className = "fs-select-label";
     midi_dev_list_label.htmlFor = "fs_slice_settings_midi_device_" + marker_obj.id;
     midi_dev_list_label.innerHTML = "Device";
@@ -470,7 +463,16 @@ var _createMarkerSettings = function (marker_obj) {
     midi_out_editor_btn.style.width = "100%";
 
     midi_out_editor_btn.addEventListener("click", function () {
-        
+        _midiSelectSlice(marker_obj);
+
+        _midiUpdateSlices();
+
+        var detached_dialog = WUI_Dialog.getDetachedDialog(_midi_dialog);
+        if (detached_dialog) {
+            _midiUpdateSlices(detached_dialog.document);
+        }
+
+        WUI_Dialog.open(_midi_dialog);
     });
 
     midi_dev_list.id = "fs_slice_settings_midi_device_" + marker_obj.id;
@@ -488,6 +490,13 @@ var _createMarkerSettings = function (marker_obj) {
     midi_dev_list_ck_input.addEventListener("change", _cbMarkerSettingsChange(marker_obj, function (self, instance, marker_obj) {
         marker_obj.midi_out.enabled = self.checked;
         _saveMarkersSettings();
+
+        _midiUpdateSlices();
+
+        var detached_dialog = WUI_Dialog.getDetachedDialog(_midi_dialog);
+        if (detached_dialog) {
+            _midiUpdateSlices(detached_dialog.document);
+        }
     }));
 
     midi_dev_list_ck_label.appendChild(midi_dev_list_ck);
@@ -984,8 +993,9 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
             if (local_session_marker["midi_out"]) {
                 play_position_marker.midi_out.device_uids = local_session_marker["midi_out"].device_uids;
                 play_position_marker.midi_out.custom_midi_message = local_session_marker["midi_out"].custom_midi_message;
+                play_position_marker.midi_out.enabled = local_session_marker["midi_out"].enabled;
 
-                _compileMarkerMIDIData(play_position_marker, null);
+                _compileMarkerMIDIData(play_position_marker);
             }
 
             if (local_session_marker["osc_out"]) {

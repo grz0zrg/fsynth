@@ -85,209 +85,9 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
 
     <body>
         <div id="fs_red_curtain" class="fs-red-curtain"></div>
-        <!--
-        <div id="fs_electron_login" class="fs-electron-login" style="display: none">
-            <div class="fs-electron-login-logo">
-                <a href="https://www.fsynth.com">
-                    <img src="data/logo3.png" width="400">
-                </a>
-            </div>
-            <div id="fs_electron_login_dialog">
-                <div>
-                    <div id="fs_electron_login_tabs" style="height: 100%">
-                        <div>
-                            <div>Home</div>
-                            <div>My sessions</div>
-                            <div>Audio settings</div>
-                        </div>
-                        <div>
-                            <div>
-                                <div class="fs-login-tab">
-                                    <form class="fp-session-form">
-                                        <div class="row">
-                                            <div class="columns" style="text-align: center">
-                                                <label for="userName">User Name</label>
-                                                <br/>
-                                                <input class="fs-btn" type="text" placeholder="Anonymous" id="userName">
-                                            </div>
-                                        </div>
-                                        <br/>
-                                        <div class="row">
-                                            <div class="columns" style="text-align: center">
-                                                <label for="sessionName">Session Name</label>
-                                                <br/>
-                                                <input class="fs-btn" type="text" placeholder="d7eafpaoupljt" id="sessionName">
-                                            </div>
-                                        </div>
-                                    </form>
-                                    <p style="text-align: center">
-                                        <button id="sessionBtn" class="fs-btn fs-btn-big">
-                                            Create/Join Session
-                                        </button>
-                                    </p>
-                                    <div>
-                                        <div class="fp-center-text social">
-                                            <a target="_blank" href="https://www.facebook.com/fsynth/" class="fp-social-page-fbl">
-                                                <i class="fa fa-facebook-official" aria-hidden="true"></i>
-                                            </a>
-                                            <a target="_blank" href="https://twitter.com/fragmentsynth" class="fp-social-page-twl">
-                                                <i class="fa fa-twitter" aria-hidden="true"></i>
-                                            </a>
-                                            <a target="_blank" href="https://www.soundcloud.com/fsynth/" class="fp-social-page-scl">
-                                                <i class="fa fa-soundcloud" aria-hidden="true"></i>
-                                            </a>
-                                            <a target="_blank" href="https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ" class="fp-social-page-ytl">
-                                                <i class="fa fa-youtube" aria-hidden="true"></i>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <div id="sessions" class="row fp-sessions">
-                                    <div class="column value">
-                                        <table class="fp-session-list u-full-width">
-                                            <thead>
-                                                <tr>
-                                                    <th id="userIntro"></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="sessionList">
-                                            </tbody>
-                                        </table>
-                                        <div class="row fp-center-text">
-                                            <a id="clearSessionsBtn" class="fs-btn fs-btn-big">Clear history</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="fs-fas-settings">
-                                <div>
-                                    <label class="fs-input-label" for="fs_select_editor_themes">Audio device:</label>
-                                    <select id="fs_fas_device" class="fs-btn">
-
-                                    </select>
-                                </div>
-                                <div id="fs_fas_infos"></div>
-                                <div>
-                                    <label class="fs-input-label" for="fs_fas_samplerate">Sample rate</label>
-                                    <input id="fs_fas_samplerate" class="fs-btn" type="text" value="44100">
-                                </div>
-                                <div>
-                                    <label class="fs-input-label" for="fs_fas_audiobuffer">Audio buffer size</label>
-                                    <input id="fs_fas_audiobuffer" class="fs-btn" type="text" value="512">
-                                </div>
-                                <div>
-                                    <label class="fs-input-label" for="fs_fas_outputchannels">Output channels</label>
-                                    <input id="fs_fas_outputchannels" class="fs-btn" type="text" value="2">
-                                </div>
-                                <div>
-                                    <label class="fs-input-label" for="fs_fas_framesqueue">Frames queue size</label>
-                                    <input id="fs_fas_framesqueue" class="fs-btn" type="text" value="7">
-                                </div>
-                                <br/>
-                                <label class="fs-ck-label">
-                                    <div>ALSA realtime scheduling</div>&nbsp;
-                                    <input id="fs_fas_ck_alsart" type="checkbox">
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="fs-electron-login-logo2">
-                <a href="https://www.fsynth.com">
-                    <img src="data/fsynth2.png" width="297">
-                </a>
-            </div>
-            <div id="fs_app_version" class="fs-app-version"></div>
-            
-            <div class="section hero">
-                <div class="container">
-                    <div class="row">
-                        <div class="column logos">
-                            <img class="logo" src="data/logo2.png">
-                        </div>
-                    </div>
-                    <div class="row fp-title">
-                        <div class="u-max-full-width column" style="text-align: center;">
-                            <h4 class="hero-heading">
-
-                            </h4>
-                        </div>
-                    </div>
-                    <div id="sessions" class="row fp-sessions" style="display: none">
-                        <div class="column value">
-                            <table class="fp-session-list u-full-width">
-                                <thead>
-                                    <tr>
-                                        <th id="userIntro"></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="sessionList">
-                                </tbody>
-                            </table>
-                            <div class="row fp-center-text">
-                                <a id="clearSessionsBtn" class="button">Clear sessions history</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="column value">
-                            <p class="value-description">
-
-                            </p>
-                            <form class="fp-session-form">
-                                <div class="row">
-                                    <div class="columns" style="text-align: center">
-                                        <label for="userName">User Name</label>
-                                        <input class="fp-input" type="text" placeholder="Anonymous" id="userName">
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="columns" style="text-align: center">
-                                        <label for="sessionName">Session Name</label>
-                                        <input class="fp-input" type="text" placeholder="d7eafpaoupljt" id="sessionName">
-                                    </div>
-                                </div>
-                            </form>
-                            <p class="value-description" style="text-align: center">
-                                <a id="sessionBtn" class="button button-primary" href="app">
-                                    Create/Join Session
-                                </a>
-                            </p>
-                            <p class="value-description" style="text-align: center">
-                                <a id="previousSessionBtn" class="button button-primary" href="app">
-                                    Show previous sessions
-                                </a>
-                            </p>
-                            <div class="fp-center-text">
-                                <a target="_blank" href="https://quiet.fsynth.com/" class="fp-social-page-scl">
-                                    <i class="fa fa-comments-o" aria-hidden="true"></i>
-                                </a>
-                                <a target="_blank" href="https://www.facebook.com/fsynth/" class="fp-social-page-fbl">
-                                    <i class="fa fa-facebook-official" aria-hidden="true"></i>
-                                </a>
-                                <a target="_blank" href="https://twitter.com/fragmentsynth" class="fp-social-page-twl">
-                                    <i class="fa fa-twitter" aria-hidden="true"></i>
-                                </a>
-                                <a target="_blank" href="https://www.soundcloud.com/fsynth/" class="fp-social-page-scl">
-                                    <i class="fa fa-soundcloud" aria-hidden="true"></i>
-                                </a>
-                                <a target="_blank" href="https://www.youtube.com/channel/UC2CJFT1_ybPcTNlT6bVG0WQ" class="fp-social-page-ytl">
-                                    <i class="fa fa-youtube" aria-hidden="true"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-        </div>
--->
         <div id="fs_top_panel" class="fs-top-panel">
             <div id="fs_time_infos" class="fs-time-infos"></div>
-            <div class="fs-app-infos">
+            <div id="fs_app_infos" class="fs-app-infos">
                 <div id="fs_sync_status" class="fs-server-status" title="Synchronization server link state"></div>
                 <div id="fs_server_status" class="fs-server-status" title="Chat server link state"></div>
                 <div id="fs_fas_status" class="fs-server-status" title="Native audio link state" style="display: none"></div>
@@ -405,6 +205,10 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
 -->
                     </div>
                     <div class="fs-ck-container">
+                        <label class="fs-ck-label" title="show/hide code editor inline errors">
+                            <div>Show inline errors</div>&nbsp;
+                            <input id="fs_settings_ck_inerrors" type="checkbox">
+                        </label>
                         <label class="fs-ck-label" title="show/hide code editor line numbers">
                             <div>Show line numbers</div>&nbsp;
                             <input id="fs_settings_ck_lnumbers" type="checkbox">
@@ -855,6 +659,19 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
             </div>
         </div>
         
+        <div id="fs_midi_output">
+            <div>
+                <div class="fs-midi-container">
+                    <div id="fs_midi_outputs" class="fs-midi-outputs">
+
+                    </div>
+                    <div id="fs_midi_editor" class="fs-midi-editor">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="fs_fas_dialog">
             <div>
                 

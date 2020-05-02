@@ -65,9 +65,9 @@ var _icon_class = {
     _add_slice_timeout,
     _remove_slice_timeout,
 
-    _synthesis_types = ["Additive", "Spectral", "Granular", "PM/FM", "Subtractive", "Physical Model", "Wavetable", "Bandpass (M)", "Formant (M)", "Phase Distorsion (M)", "String resonance (M)", "Modal (M)", "In", "Faust"],
-    _synthesis_enabled = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    _synthesis_params = [0, 3, 3, 0, 1, 2, 1, 0, 0, 0, 0, 0, 0, 5],
+    _synthesis_types = ["Additive", "Spectral", "Granular", "PM/FM", "Subtractive", "Physical Model", "Wavetable", "Bandpass (M)", "Formant (M)", "Phase Distorsion (M)", "String resonance (M)", "Modal (M)", "Modulation", "In", "Faust"],
+    _synthesis_enabled = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    _synthesis_params = [0, 3, 3, 2, 1, 2, 0, 0, 0, 0, 0, 0, 5, 0, 5],
 
     _efx = [{
             name: "Convolution",
@@ -1446,6 +1446,217 @@ var _createSynthParametersContent = function () {
             }));
 
             chn_win_size_select.dispatchEvent(new UIEvent('change'));
+        } else if (_synthesis_types[synth_type] === "PM/FM") {
+            var chn_wav1 = document.createElement("div"),
+                chn_wav2 = document.createElement("div");
+
+            chn_wav1.id = "fs_chn_" + j + "_chn_wav1";
+            chn_wav2.id = "fs_chn_" + j + "_chn_wav2";
+
+            var wav1 = chn_settings.osc[5],
+                wav2 = chn_settings.osc[7];
+
+            chn_fieldset.appendChild(chn_wav1);
+            chn_fieldset.appendChild(chn_wav2);
+
+            _fas_content_list.push(WUI_RangeSlider.create(chn_wav1, {
+                width: 120,
+                height: 8,
+    
+                min: -1,
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: wav1,
+                value: wav1,
+    
+                decimals: 0,
+
+                midi: true,
+                
+                title: "Wavetable (carrier)",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 5)
+            }));
+
+            _fas_content_list.push(WUI_RangeSlider.create(chn_wav2, {
+                width: 120,
+                height: 8,
+    
+                min: -1,
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: wav2,
+                value: wav2,
+    
+                decimals: 0,
+
+                midi: true,
+                
+                title: "Wavetable (modulator)",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 7)
+            }));
+        } else if (_synthesis_types[synth_type] === "Modulation") {
+            var chn_mod = document.createElement("div"),
+                chn_mod2 = document.createElement("div"),
+                chn_mod3 = document.createElement("div"),
+                chn_mod4 = document.createElement("div"),
+                chn_mod5 = document.createElement("div");
+
+            chn_mod.id = "fs_chn_" + j + "_chn_mod";
+            chn_mod2.id = "fs_chn_" + j + "_chn_mod2";
+            chn_mod3.id = "fs_chn_" + j + "_chn_mod3";
+            chn_mod4.id = "fs_chn_" + j + "_chn_mod4";
+            chn_mod4.id = "fs_chn_" + j + "_chn_mod5";
+
+            var mode = chn_settings.osc[5],
+                mode2 = chn_settings.osc[7],
+                mode3 = chn_settings.osc[9],
+                mode4 = chn_settings.osc[11],
+                mode5 = chn_settings.osc[13];
+
+            chn_fieldset.appendChild(chn_mod);
+            chn_fieldset.appendChild(chn_mod2);
+            chn_fieldset.appendChild(chn_mod3);
+            chn_fieldset.appendChild(chn_mod4);
+            chn_fieldset.appendChild(chn_mod5);
+
+            _fas_content_list.push(WUI_RangeSlider.create(chn_mod, {
+                width: 120,
+                height: 8,
+    
+                min: 0,
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: mode,
+                value: mode,
+    
+                decimals: 0,
+
+                midi: true,
+                
+                title: "Mode",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 5)
+            }));
+
+            _fas_content_list.push(WUI_RangeSlider.create(chn_mod2, {
+                width: 120,
+                height: 8,
+    
+                min: 0,
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: mode2,
+                value: mode2,
+    
+                decimals: 0,
+
+                midi: true,
+                
+                title: "Chn",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 7)
+            }));
+
+            _fas_content_list.push(WUI_RangeSlider.create(chn_mod3, {
+                width: 120,
+                height: 8,
+    
+                min: 0,
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: mode3,
+                value: mode3,
+
+                decimals: 0,
+
+                midi: true,
+                
+                title: "Slot / param",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 9)
+            }));
+
+            _fas_content_list.push(WUI_RangeSlider.create(chn_mod4, {
+                width: 120,
+                height: 8,
+    
+                min: 0,
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: mode4,
+                value: mode4,
+    
+                decimals: 0,
+
+                midi: true,
+                
+                title: "Target",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 11)
+            }));
+
+            _fas_content_list.push(WUI_RangeSlider.create(chn_mod5, {
+                width: 120,
+                height: 8,
+    
+                min: 0,
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: mode5,
+                value: mode5,
+    
+                decimals: 0,
+
+                midi: true,
+                
+                title: "Easing (interpolation)",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 13)
+            }));
         } else if (_synthesis_types[synth_type] === "Faust") {
             var chn_gen = document.createElement("div"),
                 chn_p0 = document.createElement("div"),
@@ -1590,7 +1801,7 @@ var _createSynthParametersContent = function () {
     
                 on_change: _onChangeChannelSettings(j, 13)
             }));
-        } else if (_synthesis_types[synth_type] === "Subtractive" || _synthesis_types[synth_type] === "Wavetable") {
+        } else if (_synthesis_types[synth_type] === "Subtractive") {
             var chn_filter_type_label,
                 chn_filter_type_select,
                 chn_filter_option,
@@ -2162,6 +2373,21 @@ var _createFasSettingsContent = function () {
                         _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
                         _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
                         _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 0 });
+                    } else if (_synthesis_types[synth_type] === "PM/FM") {
+                        _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, -1, 3, -1];
+                        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: -1 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 3, chn: chn, value: -1 });
+                    } else if (_synthesis_types[synth_type] === "Modulation") {
+                        _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0];
+                        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 0 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 3, chn: chn, value: 0 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 4, chn: chn, value: 0 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 5, chn: chn, value: 0 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 6, chn: chn, value: 0 });
                     } else if (_synthesis_types[synth_type] === "Granular") {
                         _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 1, 3, 0.01, 4, 0.1, 5, 0.00001];
                         _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
@@ -2605,6 +2831,7 @@ var _uiInit = function () {
         settings_ck_oscinfos_elem = document.getElementById("fs_settings_ck_oscinfos"),
         settings_ck_hlmatches_elem = document.getElementById("fs_settings_ck_hlmatches"),
         settings_ck_lnumbers_elem = document.getElementById("fs_settings_ck_lnumbers"),
+        settings_ck_inerrors_elem = document.getElementById("fs_settings_ck_inerrors"),
         settings_ck_xscrollbar_elem = document.getElementById("fs_settings_ck_xscrollbar"),
         settings_ck_monophonic_elem = document.getElementById("fs_settings_ck_monophonic"),
         settings_ck_feedback_elem = document.getElementById("fs_settings_ck_feedback"),
@@ -2789,6 +3016,12 @@ var _uiInit = function () {
         settings_ck_lnumbers_elem.checked = false;
     }
 
+    if (_cm_show_inerrors) {
+        settings_ck_inerrors_elem.checked = true;
+    } else {
+        settings_ck_inerrors_elem.checked = false;
+    }
+
     if (fs_settings_audio !== null) {
         _audio_off = (fs_settings_audio === "true");
     }
@@ -2935,7 +3168,13 @@ var _uiInit = function () {
         
             localStorage.setItem('fs-editor-show-linenumbers', _cm_show_linenumbers);
         });
-    
+
+    settings_ck_inerrors_elem.addEventListener("change", function () {
+            _cm_show_inerrors = this.checked;
+        
+            localStorage.setItem('fs-editor-show-inerrors', _cm_show_inerrors);
+        });
+
     settings_ck_xscrollbar_elem.addEventListener("change", function () {
             _cm_advanced_scrollbar = this.checked;
         
@@ -3020,6 +3259,7 @@ var _uiInit = function () {
     settings_ck_globaltime_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_hlmatches_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_lnumbers_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_inerrors_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_xscrollbar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_monophonic_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_feedback_elem.dispatchEvent(new UIEvent('change'));

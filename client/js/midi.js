@@ -5,7 +5,21 @@
     Fields.
 ************************************************************/
 
-var _midi_access = null,
+var _midi_dialog_id = "fs_midi_output",
+    _midi_dialog,
+
+    _current_midi_out_slice = null,
+
+    _midi_code_change_timeout = null,
+    _midi_code_change_ms = 2000,
+    
+    _midi_codemirror_instance,
+    _midi_codemirror_instance_detached,
+    
+    _midi_wrapped_code_change,
+    _midi_wrapped_code_change_detached,
+
+    _midi_access = null,
     
     _midi_devices = {
         input: {},
@@ -26,6 +40,237 @@ var _midi_access = null,
 /***********************************************************
     Functions.
 ************************************************************/
+
+var _midiCodeChange = function () {
+    if (_current_midi_out_slice !== null) {
+        _current_midi_out_slice.midi_out.custom_midi_message = _midi_codemirror_instance.getValue();
+
+        _compileMarkerMIDIData(_current_midi_out_slice);
+
+        _saveMarkersSettings();
+    }
+};
+
+var _midiBindCodeChangeEvent = function () {
+    CodeMirror.on(_midi_codemirror_instance, 'change', _midi_wrapped_code_change);
+
+    if (_midi_codemirror_instance_detached) {
+        CodeMirror.on(_midi_codemirror_instance_detached, 'change', _midi_wrapped_code_change_detached);
+    }
+};
+
+var _midiUnbindCodeChangeEvent = function () {
+    CodeMirror.off(_midi_codemirror_instance, 'change', _midi_wrapped_code_change);
+
+    if (_midi_codemirror_instance_detached) {
+        CodeMirror.off(_midi_codemirror_instance_detached, 'change', _midi_wrapped_code_change_detached);
+    }
+};
+
+var _midiDialogInit = function () {
+    var custom_message_area = document.createElement("textarea"),
+
+        midi_editor_div = document.getElementById("fs_midi_editor"),
+        
+        cm_element;
+    
+    custom_message_area.className = "fs-textarea";
+    custom_message_area.style.border = "1px solid #111111";
+
+    _midi_dialog = WUI_Dialog.create(_midi_dialog_id, {
+        title: "MIDI Out Editor",
+
+        width: "800px",
+        height: "360px",
+        min_height: "80px",
+
+        halign: "center",
+        valign: "center",
+
+        open: false,
+
+        status_bar: true,
+        detachable: true,
+        draggable: true,
+        resizable: true,
+        minimizable: true,
+
+        status_bar_content: "",
+
+        on_open: function () {
+            _midi_codemirror_instance.refresh();
+        },
+
+        on_detach: function (new_window) {
+            _current_midi_output = null;
+
+            _midiUnbindCodeChangeEvent();
+
+            var midi_editor_div = new_window.document.getElementById("fs_midi_editor"),
+                textarea = document.createElement("textarea"),
+                cm_element;
+            
+            new_window.document.head.innerHTML += '<link rel="stylesheet" type="text/css" href="css/codemirror/theme/' + _code_editor_theme + '.css"/>';
+            
+            textarea.className = "fs-textarea";
+            textarea.style.border = "1px solid #111111";
+            
+            midi_editor_div.innerHTML = "";
+
+            midi_editor_div.appendChild(textarea);
+
+            _midi_codemirror_instance = CodeMirror.fromTextArea(textarea, {
+                mode: "text/javascript",
+                styleActiveLine: true,
+                lineNumbers: true,
+                lineWrapping: true,
+                theme: ((_code_editor_theme === null) ? "seti" : _code_editor_theme),
+                matchBrackets: true,
+                scrollbarStyle: "native"
+            });
+
+            cm_element = _midi_codemirror_instance.getWrapperElement();
+            cm_element.style = "font-size: 12pt";
+
+            _midi_codemirror_instance_detached.setValue(_midi_codemirror_instance.getValue());
+
+            _midi_codemirror_instance_detached.refresh();
+
+            CodeMirror.on(_midi_codemirror_instance_detached, 'change', _midi_wrapped_code_change_detached);
+
+            _midiBindCodeChangeEvent();
+        },
+    
+        header_btn: [
+            {
+                title: "Help",
+                on_click: function () {
+                    window.open(_documentation_link + "tutorials/midi_output_editor/");
+                },
+                class_name: "fs-help-icon"
+            }
+        ]
+    });
+
+    midi_editor_div.appendChild(custom_message_area);
+
+    _midi_codemirror_instance = CodeMirror.fromTextArea(custom_message_area, {
+        mode: "text/javascript",
+        styleActiveLine: true,
+        lineNumbers: true,
+        lineWrapping: true,
+        theme: ((_code_editor_theme === null) ? "seti" : _code_editor_theme),
+        matchBrackets: true,
+        scrollbarStyle: "native"
+    });
+
+    cm_element = _midi_codemirror_instance.getWrapperElement();
+    cm_element.style = "font-size: 12pt";
+
+    _midi_wrapped_code_change = function () {
+        clearTimeout(_midi_code_change_timeout);
+        _midi_code_change_timeout = setTimeout(_midiCodeChange, _midi_code_change_ms);
+    };
+
+    _midi_wrapped_code_change_detached = function () {
+        clearTimeout(_midi_code_change_timeout);
+        _midi_code_change_timeout = setTimeout(_midiCodeChange, _midi_code_change_ms, _midi_codemirror_instance_detached.getValue());
+
+        _midiUnbindCodeChangeEvent();
+
+        _midi_codemirror_instance.setValue(_midi_codemirror_instance_detached.getValue());
+
+        _midiBindCodeChangeEvent();
+    };
+
+    _midiBindCodeChangeEvent();
+
+    _midiUpdateSlices();
+
+    var detached_dialog = WUI_Dialog.getDetachedDialog(_midi_dialog);
+    if (detached_dialog) {
+        _midiUpdateSlices(detached_dialog.document);
+    }
+};
+
+var _midiSelectSlice = function (slice) {
+    if (_current_midi_out_slice === slice || slice === null) {
+        return;
+    }
+
+    _current_midi_out_slice = slice;
+
+    _midiUnbindCodeChangeEvent();
+
+    _midi_codemirror_instance.setValue(slice.midi_out.custom_midi_message);
+
+    if (_midi_codemirror_instance_detached) {
+        _midi_codemirror_instance_detached.setValue(slice.midi_out.custom_midi_message);
+    }
+
+    _midiUpdateSlices();
+
+    var detached_dialog = WUI_Dialog.getDetachedDialog(_midi_dialog);
+    if (detached_dialog) {
+        _midiUpdateSlices(detached_dialog.document);
+    }
+
+    _midiBindCodeChangeEvent();
+};
+
+var _midiChangeSourceCb = function (slice) {
+    return function (e) {
+        var elem = e.target;
+        
+        _midiSelectSlice(slice);
+
+        if (elem.parentElement !== null) {
+            elem.parentElement.childNodes.forEach(function (item) {
+                item.classList.remove("fs-midi-selected");
+            });
+
+            elem.classList.add("fs-midi-selected");
+        }
+    };
+};
+
+var _midiUpdateSlices = function (doc) {
+    if (!doc) {
+        doc = document;
+    }
+
+    var i = 0,
+        midi_editor_outputs = doc.getElementById("fs_midi_outputs"),
+        slice,
+
+        selected_output = _current_midi_out_slice,
+        
+        output_name_div;
+    
+    midi_editor_outputs.innerHTML = "";
+
+    _current_midi_out_slice = null;
+
+    for (i = 0; i < _play_position_markers.length; i += 1) {
+        slice = _play_position_markers[i];
+        
+        if (slice.midi_out.enabled) {
+            output_name_div = doc.createElement("div");
+            output_name_div.className = "fs-pjs-input";
+            output_name_div.innerHTML = "Slice " + i;
+
+            if (selected_output === slice) {
+                output_name_div.classList.add("fs-midi-selected");
+
+                _current_midi_out_slice = slice;
+            }
+
+            midi_editor_outputs.appendChild(output_name_div);
+
+            output_name_div.addEventListener("click", _midiChangeSourceCb(slice));
+        }
+    }
+};
 
 var _midiDeviceIOUpdate = function () {
     var key;
@@ -113,8 +358,10 @@ var _MIDIDeviceCheckboxChange = function () {
     
     if (this.checked) {
         document.getElementById(midi_enabled_ck_id).setAttribute("checked", "checked");
+        document.getElementById(midi_enabled_ck_id + '_status').style.color = 'lightgreen';
     } else {
         document.getElementById(midi_enabled_ck_id).removeAttribute("checked");
+        document.getElementById(midi_enabled_ck_id + '_status').style.color = 'grey';
     }
     
     _midiDeviceIOUpdate();
@@ -163,8 +410,8 @@ var _addMIDIDevice = function (midi, io_type) {
                 midi.name,
                 '</div>',
                 '    <label class="fs-ck-label">',
-                ' <span style="color: ' + ((io_type === "input") ? "lightgreen" : "orange") + '">Enable</span> </div>&nbsp;',
-                '        <input id="' + midi_enabled_ck_id + '" type="checkbox" data-type="' + io_type + '" data-did="' + midi.id + '" ' + midi_device_enabled_ck + '>',
+                ' <span id="' + midi_enabled_ck_id + '_status" style="color: ' + ((midi_device_enabled_ck === "checked") ? "lightgreen" : "grey") + '">Enabled</span> </div>&nbsp;',
+                '        <input id="' + midi_enabled_ck_id + '" type="checkbox" class="fs-checkbox" data-type="' + io_type + '" data-did="' + midi.id + '" ' + midi_device_enabled_ck + '>',
                 '    </label>'].join('');
 
     if (io_type === "input") {
@@ -628,6 +875,7 @@ var _mpeMIDIMessage = function (notes) {
                     note.timbre = data.timbre;
                     note.pressure = data.pressure;
 
+                    //_keyboard.data[note.id + 2] = Date.now();
                     _keyboard.data[note.id + 4] = note.pitchBend;
                     _keyboard.data[note.id + 5] = note.timbre;
                     _keyboard.data[note.id + 6] = note.pressure;
@@ -727,4 +975,6 @@ var _midiInit = function () {
         midi_settings_element.style.paddingTop = "12px";
         midi_settings_element.innerHTML = _webmidi_support_msg;
     }
+
+    _midiDialogInit();
 }

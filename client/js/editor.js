@@ -43,7 +43,9 @@ var _parseCompileOutput = function (output) {
         
         result.push({ line: m[1] - 1, msg: m[2]});
 
-        _codemirror_line_widgets.push(_code_editor.addLineWidget(line - 1, msg_container, { coverGutter: false, noHScroll: true }));
+        if (_cm_show_inerrors || _code_editor.getOption("fullScreen")) {
+            _codemirror_line_widgets.push(_code_editor.addLineWidget(line - 1, msg_container, { coverGutter: false, noHScroll: true }));
+        }
     }
     
     return result;
@@ -76,8 +78,8 @@ var _changeEditorTheme = function (theme) {
     _code_editor_theme_link.onload = function(){
         _code_editor.setOption("theme", theme);
 
-        // update slice settings MIDI editors
-        _changeMarkerSettingsEditor(theme);
+        _pjs_codemirror_instance.setOption("theme", theme);
+        _midi_codemirror_instance.setOption("theme", theme);
     };
     _code_editor_theme_link.rel = "stylesheet";
     _code_editor_theme_link.media = "all";

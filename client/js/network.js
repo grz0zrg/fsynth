@@ -80,6 +80,8 @@ var _shareDBConnect = function () {
         } else {
             _code_editor.setValue(_sharedb_doc.data);
         }
+
+        _loadEditorMarks();
         
         _sharedb_doc.on('op', function(op, source) {
             var i = 0, j = 0,

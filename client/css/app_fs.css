@@ -255,6 +255,14 @@ canvas {
     font-weight: bold;
 }
 
+.fs-outline-mark:before {
+    font-family: FontAwesome;
+    content: "\f005";
+    padding-right: 5px;
+    color: yellow;
+    font-size: 8px;
+}
+
 .fs-outline-function:before {
     font-family: FontAwesome;
     content: "\f02c";
@@ -277,6 +285,15 @@ canvas {
     padding-right: 5px;
     color: red;
     font-size: 8px;
+}
+
+.fs-mark {
+    width: .8em;
+    color: yellow;
+}
+
+.fs-mark:hover {
+    cursor: pointer;
 }
 
 .fs-record-toolbar {
@@ -434,7 +451,7 @@ canvas {
     
     cursor: default;
     
-    font-size: 11pt;
+    font-size: 10pt;
 
     width: 100%;
     max-height: 120px;
@@ -451,6 +468,10 @@ canvas {
     border-right: solid 1px #000000;
 
     line-height: normal;
+}
+
+.fs-checkbox:hover {
+    cursor: pointer;
 }
 
 .fs-btn:hover {
@@ -1275,6 +1296,10 @@ body .code .CodeMirror-fullscreen {
     padding: 1px;
 }
 
+.fs-matrix-ck-cell:hover {
+    cursor: pointer;
+}
+
 .fs-md-uniforms {
     height: 300px;
     overflow: auto;
@@ -1391,6 +1416,40 @@ body .code .CodeMirror-fullscreen {
     text-align: left;
     font-family: monospace;
     line-height: 12px;
+}
+
+.fs-midi-container {
+    height: 100%;
+    text-align: center;
+    display: flex;
+}
+
+.fs-midi-outputs {
+    width: 140px;
+    min-width: 140px;
+    height: 100%;
+    padding: 2px;
+    font-size: 10pt;
+    border: solid 2px #000000;
+}
+
+.fs-midi-editor {
+    height: 100%;
+    text-align: left;
+    flex-grow: 1;
+}
+
+.fs-midi-selected {
+    background-color: #202020;
+}
+
+.fs-midi-out-compile-status {
+    font-size: 10pt;
+}
+
+.fs-midi-out-compile-failed {
+    font-size: 10pt;
+    color: #ff0000;
 }
 
 .fs-pjs-container {
