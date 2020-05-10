@@ -28673,6 +28673,7 @@ var _createSynthParametersContent = function () {
                 height: 8,
     
                 min: 0,
+                max: 1,
                 bar: false,
     
                 step: 1,
@@ -29047,7 +29048,7 @@ var _createSynthParametersContent = function () {
 
                 midi: true,
                 
-                title: "Custom wavetable",
+                title: "Note-on reset",
     
                 title_min_width: 140,
                 value_min_width: 88,
@@ -29540,7 +29541,7 @@ var _createFasSettingsContent = function () {
                     } else if (_synthesis_types[synth_type] === "Wavetable") {
                         _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
                         _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 1 });
                     } else if (_synthesis_types[synth_type] === "Subtractive") {
                         _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
                         _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
@@ -34173,9 +34174,9 @@ var _mpeMIDIMessage = function (notes) {
             }
             
             if (_fasEnabled()) {
-                // re-trigger on FAS side for physical modelling (because this type of synthesis require it)
+                // re-trigger on FAS side for physical modelling / wavetable (because this type of synthesis require it)
                 if (_chn_settings[chn] !== undefined) {
-                    if ((_chn_settings[chn].osc[1] === 5) && note) {
+                    if ((_chn_settings[chn].osc[1] === 5 || _chn_settings[chn].osc[1] === 6) && note) {
                         if (note.noteoff) {
                             var osc = _hzToOscillator(data.frq, _audio_infos.base_freq, _audio_infos.octaves, _audio_infos.h);
                             _fasNotify(_FAS_ACTION, { type: 1, note: osc, chn: chn + 1 });

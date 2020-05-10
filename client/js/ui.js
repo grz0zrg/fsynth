@@ -1538,6 +1538,7 @@ var _createSynthParametersContent = function () {
                 height: 8,
     
                 min: 0,
+                max: 1,
                 bar: false,
     
                 step: 1,

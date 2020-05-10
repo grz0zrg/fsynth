@@ -834,9 +834,9 @@ var _mpeMIDIMessage = function (notes) {
             }
             
             if (_fasEnabled()) {
-                // re-trigger on FAS side for physical modelling (because this type of synthesis require it)
+                // re-trigger on FAS side for physical modelling / wavetable (because this type of synthesis require it)
                 if (_chn_settings[chn] !== undefined) {
-                    if ((_chn_settings[chn].osc[1] === 5) && note) {
+                    if ((_chn_settings[chn].osc[1] === 5 || _chn_settings[chn].osc[1] === 6) && note) {
                         if (note.noteoff) {
                             var osc = _hzToOscillator(data.frq, _audio_infos.base_freq, _audio_infos.octaves, _audio_infos.h);
                             _fasNotify(_FAS_ACTION, { type: 1, note: osc, chn: chn + 1 });
