@@ -27202,7 +27202,7 @@ var _icon_class = {
 
     _synthesis_types = ["Additive", "Spectral", "Granular", "PM/FM", "Subtractive", "Physical Model", "Wavetable", "Bandpass (M)", "Formant (M)", "Phase Distorsion (M)", "String resonance (M)", "Modal (M)", "Modulation", "In", "Faust"],
     _synthesis_enabled = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    _synthesis_params = [0, 3, 3, 2, 1, 2, 0, 0, 0, 0, 0, 0, 5, 0, 5],
+    _synthesis_params = [0, 3, 3, 2, 1, 2, 1, 0, 0, 0, 0, 0, 5, 0, 5],
 
     _efx = [{
             name: "Convolution",
@@ -27216,7 +27216,7 @@ var _icon_class = {
                 decimals: 0
             }, {
                 name: "Partition length",
-                type: [256, 512, 1024, 2048, 4096, 8192, 16384],
+                type: [256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536],
                 value: 4
             },
             {
@@ -29020,6 +29020,40 @@ var _createSynthParametersContent = function () {
             chn_fieldset.appendChild(chn_model_type_select);
 
             chn_model_type_select.dispatchEvent(new UIEvent('change'));
+        } else if (_synthesis_types[synth_type] === "Wavetable") {
+            var chn_wav1 = document.createElement("div");
+
+            chn_wav1.id = "fs_chn_" + j + "_chn_wav1";
+
+            var wav1 = chn_settings.osc[5];
+
+            chn_fieldset.appendChild(chn_wav1);
+
+            _fas_content_list.push(WUI_RangeSlider.create(chn_wav1, {
+                width: 120,
+                height: 8,
+    
+                min: 0,
+                max: 1,
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: wav1,
+                value: wav1,
+    
+                decimals: 0,
+
+                midi: true,
+                
+                title: "Custom wavetable",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 5)
+            }));
         }
 
         _applyCollapsible(chn_fieldset, chn_legend);
@@ -29503,6 +29537,10 @@ var _createFasSettingsContent = function () {
                         _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
                         _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
                         _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 0 });
+                    } else if (_synthesis_types[synth_type] === "Wavetable") {
+                        _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
+                        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
+                        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
                     } else if (_synthesis_types[synth_type] === "Subtractive") {
                         _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
                         _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });

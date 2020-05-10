@@ -184,21 +184,8 @@ function websocketConnect() {
                         frame_array_type = Uint8Array;
                         frame_data_comp = 1;
                     }
-                } else if (uint8_view[0] === CHN_SETTINGS) {
-                    uint32_view = new Uint32Array(data, 8, 1);
-
-                    channels = uint32_view[0];
-
-                    logger.log("info", "%s Channels.", channels);
-
-                    for (i = 0; i < channels; i += 1) {
-                        uint8_view = new Uint32Array(data, 16 + i * 24, 2);
-                        float64_view = new Float64Array(data, 16 + 8 + i * 24);
-
-                        channels[i] = { synthesis: uint8_view[0] };
-                    }
                 }
-
+                
                 for (i = 0; i < fas_wss_count; i += 1) {
                     fas_wss[i].socket.send(data, sendError);
                 }
@@ -411,7 +398,7 @@ function onFASClose(fas_obj) {
 
 function onFASMessage(i) {
     return function msg(message) {
-        var stream_load = new Float64Array(message);
+        var stream_load = new Int32Array(message);
 
         fas_loads[i] = stream_load[0];
 
@@ -419,7 +406,7 @@ function onFASMessage(i) {
           return;
         }
 
-        logger.log("info", "Server %s stream load: %s.", i, parseInt(stream_load[0] * 100, 10) + "%");
+        logger.log("info", "Server %s stream load: %s.", i, stream_load[0] + "%");
     };
 }
 
@@ -449,12 +436,12 @@ function printOverallLoad() {
       return;
     }
 
-    logger.log("info", "Overall stream load: %s.", parseInt(l * 100, 10) + "%");
+    logger.log("info", "Overall stream load: %s.", l + "%");
 
-    var load_buffer = new ArrayBuffer(8),
-        float64_view = new Float64Array(load_buffer, 0);
+    var load_buffer = new ArrayBuffer(4),
+        int32_view = new Int32Array(load_buffer, 0);
 
-    float64_view[0] = l;
+    int32_view[0] = l;
 
     try {
       client_socket.send(load_buffer, sendError);
