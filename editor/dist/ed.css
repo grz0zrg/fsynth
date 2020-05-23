@@ -894,26 +894,21 @@ span.CodeMirror-selectedtext { background: none; }
 html, body {
     width: 100%;
     height: 100%;
-
+    
     margin: 0 auto;
 }
 
 body {
-    font-family: "OpenSans-Regular", Helvetica, Arial, sans-serif;
+    font-family: "FiraSans-Regular", Helvetica, Arial, sans-serif;
     font-style: normal;
     font-weight: normal;
-
+    
     background-color: black;
 }
 
 @font-face {
-    font-family: "OpenSans-Regular";
-    src: url('../client/data/OpenSans-Regular.woff');
-}
-
-@font-face {
-    font-family: "Inconsolata";
-    src: url('../client/data/inconsolata.woff');
+    font-family: "FiraSans-Regular";
+    src: url('../client/data/FiraSans-Regular.otf');
 }
 
 .CodeMirror-focused .cm-matchhighlight {
@@ -931,10 +926,10 @@ body {
 .CodeMirror {
     width: 100%;
     height: 100%;
-
+    
     font-family: "Inconsolata", monospace;
     font-style: normal;
     font-weight: normal;
-
+    
     font-size: 11pt;
 }

@@ -116,7 +116,7 @@ document.getElementById("fs_select_editor_themes").addEventListener('change', fu
         theme = "seti";
     }
     
-    _changeEditorTheme(theme);
+    _changeEditorsTheme(theme);
 });
 
 document.getElementById("fs_import_audio_mapping").addEventListener('change', function (e) {
@@ -136,23 +136,23 @@ document.getElementById("fs_show_quickstart").addEventListener('click', function
 });
 
 document.getElementById("fs_remove_comments").addEventListener('click', function (e) {
-    var input_code  = _code_editor.getValue(),
+    var input_code  = _current_code_editor.editor.getValue(),
         output_code = input_code;
     
     output_code = output_code.replace(/(\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/)|(\/\/.*)/g, "");
 
-    _code_editor.setValue(output_code);
+    _current_code_editor.editor.setValue(output_code);
     
     _compile();
 });
 
 document.getElementById("fs_remove_spaces").addEventListener('click', function (e) {
-    var input_code  = _code_editor.getValue(),
+    var input_code  = _current_code_editor.editor.getValue(),
         output_code = input_code;
     
     output_code = output_code.replace(/^\s{2,}$/gm, "");
 
-    _code_editor.setValue(output_code);
+    _current_code_editor.editor.setValue(output_code);
     
     _compile();
 });
@@ -231,19 +231,25 @@ document.addEventListener('mousemove', function (e) {
                 _hz_infos.textContent = "";
             }
         }
-    
-        _pjsMouseMoveEvent();
 
+//        if (e.target === _workspace_nodegraph_canvas) {
+//            _lgraph_canvas.processMouseMove(e);
+//        } else {
+            _pjsMouseMoveEvent();
+//        }
+    
         _mx = e.pageX;
         _my = e.pageY;
     
         _canvasInputPaint(e);
+
+        
    });
 
 var _onWindowResize = function () {
     _updateAllPlayPosition();
     
-    _updateCodeView();
+    _updateWorkView();
     
     _c_helper.width  = window.innerWidth;
     _c_helper.height = window.innerHeight;

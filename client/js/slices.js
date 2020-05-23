@@ -86,11 +86,7 @@ var _getSlice = function (play_position_marker_id) {
 var _setPlayPosition = function (play_position_marker_id, x, y, submit, dont_update_slider) {
     var play_position_marker = _getSlice(play_position_marker_id),
         
-        height = play_position_marker.height,
-        
-        canvas_offset = _getElementOffset(_canvas),
-
-        bottom;
+        canvas_offset = _getElementOffset(_canvas);
     
     if (play_position_marker.x < 0) {
         x = _canvas_width_m1; 
@@ -175,7 +171,6 @@ var _updatePlayMarker = function (id, obj) {
 var _removePlayPositionMarker = function (marker_id, force, submit) {
     var slice = _play_position_markers[parseInt(marker_id, 10)],
         slice_tmp,    
-        elem,    
         i;
     
     WUI.undraggable(slice.element);
@@ -202,10 +197,6 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
         WUI_Dialog.setTitle(_slice_settings_dialog_prefix + slice_tmp.dialog_id, _getSliceTitle(slice_tmp));
     }
     
-    if (_play_position_markers.length === 0) {
-        _stopOscillators();
-    }
-    
     if (submit) {
         _submitRemoveSlice(marker_id);
     }
@@ -215,6 +206,11 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
     _computeOutputChannels();
 
     _saveMarkersSettings();
+
+    if (_play_position_markers.length === 0) {
+        _osc_infos.textContent = "";
+        _poly_infos_element.textContent = "";
+    }
 };
 
 var _cbMarkerSettingsChange = function (mobj, cb) {

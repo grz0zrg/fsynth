@@ -84,7 +84,7 @@ var parse_statements = function (statements, root) {
 self.onmessage = function (m) {
     "use strict";
 
-    var glsl_code = m.data,
+    var glsl_code = m.data.code,
         
         glsl_o,
         
@@ -107,5 +107,8 @@ self.onmessage = function (m) {
         outline = parse_statements(glsl_o.statements, true);
     }
     
-    postMessage(outline);
+    postMessage({
+        target: m.data.target,
+        outline_data: outline
+    });
 };

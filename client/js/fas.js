@@ -73,8 +73,9 @@ var _fasEnable = function () {
         });
     
     _fas.enabled = true;
-    
-    _disconnectWorklet();
+
+    var fs_fas_element = document.getElementById("fs_fas_status");
+    fs_fas_element.style.display = "";
 };
 
 var _fasDisable = function () {
@@ -83,8 +84,9 @@ var _fasDisable = function () {
     _fas_stream_load.textContent = "";
     
     _fas.enabled = false;
-    
-    _connectWorklet();
+
+    var fs_fas_element = document.getElementById("fs_fas_status");
+    fs_fas_element.style.display = "none";
 };
 
 var _fasEnabled = function () {
@@ -93,15 +95,11 @@ var _fasEnabled = function () {
 
 var _fasStatus = function (status) {
     var fs_fas_element = document.getElementById("fs_fas_status");
-    
+ 
     if (status) {
         fs_fas_element.classList.add("fs-server-status-on");
-        
-        _disconnectWorklet();
     } else {
         fs_fas_element.classList.remove("fs-server-status-on");
-        
-        _connectWorklet();
     }
     
     _fas.status = status;
@@ -129,8 +127,6 @@ var _fasInit = function () {
             var data = m.data;
 
             if (data.status === "open") {
-                _stopOscillators(); // TODO: move this somewhere else...
-
                 _fasStatus(true);
 
                 _fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
@@ -168,7 +164,7 @@ var _fasInit = function () {
                 
                 _fas_stream_load.textContent = "";
 
-                _notification("Connection to native audio was lost, trying again in ~5s, make sure it is running!", 2500);
+                _notification("Audio server connection lost, trying again in ~5s.", 2500);
             }
         }, false);
 };

@@ -10,8 +10,6 @@ var _uniform_location_cache = {},
     
     _glsl_compile_timeout = null,
     
-    _outline_element = document.getElementById("fs_outline"),
-    
     _glsl_parser_worker = new Worker("dist/worker/parse_glsl.min.js");
 
 
@@ -19,8 +17,11 @@ var _uniform_location_cache = {},
     Functions.
 ************************************************************/
 
-var _parseGLSL = function (glsl_code) {
-    _glsl_parser_worker.postMessage(glsl_code);
+var _parseGLSL = function (target, glsl_code) {
+    _glsl_parser_worker.postMessage({
+        target: target,
+        code: glsl_code
+    });
 };
 
 var _createAndLinkProgram = function (vertex_shader, fragment_shader) {
@@ -70,7 +71,7 @@ var _createShader = function (shader_type, shader_code) {
         for (i = 0; i < parse_result.length; i += 1) {
             elem = document.createElement("span");
             elem.classList.add("fs-shader-error");
-            elem.innerHTML = "  <strong>" + parse_result[i].line + "</strong>: " + parse_result[i].msg + "\n";
+            elem.innerHTML = "  " + parse_result[i].target + " <strong>" + parse_result[i].line + "</strong>: " + parse_result[i].msg + "\n";
 
             container.appendChild(elem);
         }
@@ -159,7 +160,10 @@ var _glsl_compilation = function () {
         
         vertex_shader_code,
         
-        editor_value = _code_editor.getValue(),
+        // library code + main code
+        library_code = _code_editors[1].editor.getValue(),
+        main_code = _code_editors[0].editor.getValue(),
+        editor_value = library_code + "\n" + main_code,
 
         position,
 
@@ -208,10 +212,7 @@ var _glsl_compilation = function () {
             }
         }
     }
-    
-    // add our uniforms
-    glsl_code += "uniform float globalTime; uniform int frame; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "]; uniform vec3 pKey[" + 16 + "];"
-    
+
     if (_feedback.enabled) {
         if (_gl2) {
             glsl_code += "uniform sampler2D pFrame; uniform sampler2D pFrameSynth;";
@@ -219,6 +220,9 @@ var _glsl_compilation = function () {
             glsl_code += "uniform sampler2D pFrame;";
         }
     }
+    
+    // add our uniforms
+    glsl_code += "uniform float globalTime; uniform int frame; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "]; uniform vec3 pKey[" + 16 + "];"
 
     // add htoy
     glsl_code += "float htoy(float frequency) {return resolution.y - (resolution.y - (log(frequency / baseFrequency) / log(2.)) * floor(resolution.y / octave + 0.5));}"; // round(resolution.y / octave)
@@ -237,7 +241,7 @@ var _glsl_compilation = function () {
     }
 
     // add user fragment code
-    glsl_code += editor_value;
+    glsl_code += "\n" + editor_value;
 
     temp_program = _createAndLinkProgram(
             _createShader(_gl.VERTEX_SHADER, vertex_shader_code),
@@ -245,7 +249,8 @@ var _glsl_compilation = function () {
     );
     
     if (temp_program) {
-        _parseGLSL(glsl_code);
+        _parseGLSL(1, library_code);
+        _parseGLSL(0, main_code);
         
         _gl.deleteProgram(_program);
         
@@ -296,29 +301,39 @@ var _compile = function () {
     _glsl_compile_timeout = setTimeout(_glsl_compilation, 100);
 };
 
-var setCursorCb = function (position) {
+var setCursorCb = function (code_editor, position) {
     return function () {
-        _code_editor.setCursor({ line: position.start.line - 2, ch: position.start.column });
+        _showWorkspace("fs-workspace-item", code_editor.index)();
+
+        code_editor.editor.setCursor({ line: position.start.line - 1, ch: position.start.column });
         
-        if (_detached_code_editor_window) {
-            _detached_code_editor_window.cm.setCursor({ line: position.start.line - 2, ch: position.start.column });
+        var i = 0;
+        for (i = 0; i < code_editor.detached_windows.length; i += 1) {
+            var detached_window = code_editor.detached_windows[i];
+            if (detached_window) {
+                detached_window.cm.setCursor({ line: position.start.line - 1, ch: position.start.column });
+            }
         }
     };
 };
 
-var _updateOutline = function () {
+var _updateOutline = function (code_editor_index) {
     var i = 0, j = 0,
         statement,
             
         tmp,
         param,
+
+        code_editor = _code_editors[code_editor_index],
+        outline_element = code_editor.outline.element,
+        outline_data = code_editor.outline.data,
         
         elem;
 
-    _outline_element.innerHTML = "";
+        outline_element.innerHTML = "";
 
-    for (i = 0; i < _outline_data.length; i += 1) {
-        statement = _outline_data[i];
+    for (i = 0; i < outline_data.length; i += 1) {
+        statement = outline_data[i];
         
         if (statement.type === "function") {
             elem = document.createElement("div");
@@ -333,45 +348,45 @@ var _updateOutline = function () {
             }
             
             elem.innerHTML = '<span class="fs-outline-item-type">' + statement.returnType.name + "</span> " + statement.name + " (" + tmp.join(", ") + ")";
-            elem.title = "line: " + (statement.position.start.line - 1);
+            elem.title = "line: " + statement.position.start.line;
                 
-            _outline_element.appendChild(elem);
+            outline_element.appendChild(elem);
             
-            elem.addEventListener("click", setCursorCb(statement.position));
+            elem.addEventListener("click", setCursorCb(code_editor, statement.position));
         } else if (statement.type === "declarator") {
             elem = document.createElement("div");
             
             elem.className = "fs-outline-item fs-outline-declarator";
             
             elem.innerHTML = '<span class="fs-outline-item-type">' + statement.returnType + "</span> " + statement.name;
-            elem.title = "line: " + (statement.position.start.line - 1);
+            elem.title = "line: " + statement.position.start.line;
 
-            _outline_element.appendChild(elem);
+            outline_element.appendChild(elem);
             
-            elem.addEventListener("click", setCursorCb(statement.position));
+            elem.addEventListener("click", setCursorCb(code_editor, statement.position));
         } else if (statement.type === "preprocessor") {
             elem = document.createElement("div");
             
             elem.className = "fs-outline-item fs-outline-preprocessor";
             
             elem.innerHTML = statement.name + " = " + statement.value;
-            elem.title = "line: " + (statement.position.start.line - 1);
+            elem.title = "line: " + statement.position.start.line;
 
-            _outline_element.appendChild(elem);
+            outline_element.appendChild(elem);
             
-            elem.addEventListener("click", setCursorCb(statement.position));
+            elem.addEventListener("click", setCursorCb(code_editor, statement.position));
         }
     }
 
     var line = null;
-    for (i = 0; i < _code_editor_marks.length; i += 1) {
-        line = _code_editor.getLineNumber(_code_editor_marks[i]);
+    for (i = 0; i < code_editor.marks.length; i += 1) {
+        line = code_editor.editor.getLineNumber(code_editor.marks[i]);
 
         elem = document.createElement("div");
             
         elem.className = "fs-outline-item fs-outline-mark";
 
-        var outline_entry = _code_editor.getLine(line).trim();
+        var outline_entry = code_editor.editor.getLine(line).trim();
 
         if (outline_entry.indexOf("//") !== -1) {
             outline_entry = outline_entry.replace(/.*\/\//g, '').trim().toUpperCase();
@@ -380,14 +395,33 @@ var _updateOutline = function () {
         elem.innerHTML = outline_entry;
         elem.title = "line: " + (line + 1);
 
-        _outline_element.appendChild(elem);
+        outline_element.appendChild(elem);
         
-        elem.addEventListener("click", setCursorCb({ start: { line: line + 2, column: 0 }}));
+        elem.addEventListener("click", setCursorCb(code_editor, { start: { line: line + 2, column: 0 }}));
     }
 };
 
 _glsl_parser_worker.onmessage = function(m) {
-    _outline_data = m.data.slice();
+    var code_editor_target = m.data.target;
 
-    _updateOutline();
+    _code_editors[code_editor_target].outline.data = m.data.outline_data.slice();
+
+    _updateOutline(code_editor_target);
+};
+
+/***********************************************************
+    Init.
+************************************************************/
+
+var _initOutline = function () {
+    var i = 0;
+    var outline_elements = document.getElementsByClassName("fs-outline");
+    for (i = 0; i < outline_elements.length; i += 1) {
+        var outline_element = outline_elements[i];
+
+        var outline_fieldset = outline_element.parentElement;
+        var outline_fieldset_legend = outline_fieldset.firstElementChild;
+
+        _applyCollapsible(outline_fieldset, outline_fieldset_legend, true);
+    }
 };

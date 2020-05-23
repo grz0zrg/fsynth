@@ -167,9 +167,7 @@ var _initDb = function (db_name) {
         };
 
         _request.onupgradeneeded = function (event) {
-            var db = event.target.result,
-
-                input_store;
+            var db = event.target.result;
 
             db.createObjectStore("inputs");
         };

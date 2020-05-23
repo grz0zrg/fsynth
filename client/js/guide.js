@@ -55,7 +55,7 @@ var _ux_helper_overlay = new PlainOverlay(),
             sub_content: [
                 'This is where you type <a target="_blank" class="fs-link" href="https://en.wikipedia.org/wiki/OpenGL_Shading_Language">GLSL</a> code to produce visual / sound content'
             ],
-            target: "code",
+            target: "fs_code",
             point_anchor: true
         },
         {
@@ -76,7 +76,7 @@ var _ux_helper_overlay = new PlainOverlay(),
     _ux_helper_ui_scenario = [
         {
             style: "font-size: 19pt; color: white; margin: 4px; padding: 4px; text-align: center;",
-            content: "Synchronization server status",
+            content: "Data server status",
             sub_content: [
                 "Collaborative features are managed by this server"
             ],
@@ -150,7 +150,7 @@ var _ux_helper_overlay = new PlainOverlay(),
             sub_content: [
                 "This is where you type to produce visual / sound content"
             ],
-            target: "code",
+            target: "fs_code",
             point_anchor: true
         },
         _ux_helper_end_infos

@@ -1203,7 +1203,7 @@ var WUI_Dialog = new (function() {
                 widget = _widget_list[key];
 
                 if (widget.opts.closable &&
-                    widget.dialog.style.zIndex === "101" &&
+                    (widget.dialog.style.zIndex === "101" || widget.dialog.style.zIndex === "16777271"  || widget.dialog.style.zIndex === "16777270") &&
                     widget.dialog.classList.contains(_class_name.open)) {
                     _self.close(key, true);
 

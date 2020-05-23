@@ -1208,7 +1208,7 @@ var WUI_Dialog = new (function() {
                 widget = _widget_list[key];
 
                 if (widget.opts.closable &&
-                    widget.dialog.style.zIndex === "101" &&
+                    (widget.dialog.style.zIndex === "101" || widget.dialog.style.zIndex === "16777271"  || widget.dialog.style.zIndex === "16777270") &&
                     widget.dialog.classList.contains(_class_name.open)) {
                     _self.close(key, true);
 
@@ -20641,452 +20641,6 @@ window.onload = function() {
     
     document.body.style.overflow = "hidden";
     
-/* jslint browser: true */
-
-var _fp_main = function (join_cb) {
-    var _welcome_message = 'Welcome back ',
-        _user_name_ls_key = 'fs-user-name',
-        _session_list_ls_key = 'fs-session-list',
-    
-        _user_name_element = document.getElementById("userName"),
-        _session_name_element = document.getElementById("sessionName"),
-        _session_btn_element = document.getElementById("sessionBtn"),
-        _session_list_element = document.getElementById("sessionList"),
-        _user_about_element = document.getElementById("userIntro"),
-        _clear_sessions_btn_element = document.getElementById("clearSessionsBtn"),
-        _browser_compatibility_element = document.getElementById("browserCompatibility"),
-        _sessions_element = document.getElementById("sessions"),
-        
-        _session_list_str = localStorage.getItem(_session_list_ls_key),
-        
-        _user_name = localStorage.getItem(_user_name_ls_key);
-    
-    var _backToTopCb = function () {
-        var scroll_top = document.documentElement.scrollTop || document.body.scrollTop,
-            back_to_top = document.getElementById("back_to_top"),
-            display_at_y = 500;
-
-        if (!back_to_top) {
-            return;
-        }
-        
-        if (scroll_top < display_at_y && 
-            back_to_top.style.display !== "none") {
-            back_to_top.style.display = "none";
-        } else if (scroll_top >= display_at_y &&
-                   back_to_top.style.display === "none") {
-            back_to_top.style.display = "block";
-        }
-    };
-    
-    var _removeSessionTable = function (element) {
-        var session_table_element = element.parentElement;
-        
-        session_table_element.parentElement.removeChild(session_table_element);
-        
-        _clear_sessions_btn_element.parentElement.removeChild(_clear_sessions_btn_element);
-    };
-    
-    var _removeSessions = function (element) {
-        element.innerHTML = "";
-        
-        localStorage.removeItem(_session_list_ls_key);
-    };
-    
-    var _sessionFormNotification = function (msg) {
-        var validation_element = document.getElementById("fp_session_form_validation");  
-        validation_element.style.display = "";
-        validation_element.innerHTML = msg;
-    };
-    
-    var _hideSessionFormNotification = function () {
-        var validation_element = document.getElementById("fp_session_form_validation");  
-        validation_element.style.display = "none";
-    };
-    
-    var _getSessionName = function () {
-        if (_session_name_element.value === "") {
-            return _session_name_element.placeholder;
-        } else {
-            return _session_name_element.value;
-        }  
-    };
-    
-    var _getUserName = function () {
-        if (_user_name_element.value === "") {
-            return _user_name_element.placeholder;
-        } else {
-            return _user_name_element.value;
-        }  
-    };
-
-    var _setSession = function (name) {
-            if (join_cb) {
-                return false;
-            }
-        
-            if (name.length > 100) {
-                _sessionFormNotification("Session name is above the maximum limit of 100 characters.")
-                _session_btn_element.href = "#";
-                return false;
-            }
-        
-            if (name.length === 0) {
-                name = _session_name_element.placeholder;
-            }
-        
-            _session_btn_element.href = "app/" + name;
-        
-            _hideSessionFormNotification();
-        
-            return true;
-        };
-    
-    var _isCompatibleBrowser = function () {
-        // TODO: check browser compatibility
-    };
-    
-    var _joinSessionFn = function (name) {
-        return (function () {
-            if (join_cb) {
-                join_cb(name);
-            } else {
-                if (!_setSession(name)) {
-                    return;
-                }
-
-                location.href = "app/" + name;
-            }
-        });
-    };
-    
-    var _deleteSessionFn = function (col_element, name) {
-        return (function () {
-            var session_list_str = localStorage.getItem(_session_list_ls_key),
-                session_list = [],
-                i = 0,
-                
-                row = col_element.parentElement;
-            
-            row.parentElement.removeChild(row);
-
-            if (session_list_str) {
-                session_list = JSON.parse(session_list_str);
-            }
-        
-            for (i = 0; i < session_list.length; i += 1) {
-                if (session_list[i] === name) {
-                    session_list.splice(i, 1)
-                    break;
-                }
-            }
-            
-            if (session_list.length > 0) {
-                localStorage.setItem(_session_list_ls_key, JSON.stringify(session_list));
-            } else {
-                _clear_sessions_btn_element.parentElement.removeChild(_clear_sessions_btn_element);
-                
-                localStorage.removeItem(_session_list_ls_key);
-            }
-            
-            // delete session settings
-            if (localStorage.getItem(name) !== null) {
-                localStorage.removeItem(name);
-            }
-        });
-    };
-    
-    var _onSessionColClick = function () {
-        var session_col = this,
-            
-            session_name = session_col.textContent;
-        
-        WUI_CircularMenu.create({
-                element: session_col,
-            
-                angle: 90
-            },
-            [
-                { icon: "fp-join-icon", tooltip: "Join session",  on_click: _joinSessionFn(session_name) },
-                { icon: "fp-trash-icon", tooltip: "Delete session",  on_click: _deleteSessionFn(session_col, session_name) }
-            ]);
-    };
-    
-    _session_name_element.placeholder = Math.random().toString(36).substr(2, 12);
-
-    _setSession(_session_name_element.placeholder);
-    
-    if (_user_name) {
-        if (!join_cb) {
-            _user_about_element.innerHTML = _welcome_message + '<span class="fp-user-name">' + _user_name + '</span>';
-        }
-        
-        _user_name_element.value = _user_name;
-    } else {
-        _sessions_element.parentElement.removeChild(_sessions_element);
-    }
-    
-    _user_name_element.addEventListener("change", function() {
-            localStorage.setItem(_user_name_ls_key, _getUserName());
-        });
-    
-    _session_name_element.addEventListener("change", function() {
-            _setSession(_session_name_element.value);
-        });
-    
-    _clear_sessions_btn_element.addEventListener("click", function () {
-            _removeSessions(_session_list_element);
-        
-            _clear_sessions_btn_element.parentElement.removeChild(_clear_sessions_btn_element);
-        });
-    
-    _session_btn_element.addEventListener("click", function (e) {
-            var session_list_str = localStorage.getItem(_session_list_ls_key),
-                session_list = [],
-                session_name = _getSessionName(),
-                i = 0;
-
-            if (session_list_str) {
-                session_list = JSON.parse(session_list_str);
-            }
-        
-            for (i = 0; i < session_list.length; i += 1) {
-                if (session_list[i] === session_name) {
-                    session_list.splice(i, 1)
-                    break;
-                }
-            }
-        
-            session_list.push(session_name);
-        
-            localStorage.setItem(_session_list_ls_key, JSON.stringify(session_list));
-        
-            localStorage.setItem(_user_name_ls_key, _getUserName());
-        
-            if (join_cb) {
-                join_cb(name);
-            }
-        });
-    
-    if (_session_list_str) {
-        var session_list = JSON.parse(_session_list_str),
-            row, col, btn,
-            i = 0;
-
-        for (i = 0; i < session_list.length; i += 1) {
-            row = document.createElement("tr");
-            col = document.createElement("td");
-            
-            _session_list_element.insertBefore(row, _session_list_element.firstChild);
-            
-            col.innerHTML = session_list[i];
-            
-            col.addEventListener("click", _onSessionColClick);
-            
-            row.appendChild(col);
-        }
-    } else {
-        _clear_sessions_btn_element.parentElement.removeChild(_clear_sessions_btn_element);
-        //_removeSessionTable(_session_list_element);
-    }
-    
-    window.addEventListener("scroll", _backToTopCb);
-    
-    _backToTopCb();
-};
-/***********************************************************
-    Fields.
-************************************************************/
-
-var _electron,
-    
-    _fasInfos,
-    _fasRestart,
-    
-    _fas_devices,
-    
-    _electron_login_dialog,
-    
-    _fs_fas_device = null,
-    _chosen_fas_device = 0;
-
-/***********************************************************
-    Functions.
-************************************************************/
-
-var _isElectronApp = function () {
-    return (typeof process !== "undefined") && process.versions && (process.versions.electron !== undefined);
-};
-
-var _join = function (session_name) {
-    var body_childs = document.body.children,
-        i = 0;
-    
-    for (i = 0; i < body_childs.length; i += 1) {
-        if (body_childs[i].id === "fs_electron_login") {
-            body_childs[i].style.display = "none";
-        } else {
-            body_childs[i].style.display = "";
-        }
-    }
-    
-    FragmentSynth({
-            session_name: session_name,
-            fas: true
-        });
-};
-
-var _restartFas = function () {
-    var opts = [];
-    
-    if (_chosen_fas_device) {
-        opts.push("--device");
-        opts.push(_chosen_fas_device);
-    }
-    
-    _fasRestart(opts);
-};
-
-var _updateDeviceInfos = function (index) {
-    var fas_infos_elem = document.getElementById("fs_fas_infos"),
-        
-        device = _fas_devices[index],
-        
-        html = "<ul>";
-    
-    html += "<li>max input channels: " + device.inchn + "</li>";
-    html += "<li>max output channels: " + device.ouchn + "</li>";
-    html += "<li>default samplerate: " + parseInt(device.smpr, 10) + "</li>";
-    html += "</ul>";
-    
-    fas_infos_elem.innerHTML = html;
-};
-
-var _onDeviceSelected = function (e) {
-    var selected_option = e.target.options[e.target.selectedIndex],
-        device_id = parseInt(selected_option.dataset.id, 10),
-        device_name = e.target.value;
-    
-    _chosen_fas_device = device_id;
-    
-    _updateDeviceInfos(device_id);
-    
-    localStorage.setItem('fs-fas-device-id', device_id);
-    localStorage.setItem('fs-fas-device-name', device_name);
-    
-    _restartFas();
-};
-
-var _onDeviceInfos = function (devices) {
-    _fas_devices = devices;
-    
-    var device_select = document.getElementById("fs_fas_device"),
-        
-        selected_device_id = localStorage.getItem('fs-fas-device-id'),
-        selected_device_name = localStorage.getItem('fs-fas-device-name'),
-        
-        fas_device,
-        
-        selected = "",
-        
-        i = 0;
-    
-    if (selected_device_id === null) {
-        selected_device_id = 0;
-    } else {
-        selected_device_id = parseInt(selected_device_id, 10);
-    }
-    
-    _chosen_fas_device = selected_device_id;
-    
-    device_select.addEventListener("change", _onDeviceSelected);
-    
-    device_select.innerHTML = "";
-    
-    for (i = _fas_devices.length - 1; i > 0; i -= 1) {
-        fas_device = _fas_devices[i];
-        
-        if (fas_device.id === selected_device_id &&
-            fas_device.name === selected_device_name) {
-            selected = " selected"
-        } else {
-            selected = "";
-        }
-        
-        device_select.innerHTML += "<option data-id=\"" + fas_device.id + "\"" + selected + ">" + fas_device.name + "</option>";
-    }
-    
-    _updateDeviceInfos(_chosen_fas_device);
-};
-
-/***********************************************************
-    Init.
-************************************************************/
-
-var _electronInit = function () {
-    var electron_login = document.getElementById("fs_electron_login"),
-        
-        body_childs = document.body.children,
-        
-        i = 0;
-    
-    if (_isElectronApp()) {
-        document.body.classList.add("login");
-        
-        _electron = require('electron');
-        
-        _fasInfos = _electron.remote.getGlobal('fasInfos');
-        _fasRestart = _electron.remote.getGlobal('fasRestart');
-        
-        //document.body.style.backgroundColor = "#ffffff";
-         
-        for (i = 0; i < body_childs.length; i += 1) {
-            if (body_childs[i].id !== "fs_electron_login") {
-                body_childs[i].style.display = "none";
-            }
-        }
-        
-        _electron_login_dialog = WUI_Dialog.create("fs_electron_login_dialog", {
-                title: "",
-
-                width: "500px",
-                height: "400px",
-
-                halign: "center",
-                valign: "center",
-
-                open: true,
-                closable: false,
-            
-                status_bar: false,
-                detachable: false,
-                resizable: false,
-                minimizable: false,
-                draggable: false,
-            });
-        
-        WUI_Tabs.create("fs_electron_login_tabs", {
-            //on_tab_click: tab_clicked,
-
-            height: "100%"
-        });
-        
-        document.getElementById("fs_app_version").innerHTML = "v" + _electron.remote.app.getVersion();
-
-        _fp_main(_join);
-        
-        electron_login.style.display = "";
-        
-        _fasInfos(_onDeviceInfos);
-        
-        return true;
-    } else {
-        // deprecated - comments in the index.html should be removed to make it work!
-        //document.body.removeChild(electron_login);
-    }
-    
-    return false;
-};    
 var FragmentSynth = function (params) {
     "use strict";
 
@@ -21520,6 +21074,10 @@ var _fnFlipImage = function (img, done) {
     };
 };
 
+var _truncateString = function (source, size) {
+    return source.length > size ? source.slice(0, size - 1) + "…" : source;
+};
+
 var _flipImage = function (img, done) {
     _fnFlipImage(img, done)();
 };
@@ -21734,6 +21292,8 @@ _utter_fail_element.innerHTML = "";
 
         _username = localStorage.getItem('fs-user-name'),
         _local_session_settings = localStorage.getItem(_getSessionName()),
+
+        _current_editor_target = 0,
         
         _synth_data_array = Uint8Array,
 
@@ -21815,15 +21375,84 @@ _utter_fail_element.innerHTML = "";
             texture: null
         },
 
-        _code_editor,
-        _code_editor_element = document.getElementById("code"),
+        // contain all workspace code editors
+        _code_editors = [
+            {
+                name: "main",
+                container: document.getElementById("fs_code"),
+                marks: [],
+                editor: null,
+                index: 0,
+                default_value: document.getElementById("fragment-shader").text,
+                sharedb: {
+                    doc: null,
+                    rdy: false
+                },
+                collaborative: true,
+                outline: {
+                    element: document.getElementById("fs_main_outline"),
+                    data: []
+                },
+                detached_windows: [],
+                line_widgets: []
+            },
+/*
+            {
+                name: "buffer",
+                container: document.getElementById("fs_buffer_code"),
+                marks: [],
+                editor: null,
+                index: 1,
+                default_value: document.getElementById("fragment-shader-buffer").text,
+                sharedb: {
+                    doc: null,
+                    rdy: false
+                },
+                collaborative: true,
+                outline: {
+                    element: document.getElementById("fs_buffer_outline"),
+                    data: []
+                },
+                detached_windows: []
+            },
+*/
+            {
+                name: "library",
+                container: document.getElementById("fs_library_code"),
+                marks: [],
+                editor: null,
+                index: 1,
+                default_value: localStorage.getItem('fs-user-library') ? localStorage.getItem('fs-user-library') : "// my library",
+                collaborative: false,
+                outline: {
+                    element: document.getElementById("fs_library_outline"),
+                    data: []
+                },
+                detached_windows: [],
+                line_widgets: []
+            },
+            {
+                name: "example",
+                container: document.getElementById("fs_example_code"),
+                marks: null,
+                editor: null,
+                index: 2,
+                default_value: "",
+                collaborative: false,
+                outline: null,
+                detached_windows: [],
+                line_widgets: []
+            }
+        ],
+        _current_code_editor = _code_editors[0],
+
         _code_editor_theme = localStorage.getItem('fs-editor-theme'),
         _code_editor_theme_link,
         _code_editor_highlight = {
                 showToken: /\w/,
                 annotateScrollbar: true
             },
-        _code_editor_marks = [],
+
         _code_editor_settings = {
             value: "",
             theme: ((_code_editor_theme === null) ? "seti" : _code_editor_theme),
@@ -21842,34 +21471,72 @@ _utter_fail_element.innerHTML = "";
                     
                     // hide some UI stuff when fullscreen
                     var mid_panel = document.getElementById("fs_middle_panel"),
-                        app_infos = document.getElementById("fs_app_infos");/*,
-                        fs_browser = document.getElementById("fs_browser");*/
+                        explorer = document.getElementById("fs_explorer"),
+                        top_panel = document.getElementById("fs_top_panel"),
+                        
+                        i = 0;
                     
                     if (fullscreen) {
-                        _code_editor.setOption("lineNumbers", false);
+                        _current_code_editor.editor.setOption("lineNumbers", false);
                         mid_panel.style.display = "none";
-                        app_infos.style.display = "none";
-                        //fs_browser.style.display = "none";
+                        top_panel.style.display = "none";
+                        explorer.style.display = "none";
+                        
+                        var marks = document.getElementsByClassName("fs-mark");
+                        for (i = 0; i < marks.length; i += 1) {
+                            marks[i].style.display = "none";
+                        }
+
+                        var ppd = document.getElementsByClassName("play-position-triangle-vflip");
+                        for (i = 0; i < ppd.length; i += 1) {
+                            ppd[i].style.display = "none";
+                        }
+
+                        _canvas.style.border = "none";
                     } else {
-                        _code_editor.setOption("lineNumbers", _cm_show_linenumbers);
+                        _current_code_editor.editor.setOption("lineNumbers", _cm_show_linenumbers);
                         mid_panel.style.display = "";
-                        app_infos.style.display = "";
-                        //fs_browser.style.display = "";
+                        top_panel.style.display = "";
+                        explorer.style.display = "";
+
+                        var marks = document.getElementsByClassName("fs-mark");
+                        for (i = 0; i < marks.length; i += 1) {
+                            marks[i].style.display = "";
+                        }
+
+                        var ppd = document.getElementsByClassName("play-position-triangle-vflip");
+                        for (i = 0; i < ppd.length; i += 1) {
+                            ppd[i].style.display = "";
+                        }
+
+                        _canvas.style.border = "";
                     }
                 },
                 "Esc": function (cm) {
                     if (cm.getOption("fullScreen")) {
                         cm.setOption("fullScreen", false);
                         
-                        _code_editor.setOption("lineNumbers", _cm_show_linenumbers);
+                        _current_code_editor.editor.setOption("lineNumbers", _cm_show_linenumbers);
                         
                         var mid_panel = document.getElementById("fs_middle_panel"),
-                        app_infos = document.getElementById("fs-app-infos");/*,
-                            fs_browser = document.getElementById("fs_browser");*/
+                            explorer = document.getElementById("fs_explorer"),
+                            top_panel = document.getElementById("fs_top_panel");
                         
                         mid_panel.style.display = "";
-                        app_infos.style.display = "";
-                        //fs_browser.style.display = "";
+                        top_panel.style.display = "";
+                        explorer.style.display = "";
+
+                        var marks = document.getElementsByClassName("fs-mark");
+                        for (i = 0; i < marks.length; i += 1) {
+                            marks[i].style.display = "";
+                        }
+
+                        var ppd = document.getElementsByClassName("play-position-triangle-vflip");
+                        for (i = 0; i < ppd.length; i += 1) {
+                            ppd[i].style.display = "";
+                        }
+
+                        _canvas.style.border = "";
                     }
                 }
             }
@@ -21878,11 +21545,6 @@ _utter_fail_element.innerHTML = "";
         _show_output_channels = false,
 
         _audio_off = false,
-        _web_audio_off = false,
-        
-        _code_editor_extern = false,
-        
-        _detached_code_editor_window,
         
         // this is the amount of free uniform vectors for Fragment regular uniforms and session custom uniforms
         // this is also used to assign uniform vectors automatically for polyphonic uses
@@ -21995,8 +21657,6 @@ _utter_fail_element.innerHTML = "";
         _osc_data = [],
         _output_channels = 0,
 
-        _outline_data = [],
-
         _analysis_canvas,
         _analysis_canvas_ctx,
         
@@ -22017,8 +21677,6 @@ _utter_fail_element.innerHTML = "";
 
         _input_panel_element = document.getElementById("fs_input_panel"),
 
-        _codemirror_line_widgets = [],
-        
         _wgl_support_element = document.getElementById("fs-wgl-support"),
         _wgl_float_support_element = document.getElementById("fs-wgl-float-support"),
         _wgl_lfloat_support_element = document.getElementById("fs-wgl-lfloat-support"),
@@ -22214,9 +21872,7 @@ var _initDb = function (db_name) {
         };
 
         _request.onupgradeneeded = function (event) {
-            var db = event.target.result,
-
-                input_store;
+            var db = event.target.result;
 
             db.createObjectStore("inputs");
         };
@@ -22227,48 +21883,12 @@ var _initDb = function (db_name) {
     Fields.
 ************************************************************/
 
-var _FS_WORKLET = 0,
-    _FS_OSC_NODES = 1,
-    
-    _audio_context = new window.AudioContext(),
+var _audio_context = new window.AudioContext(),
 
-    _notes_worker = new Worker("dist/worker/notes_buffer.min.js"),
-    
-    _analyser_node,// = _audio_context.createAnalyser(),
-    _analyser_fftsize = 16384,
-    _analyser_freq_bin,
-    
     _sample_rate = _audio_context.sampleRate,
-    
+
     _volume = 0.05,
-    
-    _fragment_worklet_node = null,
-    _fragment_worklet_busy = false,
-    _fragment_worklet_connected = false,
-    
-    _wavetable_size = 4096,
-    
-    _osc_mode = _FS_OSC_NODES,
-    _osc_fadeout = 0.25,
-    
-    _oscillators,
-    
-    _stop_oscillators_timeout,
 
-    _periodic_wave = [],
-    _periodic_wave_n = 16,
-
-    _note_time = 1 / _fps,
-    _note_time_samples = Math.round(_note_time * _sample_rate),
-    
-    _lerp_t_step = 1 / _note_time_samples,
-    
-    _amp_divisor = 255.0,
-
-    _curr_sample = 0,
-        
-    _lerp_t = 0,
-    
     _audio_infos = { 
             h: 0,
             base_freq: 0,
@@ -22277,93 +21897,16 @@ var _FS_WORKLET = 0,
             monophonic: false,
             float_data: false
         },
-    
-    _worklet_settings_timeout,
-    
-    _is_analyser_node_connected = false,
-    
-    _mst_gain_node;
+        
+    _oscillators = [];
 
 /***********************************************************
     Functions.
 ************************************************************/
 
-var _postWorkletSettings = function (data, tdata, clear) {
-    if (!_fragment_worklet_node) {
-        if (clear) {
-            clearTimeout(_worklet_settings_timeout);
-        }
-        _worklet_settings_timeout = setTimeout(_postWorkletSettings, 2000, data, tdata, clear);
-    } else {
-        _fragment_worklet_node.port.postMessage(data, tdata);
-    }
-};
-
-var _workletReady = function (wnode) {
-    _fragment_worklet_node = wnode;
-    
-    _fragment_worklet_node.port.onmessage = function (event) {
-        if (event.data.done) {
-            _fragment_worklet_busy = false;
-        }
-    };
-};
-
-var _pauseWorklet = function () {
-    _postWorkletSettings({ type: 1 });
-};
-
-var _playWorklet = function () {
-    if (!_fasEnabled()) {
-        _postWorkletSettings({ type: 2 });
-    }    
-};
-
-var _disconnectWorklet = function () {
-    if (_fragment_worklet_node) {
-        if (_fragment_worklet_connected) {
-            _fragment_worklet_node.disconnect(_mst_gain_node);
-
-            _fragment_worklet_busy = false;
-        }
-        
-        _pauseWorklet();
-        
-        _fragment_worklet_connected = false;
-    }
-};
-
-var _connectWorklet = function () {
-    if (_fragment_worklet_node && _osc_mode === _FS_WORKLET) {
-        if (!_fragment_worklet_connected) {
-            _fragment_worklet_node.connect(_mst_gain_node);
-        }
-        
-        if (_fs_state === 0) {
-            _playWorklet();
-        }    
-        
-        _fragment_worklet_connected = true;
-    }
-};
-
-var _createGainNode = function (dst, channel) {
-    var gain_node = _audio_context.createGain();
-    gain_node.gain.setTargetAtTime(0.0, 0.0, 0.0);
-    if (channel) {
-        gain_node.connect(dst, 0, channel);
-    } else {
-        gain_node.connect(dst);
-    }
-
-    return gain_node;
-};
-
-var _createMergerNode = function (dst) {
-    var merger_node = _audio_context.createChannelMerger(2);
-    merger_node.connect(dst);
-
-    return merger_node;
+var _setGain = function (gain) {
+    _volume = gain;
+    _audio_infos.gain = _volume;
 };
 
 var _getOscillator = function (y) {
@@ -22388,351 +21931,26 @@ var _attachMediaStream = function (stream) {
     _audio_context.createMediaStreamSource(stream)
 };
 
-var _generatePeriodicWaves = function (n) {
-    var real   = new Float32Array(2),
-        imag   = new Float32Array(2),
-        a1     = 0.0,
-        b1     = 1.0,
-        offset = 0.0,
-        step   = 1.0 / n,
-        i      = 0;
-    
-    _periodic_wave = [];
-    
-    for (i = 0; i <= n; i += 1) {
-        offset = 2 * Math.PI * (step * i);
-        real[1] = a1 * Math.cos(offset) - b1 * Math.sin(offset);
-        imag[1] = a1 * Math.sin(offset) + b1 * Math.cos(offset);
-
-        _periodic_wave.push(_audio_context.createPeriodicWave(real, imag));
-    }
-    
-    _periodic_wave_n = n - 1;
-};
-
 var _generateOscillatorSet = function (n, base_frequency, octaves) {
     var y = 0,
         frequency = 0.0,
-        phase_step = 0.0,
-        merger_node = null,
-        gain_node_l = null,
-        gain_node_r = null,
-        octave_length = n / octaves,
-        osc_obj,
-        worklet_obj = [];
+        octave_length = n / octaves;
     
-    if (_oscillators) {
-        for (y = 0; y < _oscillators.length; y += 1) {
-            osc_obj = _oscillators[y];
-
-            osc_obj.merger_node.disconnect(_mst_gain_node);
-            osc_obj.node.stop();
-        }
-    }
-
     _oscillators = [];
     
     for (y = n - 1; y >= 0; y -= 1) {
         frequency = base_frequency * Math.pow(2, y / octave_length);
         
-        phase_step = frequency / _audio_context.sampleRate * _wavetable_size;
-        
-        merger_node = _createMergerNode(_mst_gain_node);
-        gain_node_l = _createGainNode(merger_node, 0);
-        gain_node_r = _createGainNode(merger_node, 1);
-
         var osc = {
             freq: frequency,
-            
-            // WebAudio periodic waves
-            gain_node_l: gain_node_l,
-            gain_node_r: gain_node_r,
-            merger_node: merger_node,
-            period: 1.0 / frequency,
-            gain_l: 0,
-            gain_r: 0,
-            node: null,
-            used: false,
-
-            // wavetable
-            phase_index: Math.random() * _wavetable_size, 
-            phase_step: phase_step
         };
-        
-        var wosc = {
-            freq: frequency,
-            phase_index: Math.random() * _wavetable_size,
-            phase_step: phase_step
-        };
-        
-        osc.node = _audio_context.createOscillator();
-        osc.node.setPeriodicWave(_periodic_wave[Math.round(Math.random() * _periodic_wave_n)]);
-        //osc.node.frequency.value = osc.freq;
-        osc.node.frequency.setTargetAtTime(osc.freq, 0.0, 0.0);
-        osc.node.connect(osc.gain_node_l);
-        osc.node.connect(osc.gain_node_r);
-        osc.node.start();
         
         _oscillators.push(osc);
-        worklet_obj.push(wosc);
     }
     
     _audio_infos.h = n;
     _audio_infos.base_freq = base_frequency;
     _audio_infos.octaves = octaves;
-    
-    _postWorkletSettings({
-            oscillators: worklet_obj,
-            wsize: _wavetable_size,
-            nts: _note_time_samples,
-            lts: _lerp_t_step,
-            type: 0
-        }, [], true);
-};
-
-var _stopOscillatorsCheck = function () {
-    var osc = null,
-        r = 0,
-        l = 0,
-        i = 0;
-    
-    for (i = 0; i < _oscillators.length; i += 1) {
-        osc = _oscillators[i];
-        if (osc.node) {
-            r += osc.gain_node_r.gain.value;
-            l += osc.gain_node_l.gain.value;
-        }
-    }
-    
-    if (r < 0.05 && l < 0.05) { // this may be unsafe!
-        for (i = 0; i < _oscillators.length; i += 1) {
-            osc = _oscillators[i];
-            if (osc.node) {
-                osc.node.stop(_audio_context.currentTime);
-                osc.node.disconnect();
-                osc.used = false;
-            }
-        }
-    } else {
-        window.clearTimeout(_stop_oscillators_timeout);
-        _stop_oscillators_timeout = window.setTimeout(_stopOscillatorsCheck, 2000);
-    }
-};
-
-var _stopOscillators = function () {
-    var osc = null,
-        audio_ctx_curr_time = _audio_context.currentTime,
-        i = 0;
-    
-    for (i = 0; i < _oscillators.length; i += 1) {
-        osc = _oscillators[i];
-        if (osc.node) {
-            osc.gain_node_l.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
-            osc.gain_node_r.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
-        }
-    }
-};
-
-var _onOscillatorEnded = function () {
-    this.node = null;
-};
-
-// this was used to allocate web audio oscillators dynamically, this was disabled because it seem unecessary, the browser seem to do it internally
-// NOTE : it introduced memory leaks
-var _playOscillator = function (osc_obj, ts) {
-    var osc_node;
-    
-    if (!osc_obj.used) {
-        osc_node = _audio_context.createOscillator();
-        
-        osc_obj.node = osc_node;
-
-        osc_node.setPeriodicWave(_periodic_wave[Math.round((ts % osc_obj.period) / osc_obj.period * _periodic_wave_n)]);
-
-        osc_node.frequency.value = osc_obj.freq;
-
-        osc_node.connect(osc_obj.gain_node_l);
-        osc_node.connect(osc_obj.gain_node_r);
-        osc_node.onended = _onOscillatorEnded;
-
-        osc_node.start();
-        
-        osc_obj.used = true;
-    }
-};
-
-var _playSlice = function (pixels_data) {
-    var data_length = pixels_data.length,
-        audio_ctx_curr_time = _audio_context.currentTime,
-        time_samples = audio_ctx_curr_time * _audio_context.sampleRate,
-        osc = null,
-        l = 0,
-        r = 0,
-        y = _oscillators.length - 1,
-        li = 0,
-        ri = 1,
-        i = 0;
-    
-    if (_audio_infos.monophonic) {
-        li = 3;
-        ri = 3;
-    }
-    
-    for (i = 0; i < data_length; i += 4) {
-        l = pixels_data[i + li];
-        r = pixels_data[i + ri];
-        osc = _oscillators[y];
-        
-        if (l === 0) {
-            osc.gain_node_l.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
-        } else {
-            osc.gain_node_l.gain.setTargetAtTime(l / _amp_divisor, audio_ctx_curr_time, 0.001);
-        }
-        
-        if (r === 0) {
-            osc.gain_node_r.gain.setTargetAtTime(0.0, audio_ctx_curr_time, _osc_fadeout);
-        } else {
-            osc.gain_node_r.gain.setTargetAtTime(r / _amp_divisor, audio_ctx_curr_time, 0.001);
-        }
-        y -= 1;
-    }
-};
-
-var _notesProcessing = function (prev_arr, arr) {   
-    if (_osc_mode === _FS_OSC_NODES) {
-        _playSlice(arr[0]);
-    } else if (_fragment_worklet_node && _osc_mode === _FS_WORKLET) {
-        if (_fragment_worklet_busy) {
-            return;
-        }
-
-        _notes_worker.postMessage({
-            data: arr[0].buffer,
-            prev_data: prev_arr[0].buffer,
-            score_height: _canvas_height,
-            mono: _audio_infos.monophonic,
-            float: _audio_infos.float_data,
-        }, [arr[0].buffer, prev_arr[0].buffer]);
-        
-        _fragment_worklet_busy = true;
-    }
-};
-
-/*
-var _audioProcess = function (audio_processing_event) {
-    var output_buffer = audio_processing_event.outputBuffer,
-
-        output_data_l = output_buffer.getChannelData(0),
-        output_data_r = output_buffer.getChannelData(1),
-
-        output_data_length = output_data_l.length,
-
-        output_l = 0, output_r = 0,
-
-        wavetable = _wavetable,
-        wavetable_size_m1 = _wavetable_size - 1,
-
-        note_buffer = _curr_notes_data,
-        note_buffer_len = note_buffer.length,// = note_buffer[0],
-
-        osc,
-
-        lerp_t_step = _lerp_t_step,
-        
-        lerp_t = _lerp_t,
-        
-        curr_sample = _curr_sample,
-
-        sample,
-
-        s, j, i;
-
-    for (sample = 0; sample < output_data_length; sample += 1) {
-        output_l = 0.0;
-        output_r = 0.0;
-
-        for (j = 0; j < note_buffer_len; j += 5) {
-            var osc_index         = note_buffer[j],
-                previous_volume_l = note_buffer[j + 1],
-                previous_volume_r = note_buffer[j + 2],
-                diff_volume_l     = note_buffer[j + 3],
-                diff_volume_r     = note_buffer[j + 4];
-
-            osc = _oscillators[osc_index];
-
-            s = wavetable[osc.phase_index & wavetable_size_m1];
-            
-            output_l += (previous_volume_l + diff_volume_l * lerp_t) * s;
-            output_r += (previous_volume_r + diff_volume_r * lerp_t) * s;
-
-            osc.phase_index += osc.phase_step;
-
-            if (osc.phase_index >= _wavetable_size) {
-                osc.phase_index -= _wavetable_size;
-            }
-        }
-
-        output_data_l[sample] = output_l;
-        output_data_r[sample] = output_r;
-
-        lerp_t += _lerp_t_step;
-
-        curr_sample += 1;
-
-        if (curr_sample >= _note_time_samples) {
-            _lerp_t_step = 0;
-            
-            curr_sample = 0;
-            
-            if (_data_switch) {
-                lerp_t = 0;
-                _lerp_t = 0;
-                
-                _lerp_t_step = 1 / _note_time_samples;
-                
-                _curr_notes_data = new Float32Array(_next_notes_data.pop());
-                
-                _data_switch = false;
-            }
-        }
-    }
-
-    _lerp_t = lerp_t;
-    
-    _curr_sample = curr_sample;
-};
-*/
-
-var _connectAnalyserNode = function () {
-    if (!_is_analyser_node_connected) {
-        _mst_gain_node.connect(_analyser_node);
-        
-        _is_analyser_node_connected = true;
-    }
-}
-
-var _disconnectAnalyserNode = function () {
-    if (_is_analyser_node_connected) {
-        _mst_gain_node.disconnect(_analyser_node);
-        
-        _is_analyser_node_connected = false;
-    }
-};
-
-var _setGain = function (gain_value) {
-    _volume = gain_value;
-
-    if (_mst_gain_node) {
-        if (_volume) {
-            _mst_gain_node.gain.setTargetAtTime(parseFloat(_volume), 0.0, 0.1);
-            //_mst_gain_node.gain.value = parseFloat(_volume);
-        } else {
-            _mst_gain_node.gain.setTargetAtTime(0.0, 0.0, 0.0);
-            //_mst_gain_node.gain.value = 0;
-        }
-    }
-    
-    _audio_infos.gain = _volume;  
 };
 
 var _computeOutputChannels = function () {
@@ -22760,74 +21978,9 @@ var _decodeAudioData = function (audio_data, done_cb) {
         });
 };
 
-/*
-var _getByteFrequencyData = function (pixels_data) {
-    var i = 0,
-        f = 0,
-        y = 0,
-        index = 0,
-        d = new Uint8Array(_analyser_node.frequencyBinCount);
-    
-    for (i = 0; i < pixels_data.length; i += 4) {
-        f = _getFrequency(y);
-
-        index = Math.round(f / _sample_rate * _analyser_node.frequencyBinCount);
-        d[index] += (pixels_data[i] + pixels_data[i + 1]) / 2;
-        
-        y += 1;
-    }
-        
-    return d;
-};
-*/
-
 /***********************************************************
     Init.
 ************************************************************/
-
-var _audioInit = function () {
-    _mst_gain_node = _createGainNode(_audio_context.destination);
-    _setGain(_volume);
-    
-    _generatePeriodicWaves(16);
-    _generateOscillatorSet(_canvas_height, 16.34, 10);
-
-    try {
-        var aw = new Function("readyCb", "audio_ctx", "mst_gain_node", "" +
-            "class FragmentWorkletNode extends AudioWorkletNode {" +
-            "    constructor(context) {" +
-            "        super(context, 'fragment-worklet-processor');" +
-            "    }" +
-            "}" +
-            //"audio_ctx.audioWorklet.addModule('dist/worker/input_worklet.js');" +
-            "audio_ctx.audioWorklet.addModule('dist/worker/fragment_worklet.js').then(() => {" +
-            "    let node = new FragmentWorkletNode(audio_ctx);" +
-            "    node.connect(mst_gain_node);" +
-            "    readyCb(node);" +
-            "});");
-
-        aw(_workletReady, _audio_context, _mst_gain_node);
-        
-        _osc_mode = _FS_WORKLET;
-        
-        _fragment_worklet_connected = true;
-    } catch (e) {
-        _notification("AudioWorklet unavailable... switching to OSC. mode.", 2500);
-
-        console.log("AudioWorklet unavailable... switching to OSC. mode.");
-        
-        _fragment_worklet_connected = false;
-    }
-
-    _notes_worker.addEventListener("message", function (m) {
-        var data = m.data;
-    
-        _fragment_worklet_node.port.postMessage({
-            d: data.d,
-            type: 500
-        }, [data.d]);
-    }, false);
-};
 /* jslint browser: true */
 
 /***********************************************************
@@ -23414,25 +22567,26 @@ var _buildFeedback = function () {
         }
 
         if (_gl2) {
-            fragment_shader = [
-                "#version 300 es\n",
-                "precision mediump float;",
-                "layout(location = 0) out vec4 synthOutput;",
-                "layout(location = 1) out vec4 fragColor;",
-                "uniform vec2 resolution;",
-                "uniform sampler2D synthInput;",
-                "uniform sampler2D colorInput;",
-                "void main () {",
-                "    vec2 uv = gl_FragCoord.xy / resolution;",
-                "    vec4 c = texture(colorInput, uv);",
-                "    vec4 s = texture(synthInput, uv);",
-                "    fragColor = c;",
-                "    synthOutput = s;",
-                "}"].join("");
+            var predefined_fragment_code = [
+                    "#version 300 es\n",
+                    "precision mediump float;",
+                    "layout(location = 0) out vec4 synthOutput;",
+                    "layout(location = 1) out vec4 fragColor;",
+                    "uniform vec2 resolution;",
+                    "uniform sampler2D synthInput;",
+                    "uniform sampler2D colorInput;\n",
+                ].join("");
+            
+            fragment_shader = predefined_fragment_code + document.getElementById("fragment-shader-buffer-2").text;
 
             vertex_shader = "#version 300 es\n" + document.getElementById("vertex-shader-2").text;
         } else {
-            fragment_shader = _generic_fragment_shader;
+            var predefined_fragment_code = [
+                    "precision mediump float;",
+                    "uniform vec2 resolution;",
+                    "uniform sampler2D texture;\n"
+                ].join("");
+            fragment_shader = predefined_fragment_code + document.getElementById("fragment-shader-buffer").text;
         }
 
         _feedback.program = _createAndLinkProgram(
@@ -23833,7 +22987,9 @@ var _frame = function (raf_time) {
             _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
 
             fragment_input.globalTime += 1;
-        } else if (fragment_input.type === 1 || fragment_input.type === 3 || fragment_input.type === 5) { // video/camera/desktop
+        } else if (fragment_input.type === 1 ||
+            fragment_input.type === 3 ||
+            fragment_input.type === 5) { // video/camera/desktop
             if (fragment_input.video_elem.readyState === fragment_input.video_elem.HAVE_ENOUGH_DATA) {
                 if (fragment_input.type === 3) {
                     _gl.uniform1f(_getUniformLocation(_input_video_prefix + i), fragment_input.video_elem.currentTime / fragment_input.video_elem.duration);
@@ -24045,17 +23201,6 @@ var _frame = function (raf_time) {
         if (!_audio_off) {
             if (_fas.status) {
                 _fasNotifyFast(_FAS_FRAME, _data);
-            } else if (!_web_audio_off) {
-                var tmp_buffer = [];
-                for (i = 0; i < _output_channels; i += 1) {
-                    tmp_buffer.push(new _synth_data_array(_data[i]));
-                }
-
-                _notesProcessing(_prev_data, _data);
-
-                for (i = 0; i < _output_channels; i += 1) {
-                    _prev_data[i] = tmp_buffer[i];
-                }
             }
         }    
 
@@ -24115,8 +23260,6 @@ var _uniform_location_cache = {},
     
     _glsl_compile_timeout = null,
     
-    _outline_element = document.getElementById("fs_outline"),
-    
     _glsl_parser_worker = new Worker("dist/worker/parse_glsl.min.js");
 
 
@@ -24124,8 +23267,11 @@ var _uniform_location_cache = {},
     Functions.
 ************************************************************/
 
-var _parseGLSL = function (glsl_code) {
-    _glsl_parser_worker.postMessage(glsl_code);
+var _parseGLSL = function (target, glsl_code) {
+    _glsl_parser_worker.postMessage({
+        target: target,
+        code: glsl_code
+    });
 };
 
 var _createAndLinkProgram = function (vertex_shader, fragment_shader) {
@@ -24175,7 +23321,7 @@ var _createShader = function (shader_type, shader_code) {
         for (i = 0; i < parse_result.length; i += 1) {
             elem = document.createElement("span");
             elem.classList.add("fs-shader-error");
-            elem.innerHTML = "  <strong>" + parse_result[i].line + "</strong>: " + parse_result[i].msg + "\n";
+            elem.innerHTML = "  " + parse_result[i].target + " <strong>" + parse_result[i].line + "</strong>: " + parse_result[i].msg + "\n";
 
             container.appendChild(elem);
         }
@@ -24264,7 +23410,10 @@ var _glsl_compilation = function () {
         
         vertex_shader_code,
         
-        editor_value = _code_editor.getValue(),
+        // library code + main code
+        library_code = _code_editors[1].editor.getValue(),
+        main_code = _code_editors[0].editor.getValue(),
+        editor_value = library_code + "\n" + main_code,
 
         position,
 
@@ -24313,10 +23462,7 @@ var _glsl_compilation = function () {
             }
         }
     }
-    
-    // add our uniforms
-    glsl_code += "uniform float globalTime; uniform int frame; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "]; uniform vec3 pKey[" + 16 + "];"
-    
+
     if (_feedback.enabled) {
         if (_gl2) {
             glsl_code += "uniform sampler2D pFrame; uniform sampler2D pFrameSynth;";
@@ -24324,6 +23470,9 @@ var _glsl_compilation = function () {
             glsl_code += "uniform sampler2D pFrame;";
         }
     }
+    
+    // add our uniforms
+    glsl_code += "uniform float globalTime; uniform int frame; uniform float octave; uniform float baseFrequency; uniform vec4 mouse; uniform vec4 date; uniform vec2 resolution; uniform vec4 keyboard[" + _keyboard.polyphony_max + "]; uniform vec3 pKey[" + 16 + "];"
 
     // add htoy
     glsl_code += "float htoy(float frequency) {return resolution.y - (resolution.y - (log(frequency / baseFrequency) / log(2.)) * floor(resolution.y / octave + 0.5));}"; // round(resolution.y / octave)
@@ -24342,7 +23491,7 @@ var _glsl_compilation = function () {
     }
 
     // add user fragment code
-    glsl_code += editor_value;
+    glsl_code += "\n" + editor_value;
 
     temp_program = _createAndLinkProgram(
             _createShader(_gl.VERTEX_SHADER, vertex_shader_code),
@@ -24350,7 +23499,8 @@ var _glsl_compilation = function () {
     );
     
     if (temp_program) {
-        _parseGLSL(glsl_code);
+        _parseGLSL(1, library_code);
+        _parseGLSL(0, main_code);
         
         _gl.deleteProgram(_program);
         
@@ -24401,29 +23551,39 @@ var _compile = function () {
     _glsl_compile_timeout = setTimeout(_glsl_compilation, 100);
 };
 
-var setCursorCb = function (position) {
+var setCursorCb = function (code_editor, position) {
     return function () {
-        _code_editor.setCursor({ line: position.start.line - 2, ch: position.start.column });
+        _showWorkspace("fs-workspace-item", code_editor.index)();
+
+        code_editor.editor.setCursor({ line: position.start.line - 1, ch: position.start.column });
         
-        if (_detached_code_editor_window) {
-            _detached_code_editor_window.cm.setCursor({ line: position.start.line - 2, ch: position.start.column });
+        var i = 0;
+        for (i = 0; i < code_editor.detached_windows.length; i += 1) {
+            var detached_window = code_editor.detached_windows[i];
+            if (detached_window) {
+                detached_window.cm.setCursor({ line: position.start.line - 1, ch: position.start.column });
+            }
         }
     };
 };
 
-var _updateOutline = function () {
+var _updateOutline = function (code_editor_index) {
     var i = 0, j = 0,
         statement,
             
         tmp,
         param,
+
+        code_editor = _code_editors[code_editor_index],
+        outline_element = code_editor.outline.element,
+        outline_data = code_editor.outline.data,
         
         elem;
 
-    _outline_element.innerHTML = "";
+        outline_element.innerHTML = "";
 
-    for (i = 0; i < _outline_data.length; i += 1) {
-        statement = _outline_data[i];
+    for (i = 0; i < outline_data.length; i += 1) {
+        statement = outline_data[i];
         
         if (statement.type === "function") {
             elem = document.createElement("div");
@@ -24438,45 +23598,45 @@ var _updateOutline = function () {
             }
             
             elem.innerHTML = '<span class="fs-outline-item-type">' + statement.returnType.name + "</span> " + statement.name + " (" + tmp.join(", ") + ")";
-            elem.title = "line: " + (statement.position.start.line - 1);
+            elem.title = "line: " + statement.position.start.line;
                 
-            _outline_element.appendChild(elem);
+            outline_element.appendChild(elem);
             
-            elem.addEventListener("click", setCursorCb(statement.position));
+            elem.addEventListener("click", setCursorCb(code_editor, statement.position));
         } else if (statement.type === "declarator") {
             elem = document.createElement("div");
             
             elem.className = "fs-outline-item fs-outline-declarator";
             
             elem.innerHTML = '<span class="fs-outline-item-type">' + statement.returnType + "</span> " + statement.name;
-            elem.title = "line: " + (statement.position.start.line - 1);
+            elem.title = "line: " + statement.position.start.line;
 
-            _outline_element.appendChild(elem);
+            outline_element.appendChild(elem);
             
-            elem.addEventListener("click", setCursorCb(statement.position));
+            elem.addEventListener("click", setCursorCb(code_editor, statement.position));
         } else if (statement.type === "preprocessor") {
             elem = document.createElement("div");
             
             elem.className = "fs-outline-item fs-outline-preprocessor";
             
             elem.innerHTML = statement.name + " = " + statement.value;
-            elem.title = "line: " + (statement.position.start.line - 1);
+            elem.title = "line: " + statement.position.start.line;
 
-            _outline_element.appendChild(elem);
+            outline_element.appendChild(elem);
             
-            elem.addEventListener("click", setCursorCb(statement.position));
+            elem.addEventListener("click", setCursorCb(code_editor, statement.position));
         }
     }
 
     var line = null;
-    for (i = 0; i < _code_editor_marks.length; i += 1) {
-        line = _code_editor.getLineNumber(_code_editor_marks[i]);
+    for (i = 0; i < code_editor.marks.length; i += 1) {
+        line = code_editor.editor.getLineNumber(code_editor.marks[i]);
 
         elem = document.createElement("div");
             
         elem.className = "fs-outline-item fs-outline-mark";
 
-        var outline_entry = _code_editor.getLine(line).trim();
+        var outline_entry = code_editor.editor.getLine(line).trim();
 
         if (outline_entry.indexOf("//") !== -1) {
             outline_entry = outline_entry.replace(/.*\/\//g, '').trim().toUpperCase();
@@ -24485,16 +23645,35 @@ var _updateOutline = function () {
         elem.innerHTML = outline_entry;
         elem.title = "line: " + (line + 1);
 
-        _outline_element.appendChild(elem);
+        outline_element.appendChild(elem);
         
-        elem.addEventListener("click", setCursorCb({ start: { line: line + 2, column: 0 }}));
+        elem.addEventListener("click", setCursorCb(code_editor, { start: { line: line + 2, column: 0 }}));
     }
 };
 
 _glsl_parser_worker.onmessage = function(m) {
-    _outline_data = m.data.slice();
+    var code_editor_target = m.data.target;
 
-    _updateOutline();
+    _code_editors[code_editor_target].outline.data = m.data.outline_data.slice();
+
+    _updateOutline(code_editor_target);
+};
+
+/***********************************************************
+    Init.
+************************************************************/
+
+var _initOutline = function () {
+    var i = 0;
+    var outline_elements = document.getElementsByClassName("fs-outline");
+    for (i = 0; i < outline_elements.length; i += 1) {
+        var outline_element = outline_elements[i];
+
+        var outline_fieldset = outline_element.parentElement;
+        var outline_fieldset_legend = outline_fieldset.firstElementChild;
+
+        _applyCollapsible(outline_fieldset, outline_fieldset_legend, true);
+    }
 };/* jslint browser: true */
 
 
@@ -24534,53 +23713,21 @@ var _sharedbDocError = function (err) {
     _notification(err, 5000);
 };
 
-var _shareDBConnect = function () {
-    var ws = new WebSocket(_ws_protocol + "://" + _address_sdb);
-    
-    ws.addEventListener("open", function (ev) {
-        var fs_sync = document.getElementById("fs_sync_status");
-        
-        fs_sync.classList.add("fs-server-status-on");
-    });
-    
-    ws.addEventListener("close", function (ev) {
-            _sharedb_doc_ready = false;
-            _sharedb_ctrl_doc_ready = false;
-        
-            _notification("Connection to synchronization server was lost, trying again in ~5s.", 2500);
-        
-            clearTimeout(_sharedb_timeout);
-            _sharedb_timeout = setTimeout(_shareDBConnect, 5000);
-        
-            var fs_sync = document.getElementById("fs_sync_status");
-        
-            fs_sync.classList.remove("fs-server-status-on");
-        });
-    
-    ws.addEventListener("error", function (event) {
-
-        });
-    
-    _sharedb_connection = new ShareDB.Connection(ws);
-    
-    _sharedb_doc = _sharedb_connection.get("_" + _session, "fs");
-
-    _sharedb_doc.on('error', _sharedbDocError);
-    
-    _sharedb_doc.subscribe(function(err) {
+var _subscribeSharedbEditor = function (code_editor) {
+    return function(err) {
         if (err) {
             _notification(err, 5000);
         }
         
-        if (!_sharedb_doc.data) {
-            _sharedb_doc.create(_code_editor.getValue());
+        if (!code_editor.sharedb.doc.data) {
+            code_editor.sharedb.doc.create(code_editor.editor.getValue());
         } else {
-            _code_editor.setValue(_sharedb_doc.data);
+            code_editor.editor.setValue(code_editor.sharedb.doc.data);
         }
 
-        _loadEditorMarks();
+        _loadEditorsMarks(code_editor);
         
-        _sharedb_doc.on('op', function(op, source) {
+        code_editor.sharedb.doc.on('op', function(op, source) {
             var i = 0, j = 0,
                 from,
                 to,
@@ -24595,23 +23742,70 @@ var _shareDBConnect = function () {
                         o = operation.o[j];
                         
                         if (o["d"] !== undefined) {
-                            from = _code_editor.posFromIndex(o.p);
-                            to = _code_editor.posFromIndex(o.p + o.d.length);
-                            _code_editor.replaceRange("", from, to, "remote");
+                            from = code_editor.editor.posFromIndex(o.p);
+                            to = code_editor.editor.posFromIndex(o.p + o.d.length);
+                            code_editor.editor.replaceRange("", from, to, "remote");
                         } else if (o["i"] !== undefined) {
-                            from = _code_editor.posFromIndex(o.p);
-                            _code_editor.replaceRange(o.i, from, from, "remote");
+                            from = code_editor.editor.posFromIndex(o.p);
+                            code_editor.editor.replaceRange(o.i, from, from, "remote");
                         } else {
-                            _notification("Unknown type of operation.");
+                            _notification("Unknown operation type.");
                         }
                     }
                 }
             }
         });
         
-        _sharedb_doc_ready = true;
-    });
+        code_editor.sharedb.rdy = true;
+    };
+};
 
+var _shareDBConnect = function () {
+    var ws = new WebSocket(_ws_protocol + "://" + _address_sdb);
+    
+    ws.addEventListener("open", function (ev) {
+        var fs_sync = document.getElementById("fs_sync_status");
+        
+        fs_sync.classList.add("fs-server-status-on");
+    });
+    
+    ws.addEventListener("close", function (ev) {
+            _sharedb_doc_ready = false;
+            _sharedb_ctrl_doc_ready = false;
+        
+            _notification("Data server connection lost, trying again in ~5s.", 2500);
+        
+            clearTimeout(_sharedb_timeout);
+            _sharedb_timeout = setTimeout(_shareDBConnect, 5000);
+        
+            var fs_sync = document.getElementById("fs_sync_status");
+        
+            fs_sync.classList.remove("fs-server-status-on");
+        });
+    
+    ws.addEventListener("error", function (event) {
+
+        });
+    
+    _sharedb_connection = new ShareDB.Connection(ws);
+
+    // get all collaborative editors document
+    var i = 0;
+    for (i = 0; i < _code_editors.length; i += 1) {
+        var code_editor = _code_editors[i];
+
+        if (!code_editor.collaborative) {
+            continue;
+        }
+
+        code_editor.sharedb.doc = _sharedb_connection.get("_" + _session, "code_" + code_editor.name);
+
+        code_editor.sharedb.doc.on('error', _sharedbDocError);
+        
+        code_editor.sharedb.doc.subscribe(_subscribeSharedbEditor(code_editor));
+    }
+
+    // document for session settings
     _sharedb_ctrl_doc = _sharedb_connection.get("_" + _session, "ctrls");
     _sharedb_ctrl_doc.on('error', _sharedbDocError);
     
@@ -24625,7 +23819,7 @@ var _shareDBConnect = function () {
         }
         
         if (!_sharedb_ctrl_doc.data) {
-            _sharedb_ctrl_doc.create({ ctrls: {}, score_settings: [] });
+            _sharedb_ctrl_doc.create({ score_settings: [] });
         } else {
             if (_sharedb_ctrl_doc.data.score_settings.length === 4) {
                 _updateScore({
@@ -24645,18 +23839,7 @@ var _shareDBConnect = function () {
                 for (i = 0; i < op.length; i += 1) {
                     operation = op[i];
                     
-                    if (operation["oi"]) {
-                        var ctrl_window = WUI_Dialog.getDetachedDialog(_controls_dialog);
-                        if (!ctrl_window) {
-                            ctrl_window = window;
-                        }
-
-                        operation.oi.nosync = "";
-
-                        _addControls(operation.oi.type, ctrl_window, operation.oi, null);
-                    } else if (operation["od"]) {
-                        _deleteControlsFn(operation.od.name, operation.od.ids)();
-                    } else if (operation["ld"] && operation["li"] && operation["p"]) {
+                    if (operation["ld"] && operation["li"] && operation["p"]) {
                         if (operation.p[0] === "score_settings") {
                             if (operation.p[1] === 0) {
                                 _updateScore({
@@ -24675,8 +23858,6 @@ var _shareDBConnect = function () {
                                         base_freq: parseFloat(operation.li)
                                     });
                             }
-                        } else if (operation.p[0] === "ctrls") {
-                            _setControlsValue(operation.p[1], operation.p[3], operation.li);
                         }
                     }
                 }
@@ -24750,7 +23931,7 @@ var _fssConnect = function () {
         
             setTimeout(_fssConnect, 5000);
         
-            _notification("Connection with the server lost, trying again in ~5s.", 2500);
+            _notification("Server connection lost, trying again in ~5s.", 2500);
         
             var fs_server = document.getElementById("fs_server_status");
 
@@ -24798,53 +23979,6 @@ var _sendMessage = function (message) {
     }
 };
 
-var _shareCtrlsAdd = function (ctrl_obj) {
-    var op, obj;
-    
-    if (!_sharedb_ctrl_doc_ready) {
-        return;
-    }
-    
-    obj = JSON.parse(JSON.stringify(ctrl_obj));
-    
-    op = [{ p: ['ctrls', ctrl_obj.name], oi: obj }];
-    
-    _sharedb_ctrl_doc.submitOp(op);
-};
-
-var _shareCtrlsDel = function (ctrl_obj) {
-    var op, obj;
-    
-    if (!_sharedb_ctrl_doc_ready) {
-        return;
-    }
-    
-    obj = JSON.parse(JSON.stringify(ctrl_obj));
-    
-    //delete obj.ids;
-
-    op = [{ p: ['ctrls', ctrl_obj.name], od: obj }];
-    
-    _sharedb_ctrl_doc.submitOp(op);
-};
-
-var _shareCtrlsUpdFn = function (name, index, bv, av) {
-    return function () {
-        var op = [{ p: ['ctrls', name, 'values', index], ld: bv, li: av }];
-
-        _sharedb_ctrl_doc.submitOp(op);
-    };
-};
-
-var _shareCtrlsUpd = function (name, index, bv, av) {
-    if (!_sharedb_ctrl_doc_ready) {
-        return;
-    }
-    
-    clearTimeout(_share_ctrl_timeout);
-    _share_ctrl_timeout = setTimeout(_shareCtrlsUpdFn(name, index, bv, av), 1000);
-};
-
 var _shareSettingsUpdFn = function (settings) {
     return function () {
         var op = [{ p: ['score_settings', 0], ld: settings[0], li: settings[1] },
@@ -24865,7 +23999,7 @@ var _shareSettingsUpd = function (settings) {
     _share_settings_timeout = setTimeout(_shareSettingsUpdFn(settings), 500);
 };
 
-var _shareCodeEditorChanges = function (changes) {
+var _shareCodeEditorChanges = function (code_editor, changes) {
     var op,
         change,
         start_pos,
@@ -24873,7 +24007,7 @@ var _shareCodeEditorChanges = function (changes) {
         
         i = 0, j = 0;
     
-    if (!_sharedb_doc_ready) {
+    if (!code_editor.sharedb.rdy) {
         return;
     }
     
@@ -24896,7 +24030,7 @@ var _shareCodeEditorChanges = function (changes) {
         }
         
         while (j < change.from.line) {
-            start_pos += _code_editor.lineInfo(j).text.length + 1;
+            start_pos += code_editor.editor.lineInfo(j).text.length + 1;
             j += 1;
         }
         
@@ -24927,7 +24061,7 @@ var _shareCodeEditorChanges = function (changes) {
         }
         
         if (op.o.length > 0) {
-            _sharedb_doc.submitOp(op);
+            code_editor.sharedb.doc.submitOp(op);
         }
     }
 };
@@ -26799,14 +25933,26 @@ var _addFragmentInput = async function (type, input, settings, id) {
 ************************************************************/
 /* jslint browser: true */
 
+/***********************************************************
+    Fields.
+************************************************************/
+
+var _workspace_code_elem = document.getElementById("fs_code_target");
+
+/***********************************************************
+    Functions.
+************************************************************/
+
 var _clearCodeMirrorWidgets = function () {
-    var i = 0;
+    var i = 0, j = 0;
 
-    for (i = 0; i < _codemirror_line_widgets.length; i += 1) {
-        _code_editor.removeLineWidget(_codemirror_line_widgets[i]);
+    for (j = 0; j < _code_editors.length; j += 1) {
+        for (i = 0; i < _code_editors[j].line_widgets.length; i += 1) {
+            _code_editors[j].editor.removeLineWidget(_code_editors[j].line_widgets[i]);
+        }
+
+        _code_editors[j].line_widgets = [];
     }
-
-    _codemirror_line_widgets = [];
 };
 
 var _parseCompileOutput = function (output) {
@@ -26814,6 +25960,8 @@ var _parseCompileOutput = function (output) {
 
         msg_container,
         msg_icon,
+
+        concerned_editor = null,
 
         line = 0,
         
@@ -26835,39 +25983,32 @@ var _parseCompileOutput = function (output) {
         msg_icon.className = "fs-error-icon";
         msg_container.appendChild(document.createTextNode(m[2]));
         msg_container.className = "fs-compile-error";
+
+        line -= 1;
         
         if (_gl2) {
             line = line - 1;
         }
-        
-        result.push({ line: m[1] - 1, msg: m[2]});
 
-        if (_cm_show_inerrors || _code_editor.getOption("fullScreen")) {
-            _codemirror_line_widgets.push(_code_editor.addLineWidget(line - 1, msg_container, { coverGutter: false, noHScroll: true }));
+        if (line >= 1 && line <= _code_editors[1].editor.lineCount()) {
+            concerned_editor = _code_editors[1]; // library
+        } else {
+            line -= _code_editors[1].editor.lineCount();
+
+            concerned_editor = _code_editors[0]; // main
+        }
+        
+        result.push({ target: concerned_editor.name, line: line, msg: m[2]});
+
+        if (_cm_show_inerrors || _current_code_editor.editor.getOption("fullScreen")) {
+            concerned_editor.line_widgets.push(concerned_editor.editor.addLineWidget(line - 1, msg_container, { coverGutter: false, noHScroll: true }));
         }
     }
     
     return result;
 };
 
-var _updateCodeView = function () {
-    var code = document.getElementById("code"),
-        mid_panel = document.getElementById("fs_middle_panel"),
-
-        mid_panel_offset = _getElementOffset(mid_panel);/*,
-        
-        fs_browser = document.getElementById("fs_browser"),
-        fs_browser_offset = _getElementOffset(fs_browser);*/
-
-    code.style.width = (window.innerWidth /*- (fs_browser_offset.left + fs_browser_offset.width + 2)*/) + "px";
-    code.style.height = (window.innerHeight - (mid_panel_offset.top + mid_panel_offset.height)) + "px";
-    
-    //fs_browser.style.height = (window.innerHeight - (mid_panel_offset.top + mid_panel_offset.height)) + "px";
-
-    _code_editor.refresh();
-};
-
-var _changeEditorTheme = function (theme) {
+var _changeEditorsTheme = function (theme) {
     if (_code_editor_theme_link) {
         document.getElementsByTagName('head')[0].removeChild(_code_editor_theme_link);
     }
@@ -26875,7 +26016,10 @@ var _changeEditorTheme = function (theme) {
     _code_editor_theme_link = document.createElement('link');
 
     _code_editor_theme_link.onload = function(){
-        _code_editor.setOption("theme", theme);
+        var i = 0;
+        for (i = 0; i < _code_editors.length; i += 1) {
+            _code_editors[i].editor.setOption("theme", theme);
+        }
 
         _pjs_codemirror_instance.setOption("theme", theme);
         _midi_codemirror_instance.setOption("theme", theme);
@@ -26892,11 +26036,12 @@ var _changeEditorTheme = function (theme) {
 };
 
 var _detachCodeEditor = function () {
-    var new_editor,
-        new_editor_element,
-        synced_cm_document;
-    
-    _detached_code_editor_window = window.open("", "Fragment", [
+    // cm code will use these settings to setup its code editor
+    window.gb_code_editor_settings = _code_editor_settings;
+    window.gb_code_editor = _current_code_editor.editor;
+    window.gb_code_editor_theme = _code_editor_theme;
+
+    var detached_window = window.open("", "_blank", [
             "toolbar=yes",
             "location=no",
             "directories=no",
@@ -26909,11 +26054,12 @@ var _detachCodeEditor = function () {
             "top=0",
             "left=0"].join(','));
     
-    _detached_code_editor_window.document.write([
+    detached_window.document.write([
         '<!DOCTYPE html>',
         '<html>',
             '<head>',
-                '<title>Fragment &lt; /&gt;</title>',
+                '<title>Fragment - ' + _current_code_editor.name,
+                '</title>',
                 '<meta charset="utf-8">',
                 '<meta http-equiv="content-type" content="text/html; charset=utf-8">',
                 '<link rel="stylesheet" type="text/css" href="dist/cm.min.css"/>',
@@ -26924,19 +26070,157 @@ var _detachCodeEditor = function () {
                 '<div class="fs-editor" style="width: 100%; height: 100%"></div>',
             '</body>',
         '</html>'].join(''));
-    _detached_code_editor_window.document.close();
-};/* jslint browser: true */
+    detached_window.document.close();
+
+    _current_code_editor.detached_windows.push(detached_window);
+
+    // detached windows cleanup
+    var i = 0, j = 0;
+    for (i = 0; i < _code_editors.length; i += 1) {
+        var new_detached_windows = [];
+        
+        var detached_windows = _code_editors[i].detached_windows;
+        for (j = 0; j < detached_windows.length; j += 1) {
+            if (detached_windows[j] && !detached_windows[j].closed) {
+                new_detached_windows.push(detached_windows[j]);
+            }
+        }
+
+        _code_editors[i].detached_windows = new_detached_windows;
+    }
+};
+
+var _getNewMark = function () {
+    var mark = document.createElement("div");
+    mark.classList.add("fs-mark");
+    mark.innerHTML = "*";
+    
+    return mark;
+};
+
+var _findMark = function (code_editor, line) {
+    var i = 0;
+    for (i = 0; i < code_editor.marks.length; i += 1) {
+        if (code_editor.editor.getLineNumber(code_editor.marks[i]) === line) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
+var _deleteMark = function (code_editor, line) {
+    var i = 0;
+    for (i = 0; i < code_editor.marks.length; i += 1) {
+        if (code_editor.editor.getLineNumber(code_editor.marks[i]) === line) {
+            code_editor.marks.splice(i, 1);
+            break;
+        }
+    }
+
+    clearTimeout(_save_marks_timer);
+    _save_marks_timer = setTimeout(_saveEditorMarks(code_editor), 5000);
+
+    _updateOutline(code_editor.index);
+};
+
+var _addMarkDeleteEvent = function (code_editor, lineHandle) {
+    CodeMirror.on(lineHandle, 'delete', function () {
+        _deleteMark(code_editor, code_editor.editor.getLineNumber(lineHandle));
+    });
+};
+
+var _loadEditorsMarks = function (editor) {
+    var line = 0, 
+        i = 0;
+    
+    if (_local_session_settings) {
+        if ('code_editors' in _local_session_settings) {
+            for (i = 0; i < _local_session_settings.code_editors.length; i += 1) {
+                var saved_code_editor = _local_session_settings.code_editors[i];
+
+                if (editor && editor.index !== i) {
+                    continue;
+                }
+
+                var code_editor = _code_editors[i];
+
+                code_editor.marks = [];
+
+                var j = 0;
+                for (j = 0; j < saved_code_editor.marks.length; j += 1) {
+                    line = saved_code_editor.marks[j];
+
+                    code_editor.editor.setGutterMarker(line, "fs-mark", _getNewMark());
+
+                    var lineHandle = code_editor.editor.getLineHandle(line);
+                    code_editor.marks.push(lineHandle);
+
+                    _addMarkDeleteEvent(code_editor, lineHandle);
+                }
+
+                _updateOutline(code_editor.index);
+            }
+        }
+    }
+};
+
+var _saveEditorMarks = function (code_editor) {
+    return function () {
+        var marks = [],
+            i = 0;
+
+        for (i = 0; i < code_editor.marks.length; i += 1) {
+            marks.push(code_editor.editor.getLineNumber(code_editor.marks[i]));
+        }
+        
+        _local_session_settings.code_editors[code_editor.index].marks = marks.slice();
+        _saveLocalSessionSettings();
+    }
+};
+
+var _updateMarks = function (code_editor) {
+    return function () {
+        var found = 0;
+        var i, j;
+        for (i = 0; i < code_editor.marks.length; i += 1) {
+            var line = code_editor.editor.getLineNumber(code_editor.marks[i]);
+            for (j = 0; j < _local_session_settings.code_editors[code_editor.index].marks.length; j += 1) {
+                var line2 = _local_session_settings.code_editors[code_editor.index].marks[i];
+                if (line == line2) {
+                    found += 1;
+                } 
+            }
+
+            if (found === 0) {
+                break
+            }
+        }
+
+        if (found === 0) {
+            _saveEditorMarks(code_editor)();
+        }
+    };
+};
+
+var _applyEditorsOption = function (key, value) {
+    var i = 0;
+    for (i = 0; i < _code_editors.length; i += 1) {
+        _code_editors[i].editor.setOption(key, value);
+    }
+};
+
+/***********************************************************
+    Init.
+************************************************************/
+/* jslint browser: true */
 
 var _pause = function () {
     window.cancelAnimationFrame(_raf);
     
-    _stopOscillators();
-
     _fs_state = 1;
     
     _fasPause();
-    
-    _pauseWorklet();
     
     _pause_time = performance.now();
 
@@ -26977,8 +26261,6 @@ var _play = function (update_global_time) {
         _first_play = false;
     }
 
-    _playWorklet();
-
     _pjsResumeAll();
 };
 
@@ -26998,8 +26280,6 @@ var _rewind = function () {
 };
 
 var _stop = function () {
-    _stopOscillators();
-    
     window.cancelAnimationFrame(_raf);
 
     _pause_time = performance.now();
@@ -27134,6 +26414,134 @@ _audio_recorder_worker.addEventListener("message", function (m) {
             });
     }, false);
 /* jslint browser: true */
+
+
+/***********************************************************
+    Fields.
+************************************************************/
+
+/***********************************************************
+    Functions.
+************************************************************/
+
+var _updateWorkView = function () {
+    var explorer = document.getElementById("fs_explorer"),
+        //nodegraph_element = document.getElementById("fs_nodegraph"),
+        mid_panel = document.getElementById("fs_middle_panel"),
+
+        mid_panel_offset = _getElementOffset(mid_panel),
+
+        computed_height =  (window.innerHeight - (mid_panel_offset.top + mid_panel_offset.height)) + "px";
+    
+    explorer.style.height = computed_height;
+    //nodegraph_element.style.height = computed_height;
+
+    var i = 0;
+    for (i = 0; i < _code_editors.length; i += 1) {
+        _code_editors[i].container.style.height = computed_height;
+        _code_editors[i].editor.refresh();
+    }
+/*
+    if (nodegraph_element.style.display !== "none") {
+        _lgraph_canvas.resize();
+    }
+*/
+};
+
+var _workspaceClearSelection = function () {
+    var i = 0;
+    var active_items = document.getElementsByClassName("fs-workspace-item-active");
+
+    for (i = 0; i < active_items.length; i += 1) {
+        active_items[i].classList.remove("fs-workspace-item-active");
+    }
+
+    //document.getElementById("fs_nodegraph").style.display = "none";
+    document.getElementById("fs_code").style.display = "none";
+    //document.getElementById("fs_buffer_code").style.display = "none";
+    document.getElementById("fs_library_code").style.display = "none";
+    document.getElementById("fs_example_code").style.display = "none";
+};
+
+var _isWorkspaceActive = function (id) {
+    var active_items = document.getElementsByClassName("fs-workspace-item-active");
+
+    return (active_items[0].id === id);
+};
+
+var _showWorkspace = function (target, i) {
+    return function () {
+        _workspaceClearSelection();
+
+        if (target === "fs-workspace-item") {
+            if (i === 0) {
+                document.getElementById("fs_code").style.display = "";
+                document.getElementById("fs_code_target").classList.add("fs-workspace-item-active");
+
+                _current_code_editor = _code_editors[i];
+            } else if (i === 1) {
+                document.getElementById("fs_library_code").style.display = "";
+                document.getElementById("fs_library_target").classList.add("fs-workspace-item-active");
+
+                _current_code_editor = _code_editors[i];
+            }
+        } else if (target === "fs-workspace-example-item") {
+            var rootElement = document.getElementById("fs_examples_target");
+
+            rootElement.children[i].classList.add("fs-workspace-item-active");
+
+            document.getElementById("fs_example_code").style.display = "";
+
+            // assign example code to editor code
+
+            _current_code_editor = _code_editors[i];
+        }
+
+        _updateWorkView();
+    };
+};
+
+var _toggleReduce = function (ev) {
+    var content = this.parentElement.nextElementSibling;
+
+    if (content.style.display === "none") {
+        content.style.display = "";
+        this.textContent = "-";
+    } else {
+        content.style.display = "none";
+        this.textContent = "+";
+    }
+};
+
+/***********************************************************
+    Init.
+************************************************************/
+
+var _initWorkspace = function () {
+    var i = 0,
+        element;
+
+    var workspace_items = document.getElementsByClassName("fs-workspace-item");
+
+    for (i = 0; i < workspace_items.length; i += 1) {
+        element = workspace_items[i];
+        element.addEventListener("click", _showWorkspace("fs-workspace-item", i));
+    }
+
+    var workspace_example_items = document.getElementsByClassName("fs-workspace-example-item");
+
+    for (i = 0; i < workspace_example_items.length; i += 1) {
+        element = workspace_example_items[i];
+        element.addEventListener("click", _showWorkspace("fs-workspace-example-item", i));
+    }
+
+    var workspace_reduce_btn = document.getElementsByClassName("fs-workspace-reduce-btn");
+
+    for (i = 0; i < workspace_reduce_btn.length; i += 1) {
+        element = workspace_reduce_btn[i];
+        element.addEventListener("click", _toggleReduce);
+    }
+}/* jslint browser: true */
 
 /***********************************************************
     Fields.
@@ -29720,8 +29128,6 @@ var _toggleFas = function (toggle_ev) {
         document.getElementById("fs_fas_status").style = "";
         
         _fasEnable();
-        
-        _stopOscillators();
     } else {
         document.getElementById("fs_fas_status").style = "display: none";
         
@@ -29731,16 +29137,6 @@ var _toggleFas = function (toggle_ev) {
 
 var _toggleGridInfos = function (toggle_ev) {
     _xyf_grid = toggle_ev.state;
-};
-
-var _toggleDetachCodeEditor = function (toggle_ev) {
-    if (toggle_ev.state) {
-        _code_editor_element.style.display = "none";
-    } else {
-        _code_editor_element.style.display = "";
-    }
-    
-    _undock_code_editor = toggle_ev.state;
 };
 
 var _showSpectrumDialog = function () {
@@ -29781,7 +29177,7 @@ var _showRecordDialog = function () {
 };
 
 var _onImportDialogClose = function () {
-    WUI_ToolBar.toggle(_wui_main_toolbar, 14);
+    WUI_ToolBar.toggle(_wui_main_toolbar, 13);
     
     WUI_Dialog.close(_import_dialog);
 };
@@ -30013,14 +29409,13 @@ var _uiInit = function () {
         settings_ck_osc_in_elem = document.getElementById("fs_settings_ck_oscin"),
         settings_ck_slices_elem = document.getElementById("fs_settings_ck_slices"),
         settings_ck_quickstart_elem = document.getElementById("fs_settings_ck_quickstart"),
-        settings_ck_worklet_elem = document.getElementById("fs_settings_ck_audioworklet"),
         settings_ck_audio_elem = document.getElementById("fs_settings_ck_audio"),
-        settings_ck_web_audio_elem = document.getElementById("fs_settings_ck_web_audio"),
         settings_ck_show_slice_chn_elem = document.getElementById("fs_settings_ck_show_slice_chn"),
+        settings_ck_show_toolbar_title = document.getElementById("fs_settings_ck_show_toolbar_title"),
         
+        fs_settings_show_toolbar_title = localStorage.getItem('fs-show-toolbar-title'),
         fs_settings_note_lifetime = localStorage.getItem('fs-note-lifetime'),
         fs_settings_max_polyphony = localStorage.getItem('fs-max-polyphony'),
-        fs_settings_osc_fadeout = localStorage.getItem('fs-osc-fadeout'),
         fs_settings_show_globaltime = localStorage.getItem('fs-show-globaltime'),
         fs_settings_show_polyinfos = localStorage.getItem('fs-show-polyinfos'),
         fs_settings_show_oscinfos = localStorage.getItem('fs-show-oscinfos'),
@@ -30032,9 +29427,7 @@ var _uiInit = function () {
         fs_settings_osc_in = localStorage.getItem('fs-osc-in'),
         fs_settings_osc_out = localStorage.getItem('fs-osc-out'),
         fs_settings_quickstart = localStorage.getItem('fs-quickstart'),
-        fs_settings_worklet = localStorage.getItem('fs-worklet'),
         fs_settings_audio = localStorage.getItem('fs-audio'),
-        fs_settings_web_audio = localStorage.getItem('fs-web-audio'),
         fs_settings_show_slice_chn = localStorage.getItem('fs-show-slice-chn');
     
     _settings_dialog = WUI_Dialog.create(_settings_dialog_id, {
@@ -30063,18 +29456,6 @@ var _uiInit = function () {
                 }
             ]
     });
-    
-    if (_osc_mode !== _FS_WORKLET) {
-        settings_ck_worklet_elem.checked = false;
-        settings_ck_worklet_elem.disabled = true;
-    } else {
-        if (fs_settings_worklet === "true" || fs_settings_worklet === undefined) {
-            settings_ck_worklet_elem.checked = true;
-        } else {
-            _osc_mode = _FS_OSC_NODES;
-            settings_ck_worklet_elem.checked = false;
-        }
-    }
     
     if (fs_settings_monophonic === "true") {
         _audio_infos.monophonic = true;
@@ -30108,10 +29489,6 @@ var _uiInit = function () {
     } else {
         _feedback.enabled = false;
         settings_ck_feedback_elem.checked = false;
-    }
-    
-    if (fs_settings_osc_fadeout) {
-        _osc_fadeout = parseFloat(fs_settings_osc_fadeout);
     }
     
     if (fs_settings_max_polyphony) {
@@ -30197,7 +29574,7 @@ var _uiInit = function () {
     }
 
     if (fs_settings_audio !== null) {
-        _audio_off = (fs_settings_audio === "true");
+        _audio_off = !(fs_settings_audio === "true");
     }
 
     if (_audio_off) {
@@ -30206,20 +29583,16 @@ var _uiInit = function () {
         settings_ck_audio_elem.checked = false;
     }
 
-    if (fs_settings_web_audio !== null) {
-        _web_audio_off = (fs_settings_web_audio === "true");
-    }
-
-    if (_web_audio_off) {
-        settings_ck_web_audio_elem.checked = true;
-    } else {
-        settings_ck_web_audio_elem.checked = false;
-    }
-
     if (fs_settings_show_slice_chn === "true") {
         settings_ck_show_slice_chn_elem.checked = true;
     } else {
         settings_ck_show_slice_chn_elem.checked = false;
+    }
+
+    if (fs_settings_show_toolbar_title === "true") {
+        settings_ck_show_toolbar_title.checked = true;
+    } else {
+        settings_ck_show_toolbar_title.checked = false;
     }
 
     settings_ck_osc_in_elem.addEventListener("change", function () {
@@ -30261,10 +29634,21 @@ var _uiInit = function () {
         });
 
     settings_ck_feedback_elem.addEventListener("change", function () {
+            //var buffer_target_element = document.getElementById("fs_buffer_target");
+
             if (this.checked) {
                 _feedback.enabled = true;
+
+               // buffer_target_element.style.display = "";
             } else {
                 _feedback.enabled = false;
+/*
+                buffer_target_element.style.display = "none";
+
+                if (_isWorkspaceActive("fs_buffer_target")) {
+                    _showWorkspace(0)();
+                }
+*/
             }
         
             localStorage.setItem('fs-feedback', this.checked);
@@ -30323,11 +29707,11 @@ var _uiInit = function () {
             if (_cm_highlight_matches) {
                 _code_editor_settings.highlightSelectionMatches = _code_editor_highlight;
                 
-                _code_editor.setOption("highlightSelectionMatches", _code_editor_highlight);
+                _applyEditorsOption("highlightSelectionMatches", _code_editor_highlight);
             } else {
                 delete _code_editor_settings.highlightSelectionMatches;
                 
-                _code_editor.setOption("highlightSelectionMatches", null);
+                _applyEditorsOption("highlightSelectionMatches", null);
             }
         
             localStorage.setItem('fs-editor-hl-matches', _cm_highlight_matches);
@@ -30338,7 +29722,7 @@ var _uiInit = function () {
         
             _code_editor_settings.lineNumbers = _cm_show_linenumbers;
         
-            _code_editor.setOption("lineNumbers", _cm_show_linenumbers);
+            _applyEditorsOption("lineNumbers", _cm_show_linenumbers);
         
             localStorage.setItem('fs-editor-show-linenumbers', _cm_show_linenumbers);
         });
@@ -30355,11 +29739,11 @@ var _uiInit = function () {
             if (_cm_advanced_scrollbar) {
                 _code_editor_settings.scrollbarStyle = "overlay";
                 
-                _code_editor.setOption("scrollbarStyle", "overlay");
+                _applyEditorsOption("scrollbarStyle", "overlay");
             } else {
                 _code_editor_settings.scrollbarStyle = "native";
                 
-                _code_editor.setOption("scrollbarStyle", "native");
+                _applyEditorsOption("scrollbarStyle", "native");
             }
         
             localStorage.setItem('fs-editor-advanced-scrollbar', _cm_advanced_scrollbar);
@@ -30375,45 +29759,17 @@ var _uiInit = function () {
             }
         });
 */  
-    settings_ck_worklet_elem.addEventListener("change", function () {
-        if (this.checked) {
-            _osc_mode = _FS_WORKLET;
-            _stopOscillators();
-            _connectWorklet();
-        } else {
-            _osc_mode = _FS_OSC_NODES;
-            _disconnectWorklet();
-        }
-    
-        localStorage.setItem('fs-worklet', this.checked);
-    });
 
     settings_ck_audio_elem.addEventListener("change", function () {
         if (this.checked) {
             _audio_off = true;
-
-            _stopOscillators();
-            _pauseWorklet();
+            _fasDisable();
         } else {
-            _playWorklet();
             _audio_off = false;
+            _fasEnable();
         }
     
-        localStorage.setItem('fs-audio', this.checked);
-    });
-
-    settings_ck_web_audio_elem.addEventListener("change", function () {
-        if (this.checked) {
-            _web_audio_off = true;
-
-            _stopOscillators();
-            _pauseWorklet();
-        } else {
-            _playWorklet();
-            _web_audio_off = false;
-        }
-    
-        localStorage.setItem('fs-web-audio', this.checked);
+        localStorage.setItem('fs-audio', !this.checked);
     });
 
     settings_ck_show_slice_chn_elem.addEventListener("change", function () {
@@ -30426,6 +29782,10 @@ var _uiInit = function () {
         _updateSliceChnVisibility();
     
         localStorage.setItem('fs-show-slice-chn', this.checked);
+    });
+
+    settings_ck_show_toolbar_title.addEventListener("change", function () {
+        localStorage.setItem('fs-show-toolbar-title', this.checked);
     });
     
     settings_ck_oscinfos_elem.dispatchEvent(new UIEvent('change'));
@@ -30441,10 +29801,9 @@ var _uiInit = function () {
     settings_ck_osc_out_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_slices_elem.dispatchEvent(new UIEvent('change'));
 //    settings_ck_quickstart_elem.dispatchEvent(new UIEvent('change'));
-    settings_ck_worklet_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_audio_elem.dispatchEvent(new UIEvent('change'));
-    settings_ck_web_audio_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_show_slice_chn_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_show_toolbar_title.dispatchEvent(new UIEvent('change'));
     
     _midi_settings_dialog = WUI_Dialog.create(_midi_settings_dialog_id, {
             title: "MIDI I/O",
@@ -30519,7 +29878,7 @@ var _uiInit = function () {
     
     
     _fas_dialog = WUI_Dialog.create(_fas_dialog_id, {
-            title: "FAS Settings",
+            title: "Audio Server",
 
             width: "auto",
             height: "auto",
@@ -30690,7 +30049,7 @@ var _uiInit = function () {
         });
     
     WUI_Dialog.create("fs_username_dialog", {
-        title: "Username",
+        title: "Global Username",
 
         width: "280px",
         height: "auto",
@@ -30705,7 +30064,14 @@ var _uiInit = function () {
 
         status_bar: false,
         detachable: false,
-        draggable: true
+        draggable: true,
+
+        on_open: function () {
+            var input = document.getElementById("fs_username_input");
+
+            input.focus();
+            input.select();
+        }
     });
 
     _slices_dialog = WUI_Dialog.create(_slices_dialog_id, {
@@ -30925,7 +30291,7 @@ var _uiInit = function () {
                     {
                         icon: "fs-audio-file-icon",
                         on_click: _exportRecord,
-                        tooltip: "Export as .wav"
+                        tooltip: "Export as .wav (additive synthesis)"
                     },
                     {
                         icon: "fs-save-icon",
@@ -31097,8 +30463,8 @@ var _uiInit = function () {
 
     _wui_main_toolbar = WUI_ToolBar.create("fs_middle_toolbar", {
             allow_groups_minimize: false,
-            show_groups_title: false,
-            groups_title_orientation: "n"
+            show_groups_title: localStorage.getItem('fs-show-toolbar-title') === "true" ? true : false,
+            groups_title_orientation: "s"
         },
         {
             "Help": [
@@ -31163,18 +30529,10 @@ var _uiInit = function () {
                     tooltip: "Record"
                 }
             ],
-            "FAS": [
-                {
-                    id: "fs_tb_fas",
-                    icon: "fs-fas-icon",
-                    type: "toggle",
-                    toggle_state: _fasEnabled(),
-                    on_click: _toggleFas,
-                    tooltip: "Enable/Disable audio server connection (the audio server is available on the homepage)"
-                },
+            "Synth": [
                 {
                     id: "fs_tb_fas_settings",
-                    icon: "fs-gear-icon",
+                    icon: "fs-fas-icon",
                     on_click: _showFasDialog,
                     tooltip: "Audio server settings"
                 }
@@ -31190,7 +30548,7 @@ var _uiInit = function () {
                     tooltip: "Convert Shadertoy shader",
 
                     on_click: function () {
-                        var input_code  = _code_editor.getValue(),
+                        var input_code  = _current_code_editor.editor.getValue(),
                             output_code = input_code;
 
                         output_code = output_code.replace(/void\s+mainImage\s*\(\s*out\s+vec4\s*[a-zA-Z]+,\s*(in)?\s+vec2\s+[a-zA-Z]+\s*\)/, "void main ()");
@@ -31201,7 +30559,7 @@ var _uiInit = function () {
                         output_code = output_code.replace(/iMouse/g, "mouse");
                         output_code = output_code.replace(/iChannel/g, "iInput");
 
-                        _code_editor.setValue(output_code);
+                        _current_code_editor.editor.setValue(output_code);
 
                         _compile();
                     }
@@ -31566,38 +30924,6 @@ var _uiInit = function () {
                 _keyboard.note_lifetime = note_lifetime;
                 
                 localStorage.setItem('fs-note-lifetime', _keyboard.note_lifetime);
-            }
-        });
-    
-    WUI_RangeSlider.create("fs_settings_osc_fade_input", {
-            width: 120,
-            height: 8,
-
-            min: 0.01,
-
-            bar: false,
-
-            step: 0.01,
-            scroll_step: 0.01,
-        
-            decimals: 2,
-
-            default_value: _osc_fadeout,
-            value: _osc_fadeout,
-
-            title: "Osc. fadeout",
-
-            title_min_width: 140,
-            value_min_width: 88,
-
-            on_change: function (new_fadeout) {
-                if (new_fadeout <= 0) {
-                    return;
-                }
-                
-                _osc_fadeout = new_fadeout;
-                
-                localStorage.setItem('fs-osc-fadeout', _osc_fadeout);
             }
         });
 
@@ -32372,11 +31698,7 @@ var _getSlice = function (play_position_marker_id) {
 var _setPlayPosition = function (play_position_marker_id, x, y, submit, dont_update_slider) {
     var play_position_marker = _getSlice(play_position_marker_id),
         
-        height = play_position_marker.height,
-        
-        canvas_offset = _getElementOffset(_canvas),
-
-        bottom;
+        canvas_offset = _getElementOffset(_canvas);
     
     if (play_position_marker.x < 0) {
         x = _canvas_width_m1; 
@@ -32461,7 +31783,6 @@ var _updatePlayMarker = function (id, obj) {
 var _removePlayPositionMarker = function (marker_id, force, submit) {
     var slice = _play_position_markers[parseInt(marker_id, 10)],
         slice_tmp,    
-        elem,    
         i;
     
     WUI.undraggable(slice.element);
@@ -32488,10 +31809,6 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
         WUI_Dialog.setTitle(_slice_settings_dialog_prefix + slice_tmp.dialog_id, _getSliceTitle(slice_tmp));
     }
     
-    if (_play_position_markers.length === 0) {
-        _stopOscillators();
-    }
-    
     if (submit) {
         _submitRemoveSlice(marker_id);
     }
@@ -32501,6 +31818,11 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
     _computeOutputChannels();
 
     _saveMarkersSettings();
+
+    if (_play_position_markers.length === 0) {
+        _osc_infos.textContent = "";
+        _poly_infos_element.textContent = "";
+    }
 };
 
 var _cbMarkerSettingsChange = function (mobj, cb) {
@@ -34392,8 +33714,9 @@ var _fasEnable = function () {
         });
     
     _fas.enabled = true;
-    
-    _disconnectWorklet();
+
+    var fs_fas_element = document.getElementById("fs_fas_status");
+    fs_fas_element.style.display = "";
 };
 
 var _fasDisable = function () {
@@ -34402,8 +33725,9 @@ var _fasDisable = function () {
     _fas_stream_load.textContent = "";
     
     _fas.enabled = false;
-    
-    _connectWorklet();
+
+    var fs_fas_element = document.getElementById("fs_fas_status");
+    fs_fas_element.style.display = "none";
 };
 
 var _fasEnabled = function () {
@@ -34412,15 +33736,11 @@ var _fasEnabled = function () {
 
 var _fasStatus = function (status) {
     var fs_fas_element = document.getElementById("fs_fas_status");
-    
+ 
     if (status) {
         fs_fas_element.classList.add("fs-server-status-on");
-        
-        _disconnectWorklet();
     } else {
         fs_fas_element.classList.remove("fs-server-status-on");
-        
-        _connectWorklet();
     }
     
     _fas.status = status;
@@ -34448,8 +33768,6 @@ var _fasInit = function () {
             var data = m.data;
 
             if (data.status === "open") {
-                _stopOscillators(); // TODO: move this somewhere else...
-
                 _fasStatus(true);
 
                 _fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
@@ -34487,7 +33805,7 @@ var _fasInit = function () {
                 
                 _fas_stream_load.textContent = "";
 
-                _notification("Connection to native audio was lost, trying again in ~5s, make sure it is running!", 2500);
+                _notification("Audio server connection lost, trying again in ~5s.", 2500);
             }
         }, false);
 };
@@ -34548,7 +33866,7 @@ var _ux_helper_overlay = new PlainOverlay(),
             sub_content: [
                 'This is where you type <a target="_blank" class="fs-link" href="https://en.wikipedia.org/wiki/OpenGL_Shading_Language">GLSL</a> code to produce visual / sound content'
             ],
-            target: "code",
+            target: "fs_code",
             point_anchor: true
         },
         {
@@ -34569,7 +33887,7 @@ var _ux_helper_overlay = new PlainOverlay(),
     _ux_helper_ui_scenario = [
         {
             style: "font-size: 19pt; color: white; margin: 4px; padding: 4px; text-align: center;",
-            content: "Synchronization server status",
+            content: "Data server status",
             sub_content: [
                 "Collaborative features are managed by this server"
             ],
@@ -34643,7 +33961,7 @@ var _ux_helper_overlay = new PlainOverlay(),
             sub_content: [
                 "This is where you type to produce visual / sound content"
             ],
-            target: "code",
+            target: "fs_code",
             point_anchor: true
         },
         _ux_helper_end_infos
@@ -34969,7 +34287,7 @@ var _oscInit = function () {
             } else if (data.status === "error") {
                 _notification("OSC: Connection error!", 2500);
             } else if (data.status === "close") {
-                _notification("OSC: Connection was lost, trying again in ~5s!", 2500);
+                _notification("OSC connection lost, trying again in ~5s!", 2500);
             }
         }, false);
 };
@@ -35031,106 +34349,12 @@ var _oscInit = function () {
                 gain: _volume,
                 chn_settings: [{ osc: [], efx: [] }],
                 markers: [],
-                code_marks: []
+                code_editors: []
             };
-        }
-    };
 
-    var _getNewMark = function () {
-        var mark = document.createElement("div");
-        mark.classList.add("fs-mark");
-        mark.innerHTML = "*";
-        
-        return mark;
-    };
-
-    var _findMark = function (line) {
-        var i = 0;
-        for (i = 0; i < _code_editor_marks.length; i += 1) {
-            if (_code_editor.getLineNumber(_code_editor_marks[i]) === line) {
-                return true;
-            }
-        }
-
-        return false;
-    };
-
-    var _deleteMark = function (line) {
-        var i = 0;
-        for (i = 0; i < _code_editor_marks.length; i += 1) {
-            if (_code_editor.getLineNumber(_code_editor_marks[i]) === line) {
-                _code_editor_marks.splice(i, 1);
-                break;
-            }
-        }
-
-        clearTimeout(_save_marks_timer);
-        _save_marks_timer = setTimeout(_saveEditorMarks, 5000);;
-
-        _updateOutline();
-    };
-
-    var _addMarkDeleteEvent = function (lineHandle) {
-        CodeMirror.on(lineHandle, 'delete', function () {
-            _deleteMark(_code_editor.getLineNumber(lineHandle));
-        });
-    };
-
-    var _loadEditorMarks = function () {
-        var line = 0, 
-            i = 0;
-        
-        if (_local_session_settings) {
-            if ('code_marks' in _local_session_settings) {
-                _code_editor_marks = [];
-
-                for (i = 0; i < _local_session_settings.code_marks.length; i += 1) {
-                    line = _local_session_settings.code_marks[i];
-
-                    _code_editor.setGutterMarker(line, "fs-mark", _getNewMark());
-
-                    var lineHandle = _code_editor.getLineHandle(line);
-                    _code_editor_marks.push(lineHandle);
-
-                    _addMarkDeleteEvent(lineHandle);
-                }
-
-                _updateOutline();
-            }
-        }
-    };
-
-    var _saveEditorMarks = function () {
-        var marks = [],
-            i = 0;
-
-        for (i = 0; i < _code_editor_marks.length; i += 1) {
-            marks.push(_code_editor.getLineNumber(_code_editor_marks[i]));
-        }
-        
-        _local_session_settings.code_marks = marks.slice();
-        _saveLocalSessionSettings();
-    };
-
-    var _updateMarks = function () {
-        var found = 0;
-        var i, j;
-        for (i = 0; i < _code_editor_marks.length; i += 1) {
-            var line = _code_editor.getLineNumber(_code_editor_marks[i]);
-            for (j = 0; j < _local_session_settings.code_marks.length; j += 1) {
-                var line2 = _local_session_settings.code_marks[i];
-                if (line == line2) {
-                    found += 1;
-                } 
-            }
-
-            if (found === 0) {
-                break
-            }
-        }
-
-        if (found === 0) {
-            _saveEditorMarks();
+            _code_editors.forEach(function (code_editor) {
+                _local_session_settings.code_editors.push({ marks: [] })
+            });
         }
     };
     
@@ -35151,8 +34375,6 @@ var _oscInit = function () {
         if (update_obj["octave"] !== undefined) {
             octave = update_obj.octave;
         }
-
-        _stopOscillators();
 
         if (update_obj.height) {
             _canvas_height = update_obj.height;
@@ -35207,7 +34429,7 @@ var _oscInit = function () {
 
         _compile();
 
-        _updateCodeView();
+        _updateWorkView();
 
         _updateAllPlayPosition();
 
@@ -35236,14 +34458,14 @@ var _oscInit = function () {
         Init.
     ************************************************************/
 
+    if (localStorage.getItem("fs-show-toolbar-title") === null) {
+        localStorage.setItem("fs-show-toolbar-title", true);
+    }
+
     document.getElementById("copy_year").innerHTML = new Date().getFullYear();
     
     _record_opts.f = _record_opts.default;
     
-    _code_editor_extern = localStorage.getItem('fs-exted');
-    
-    _audioInit();
-
     if (!_username) {
         _username = "Anonymous";
     }
@@ -35282,106 +34504,80 @@ var _oscInit = function () {
 
     _vaxis_infos.style.height = _canvas_height + "px";
 
-    // CodeMirror
-    if (_code_editor_extern === null ||
-        _code_editor_extern === "false" ||
-        _code_editor_extern === false) {
-        if (!_code_editor_theme) {
-            _code_editor_theme = "seti";
-        }
+    // CodeMirror / code editors
+    if (!_code_editor_theme) {
+        _code_editor_theme = "seti";
+    }
 
-        _changeEditorTheme(_code_editor_theme);
+    _changeEditorsTheme(_code_editor_theme);
 
-        _code_editor = new CodeMirror(_code_editor_element, _code_editor_settings);
-        _code_editor.setValue(document.getElementById("fragment-shader").text);
-
-        CodeMirror.on(_code_editor, 'change', function (instance, change_obj) {
-            clearTimeout(_compile_timer);
-            _compile_timer = setTimeout(_compile, 500);
-
-            clearTimeout(_update_marks_timer);
-            _update_marks_timer = setTimeout(_updateMarks, 2000);
-        });
-
-        CodeMirror.on(_code_editor, 'changes', function (instance, changes) {
-            _shareCodeEditorChanges(changes);
-        });
-
-        CodeMirror.on(_code_editor, "gutterClick", function(cm, n) {
+    var _onEditorGutterClick = function (code_editor) {
+        return function (cm, n) {
             var info = cm.lineInfo(n),
                 lineHandle = cm.getLineHandle(n),
-
+    
                 i = 0;
-
+    
             if (info.gutterMarkers) {
-                for (i = 0; i < _code_editor_marks.length; i += 1) {
-                    if (cm.getLineNumber(_code_editor_marks[i]) === n) {
-                        _code_editor_marks.splice(i, 1);
+                for (i = 0; i < code_editor.marks.length; i += 1) {
+                    if (cm.getLineNumber(code_editor.marks[i]) === n) {
+                        code_editor.marks.splice(i, 1);
                         break;
                     }
                 }
             } else {
-                _code_editor_marks.push(lineHandle);
-
-                _addMarkDeleteEvent(lineHandle);
-            }
-
-            cm.setGutterMarker(n, "fs-mark", info.gutterMarkers ? null : _getNewMark());
-
-            _saveEditorMarks();
-
-            _updateOutline();
-        });
-    } else {
-        // the "dummy" CodeMirror object when the external editor is used
-        _code_editor = {
-                s: document.getElementById("fragment-shader").text,
-            
-                getValue: function () {
-                    return this.s;
-                },
-            
-                setValue: function (str) {
-                    this.s = str;
-                    
-                    clearTimeout(_compile_timer);
-                    _compile_timer = setTimeout(_compile, 500);
-                },
-            
-                setOption: function () {
-                    
-                },
-            
-                refresh: function () {
-
-                },
-            
-                posFromIndex: function (i) {
-                    return i;
-                },
-            
-                replaceRange: function (substitute, start, end) {
-                    this.s = this.s.substring(0, start) + substitute + this.s.substring(end);
-                    
-                    clearTimeout(_compile_timer);
-                    _compile_timer = setTimeout(_compile, 500);
-                },
-            
-                addLineWidget: function () {
-                    
-                },
-            
-                removeLineWidget: function () {
-                    
-                },
-            
-                setCursor: function () {
-
-                }
-            };
-    }
+                code_editor.marks.push(lineHandle);
     
-    // WebGL 2 check
+                _addMarkDeleteEvent(code_editor, lineHandle);
+            }
+    
+            cm.setGutterMarker(n, "fs-mark", info.gutterMarkers ? null : _getNewMark());
+    
+            _saveEditorMarks(code_editor)();
+    
+            _updateOutline(code_editor.index);
+        };
+    }
+
+    var _onEditorChanges = function (code_editor) {
+        return function (instance, changes) {
+            if (code_editor.collaborative) {
+                _shareCodeEditorChanges(code_editor, changes);
+            } else if (code_editor.index === 1) {
+                localStorage.setItem("fs-user-library", code_editor.editor.getValue());
+            }
+        };
+    };
+
+    var _onEditorChange = function (code_editor) {
+        return function (instance, change_obj) {
+            clearTimeout(_compile_timer);
+            _compile_timer = setTimeout(_compile, 500);
+
+            if (code_editor.marks) {
+                clearTimeout(_update_marks_timer);
+                _update_marks_timer = setTimeout(_updateMarks(code_editor), 2000);
+            }
+        };
+    };
+
+    _code_editors.forEach(function (code_editor) {
+        code_editor.editor = new CodeMirror(code_editor.container, _code_editor_settings);
+
+        var ce_instance = code_editor.editor;
+
+        ce_instance.setValue(code_editor.default_value);
+    
+        CodeMirror.on(ce_instance, 'change', _onEditorChange(code_editor));
+        
+        CodeMirror.on(ce_instance, 'changes', _onEditorChanges(code_editor));
+
+        if (code_editor.marks) {
+            CodeMirror.on(ce_instance, "gutterClick", _onEditorGutterClick(code_editor));
+        }
+    });
+    
+    // WebGL 2 check & init
     _gl = _canvas.getContext("webgl2", _webgl_opts) || _canvas.getContext("experimental-webgl2", _webgl_opts);
     if (!_gl) {
         _gl = _canvas.getContext("webgl", _webgl_opts) || _canvas.getContext("experimental-webgl", _webgl_opts);
@@ -35396,9 +34592,6 @@ var _oscInit = function () {
         
         _wgl_float_support_element.innerHTML = "Not supported (8-bit)";
         _wgl_float_support_element.style.color = "#ff0000";
-
-        // remove WebGL 2 settings
-        //_synth_output_element.parentElement.parentElement.removeChild(_synth_output_element.parentElement);
     } else {
         _gl2 = true;
         
@@ -35424,8 +34617,6 @@ var _oscInit = function () {
             _synth_data_array = Float32Array;
             
             _read_pixels_format = _gl.FLOAT;
-            
-            _amp_divisor = 1.0;
             
             _wgl_float_support_element.innerHTML = "Supported";
             _wgl_float_support_element.style.color = "#00ff00";
@@ -35472,9 +34663,11 @@ var _oscInit = function () {
 
     _compile();
 
+    _initWorkspace();
+
     _loadLocalSessionSettings();
 
-    _loadEditorMarks();
+    _loadEditorsMarks();
 
     _allocateFramesData();
     
@@ -35608,7 +34801,7 @@ document.getElementById("fs_select_editor_themes").addEventListener('change', fu
         theme = "seti";
     }
     
-    _changeEditorTheme(theme);
+    _changeEditorsTheme(theme);
 });
 
 document.getElementById("fs_import_audio_mapping").addEventListener('change', function (e) {
@@ -35628,23 +34821,23 @@ document.getElementById("fs_show_quickstart").addEventListener('click', function
 });
 
 document.getElementById("fs_remove_comments").addEventListener('click', function (e) {
-    var input_code  = _code_editor.getValue(),
+    var input_code  = _current_code_editor.editor.getValue(),
         output_code = input_code;
     
     output_code = output_code.replace(/(\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/)|(\/\/.*)/g, "");
 
-    _code_editor.setValue(output_code);
+    _current_code_editor.editor.setValue(output_code);
     
     _compile();
 });
 
 document.getElementById("fs_remove_spaces").addEventListener('click', function (e) {
-    var input_code  = _code_editor.getValue(),
+    var input_code  = _current_code_editor.editor.getValue(),
         output_code = input_code;
     
     output_code = output_code.replace(/^\s{2,}$/gm, "");
 
-    _code_editor.setValue(output_code);
+    _current_code_editor.editor.setValue(output_code);
     
     _compile();
 });
@@ -35723,19 +34916,25 @@ document.addEventListener('mousemove', function (e) {
                 _hz_infos.textContent = "";
             }
         }
-    
-        _pjsMouseMoveEvent();
 
+//        if (e.target === _workspace_nodegraph_canvas) {
+//            _lgraph_canvas.processMouseMove(e);
+//        } else {
+            _pjsMouseMoveEvent();
+//        }
+    
         _mx = e.pageX;
         _my = e.pageY;
     
         _canvasInputPaint(e);
+
+        
    });
 
 var _onWindowResize = function () {
     _updateAllPlayPosition();
     
-    _updateCodeView();
+    _updateWorkView();
     
     _c_helper.width  = window.innerWidth;
     _c_helper.height = window.innerHeight;
@@ -35748,14 +34947,8 @@ _red_curtain_element.addEventListener("transitionend", function () {
         _red_curtain_element.parentElement.removeChild(_red_curtain_element);
     }, false);
     
-    window.gb_code_editor_settings = _code_editor_settings;
-    window.gb_code_editor = _code_editor;
-    window.gb_code_editor_theme = _code_editor_theme;
-    
-    if (params.fas || window.location.search.indexOf("?fas=1") !== -1) {
-        WUI_ToolBar.toggle(_wui_main_toolbar, 8, false);
-        
-        _fasEnable();
+    if (localStorage.getItem('fs-audio') !== "true") {
+        _fasDisable();
     }
     
     _buildFeedback();
@@ -35764,12 +34957,10 @@ _red_curtain_element.addEventListener("transitionend", function () {
     
     _clipboard = new Clipboard(".fs-documentation-keyword");
 
+    _initOutline();
+
     //_startUXHelper(_ux_helper_quickstart_scenario);
 };
     
-    if (_electronInit()) {
-        
-    } else {
-        FragmentSynth({});
-    }
+    FragmentSynth({});
 }

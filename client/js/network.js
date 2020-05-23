@@ -37,53 +37,21 @@ var _sharedbDocError = function (err) {
     _notification(err, 5000);
 };
 
-var _shareDBConnect = function () {
-    var ws = new WebSocket(_ws_protocol + "://" + _address_sdb);
-    
-    ws.addEventListener("open", function (ev) {
-        var fs_sync = document.getElementById("fs_sync_status");
-        
-        fs_sync.classList.add("fs-server-status-on");
-    });
-    
-    ws.addEventListener("close", function (ev) {
-            _sharedb_doc_ready = false;
-            _sharedb_ctrl_doc_ready = false;
-        
-            _notification("Connection to synchronization server was lost, trying again in ~5s.", 2500);
-        
-            clearTimeout(_sharedb_timeout);
-            _sharedb_timeout = setTimeout(_shareDBConnect, 5000);
-        
-            var fs_sync = document.getElementById("fs_sync_status");
-        
-            fs_sync.classList.remove("fs-server-status-on");
-        });
-    
-    ws.addEventListener("error", function (event) {
-
-        });
-    
-    _sharedb_connection = new ShareDB.Connection(ws);
-    
-    _sharedb_doc = _sharedb_connection.get("_" + _session, "fs");
-
-    _sharedb_doc.on('error', _sharedbDocError);
-    
-    _sharedb_doc.subscribe(function(err) {
+var _subscribeSharedbEditor = function (code_editor) {
+    return function(err) {
         if (err) {
             _notification(err, 5000);
         }
         
-        if (!_sharedb_doc.data) {
-            _sharedb_doc.create(_code_editor.getValue());
+        if (!code_editor.sharedb.doc.data) {
+            code_editor.sharedb.doc.create(code_editor.editor.getValue());
         } else {
-            _code_editor.setValue(_sharedb_doc.data);
+            code_editor.editor.setValue(code_editor.sharedb.doc.data);
         }
 
-        _loadEditorMarks();
+        _loadEditorsMarks(code_editor);
         
-        _sharedb_doc.on('op', function(op, source) {
+        code_editor.sharedb.doc.on('op', function(op, source) {
             var i = 0, j = 0,
                 from,
                 to,
@@ -98,23 +66,70 @@ var _shareDBConnect = function () {
                         o = operation.o[j];
                         
                         if (o["d"] !== undefined) {
-                            from = _code_editor.posFromIndex(o.p);
-                            to = _code_editor.posFromIndex(o.p + o.d.length);
-                            _code_editor.replaceRange("", from, to, "remote");
+                            from = code_editor.editor.posFromIndex(o.p);
+                            to = code_editor.editor.posFromIndex(o.p + o.d.length);
+                            code_editor.editor.replaceRange("", from, to, "remote");
                         } else if (o["i"] !== undefined) {
-                            from = _code_editor.posFromIndex(o.p);
-                            _code_editor.replaceRange(o.i, from, from, "remote");
+                            from = code_editor.editor.posFromIndex(o.p);
+                            code_editor.editor.replaceRange(o.i, from, from, "remote");
                         } else {
-                            _notification("Unknown type of operation.");
+                            _notification("Unknown operation type.");
                         }
                     }
                 }
             }
         });
         
-        _sharedb_doc_ready = true;
-    });
+        code_editor.sharedb.rdy = true;
+    };
+};
 
+var _shareDBConnect = function () {
+    var ws = new WebSocket(_ws_protocol + "://" + _address_sdb);
+    
+    ws.addEventListener("open", function (ev) {
+        var fs_sync = document.getElementById("fs_sync_status");
+        
+        fs_sync.classList.add("fs-server-status-on");
+    });
+    
+    ws.addEventListener("close", function (ev) {
+            _sharedb_doc_ready = false;
+            _sharedb_ctrl_doc_ready = false;
+        
+            _notification("Data server connection lost, trying again in ~5s.", 2500);
+        
+            clearTimeout(_sharedb_timeout);
+            _sharedb_timeout = setTimeout(_shareDBConnect, 5000);
+        
+            var fs_sync = document.getElementById("fs_sync_status");
+        
+            fs_sync.classList.remove("fs-server-status-on");
+        });
+    
+    ws.addEventListener("error", function (event) {
+
+        });
+    
+    _sharedb_connection = new ShareDB.Connection(ws);
+
+    // get all collaborative editors document
+    var i = 0;
+    for (i = 0; i < _code_editors.length; i += 1) {
+        var code_editor = _code_editors[i];
+
+        if (!code_editor.collaborative) {
+            continue;
+        }
+
+        code_editor.sharedb.doc = _sharedb_connection.get("_" + _session, "code_" + code_editor.name);
+
+        code_editor.sharedb.doc.on('error', _sharedbDocError);
+        
+        code_editor.sharedb.doc.subscribe(_subscribeSharedbEditor(code_editor));
+    }
+
+    // document for session settings
     _sharedb_ctrl_doc = _sharedb_connection.get("_" + _session, "ctrls");
     _sharedb_ctrl_doc.on('error', _sharedbDocError);
     
@@ -128,7 +143,7 @@ var _shareDBConnect = function () {
         }
         
         if (!_sharedb_ctrl_doc.data) {
-            _sharedb_ctrl_doc.create({ ctrls: {}, score_settings: [] });
+            _sharedb_ctrl_doc.create({ score_settings: [] });
         } else {
             if (_sharedb_ctrl_doc.data.score_settings.length === 4) {
                 _updateScore({
@@ -148,18 +163,7 @@ var _shareDBConnect = function () {
                 for (i = 0; i < op.length; i += 1) {
                     operation = op[i];
                     
-                    if (operation["oi"]) {
-                        var ctrl_window = WUI_Dialog.getDetachedDialog(_controls_dialog);
-                        if (!ctrl_window) {
-                            ctrl_window = window;
-                        }
-
-                        operation.oi.nosync = "";
-
-                        _addControls(operation.oi.type, ctrl_window, operation.oi, null);
-                    } else if (operation["od"]) {
-                        _deleteControlsFn(operation.od.name, operation.od.ids)();
-                    } else if (operation["ld"] && operation["li"] && operation["p"]) {
+                    if (operation["ld"] && operation["li"] && operation["p"]) {
                         if (operation.p[0] === "score_settings") {
                             if (operation.p[1] === 0) {
                                 _updateScore({
@@ -178,8 +182,6 @@ var _shareDBConnect = function () {
                                         base_freq: parseFloat(operation.li)
                                     });
                             }
-                        } else if (operation.p[0] === "ctrls") {
-                            _setControlsValue(operation.p[1], operation.p[3], operation.li);
                         }
                     }
                 }
@@ -253,7 +255,7 @@ var _fssConnect = function () {
         
             setTimeout(_fssConnect, 5000);
         
-            _notification("Connection with the server lost, trying again in ~5s.", 2500);
+            _notification("Server connection lost, trying again in ~5s.", 2500);
         
             var fs_server = document.getElementById("fs_server_status");
 
@@ -301,53 +303,6 @@ var _sendMessage = function (message) {
     }
 };
 
-var _shareCtrlsAdd = function (ctrl_obj) {
-    var op, obj;
-    
-    if (!_sharedb_ctrl_doc_ready) {
-        return;
-    }
-    
-    obj = JSON.parse(JSON.stringify(ctrl_obj));
-    
-    op = [{ p: ['ctrls', ctrl_obj.name], oi: obj }];
-    
-    _sharedb_ctrl_doc.submitOp(op);
-};
-
-var _shareCtrlsDel = function (ctrl_obj) {
-    var op, obj;
-    
-    if (!_sharedb_ctrl_doc_ready) {
-        return;
-    }
-    
-    obj = JSON.parse(JSON.stringify(ctrl_obj));
-    
-    //delete obj.ids;
-
-    op = [{ p: ['ctrls', ctrl_obj.name], od: obj }];
-    
-    _sharedb_ctrl_doc.submitOp(op);
-};
-
-var _shareCtrlsUpdFn = function (name, index, bv, av) {
-    return function () {
-        var op = [{ p: ['ctrls', name, 'values', index], ld: bv, li: av }];
-
-        _sharedb_ctrl_doc.submitOp(op);
-    };
-};
-
-var _shareCtrlsUpd = function (name, index, bv, av) {
-    if (!_sharedb_ctrl_doc_ready) {
-        return;
-    }
-    
-    clearTimeout(_share_ctrl_timeout);
-    _share_ctrl_timeout = setTimeout(_shareCtrlsUpdFn(name, index, bv, av), 1000);
-};
-
 var _shareSettingsUpdFn = function (settings) {
     return function () {
         var op = [{ p: ['score_settings', 0], ld: settings[0], li: settings[1] },
@@ -368,7 +323,7 @@ var _shareSettingsUpd = function (settings) {
     _share_settings_timeout = setTimeout(_shareSettingsUpdFn(settings), 500);
 };
 
-var _shareCodeEditorChanges = function (changes) {
+var _shareCodeEditorChanges = function (code_editor, changes) {
     var op,
         change,
         start_pos,
@@ -376,7 +331,7 @@ var _shareCodeEditorChanges = function (changes) {
         
         i = 0, j = 0;
     
-    if (!_sharedb_doc_ready) {
+    if (!code_editor.sharedb.rdy) {
         return;
     }
     
@@ -399,7 +354,7 @@ var _shareCodeEditorChanges = function (changes) {
         }
         
         while (j < change.from.line) {
-            start_pos += _code_editor.lineInfo(j).text.length + 1;
+            start_pos += code_editor.editor.lineInfo(j).text.length + 1;
             j += 1;
         }
         
@@ -430,7 +385,7 @@ var _shareCodeEditorChanges = function (changes) {
         }
         
         if (op.o.length > 0) {
-            _sharedb_doc.submitOp(op);
+            code_editor.sharedb.doc.submitOp(op);
         }
     }
 };

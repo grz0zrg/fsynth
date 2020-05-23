@@ -2,112 +2,62 @@
 <html>
     <head>
         <meta charset="utf-8">
-		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+		    <meta http-equiv="content-type" content="text/html; charset=utf-8">
 
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
         <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, minimum-scale=1, maximum-scale=1" />
 
-        <link rel="manifest" href="manifest.json">
         <link rel="shortcut icon" type="image/png" href="favicon.png" />
 
-        <title>Fragment GLSL Editor - The Collaborative Spectral Synthesizer</title>
+        <title>Fragment Editor - Collaborative Graphical Audio Synthesizer</title>
 
         <link rel="stylesheet" type="text/css" href="dist/ed.min.css"/>
         
         <script type="x-webgl/x-fragment-shader" id="fragment-shader">
-  /*
-     Welcome to Fragment - The Collaborative Spectral Synthesizer
-
-     This is a sample program which produce a 440 Hz tone and a basic sawtooth like waveform and timbre when played by a MIDI keyboard.
-
-     Please use a MIDI enabled browser such as Chrome and enable your MIDI keyboard in the MIDI settings dialog to hear the timbre (the MIDI plug icon)
-
-     The software documentation is available at : https://www.fsynth.com/documentation
-
-     Fragment interface is composed of four parts :
-       - info. panel/global settings at the top
-       - a graphical score
-       - a toolbar
-       - a GLSL code editor
-
-     Hover over an interface element for a short description of that element.
-
-     Now, if you want to hear what you see, you should try to right click on the graphical score,
-     a menu will be shown with one item, add a slice by clicking on the [+] icon.
-
-     You should hear something now, try to move the vertical slice by clicking on it, hold it then move the cursor around.
-
-     You can add as many slices as you want, you can also remove, mute or tweak slices by right-clicking on one.
-
-     You can experiment right away with the sound/visual by tweaking the values of this sample program, any modifications is updated in real-time as you type.
-
-     If you need some more help you can :
-       - Click on the ? icon
-       - Post on the Fragment message board at https://quiet.fsynth.com
-
-     You can find all the sessions you joined in by going on the homepage at https://www.fsynth.com
-
-     Don't forget that you can invite friends to join your session by sharing the link shown in the adress bar.
-
-     Note : Image/Webcam inputs are not implemented collaboratively, the images or webcam you add can be seen by you only!
-
-     Have fun!
-  */
-
-  void main () {
-    float l = 0.;
-    float r = 0.;
-
-    float attenuation_constant = 1.95;
-
-    const float harmonics = 8.;
-
-    // 8 notes polyphony
-    // this can be increased up to the maximal polyphonic capabilities
-    // of Fragment for your platform
-    for (int k = 0; k < 8; k += 1) {
-      // we get the note-on data
-      vec4 data = keyboard[k];
-
-      float kfrq = data.x; // frequency
-      float kvel = data.y; // velocity
-      float ktim = data.z; // elpased time
-      float kchn = data.w; // channel
-
-      // we quit as soon as there is no more note-on data
-      // this is optional but it might help with performances
-      // so we don't compute harmonics uselessly
-      if (kfrq == 0.) {
-       	break; 
-      }
-
-      for (float i = 1.; i < harmonics; i += 1.) {
-        // this apply an exponential amplitude attenuation on the higher harmonics
-        float a = 1. / pow(i, attenuation_constant);
-
-        // we apply the amplitude attenuation and key velocity
-        l += fline(kfrq * i) * a * kvel;
-        r += fline(kfrq * i) * a * kvel;
-      }
-    }
-    
-    l += fline(440.) * 0.25;
-    r += fline(440.) * 0.25;
-
-    // plot the fundamental and harmonics
-    // Fragment use the RED and GREEN component
-    // for the LEFT and RIGHT audio channel in stereophonic mode
-    // if monophonic mode is enabled, the alpha component will be used for the audio and the full RGB output is available for visuals
-    // in stereophonic mode the blue component can be used for visuals or debugging etc.
-    gl_FragColor = vec4(l, r, 0., 0.);
-  }
+          // Sample program : ~440Hz tone + MIDI keyboard additive synthesis SAW-like setup.
+          // Full documentation : https://www.fsynth.com/documentation
+        
+          void main () {
+            float l = 0., r = 0.;
+            
+            vec2 uv = gl_FragCoord.xy / resolution;
+        
+            float attenuation_constant = 1.95;
+        
+            const float harmonics = 8.;
+        
+            for (int k = 0; k < 16; k += 2) {
+              vec4 data = keyboard[k];
+        
+              float kfrq = data.x; // frequency
+              float kvel = data.y; // velocity
+              float ktim = data.z; // elapsed time
+              float kchn = data.w; // channel
+        
+              if (kfrq == 0.) {
+                 break;
+              }
+        
+              for (float i = 1.; i < harmonics; i += 1.) {
+                float a = 1. / pow(i, attenuation_constant);
+        
+                l += fline(kfrq * i) * a * kvel;
+                r += fline(kfrq * i) * a * kvel;
+              }
+            }
+        
+            l += fline(440.) * 0.25;
+            r += fline(440.) * 0.25;
+        
+            synthOutput = vec4(l, r, 0., 0.); // WebGL 2 only (gl_FragColor otherwise)
+            gl_FragColor = vec4(l, r, 0., 1.);
         </script>
 
         <script type="text/javascript" src="dist/ed.min.js" defer></script>
     </head>
 
     <body>
-        <div id="ed"></div>
+        <div id="ed" style="height: 100%;"></div>
     </body>
 </html>

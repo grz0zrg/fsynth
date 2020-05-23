@@ -15,7 +15,7 @@ html, body {
 }
 
 body {
-    font-family: "FiraSans-Regular", Helvetica, Arial, sans-serif;
+    font-family: "OpenSans-Regular", Helvetica, Arial, sans-serif;
     font-style: normal;
     font-weight: normal;
     
@@ -24,13 +24,13 @@ body {
 }
 
 @font-face {
-    font-family: "FiraSans-Regular";
-    src: url('../data/FiraSans-Regular.otf');
+    font-family: "OpenSans-Regular";
+    src: url('../data/OpenSans-Regular.woff');
 }
 
 @font-face {
     font-family: "Inconsolata";
-    src: url('../data/Inconsolata.otf');
+    src: url('../data/inconsolata.otf');
 }
 
 .CodeMirror-focused .cm-matchhighlight {

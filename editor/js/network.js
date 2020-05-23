@@ -35,7 +35,7 @@ var _shareDBConnect = function () {
     ws.addEventListener("close", function (ev) {
             _sharedb_doc_ready = false;
 
-            _notification("Connection to synchronization server was lost, trying again in ~5s.", 2500);
+            _notification("Data server connection lost, trying again in ~5s.", 2500);
         
             clearTimeout(_sharedb_timeout);
             _sharedb_timeout = setTimeout(_shareDBConnect, 5000);
@@ -47,7 +47,7 @@ var _shareDBConnect = function () {
     
     _sharedb_connection = new ShareDB.Connection(ws);
     
-    _sharedb_doc = _sharedb_connection.get("_" + _session, "fs");
+    _sharedb_doc = _sharedb_connection.get("_" + _urlParameters.session, "code_" + _urlParameters.target);
 
     _sharedb_doc.on('error', _sharedbDocError);
     
@@ -107,16 +107,16 @@ var _shareCodeEditorChanges = function (changes) {
         return;
     }
     
-    op = {
-        p: [],
-        t: "text0",
-        o: []
-    };
-    
     // we must do it in order (this avoid issue with same-time op)
-    changes.reverse();
+    //changes.reverse();
 
     for (i = 0; i < changes.length; i += 1) {
+        op = {
+            p: [],
+            t: "text0",
+            o: []
+        };
+
         change = changes[i];
         start_pos = 0;
         j = 0;

@@ -70,7 +70,7 @@ share.use('receive', function (request, next) {
             collection_name_regexp = /[$\0]+/g,
             collection_name = "";
 
-        // Reject collection names which do not begin with an underscore and have not allowed character to avoid issues with reserved mongodb names
+        // reject collection names which do not begin with an underscore and have unallowed characters to avoid issues with reserved mongodb names
         // ugly solution as it force the collection to be a "_trashbin" collection if it doesn't meet the requirement... but who care with proper client-side verifications? anyway... until a better solution is found
         if (request['collection'] !== undefined) {
             if (request.collection.indexOf("_") !== 0 || collection_name_regexp.test(request.collection)) {
@@ -80,10 +80,21 @@ share.use('receive', function (request, next) {
             }
         }
 
+        // reject undefined targets
+        if (request.data['d'] !== undefined) {
+            if (request.data.d !== "code_main" &&
+                request.data.d !== "ctrls") {
+                request.data.c = "_trashbin";
+                next("Target name " + request.data.d + " invalid.");
+                request.data.d = "trash";
+            }
+        }
+
         if (request.data['c'] !== undefined) {
             if (request.data.c.indexOf("_") !== 0 || collection_name_regexp.test(request.data.c)) {
                 collection_name = request.data.c;
                 request.data.c = "_trashbin";
+                request.data.d = "trash";
                 next("Collection name " + collection_name + " invalid.");
             }
 

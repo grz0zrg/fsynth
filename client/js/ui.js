@@ -2585,8 +2585,6 @@ var _toggleFas = function (toggle_ev) {
         document.getElementById("fs_fas_status").style = "";
         
         _fasEnable();
-        
-        _stopOscillators();
     } else {
         document.getElementById("fs_fas_status").style = "display: none";
         
@@ -2596,16 +2594,6 @@ var _toggleFas = function (toggle_ev) {
 
 var _toggleGridInfos = function (toggle_ev) {
     _xyf_grid = toggle_ev.state;
-};
-
-var _toggleDetachCodeEditor = function (toggle_ev) {
-    if (toggle_ev.state) {
-        _code_editor_element.style.display = "none";
-    } else {
-        _code_editor_element.style.display = "";
-    }
-    
-    _undock_code_editor = toggle_ev.state;
 };
 
 var _showSpectrumDialog = function () {
@@ -2646,7 +2634,7 @@ var _showRecordDialog = function () {
 };
 
 var _onImportDialogClose = function () {
-    WUI_ToolBar.toggle(_wui_main_toolbar, 14);
+    WUI_ToolBar.toggle(_wui_main_toolbar, 13);
     
     WUI_Dialog.close(_import_dialog);
 };
@@ -2878,14 +2866,13 @@ var _uiInit = function () {
         settings_ck_osc_in_elem = document.getElementById("fs_settings_ck_oscin"),
         settings_ck_slices_elem = document.getElementById("fs_settings_ck_slices"),
         settings_ck_quickstart_elem = document.getElementById("fs_settings_ck_quickstart"),
-        settings_ck_worklet_elem = document.getElementById("fs_settings_ck_audioworklet"),
         settings_ck_audio_elem = document.getElementById("fs_settings_ck_audio"),
-        settings_ck_web_audio_elem = document.getElementById("fs_settings_ck_web_audio"),
         settings_ck_show_slice_chn_elem = document.getElementById("fs_settings_ck_show_slice_chn"),
+        settings_ck_show_toolbar_title = document.getElementById("fs_settings_ck_show_toolbar_title"),
         
+        fs_settings_show_toolbar_title = localStorage.getItem('fs-show-toolbar-title'),
         fs_settings_note_lifetime = localStorage.getItem('fs-note-lifetime'),
         fs_settings_max_polyphony = localStorage.getItem('fs-max-polyphony'),
-        fs_settings_osc_fadeout = localStorage.getItem('fs-osc-fadeout'),
         fs_settings_show_globaltime = localStorage.getItem('fs-show-globaltime'),
         fs_settings_show_polyinfos = localStorage.getItem('fs-show-polyinfos'),
         fs_settings_show_oscinfos = localStorage.getItem('fs-show-oscinfos'),
@@ -2897,9 +2884,7 @@ var _uiInit = function () {
         fs_settings_osc_in = localStorage.getItem('fs-osc-in'),
         fs_settings_osc_out = localStorage.getItem('fs-osc-out'),
         fs_settings_quickstart = localStorage.getItem('fs-quickstart'),
-        fs_settings_worklet = localStorage.getItem('fs-worklet'),
         fs_settings_audio = localStorage.getItem('fs-audio'),
-        fs_settings_web_audio = localStorage.getItem('fs-web-audio'),
         fs_settings_show_slice_chn = localStorage.getItem('fs-show-slice-chn');
     
     _settings_dialog = WUI_Dialog.create(_settings_dialog_id, {
@@ -2928,18 +2913,6 @@ var _uiInit = function () {
                 }
             ]
     });
-    
-    if (_osc_mode !== _FS_WORKLET) {
-        settings_ck_worklet_elem.checked = false;
-        settings_ck_worklet_elem.disabled = true;
-    } else {
-        if (fs_settings_worklet === "true" || fs_settings_worklet === undefined) {
-            settings_ck_worklet_elem.checked = true;
-        } else {
-            _osc_mode = _FS_OSC_NODES;
-            settings_ck_worklet_elem.checked = false;
-        }
-    }
     
     if (fs_settings_monophonic === "true") {
         _audio_infos.monophonic = true;
@@ -2973,10 +2946,6 @@ var _uiInit = function () {
     } else {
         _feedback.enabled = false;
         settings_ck_feedback_elem.checked = false;
-    }
-    
-    if (fs_settings_osc_fadeout) {
-        _osc_fadeout = parseFloat(fs_settings_osc_fadeout);
     }
     
     if (fs_settings_max_polyphony) {
@@ -3062,7 +3031,7 @@ var _uiInit = function () {
     }
 
     if (fs_settings_audio !== null) {
-        _audio_off = (fs_settings_audio === "true");
+        _audio_off = !(fs_settings_audio === "true");
     }
 
     if (_audio_off) {
@@ -3071,20 +3040,16 @@ var _uiInit = function () {
         settings_ck_audio_elem.checked = false;
     }
 
-    if (fs_settings_web_audio !== null) {
-        _web_audio_off = (fs_settings_web_audio === "true");
-    }
-
-    if (_web_audio_off) {
-        settings_ck_web_audio_elem.checked = true;
-    } else {
-        settings_ck_web_audio_elem.checked = false;
-    }
-
     if (fs_settings_show_slice_chn === "true") {
         settings_ck_show_slice_chn_elem.checked = true;
     } else {
         settings_ck_show_slice_chn_elem.checked = false;
+    }
+
+    if (fs_settings_show_toolbar_title === "true") {
+        settings_ck_show_toolbar_title.checked = true;
+    } else {
+        settings_ck_show_toolbar_title.checked = false;
     }
 
     settings_ck_osc_in_elem.addEventListener("change", function () {
@@ -3126,10 +3091,21 @@ var _uiInit = function () {
         });
 
     settings_ck_feedback_elem.addEventListener("change", function () {
+            //var buffer_target_element = document.getElementById("fs_buffer_target");
+
             if (this.checked) {
                 _feedback.enabled = true;
+
+               // buffer_target_element.style.display = "";
             } else {
                 _feedback.enabled = false;
+/*
+                buffer_target_element.style.display = "none";
+
+                if (_isWorkspaceActive("fs_buffer_target")) {
+                    _showWorkspace(0)();
+                }
+*/
             }
         
             localStorage.setItem('fs-feedback', this.checked);
@@ -3188,11 +3164,11 @@ var _uiInit = function () {
             if (_cm_highlight_matches) {
                 _code_editor_settings.highlightSelectionMatches = _code_editor_highlight;
                 
-                _code_editor.setOption("highlightSelectionMatches", _code_editor_highlight);
+                _applyEditorsOption("highlightSelectionMatches", _code_editor_highlight);
             } else {
                 delete _code_editor_settings.highlightSelectionMatches;
                 
-                _code_editor.setOption("highlightSelectionMatches", null);
+                _applyEditorsOption("highlightSelectionMatches", null);
             }
         
             localStorage.setItem('fs-editor-hl-matches', _cm_highlight_matches);
@@ -3203,7 +3179,7 @@ var _uiInit = function () {
         
             _code_editor_settings.lineNumbers = _cm_show_linenumbers;
         
-            _code_editor.setOption("lineNumbers", _cm_show_linenumbers);
+            _applyEditorsOption("lineNumbers", _cm_show_linenumbers);
         
             localStorage.setItem('fs-editor-show-linenumbers', _cm_show_linenumbers);
         });
@@ -3220,11 +3196,11 @@ var _uiInit = function () {
             if (_cm_advanced_scrollbar) {
                 _code_editor_settings.scrollbarStyle = "overlay";
                 
-                _code_editor.setOption("scrollbarStyle", "overlay");
+                _applyEditorsOption("scrollbarStyle", "overlay");
             } else {
                 _code_editor_settings.scrollbarStyle = "native";
                 
-                _code_editor.setOption("scrollbarStyle", "native");
+                _applyEditorsOption("scrollbarStyle", "native");
             }
         
             localStorage.setItem('fs-editor-advanced-scrollbar', _cm_advanced_scrollbar);
@@ -3240,45 +3216,17 @@ var _uiInit = function () {
             }
         });
 */  
-    settings_ck_worklet_elem.addEventListener("change", function () {
-        if (this.checked) {
-            _osc_mode = _FS_WORKLET;
-            _stopOscillators();
-            _connectWorklet();
-        } else {
-            _osc_mode = _FS_OSC_NODES;
-            _disconnectWorklet();
-        }
-    
-        localStorage.setItem('fs-worklet', this.checked);
-    });
 
     settings_ck_audio_elem.addEventListener("change", function () {
         if (this.checked) {
             _audio_off = true;
-
-            _stopOscillators();
-            _pauseWorklet();
+            _fasDisable();
         } else {
-            _playWorklet();
             _audio_off = false;
+            _fasEnable();
         }
     
-        localStorage.setItem('fs-audio', this.checked);
-    });
-
-    settings_ck_web_audio_elem.addEventListener("change", function () {
-        if (this.checked) {
-            _web_audio_off = true;
-
-            _stopOscillators();
-            _pauseWorklet();
-        } else {
-            _playWorklet();
-            _web_audio_off = false;
-        }
-    
-        localStorage.setItem('fs-web-audio', this.checked);
+        localStorage.setItem('fs-audio', !this.checked);
     });
 
     settings_ck_show_slice_chn_elem.addEventListener("change", function () {
@@ -3291,6 +3239,10 @@ var _uiInit = function () {
         _updateSliceChnVisibility();
     
         localStorage.setItem('fs-show-slice-chn', this.checked);
+    });
+
+    settings_ck_show_toolbar_title.addEventListener("change", function () {
+        localStorage.setItem('fs-show-toolbar-title', this.checked);
     });
     
     settings_ck_oscinfos_elem.dispatchEvent(new UIEvent('change'));
@@ -3306,10 +3258,9 @@ var _uiInit = function () {
     settings_ck_osc_out_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_slices_elem.dispatchEvent(new UIEvent('change'));
 //    settings_ck_quickstart_elem.dispatchEvent(new UIEvent('change'));
-    settings_ck_worklet_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_audio_elem.dispatchEvent(new UIEvent('change'));
-    settings_ck_web_audio_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_show_slice_chn_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_show_toolbar_title.dispatchEvent(new UIEvent('change'));
     
     _midi_settings_dialog = WUI_Dialog.create(_midi_settings_dialog_id, {
             title: "MIDI I/O",
@@ -3384,7 +3335,7 @@ var _uiInit = function () {
     
     
     _fas_dialog = WUI_Dialog.create(_fas_dialog_id, {
-            title: "FAS Settings",
+            title: "Audio Server",
 
             width: "auto",
             height: "auto",
@@ -3555,7 +3506,7 @@ var _uiInit = function () {
         });
     
     WUI_Dialog.create("fs_username_dialog", {
-        title: "Username",
+        title: "Global Username",
 
         width: "280px",
         height: "auto",
@@ -3570,7 +3521,14 @@ var _uiInit = function () {
 
         status_bar: false,
         detachable: false,
-        draggable: true
+        draggable: true,
+
+        on_open: function () {
+            var input = document.getElementById("fs_username_input");
+
+            input.focus();
+            input.select();
+        }
     });
 
     _slices_dialog = WUI_Dialog.create(_slices_dialog_id, {
@@ -3790,7 +3748,7 @@ var _uiInit = function () {
                     {
                         icon: "fs-audio-file-icon",
                         on_click: _exportRecord,
-                        tooltip: "Export as .wav"
+                        tooltip: "Export as .wav (additive synthesis)"
                     },
                     {
                         icon: "fs-save-icon",
@@ -3962,8 +3920,8 @@ var _uiInit = function () {
 
     _wui_main_toolbar = WUI_ToolBar.create("fs_middle_toolbar", {
             allow_groups_minimize: false,
-            show_groups_title: false,
-            groups_title_orientation: "n"
+            show_groups_title: localStorage.getItem('fs-show-toolbar-title') === "true" ? true : false,
+            groups_title_orientation: "s"
         },
         {
             "Help": [
@@ -4028,18 +3986,10 @@ var _uiInit = function () {
                     tooltip: "Record"
                 }
             ],
-            "FAS": [
-                {
-                    id: "fs_tb_fas",
-                    icon: "fs-fas-icon",
-                    type: "toggle",
-                    toggle_state: _fasEnabled(),
-                    on_click: _toggleFas,
-                    tooltip: "Enable/Disable audio server connection (the audio server is available on the homepage)"
-                },
+            "Synth": [
                 {
                     id: "fs_tb_fas_settings",
-                    icon: "fs-gear-icon",
+                    icon: "fs-fas-icon",
                     on_click: _showFasDialog,
                     tooltip: "Audio server settings"
                 }
@@ -4055,7 +4005,7 @@ var _uiInit = function () {
                     tooltip: "Convert Shadertoy shader",
 
                     on_click: function () {
-                        var input_code  = _code_editor.getValue(),
+                        var input_code  = _current_code_editor.editor.getValue(),
                             output_code = input_code;
 
                         output_code = output_code.replace(/void\s+mainImage\s*\(\s*out\s+vec4\s*[a-zA-Z]+,\s*(in)?\s+vec2\s+[a-zA-Z]+\s*\)/, "void main ()");
@@ -4066,7 +4016,7 @@ var _uiInit = function () {
                         output_code = output_code.replace(/iMouse/g, "mouse");
                         output_code = output_code.replace(/iChannel/g, "iInput");
 
-                        _code_editor.setValue(output_code);
+                        _current_code_editor.editor.setValue(output_code);
 
                         _compile();
                     }
@@ -4431,38 +4381,6 @@ var _uiInit = function () {
                 _keyboard.note_lifetime = note_lifetime;
                 
                 localStorage.setItem('fs-note-lifetime', _keyboard.note_lifetime);
-            }
-        });
-    
-    WUI_RangeSlider.create("fs_settings_osc_fade_input", {
-            width: 120,
-            height: 8,
-
-            min: 0.01,
-
-            bar: false,
-
-            step: 0.01,
-            scroll_step: 0.01,
-        
-            decimals: 2,
-
-            default_value: _osc_fadeout,
-            value: _osc_fadeout,
-
-            title: "Osc. fadeout",
-
-            title_min_width: 140,
-            value_min_width: 88,
-
-            on_change: function (new_fadeout) {
-                if (new_fadeout <= 0) {
-                    return;
-                }
-                
-                _osc_fadeout = new_fadeout;
-                
-                localStorage.setItem('fs-osc-fadeout', _osc_fadeout);
             }
         });
 

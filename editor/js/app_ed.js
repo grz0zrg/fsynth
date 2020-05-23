@@ -32,8 +32,21 @@ window.onload = function() {
     /***********************************************************
         Globals.
     ************************************************************/
+
+    var _getUrlParameters = function () {
+        var search = location.search.substring(1);
+        return JSON.parse('{"' + search.replace(/&/g, '","').replace(/=/g,'":"') + '"}', function(key, value) { return key===""?value:decodeURIComponent(value) });
+    };
     
     var _getSessionName = function () {
+        var url_parts;
+        
+        url_parts = window.location.pathname.split('/');
+
+        return url_parts[url_parts.length - 2];
+    };
+
+    var _getTargetName = function () {
         var url_parts;
         
         url_parts = window.location.pathname.split('/');
@@ -67,7 +80,7 @@ window.onload = function() {
         Fields.
     ************************************************************/
 
-    
+    var _urlParameters = _getUrlParameters();
     
     /***********************************************************
         App. Includes.

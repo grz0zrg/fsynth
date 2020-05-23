@@ -77,8 +77,28 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
 
     synthOutput = vec4(l, r, 0., 0.); // WebGL 2 only (gl_FragColor otherwise)
     gl_FragColor = vec4(l, r, 0., 1.);
-  }
-        </script>
+  }</script>
+
+        <script type="x-webgl/x-fragment-shader" id="fragment-shader-buffer">
+  // 
+  void main () {
+    vec2 uv = gl_FragCoord.xy / resolution;
+
+    vec4 c = texture2D(texture, uv);
+
+    gl_FragColor = c;
+  }</script>
+
+        <script type="x-webgl/x-fragment-shader" id="fragment-shader-buffer-2">
+  void main () {
+    vec2 uv = gl_FragCoord.xy / resolution;
+
+    vec4 c = texture(colorInput, uv);
+    vec4 s = texture(synthInput, uv);
+
+    fragColor = c;
+    synthOutput = s;
+  }</script>
 
         <script type="text/javascript" src="dist/fs.js" defer></script>
     </head>
@@ -88,9 +108,9 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
         <div id="fs_top_panel" class="fs-top-panel">
             <div id="fs_time_infos" class="fs-time-infos"></div>
             <div id="fs_app_infos" class="fs-app-infos">
-                <div id="fs_sync_status" class="fs-server-status" title="Synchronization server link state"></div>
-                <div id="fs_server_status" class="fs-server-status" title="Chat server link state"></div>
-                <div id="fs_fas_status" class="fs-server-status" title="Native audio link state" style="display: none"></div>
+                <div id="fs_sync_status" class="fs-server-status" title="Data server link state"></div>
+                <div id="fs_server_status" class="fs-server-status" title="Server link state"></div>
+                <div id="fs_fas_status" class="fs-server-status" title="Audio server link state"></div>
                 <div id="fs_user_name" class="fs-user-name"></div>
                 <span id="fs_fas_stream_load"></span>
                 <span id="fs_polyphony_infos"></span>
@@ -133,10 +153,78 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
             <div id="fs_middle_toolbar" class="fs-middle-toolbar"></div>
             <div id="fs_input_panel" class="fs-input-panel"></div>
         </div>
-        <!--
-        <div id="fs_browser" class="fs-browser"></div>
-        -->
-        <div id="code" class="code"></div>
+        
+        <div class="fs-code-view">
+            <div id="fs_explorer" class="fs-explorer">
+                <div class="fs-ltr-container">
+                    <div class="fs-explorer-title">
+                        WORKSPACES
+                    </div>
+                    <div class="fs-workspace-content">
+                        <div class="fs-workspace-title">
+                            <div class="fs-workspace-reduce-btn">
+                                -
+                            </div>
+                            Code
+                        </div>
+                        <div class="fs-workspace-category-content">
+                            <div id="fs_code_target" class="fs-workspace-item fs-workspace-item-active">
+                                main
+                            </div>
+<!--
+                            <div id="fs_buffer_target" class="fs-workspace-item">
+                                buffer
+                            </div>
+-->
+                            <div id="fs_library_target" class="fs-workspace-item">
+                                my library
+                            </div>
+                        </div>
+                        <div class="fs-workspace-title">
+                            <div class="fs-workspace-reduce-btn">
+                                -
+                            </div>
+                            Faust generators
+                        </div>
+                        <div class="fs-workspace-category-content">
+                            
+                        </div>
+                        <div class="fs-workspace-title">
+                            <div class="fs-workspace-reduce-btn">
+                                -
+                            </div>
+                            Faust effects
+                        </div>
+                        <div class="fs-workspace-category-content">
+                            
+                        </div>
+                        <div class="fs-workspace-title">
+                            <div class="fs-workspace-reduce-btn">
+                                -
+                            </div>
+                            Examples
+                        </div>
+                        <div id="fs_examples_target" class="fs-workspace-category-content">
+                            <div class="fs-workspace-item fs-workspace-example-item">
+                                test
+                            </div>
+                            <div class="fs-workspace-item fs-workspace-example-item">
+                                test 2
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="fs_code" class="code"></div>
+<!--
+            <div id="fs_buffer_code" class="code" style="display: none"></div>
+-->
+            <div id="fs_library_code" class="code" style="display: none"></div>
+            <div id="fs_example_code" class="code" style="display: none"></div>
+            <div id="fs_nodegraph" class="node" style="display: none">
+                <canvas id="fs_nodegraph_canvas"></canvas>
+            </div>
+        </div>
 
         <div id="fs_right_toolbar" class="fs-right-toolbar">
 
@@ -169,7 +257,6 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                 <div id="fs_score_height_input"></div>
                 <div id="fs_score_base_input"></div>
                 <div id="fs_score_octave_input"></div>
-                <div id="fs_settings_osc_fade_input"></div>
                 <div id="fs_settings_max_polyphony"></div>
                 <div id="fs_settings_note_lifetime"></div>
                 <fieldset class="fs-fieldset fs-collapsible fs-collapsed" style="margin-top: 8px;">
@@ -193,9 +280,13 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                             <div>Show slices</div>&nbsp;
                             <input id="fs_settings_ck_slices" type="checkbox" checked>
                         </label>
-                        <label class="fs-ck-label" title="enable/disable web audio">
-                            <div>Disable web audio</div>&nbsp;
-                            <input id="fs_settings_ck_web_audio" type="checkbox">
+                        <label class="fs-ck-label" title="show/hide slices output channel">
+                            <div>Show slice channel</div>&nbsp;
+                            <input id="fs_settings_ck_show_slice_chn" type="checkbox">
+                        </label>
+                        <label class="fs-ck-label" title="show/hide toolbar items title">
+                            <div>Show toolbar titles</div>&nbsp;
+                            <input id="fs_settings_ck_show_toolbar_title" type="checkbox">
                         </label>
 <!--
                         <label class="fs-ck-label">
@@ -221,12 +312,8 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                             <div>Highlight matches</div>&nbsp;
                             <input id="fs_settings_ck_hlmatches" type="checkbox">
                         </label>
-                        <label class="fs-ck-label" title="show/hide slices output channel">
-                            <div>Show slice channel</div>&nbsp;
-                            <input id="fs_settings_ck_show_slice_chn" type="checkbox">
-                        </label>
-                        <label class="fs-ck-label" title="enable/disable all audio">
-                            <div>Disable all audio</div>&nbsp;
+                        <label class="fs-ck-label" title="enable/disable audio">
+                            <div>Disable audio</div>&nbsp;
                             <input id="fs_settings_ck_audio" type="checkbox">
                         </label>
                     </div>
@@ -323,12 +410,6 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                         <label class="fs-ck-label" title="enable/disable pFrame / pFrameSynth availability in the fragment shader (CPU/GPU intensive feature)">
                             <div>Feedback</div>&nbsp;
                             <input id="fs_settings_ck_feedback" type="checkbox">
-                        </label>
-                    </div>
-                    <div class="fs-ck-container">
-                        <label class="fs-ck-label" title="enable/disable AudioWorklet web. sound engine">
-                            <div>AudioWorklet</div>&nbsp;
-                            <input id="fs_settings_ck_audioworklet" type="checkbox" checked>
                         </label>
                     </div>
 <!--
@@ -590,7 +671,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                 <div style="text-align: center; color: #ffffff">
                     <input id="fs_username_input" type="text" value="Anonymous" placeholder="Anonymous" style="width: 80%; height: 18px" class="wui-rangeslider-input">
                     <br><br>
-                    <div style="font-size: 9pt">This change will take effect after page reload.</div>
+                    <div style="font-size: 9pt">Will update after page refresh.</div>
                     <br>
                 </div>
             </div>
@@ -705,7 +786,33 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
 
         <div id="fs_outline_dialog">
             <div>
-                <div id="fs_outline" class="fs-outline"></div>
+                <!--<div id="fs_outline" class="fs-outline"></div>-->
+                <fieldset class="fs-fieldset">
+                    <legend>
+                        main
+                    </legend>
+                    <div id="fs_main_outline" class="fs-outline">
+
+                    </div>
+                </fieldset>
+<!--
+                <fieldset class="fs-fieldset">
+                    <legend>
+                        buffer
+                    </legend>
+                    <div id="fs_buffer_outline" class="fs-outline">
+
+                    </div>
+                </fieldset>
+-->
+                <fieldset class="fs-fieldset">
+                    <legend>
+                        library
+                    </legend>
+                    <div id="fs_library_outline" class="fs-outline">
+
+                    </div>
+                </fieldset>
             </div>
         </div>
         

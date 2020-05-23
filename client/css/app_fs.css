@@ -6,6 +6,7 @@
 /*#include codemirror/addon/search/matchesonscrollbar.css*/
 /*#include codemirror/addon/display/fullscreen.css*/
 /*#include FontAwesome/font-awesome.min.css*/
+/*#include litegraph/litegraph.css*/
 
 /*#include wui.css*/
 /*#include icons.css*/
@@ -233,9 +234,7 @@ canvas {
 
 .fs-outline {
     background-color: #111111;
-    height: 100%;
     overflow: auto;
-    padding: 4px;
 }
 
 .fs-outline div {
@@ -706,12 +705,15 @@ canvas {
         display: flex;
         
         overflow-y: auto;
+
+        padding-bottom: 2px;
+        text-align: center;
     }
 }
 
 @media all and (min-width: 768px) {
     .fs-middle-toolbar {
-        width: 618px;
+        width: 591px;
         
         margin: 0;
         
@@ -724,12 +726,17 @@ canvas {
         -moz-user-select: none;
         -ms-user-select: none;
         user-select: none;
+
+        position: relative;
     }
     
     .fs-input-panel {
-        width: calc(100% - 618px - 16px);
+        width: calc(100% - 591px - 8px);
 
         display: inline-flex;
+
+        position: absolute;
+        top: 4px;
         
         overflow-y: auto;
     }
@@ -744,10 +751,6 @@ canvas {
     
     width: 1px;
     /*height: 100%;*/
-}
-
-.play-position-marker-bar {
-
 }
 
 .play-position-triangle {
@@ -930,20 +933,103 @@ canvas {
     cursor: pointer;
 }
 
-.fs-browser {
-    width: 200px;
-    height: 373px;
+.fs-workspace-reduce:hover {
+    background-color: #444444;
+    cursor: pointer;
+}
+
+.fs-ltr-container {
+    direction: ltr;
+}
+
+.fs-explorer {
     background-color: #111111;
-    position: absolute;
+    flex: 0 0 140px;
+    padding-left: 18px;
+    font-size: 12pt;
+    padding-top: 4px;
+    direction: rtl;
+    overflow-y: auto;
+    user-select: none;
+}
+
+.fs-explorer-title {
+    color: lightgrey;
+    font-size: 11pt;
+    margin-top: 6px;
+    margin-bottom: 2px;
+}
+
+.fs-workspace-content {
+    padding-left: 6px;
+}
+
+.fs-workspace-category-content {
+    padding-bottom: 1px;
+    margin-top: 6px;
+    border-left: solid 1px #222222;
+    margin-left: 4px;
+}
+
+.fs-workspace-title {
+    color: lightgrey;
+    font-size: 10pt;
+}
+
+.fs-workspace-item {
+    color: lightgrey;
+    font-size: 9pt;
+    margin-left: 4px;
+    padding-top: 3px;
+    padding-left: 6px;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+    padding-bottom: 3px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    /*background-color: #222222;*/
+}
+
+.fs-workspace-reduce-btn {
+    display: inline-block;
+    outline: solid 1px #222222;
+    width: 10px;
+    height: 12px;
+    text-align: center;
+    line-height: 10px;
+    vertical-align: middle;
+    font-size: 10pt;
+}
+
+.fs-workspace-reduce-btn:hover {
+    background-color: #222222;
+    cursor: pointer;
+}
+
+div[class~=fs-workspace-item]:hover {
+    background-color: #333333;
+    cursor: pointer;
+}
+
+.fs-workspace-item-active {
+    background-color: #003b5d;
+}
+
+.fs-code-view {
+    width: 100%;
+    margin: auto;
+    padding: auto;
+    display: flex;
+}
+
+.node {
+    width: 100%;
+    position: relative;
 }
 
 .code {
+    min-width: 0;
     width: 100%;
-    height: calc(50% - 6px);
-    margin: auto;
-    padding: auto;
-    right: 0;
-    position: absolute;
 }
 
 body .code .CodeMirror-fullscreen {

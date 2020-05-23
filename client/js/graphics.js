@@ -244,25 +244,26 @@ var _buildFeedback = function () {
         }
 
         if (_gl2) {
-            fragment_shader = [
-                "#version 300 es\n",
-                "precision mediump float;",
-                "layout(location = 0) out vec4 synthOutput;",
-                "layout(location = 1) out vec4 fragColor;",
-                "uniform vec2 resolution;",
-                "uniform sampler2D synthInput;",
-                "uniform sampler2D colorInput;",
-                "void main () {",
-                "    vec2 uv = gl_FragCoord.xy / resolution;",
-                "    vec4 c = texture(colorInput, uv);",
-                "    vec4 s = texture(synthInput, uv);",
-                "    fragColor = c;",
-                "    synthOutput = s;",
-                "}"].join("");
+            var predefined_fragment_code = [
+                    "#version 300 es\n",
+                    "precision mediump float;",
+                    "layout(location = 0) out vec4 synthOutput;",
+                    "layout(location = 1) out vec4 fragColor;",
+                    "uniform vec2 resolution;",
+                    "uniform sampler2D synthInput;",
+                    "uniform sampler2D colorInput;\n",
+                ].join("");
+            
+            fragment_shader = predefined_fragment_code + document.getElementById("fragment-shader-buffer-2").text;
 
             vertex_shader = "#version 300 es\n" + document.getElementById("vertex-shader-2").text;
         } else {
-            fragment_shader = _generic_fragment_shader;
+            var predefined_fragment_code = [
+                    "precision mediump float;",
+                    "uniform vec2 resolution;",
+                    "uniform sampler2D texture;\n"
+                ].join("");
+            fragment_shader = predefined_fragment_code + document.getElementById("fragment-shader-buffer").text;
         }
 
         _feedback.program = _createAndLinkProgram(
@@ -663,7 +664,9 @@ var _frame = function (raf_time) {
             _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
 
             fragment_input.globalTime += 1;
-        } else if (fragment_input.type === 1 || fragment_input.type === 3 || fragment_input.type === 5) { // video/camera/desktop
+        } else if (fragment_input.type === 1 ||
+            fragment_input.type === 3 ||
+            fragment_input.type === 5) { // video/camera/desktop
             if (fragment_input.video_elem.readyState === fragment_input.video_elem.HAVE_ENOUGH_DATA) {
                 if (fragment_input.type === 3) {
                     _gl.uniform1f(_getUniformLocation(_input_video_prefix + i), fragment_input.video_elem.currentTime / fragment_input.video_elem.duration);
@@ -875,17 +878,6 @@ var _frame = function (raf_time) {
         if (!_audio_off) {
             if (_fas.status) {
                 _fasNotifyFast(_FAS_FRAME, _data);
-            } else if (!_web_audio_off) {
-                var tmp_buffer = [];
-                for (i = 0; i < _output_channels; i += 1) {
-                    tmp_buffer.push(new _synth_data_array(_data[i]));
-                }
-
-                _notesProcessing(_prev_data, _data);
-
-                for (i = 0; i < _output_channels; i += 1) {
-                    _prev_data[i] = tmp_buffer[i];
-                }
             }
         }    
 

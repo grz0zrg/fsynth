@@ -3,13 +3,9 @@
 var _pause = function () {
     window.cancelAnimationFrame(_raf);
     
-    _stopOscillators();
-
     _fs_state = 1;
     
     _fasPause();
-    
-    _pauseWorklet();
     
     _pause_time = performance.now();
 
@@ -50,8 +46,6 @@ var _play = function (update_global_time) {
         _first_play = false;
     }
 
-    _playWorklet();
-
     _pjsResumeAll();
 };
 
@@ -71,8 +65,6 @@ var _rewind = function () {
 };
 
 var _stop = function () {
-    _stopOscillators();
-    
     window.cancelAnimationFrame(_raf);
 
     _pause_time = performance.now();

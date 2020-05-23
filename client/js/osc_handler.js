@@ -184,7 +184,7 @@ var _oscInit = function () {
             } else if (data.status === "error") {
                 _notification("OSC: Connection error!", 2500);
             } else if (data.status === "close") {
-                _notification("OSC: Connection was lost, trying again in ~5s!", 2500);
+                _notification("OSC connection lost, trying again in ~5s!", 2500);
             }
         }, false);
 };

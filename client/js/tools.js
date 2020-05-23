@@ -424,6 +424,10 @@ var _fnFlipImage = function (img, done) {
     };
 };
 
+var _truncateString = function (source, size) {
+    return source.length > size ? source.slice(0, size - 1) + "…" : source;
+};
+
 var _flipImage = function (img, done) {
     _fnFlipImage(img, done)();
 };

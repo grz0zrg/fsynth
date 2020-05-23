@@ -47,8 +47,9 @@
 
 .wui-toolbar-group-title {
     font-size: 7px !important;
-    padding-top: 1px;
     padding-bottom: 3px;
+    padding-top: 1px;
+    text-transform: uppercase;
 }
 
 .wui-rangeslider-input {
