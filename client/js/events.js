@@ -36,7 +36,7 @@ _canvas.addEventListener('contextmenu', function(ev) {
             },
             [
                 { icon: "fs-plus-icon", tooltip: "Slice!",  on_click: function () {
-                        _addPlayPositionMarker(_cx, 0, false, 1, 0, true);
+                        _addPlayPositionMarker(_cx, 0, false, 1, 0, { synthesis_type: 0 }, true);
                     } }
             ]);
 
@@ -218,6 +218,17 @@ document.addEventListener('mousemove', function (e) {
             if (_mouse_btn === _LEFT_MOUSE_BTN) {
                 _nmx = 1. - _cx / _canvas_width;
                 _nmy = 1. - _cy / _canvas_height;
+            }
+        } else if (e.target === _record_canvas) {
+            if (_mouse_btn === _LEFT_MOUSE_BTN) {
+                canvas_offset = _getElementOffset(_record_canvas);
+
+                var cx = e.pageX;
+                var cy = e.pageY - canvas_offset.top;
+
+                cx = (cx - canvas_offset.left - 1);
+
+                _record_position = cx;
             }
         } else {
             if (_xyf_grid) {

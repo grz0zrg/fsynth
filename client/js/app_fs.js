@@ -190,14 +190,12 @@ var FragmentSynth = function (params) {
         _record_position = 0,
         _record = false,
         _record_input_count = 0,
-        _record_fn = [function (i, j) {
-            return _data[i][j] + _midi_data[i][j] + _osc_data[i][j];
+        _record_slice_fn = [function (i, j) {
+            return _data[i][j] + _osc_data[i][j];
         }, function (i, j) {
             return _data[i][j];
         }, function (i, j) {
             return _osc_data[i][j];
-        }, function (i, j) {
-            return _midi_data[i][j];
         }],
         _record_type = 1, // record AUDIO output only by default
         _record_opts = {
@@ -645,7 +643,7 @@ var FragmentSynth = function (params) {
         } else {
             _local_session_settings = {
                 gain: _volume,
-                chn_settings: [{ osc: [], efx: [] }],
+                chn_settings: [{ osc: [], efx: [], muted: 0 }],
                 markers: [],
                 code_editors: []
             };

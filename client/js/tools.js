@@ -118,7 +118,7 @@ var _getElementOffset = function (elem) {
     return { top: Math.round(top), left: Math.round(left), width: box.width, height: box.height };
 };
 
-var _getFundamentalFrequency = function (data, width, height, mono) {
+var _getFundamentalFrequency = function (data, width, height) {
     var i = 0, j = 0,
         data_index = 0,
         freq = Infinity;
@@ -127,23 +127,16 @@ var _getFundamentalFrequency = function (data, width, height, mono) {
         for (j = 0; j < width; j += 1) {
             data_index = i * (width * 4) + j * 4;
             
-            if (mono) {
-                if (data[data_index + 3] > 0) {
-                    freq = Math.min(freq, _getFrequency(i));
-                }
-            } else {
-                if (((data[data_index] + data[data_index + 1]) / 2) > 0) {
-                    freq = Math.min(freq, _getFrequency(i));
-                }
+            if (((data[data_index] + data[data_index + 1]) / 2) > 0) {
+                freq = Math.min(freq, _getFrequency(i));
             }
-            
         }
     }
     
     return freq;
 };
 
-var _getSonogramBoundary = function (data, width, height, mono, backward) {
+var _getSonogramBoundary = function (data, width, height, backward) {
     var i = 0, j = 0,
         data_index = 0,
 
@@ -169,19 +162,11 @@ var _getSonogramBoundary = function (data, width, height, mono, backward) {
 
             data_index = i * (width * 4) + rx * 4;
             
-            if (mono) {
-                if (data[data_index + 3] > 0) {
-                    x = f(x, rx);
-                    
-                    break;
-                }
-            } else {
-                if (data[data_index] > 0 || data[data_index + 1] > 0) {
-                    x = f(x, rx);
+            if (data[data_index] > 0 || data[data_index + 1] > 0) {
+                x = f(x, rx);
 
-                    break;
-                }
-            }   
+                break;
+            }
         }
     }
     

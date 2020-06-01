@@ -868,16 +868,22 @@ var _showMIDIOutDialog = function () {
     WUI_Dialog.open(_midi_out_dialog);
 };
 
-var _onChangeChannelSettings = function (channel, value_index) {
+var _onChangeChannelSettings = function (instrument_index, target) {
     return function (value) {
         var v = parseFloat(value);
 
-        _chn_settings[channel].osc[value_index] = v;
+        //_chn_settings[channel].osc[value_index] = v;
 
-        _local_session_settings.chn_settings[channel] = _chn_settings[channel];
-        _saveLocalSessionSettings();
+        //_local_session_settings.chn_settings[channel] = _chn_settings[channel];
+        //_saveLocalSessionSettings();
 
-        _fasNotify(_FAS_CHN_INFOS, { target: Math.floor(value_index / 2), chn: channel, value: v });
+        //_fasNotify(_FAS_CHN_INFOS, { target: Math.floor(value_index / 2), chn: channel, value: v });
+        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: target, value: v });
+
+        var obj = { };
+        obj["p" + (target - 3)] = v;
+
+        _sendSliceUpdate(instrument_index, { instruments_settings : obj });
     };
 };
 
@@ -1159,7 +1165,7 @@ var _createSynthParametersContent = function () {
         chn_fieldset,
         chn_legend,
 
-        chn_settings,
+        slice,
 
         chn_genv_type_label,
         chn_genv_type_select,
@@ -1188,11 +1194,14 @@ var _createSynthParametersContent = function () {
 
     dialog_div.innerHTML = "";
 
-    for (j = 0; j < _output_channels; j += 1) {
-        chn_settings = _chn_settings[j];
+    for (j = 0; j < _play_position_markers.length; j += 1) {
+        //chn_settings = _chn_settings[j];
+        slice = _play_position_markers[j];
 
+        synth_type = slice.instrument_type;
+/*
         synth_type = _chn_settings[j].osc[1];
-
+*/
         if (_synthesis_params[synth_type] <= 0) {
             continue;
         }
@@ -1202,7 +1211,7 @@ var _createSynthParametersContent = function () {
 
         chn_fieldset.className = "fs-fieldset";
         
-        chn_legend.innerHTML = "Chn " + (j + 1) + " / " + _synthesis_types[synth_type];
+        chn_legend.innerHTML = "Instr. " + (j + 1) + " / " + _synthesis_types[synth_type];
 
         chn_fieldset.appendChild(chn_legend);
 
@@ -1237,22 +1246,23 @@ var _createSynthParametersContent = function () {
             chn_genv_type_select.dataset.chnId = j;
             chn_genv_type_select.id = chn_genv_type_label.htmlFor;
 
-            chn_genv_type_select.childNodes[chn_settings.osc[5]].selected = true;
+            chn_genv_type_select.childNodes[slice.instrument_params.p0].selected = true;
 
-            gmin = chn_settings.osc[7];
-            gmax = chn_settings.osc[9];
-            gden = chn_settings.osc[11];
+            gmin = slice.instrument_params.p1;
+            gmax = slice.instrument_params.p2;
+            gden = slice.instrument_params.p3;
 
             chn_genv_type_select.addEventListener("change", function() {
                 var j = parseInt(this.dataset.chnId, 10),
                     value = parseInt(this.selectedIndex, 10);
 
-                _chn_settings[j].osc[5] = value;
+                var slice = _play_position_markers[j];
 
-                _local_session_settings.chn_settings[j] = _chn_settings[j];
-                _saveLocalSessionSettings();
-            
-                _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: j, value: value });
+                slice.instrument_params.p0 = value;
+
+                _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: j, target: 3, value: value });
+
+                _sendSliceUpdate(j, { instruments_settings : { p0: value } });
             });
 
             chn_fieldset.appendChild(chn_genv_type_label);
@@ -1285,7 +1295,7 @@ var _createSynthParametersContent = function () {
                 title_min_width: 140,
                 value_min_width: 88,
     
-                on_change: _onChangeChannelSettings(j, 7)
+                on_change: _onChangeChannelSettings(j, 4)
             }));
             
             _fas_content_list.push(WUI_RangeSlider.create(chn_gmax_size_input, {
@@ -1312,7 +1322,7 @@ var _createSynthParametersContent = function () {
                 title_min_width: 140,
                 value_min_width: 88,
     
-                on_change: _onChangeChannelSettings(j, 9)
+                on_change: _onChangeChannelSettings(j, 5)
             }));
     
             _fas_content_list.push(WUI_RangeSlider.create(chn_gden_input, {
@@ -1339,7 +1349,7 @@ var _createSynthParametersContent = function () {
                 title_min_width: 140,
                 value_min_width: 88,
     
-                on_change: _onChangeChannelSettings(j, 11)
+                on_change: _onChangeChannelSettings(j, 6)
             }));
 
             chn_genv_type_select.dispatchEvent(new UIEvent('change'));
@@ -1348,6 +1358,8 @@ var _createSynthParametersContent = function () {
             chn_input.id = "fs_chn_" + j + "_chn_input";
             var chn_mode = document.createElement("div");
             chn_mode.id = "fs_chn_" + j + "_chn_mode";
+            var switch_mode = document.createElement("div");
+            switch_mode.id = "fs_chn_" + j + "_switch_mode";
 
             var chn_win_size_label = document.createElement("label");
             var chn_win_size_select = document.createElement("select");
@@ -1371,27 +1383,30 @@ var _createSynthParametersContent = function () {
             chn_win_size_select.dataset.chnId = j;
             chn_win_size_select.id = chn_win_size_label.htmlFor;
 
-            chn_win_size_select.childNodes[chn_win_size_options.indexOf(chn_settings.osc[7])].selected = true;
+            chn_win_size_select.childNodes[chn_win_size_options.indexOf(slice.instrument_params.p1)].selected = true;
 
-            var input = chn_settings.osc[5];
-            var mode = chn_settings.osc[9];
+            var input = slice.instrument_params.p0;
+            var mode = slice.instrument_params.p2;
+            var switch_mode_value = slice.instrument_params.p3;
 
             chn_win_size_select.addEventListener("change", function() {
                 var j = parseInt(this.dataset.chnId, 10),
                     value = parseInt(this.selectedIndex, 10);
 
-                _chn_settings[j].osc[7] = chn_win_size_options[value];
+                var slice = _play_position_markers[j];
 
-                _local_session_settings.chn_settings[j] = _chn_settings[j];
-                _saveLocalSessionSettings();
+                slice.instrument_params.p1 = chn_win_size_options[value];
 
-                _fasNotify(_FAS_CHN_INFOS, { target: 3, chn: j, value: chn_win_size_options[value] });
+                _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: j, target: 4, value: chn_win_size_options[value] });
+
+                _sendSliceUpdate(j, { instruments_settings : { p1: chn_win_size_options[value] } });
             });
 
             chn_fieldset.appendChild(chn_win_size_label);
             chn_fieldset.appendChild(chn_win_size_select);
             chn_fieldset.appendChild(chn_input);
             chn_fieldset.appendChild(chn_mode);
+            chn_fieldset.appendChild(switch_mode);
 
             _fas_content_list.push(WUI_RangeSlider.create(chn_input, {
                 width: 120,
@@ -1410,12 +1425,12 @@ var _createSynthParametersContent = function () {
 
                 midi: true,
                 
-                title: "Input channel",
+                title: "Source CHN / instrument",
     
                 title_min_width: 140,
                 value_min_width: 88,
     
-                on_change: _onChangeChannelSettings(j, 5)
+                on_change: _onChangeChannelSettings(j, 3)
             }));
             
             _fas_content_list.push(WUI_RangeSlider.create(chn_mode, {
@@ -1442,7 +1457,34 @@ var _createSynthParametersContent = function () {
                 title_min_width: 140,
                 value_min_width: 88,
     
-                on_change: _onChangeChannelSettings(j, 9)
+                on_change: _onChangeChannelSettings(j, 5)
+            }));
+
+            _fas_content_list.push(WUI_RangeSlider.create(switch_mode, {
+                width: 120,
+                height: 8,
+    
+                min: 0,
+                max: 1,
+    
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: switch_mode_value,
+                value: switch_mode_value,
+
+                midi: true,
+                
+                decimals: 0,
+    
+                title: "Source mode",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 6)
             }));
 
             chn_win_size_select.dispatchEvent(new UIEvent('change'));
@@ -1453,8 +1495,8 @@ var _createSynthParametersContent = function () {
             chn_wav1.id = "fs_chn_" + j + "_chn_wav1";
             chn_wav2.id = "fs_chn_" + j + "_chn_wav2";
 
-            var wav1 = chn_settings.osc[5],
-                wav2 = chn_settings.osc[7];
+            var wav1 = slice.instrument_params.p0,
+                wav2 = slice.instrument_params.p1;
 
             chn_fieldset.appendChild(chn_wav1);
             chn_fieldset.appendChild(chn_wav2);
@@ -1481,7 +1523,7 @@ var _createSynthParametersContent = function () {
                 title_min_width: 140,
                 value_min_width: 88,
     
-                on_change: _onChangeChannelSettings(j, 5)
+                on_change: _onChangeChannelSettings(j, 3)
             }));
 
             _fas_content_list.push(WUI_RangeSlider.create(chn_wav2, {
@@ -1506,7 +1548,7 @@ var _createSynthParametersContent = function () {
                 title_min_width: 140,
                 value_min_width: 88,
     
-                on_change: _onChangeChannelSettings(j, 7)
+                on_change: _onChangeChannelSettings(j, 4)
             }));
         } else if (_synthesis_types[synth_type] === "Modulation") {
             var chn_mod = document.createElement("div"),
@@ -1521,11 +1563,11 @@ var _createSynthParametersContent = function () {
             chn_mod4.id = "fs_chn_" + j + "_chn_mod4";
             chn_mod4.id = "fs_chn_" + j + "_chn_mod5";
 
-            var mode = chn_settings.osc[5],
-                mode2 = chn_settings.osc[7],
-                mode3 = chn_settings.osc[9],
-                mode4 = chn_settings.osc[11],
-                mode5 = chn_settings.osc[13];
+            var mode = slice.instrument_params.p0,
+                mode2 = slice.instrument_params.p1,
+                mode3 = slice.instrument_params.p2,
+                mode4 = slice.instrument_params.p3,
+                mode5 = slice.instrument_params.p4;
 
             chn_fieldset.appendChild(chn_mod);
             chn_fieldset.appendChild(chn_mod2);
@@ -1556,7 +1598,7 @@ var _createSynthParametersContent = function () {
                 title_min_width: 140,
                 value_min_width: 88,
     
-                on_change: _onChangeChannelSettings(j, 5)
+                on_change: _onChangeChannelSettings(j, 3)
             }));
 
             _fas_content_list.push(WUI_RangeSlider.create(chn_mod2, {
@@ -1581,7 +1623,7 @@ var _createSynthParametersContent = function () {
                 title_min_width: 140,
                 value_min_width: 88,
     
-                on_change: _onChangeChannelSettings(j, 7)
+                on_change: _onChangeChannelSettings(j, 4)
             }));
 
             _fas_content_list.push(WUI_RangeSlider.create(chn_mod3, {
@@ -1606,7 +1648,7 @@ var _createSynthParametersContent = function () {
                 title_min_width: 140,
                 value_min_width: 88,
     
-                on_change: _onChangeChannelSettings(j, 9)
+                on_change: _onChangeChannelSettings(j, 5)
             }));
 
             _fas_content_list.push(WUI_RangeSlider.create(chn_mod4, {
@@ -1631,7 +1673,7 @@ var _createSynthParametersContent = function () {
                 title_min_width: 140,
                 value_min_width: 88,
     
-                on_change: _onChangeChannelSettings(j, 11)
+                on_change: _onChangeChannelSettings(j, 6)
             }));
 
             _fas_content_list.push(WUI_RangeSlider.create(chn_mod5, {
@@ -1656,7 +1698,7 @@ var _createSynthParametersContent = function () {
                 title_min_width: 140,
                 value_min_width: 88,
     
-                on_change: _onChangeChannelSettings(j, 13)
+                on_change: _onChangeChannelSettings(j, 7)
             }));
         } else if (_synthesis_types[synth_type] === "Faust") {
             var chn_gen = document.createElement("div"),
@@ -1670,11 +1712,11 @@ var _createSynthParametersContent = function () {
             chn_p2.id = "fs_chn_" + j + "_chn_p2";
             chn_p3.id = "fs_chn_" + j + "_chn_p3";
 
-            var gen = chn_settings.osc[5],
-                p0 = chn_settings.osc[7],
-                p1 = chn_settings.osc[9],
-                p2 = chn_settings.osc[11],
-                p3 = chn_settings.osc[13];
+            var gen = slice.instrument_params.p0,
+                p0 = slice.instrument_params.p1,
+                p1 = slice.instrument_params.p2,
+                p2 = slice.instrument_params.p3,
+                p3 = slice.instrument_params.p4;
 
             chn_fieldset.appendChild(chn_gen);
             chn_fieldset.appendChild(chn_p0);
@@ -1704,7 +1746,7 @@ var _createSynthParametersContent = function () {
                 title_min_width: 140,
                 value_min_width: 88,
     
-                on_change: _onChangeChannelSettings(j, 5)
+                on_change: _onChangeChannelSettings(j, 3)
             }));
 
             _fas_content_list.push(WUI_RangeSlider.create(chn_p0, {
@@ -1728,7 +1770,7 @@ var _createSynthParametersContent = function () {
                 title_min_width: 140,
                 value_min_width: 88,
     
-                on_change: _onChangeChannelSettings(j, 7)
+                on_change: _onChangeChannelSettings(j, 4)
             }));
 
             _fas_content_list.push(WUI_RangeSlider.create(chn_p1, {
@@ -1752,7 +1794,7 @@ var _createSynthParametersContent = function () {
                 title_min_width: 140,
                 value_min_width: 88,
     
-                on_change: _onChangeChannelSettings(j, 9)
+                on_change: _onChangeChannelSettings(j, 5)
             }));
 
             _fas_content_list.push(WUI_RangeSlider.create(chn_p2, {
@@ -1776,7 +1818,7 @@ var _createSynthParametersContent = function () {
                 title_min_width: 140,
                 value_min_width: 88,
     
-                on_change: _onChangeChannelSettings(j, 11)
+                on_change: _onChangeChannelSettings(j, 6)
             }));
 
             _fas_content_list.push(WUI_RangeSlider.create(chn_p3, {
@@ -1800,7 +1842,7 @@ var _createSynthParametersContent = function () {
                 title_min_width: 140,
                 value_min_width: 88,
     
-                on_change: _onChangeChannelSettings(j, 13)
+                on_change: _onChangeChannelSettings(j, 7)
             }));
         } else if (_synthesis_types[synth_type] === "Subtractive") {
             var chn_filter_type_label,
@@ -1826,19 +1868,20 @@ var _createSynthParametersContent = function () {
             chn_filter_type_select.dataset.chnId = j;
             chn_filter_type_select.id = chn_filter_type_label.htmlFor;
 
-            var selected_option = chn_settings.osc[5];
+            var selected_option = slice.instrument_params.p0;
             chn_filter_type_select.childNodes[selected_option >= chn_filters_option.length ? 0 : selected_option].selected = true;
 
             chn_filter_type_select.addEventListener("change", function() {
                 var j = parseInt(this.dataset.chnId, 10),
                     value = parseInt(this.selectedIndex, 10);
 
-                _chn_settings[j].osc[5] = value;
+                var slice = _play_position_markers[j];
 
-                _local_session_settings.chn_settings[j] = _chn_settings[j];
-                _saveLocalSessionSettings();
+                slice.instrument_params.p0 = value;
 
-                _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: j, value: value });
+                _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: j, target: 3, value: value });
+
+                _sendSliceUpdate(j, { instruments_settings : { p0: value } });
             });
             chn_fieldset.appendChild(chn_filter_type_label);
             chn_fieldset.appendChild(chn_filter_type_select);
@@ -1868,19 +1911,21 @@ var _createSynthParametersContent = function () {
             chn_model_type_select.dataset.chnId = j;
             chn_model_type_select.id = chn_model_type_label.htmlFor;
 
-            var selected_option = chn_settings.osc[5];
+            var selected_option = slice.instrument_params.p0;
             chn_model_type_select.childNodes[selected_option >= chn_models_option.length ? 0 : selected_option].selected = true;
 
             chn_model_type_select.addEventListener("change", function() {
                 var j = parseInt(this.dataset.chnId, 10),
                     value = parseInt(this.selectedIndex, 10);
 
-                _chn_settings[j].osc[5] = value;
+                var slice = _play_position_markers[j];
 
-                _local_session_settings.chn_settings[j] = _chn_settings[j];
-                _saveLocalSessionSettings();
+                slice.instrument_params.p0 = value;
 
-                _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: j, value: value });
+                _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: j, target: 3, value: value });
+
+                _sendSliceUpdate(j, { instruments_settings : { p0: value } });
+    
             });
             chn_fieldset.appendChild(chn_model_type_label);
             chn_fieldset.appendChild(chn_model_type_select);
@@ -1891,7 +1936,7 @@ var _createSynthParametersContent = function () {
 
             chn_wav1.id = "fs_chn_" + j + "_chn_wav1";
 
-            var wav1 = chn_settings.osc[5];
+            var wav1 = slice.instrument_params.p0;
 
             chn_fieldset.appendChild(chn_wav1);
 
@@ -1918,7 +1963,7 @@ var _createSynthParametersContent = function () {
                 title_min_width: 140,
                 value_min_width: 88,
     
-                on_change: _onChangeChannelSettings(j, 5)
+                on_change: _onChangeChannelSettings(j, 3)
             }));
         }
 
@@ -2199,7 +2244,7 @@ var _createFasFxContent = function (div) {
 
     fx_fieldset.className = "fs-fieldset";
     
-    fx_fieldset_legend.innerHTML = "Channels Effects";
+    fx_fieldset_legend.innerHTML = "Channels effects";
     
     fx_fieldset.appendChild(fx_fieldset_legend);
 
@@ -2233,7 +2278,42 @@ var _createFasFxContent = function (div) {
 
         fx_chn_content.dataset.chn = i;
 
+        fx_chn_legend.title = "mute / unmute channel";
         fx_chn_legend.innerHTML = (i + 1) + " :";
+        fx_chn_legend.classList.add("fs-fas-chn-id");
+
+        if (chn_settings.muted) {
+            fx_chn_legend.style.textDecoration = "line-through";
+            fx_chn_legend.style.color = "red";
+        }
+
+        // mute channel
+        fx_chn_legend.addEventListener("click", function () {
+            var chn_index = parseInt(this.nextElementSibling.dataset.chn, 10);
+
+            var muted = _chn_settings[chn_index].muted;
+            if (muted) {
+                this.style.textDecoration = "none";
+                this.style.color = "white";
+
+                _chn_settings[chn_index].muted = 0;
+                muted = 0;
+            } else {
+                this.style.textDecoration = "line-through";
+                this.style.color = "red";
+
+                _chn_settings[chn_index].muted = 1;
+                muted = 1;
+            }
+
+            // save settings
+            _local_session_settings.chn_settings[chn_index] = _chn_settings[chn_index];
+            _saveLocalSessionSettings();
+        
+            _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn_index, value: muted });
+
+            //_sendSliceUpdate(instrument_index, { instruments_settings : { muted: slice.instrument_muted } }); 
+        });
 
         fx_chn_div.appendChild(fx_chn_legend);
         fx_chn_div.appendChild(fx_chn_content);
@@ -2295,7 +2375,7 @@ var _createFasSettingsContent = function () {
     dialog_div.style = "overflow: auto";
     dialog_div.innerHTML = "";
     
-    synthesis_matrix_fieldset_legend.innerHTML = "Synthesis";
+    synthesis_matrix_fieldset_legend.innerHTML = "Instruments";
     actions_fieldset_legend.innerHTML = "Actions";
     
     synthesis_matrix_fieldset.appendChild(synthesis_matrix_fieldset_legend);
@@ -2312,45 +2392,58 @@ var _createFasSettingsContent = function () {
     row.className = "fs-matrix-first-row";
     cell = document.createElement("th");
     row.appendChild(cell);
-    for (i = 0; i < _output_channels; i += 1) {
-        chn_settings = _chn_settings[i];
+    for (i = 0; i < _play_position_markers.length; i += 1) {
+//        chn_settings = _chn_settings[i];
 
         cell = document.createElement("th");
         cell.innerHTML = i + 1;
-        cell.title = "mute / unmute channel";
+        cell.title = "mute / unmute slice";
         cell.classList.add("fs-fas-chn-id");
         row.appendChild(cell);
 
-        if (chn_settings && chn_settings.osc[3]) {
+        if (_play_position_markers[i].instrument_muted) {
             cell.style.textDecoration = "line-through";
             cell.style.color = "red";
         }
 
         // mute channel
         cell.addEventListener("click", function () {
-            var chn = parseInt(this.innerText, 10) - 1;
+            var instrument_index = parseInt(this.innerText, 10) - 1;
+            var slice = _play_position_markers[instrument_index];
 
-            if (_chn_settings[chn].osc[3]) {
+            if (slice.instrument_muted) {
                 this.style.textDecoration = "none";
                 this.style.color = "white";
 
-                _chn_settings[chn].osc[3] = 0;
+                slice.instrument_muted = 0;
             } else {
                 this.style.textDecoration = "line-through";
                 this.style.color = "red";
 
-                _chn_settings[chn].osc[3] = 1;
+                slice.instrument_muted = 1;
             }
 
             // save settings
-            _local_session_settings.chn_settings[chn] = _chn_settings[chn];
-            _saveLocalSessionSettings();
+            //_local_session_settings.chn_settings[chn] = _chn_settings[chn];
+            //_saveLocalSessionSettings();
         
-            _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: _chn_settings[chn].osc[3] });
+            _fasNotify(_FAS_INSTRUMENT_INFOS, { target: 1, instrument: instrument_index, value: slice.instrument_muted });
+
+            _sendSliceUpdate(instrument_index, { instruments_settings : { muted: slice.instrument_muted } }); 
         });
     }
 
-    synthesis_matrix_table.appendChild(row);    
+    synthesis_matrix_table.appendChild(row); 
+    
+    for (i = 0; i < _output_channels; i += 1) {
+        var chn_settings = _chn_settings[i];
+
+        if (!chn_settings) {
+            _chn_settings[i] = {
+                efx: []
+            };
+        }
+    }
 
     for (i = 0; i < _synthesis_types.length; i += 1) {
         if (!_synthesis_enabled[i]) {
@@ -2364,8 +2457,8 @@ var _createFasSettingsContent = function () {
         cell.innerHTML = _synthesis_types[i];
         row.appendChild(cell);
         
-        for (j = 0; j < _output_channels; j += 1) {
-            chn_settings = _chn_settings[j];
+        for (j = 0; j < _play_position_markers.length; j += 1) {
+//            chn_settings = _chn_settings[j];
 
             cell = document.createElement("th");
             cell.className = "fs-matrix-ck-cell";
@@ -2375,6 +2468,7 @@ var _createFasSettingsContent = function () {
             checkbox.type = "radio";
 
             // create channel settings if it does not exist
+/*
             if (!chn_settings) {
                 _chn_settings[j] = {
                     osc: [0, 0, 1, 0],
@@ -2382,83 +2476,144 @@ var _createFasSettingsContent = function () {
                 };
                 chn_settings = _chn_settings[j];
             }
-            
+          
             // check synthesis type from saved settings
             if (chn_settings.osc[1] === i) {
                 checkbox.checked = true;
             }
+*/
+            if (_play_position_markers[j].instrument_type == i) {
+                checkbox.checked = true;
+            }
 
             checkbox.addEventListener("change", function () {
-                var chn = parseInt(this.name, 10);
+                var instrument_index = parseInt(this.name, 10);
 
-                _chn_settings[chn].osc[1] = parseInt(this.value, 10);
+                var synth_type = parseInt(this.value, 10);
 
-                var osc_settings = _chn_settings[chn].osc;
-                var synth_type = osc_settings[1];
+                //var osc_settings = _chn_settings[chn].osc;
+                //var synth_type = osc_settings[1];
+                var slice = _play_position_markers[instrument_index];
 
                 // load default settings
                 if (!triggered) {
                     if (_synthesis_types[synth_type] === "Physical Model") {
-                        _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
-                        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 0 });
+                        //_chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
+                        //_fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 0, value: synth_type });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 0 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 3, value: 0 });
+
+                        slice.instrument_params.p0 = 0;
                     } else if (_synthesis_types[synth_type] === "Wavetable") {
-                        _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
-                        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 1 });
+                        //_chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
+                        //_fasNotify(_FAS_INSTRUMENT_INFOS, { target: 0, chn: chn, value: synth_type });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 1 });
                     } else if (_synthesis_types[synth_type] === "Subtractive") {
-                        _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
-                        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 0 });
+                        //_chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
+                        //_fasNotify(_FAS_INSTRUMENT_INFOS, { target: 0, chn: chn, value: synth_type });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 0 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 3, value: 0 });
+
+                        slice.instrument_params.p0 = 0;
                     } else if (_synthesis_types[synth_type] === "PM/FM") {
-                        _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, -1, 3, -1];
-                        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: -1 });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 3, chn: chn, value: -1 });
+                        //_chn_settings[chn].osc = [0, synth_type, 1, 0, 2, -1, 3, -1];
+                        //_fasNotify(_FAS_INSTRUMENT_INFOS, { target: 0, chn: chn, value: synth_type });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: -1 });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 3, chn: chn, value: -1 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 3, value: -1 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 4, value: -1 });
+
+                        slice.instrument_params.p0 = -1;
+                        slice.instrument_params.p1 = -1;
                     } else if (_synthesis_types[synth_type] === "Modulation") {
-                        _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0];
-                        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 0 });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 3, chn: chn, value: 0 });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 4, chn: chn, value: 0 });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 5, chn: chn, value: 0 });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 6, chn: chn, value: 0 });
+                        //_chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0];
+                        //_fasNotify(_FAS_INSTRUMENT_INFOS, { target: 0, chn: chn, value: synth_type });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 0 });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 3, chn: chn, value: 0 });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 4, chn: chn, value: 0 });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 5, chn: chn, value: 0 });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 6, chn: chn, value: 0 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 3, value: 0 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 4, value: 0 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 5, value: 0 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 6, value: 0 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 7, value: 0 });
+
+                        slice.instrument_params.p0 = 0;
+                        slice.instrument_params.p1 = 0;
+                        slice.instrument_params.p2 = 0;
+                        slice.instrument_params.p3 = 0;
+                        slice.instrument_params.p4 = 0;
                     } else if (_synthesis_types[synth_type] === "Granular") {
-                        _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 1, 3, 0.01, 4, 0.1, 5, 0.00001];
-                        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 1 });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 3, chn: chn, value: 0.01 });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 4, chn: chn, value: 0.1 });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 5, chn: chn, value: 0.00001 });
+                        //_chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 1, 3, 0.01, 4, 0.1, 5, 0.00001];
+                        //_fasNotify(_FAS_INSTRUMENT_INFOS, { target: 0, chn: chn, value: synth_type });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 1 });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 3, chn: chn, value: 0.01 });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 4, chn: chn, value: 0.1 });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 5, chn: chn, value: 0.00001 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 3, value: 1 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 4, value: 0.01 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 5, value: 0.1 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 6, value: 0.00001 });
+
+                        slice.instrument_params.p0 = 1;
+                        slice.instrument_params.p1 = 0.01;
+                        slice.instrument_params.p2 = 0.1;
+                        slice.instrument_params.p3 = 0.00001;
                     } else if (_synthesis_types[synth_type] === "Spectral") {
-                        _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0, 3, 1024, 4, 0];
-                        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 1 });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 3, chn: chn, value: 1024 });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 4, chn: chn, value: 0 });                        
+                        //_chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0, 3, 1024, 4, 0];
+                        //_fasNotify(_FAS_INSTRUMENT_INFOS, { target: 0, chn: chn, value: synth_type });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 1 });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 3, chn: chn, value: 1024 });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 4, chn: chn, value: 0 });   
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 3, value: 1 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 4, value: 1024 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 5, value: 0 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 6, value: 0 });
+                        
+                        slice.instrument_params.p0 = 1;
+                        slice.instrument_params.p1 = 1024;
+                        slice.instrument_params.p2 = 0;
                     } else if (_synthesis_types[synth_type] === "Faust") {
-                        _chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0];
-                        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 0 });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 3, chn: chn, value: 0 });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 4, chn: chn, value: 0 });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 5, chn: chn, value: 0 });
-                        _fasNotify(_FAS_CHN_INFOS, { target: 6, chn: chn, value: 0 }); 
+                        //_chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0];
+                        //_fasNotify(_FAS_INSTRUMENT_INFOS, { target: 0, chn: chn, value: synth_type });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 0 });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 3, chn: chn, value: 0 });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 4, chn: chn, value: 0 });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 5, chn: chn, value: 0 });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 6, chn: chn, value: 0 }); 
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 3, value: 0 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 4, value: 0 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 5, value: 0 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 6, value: 0 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 7, value: 0 });
+
+                        slice.instrument_params.p0 = 0;
+                        slice.instrument_params.p1 = 0;
+                        slice.instrument_params.p2 = 0;
+                        slice.instrument_params.p3 = 0;
+                        slice.instrument_params.p4 = 0;
                     } else {
-                        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
                     }
+
+                    _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 0, value: synth_type });
+
+                    _submitSliceUpdate(5, instrument_index, { instruments_settings : { type: synth_type } }); 
+
+                    slice.instrument_type = synth_type;
                 }
 
                 // save settings
-                _local_session_settings.chn_settings[chn] = _chn_settings[chn];
-                _saveLocalSessionSettings();
+                //_local_session_settings.chn_settings[chn] = _chn_settings[chn];
+                //_saveLocalSessionSettings();
             
                 _createSynthParametersContent();
             });
@@ -2482,7 +2637,7 @@ var _createFasSettingsContent = function () {
     }
 
     // open parameters button
-    open_synth_params_btn.innerHTML = "Synth. parameters";
+    open_synth_params_btn.innerHTML = "Parameters";
     open_synth_params_btn.className = "fs-btn fs-btn-default";
 
     open_synth_params_btn.style.width = "180px";
@@ -2860,7 +3015,6 @@ var _uiInit = function () {
         settings_ck_lnumbers_elem = document.getElementById("fs_settings_ck_lnumbers"),
         settings_ck_inerrors_elem = document.getElementById("fs_settings_ck_inerrors"),
         settings_ck_xscrollbar_elem = document.getElementById("fs_settings_ck_xscrollbar"),
-        settings_ck_monophonic_elem = document.getElementById("fs_settings_ck_monophonic"),
         settings_ck_feedback_elem = document.getElementById("fs_settings_ck_feedback"),
         settings_ck_osc_out_elem = document.getElementById("fs_settings_ck_oscout"),
         settings_ck_osc_in_elem = document.getElementById("fs_settings_ck_oscin"),
@@ -2879,7 +3033,6 @@ var _uiInit = function () {
         fs_settings_hlmatches = localStorage.getItem('fs-editor-hl-matches'),
         fs_settings_lnumbers = localStorage.getItem('fs-editor-show-linenumbers'),
         fs_settings_xscrollbar = localStorage.getItem('fs-editor-advanced-scrollbar'),
-        fs_settings_monophonic = localStorage.getItem('fs-monophonic'),
         fs_settings_feedback = localStorage.getItem('fs-feedback'),
         fs_settings_osc_in = localStorage.getItem('fs-osc-in'),
         fs_settings_osc_out = localStorage.getItem('fs-osc-out'),
@@ -2913,14 +3066,6 @@ var _uiInit = function () {
                 }
             ]
     });
-    
-    if (fs_settings_monophonic === "true") {
-        _audio_infos.monophonic = true;
-        settings_ck_monophonic_elem.checked = true;
-    } else {
-        _audio_infos.monophonic = false;
-        settings_ck_monophonic_elem.checked = false;
-    }
     
     if (fs_settings_osc_in === "true") {
         settings_ck_osc_in_elem.checked = true;
@@ -3078,16 +3223,6 @@ var _uiInit = function () {
             }
         
             localStorage.setItem('fs-osc-out', this.checked);
-        });
-    
-    settings_ck_monophonic_elem.addEventListener("change", function () {
-            if (this.checked) {
-                _audio_infos.monophonic = true;
-            } else {
-                _audio_infos.monophonic = false;
-            }
-        
-            localStorage.setItem('fs-monophonic', this.checked);
         });
 
     settings_ck_feedback_elem.addEventListener("change", function () {
@@ -3252,7 +3387,6 @@ var _uiInit = function () {
     settings_ck_lnumbers_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_inerrors_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_xscrollbar_elem.dispatchEvent(new UIEvent('change'));
-    settings_ck_monophonic_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_feedback_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_osc_in_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_osc_out_elem.dispatchEvent(new UIEvent('change'));
@@ -3369,7 +3503,7 @@ var _uiInit = function () {
         });
     
     _fas_synth_params_dialog = WUI_Dialog.create(_fas_synth_params_dialog_id, {
-        title: "Synthesis parameters",
+        title: "Instruments parameters",
 
         width: "auto",
         height: "auto",
@@ -3532,7 +3666,7 @@ var _uiInit = function () {
     });
 
     _slices_dialog = WUI_Dialog.create(_slices_dialog_id, {
-        title: "Slices",
+        title: "Instruments",
 
         width: "280px",
         height: "auto",
@@ -3556,7 +3690,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "tutorials/slices/"); 
+                    window.open(_documentation_link + "tutorials/instruments/"); 
                 },
                 class_name: "fs-help-icon"
             }

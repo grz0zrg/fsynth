@@ -11,7 +11,7 @@ var _selected_slice_marker = null,
 
     _slice_settings_dialog_prefix = "fs_slice_settings_dialog",
 
-    _slice_update_timeout = [{}, {}, {}, {}, {}],
+    _slice_update_timeout = [{}, {}, {}, {}, {}, {}],
 
     _slice_dialog_id = 0,
     
@@ -161,11 +161,39 @@ var _updatePlayMarker = function (id, obj) {
         slice.output_channel = _parseInt10(obj.output_channel);
         
         WUI_RangeSlider.setValue("fs_slice_settings_channel_input_" + slice.id, slice.output_channel);
+
+        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: _parseInt10(id), target: 2, value: slice.output_channel - 1 });
+    }
+
+    if ('instruments_settings' in obj) {
+        if ('type' in obj.instruments_settings) {
+            slice.instrument_type = obj.instrument_settings.type;
+            _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: _parseInt10(id), target: 0, value: slice.instruments_settings.type });
+        }
+
+        if ('muted' in obj.instruments_settings) {
+            slice.instrument_muted = obj.instrument_settings.muted;
+            _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: _parseInt10(id), target: 1, value: slice.instruments_settings.muted });
+        }
+
+        if ('params' in obj.instruments_settings) {
+            for (var i = 0; i < 6; i += 1) {
+                if ("p"+i in obj.instruments_settings.params) {
+                    var v = obj.instruments_settings.params["p"+i];
+
+                    slice.instrument_params["p"+i] = v;
+
+                    _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: _parseInt10(id), target: 3 + i, value: v });
+                }
+            }
+        }
     }
 
     if ('type' in obj) {
         _changeSliceType(slice, obj.type);
     }
+
+    _createFasSettingsContent();
 };
 
 var _removePlayPositionMarker = function (marker_id, force, submit) {
@@ -211,6 +239,10 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
         _osc_infos.textContent = "";
         _poly_infos_element.textContent = "";
     }
+
+    _fasSendIntrumentsInfos();
+
+    _createFasSettingsContent();
 };
 
 var _cbMarkerSettingsChange = function (mobj, cb) {
@@ -232,7 +264,7 @@ var _buildMarkerMIDIDevices = function (marker_obj, midi_dev_list) {
 
     for (j = 0; j < marker_obj.midi_out.device_uids.length; j += 1) {
         if (!(marker_obj.midi_out.device_uids[i] in midi_devices)) {
-            _notification("Slice '" + marker_obj.id + "' MIDI out '" + i + "' device does not exist anymore, defaulted to 'none'.", 4000);
+            _notification("Instrument '" + marker_obj.id + "' MIDI out '" + i + "' device does not exist anymore, defaulted to 'none'.", 4000);
         } else {
             uids.push(marker_obj.midi_out.device_uids[i]);
         }
@@ -304,7 +336,7 @@ var _compileMarkerMIDIData = function (marker_obj) {
 };
 
 var _getSliceTitle = function (slice_obj) {
-    return "Slice '" + slice_obj.id + "' settings";
+    return "Instrument '" + slice_obj.id + "' settings";
 };
 
 var _createMarkerSettings = function (marker_obj) {
@@ -672,6 +704,8 @@ var _createMarkerSettings = function (marker_obj) {
                 slice.output_channel = _parseInt10(value);
                 
                 _submitSliceUpdate(3, marker_obj.element.dataset.slice, { output_channel: value });
+
+                _fasNotify(_FAS_INSTRUMENT_INFOS, { target: 2, instrument: marker_obj.element.dataset.slice, value: value - 1});
                 
                 slice.out_txt_div.innerHTML = slice.output_channel;
                 
@@ -767,7 +801,7 @@ var _setSlicePositionFromAbsolute = function (play_position_marker_id, x, y) {
 };
 
 var _removeAllSlices = function () {
-    _play_position_markers.forEach(function(slice_obj) {
+    _play_position_markers.slice(0).forEach(function(slice_obj) {
             _removePlayPositionMarker(slice_obj.id, true);
         });
 };
@@ -918,7 +952,7 @@ var _changeSliceType = function (slice_obj, type, submit) {
     }
 };
 
-var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_type, submit) {
+var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_type, instrument_settings, submit) {
     var slice_divs_obj = _domCreatePlayPositionMarker(_canvas, _canvas_height),
         play_position_marker_element = slice_divs_obj.slice_div,
         play_position_marker_id = _play_position_markers.length,
@@ -961,6 +995,15 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
             shift: 0,
             frame_increment: 0,
             output_channel: 1,
+            instrument_type: 0,
+            instrument_params: {
+                p0: 0,
+                p1: 0,
+                p2: 0,
+                p3: 0,
+                p4: 0
+            },
+            instrument_muted: 0,
             dialog_id: -1,
             y: 0,
             height: _canvas_height,
@@ -1007,6 +1050,36 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
     if (output_channel !== undefined) {
         play_position_marker.output_channel = output_channel;
     }
+
+    if (instrument_settings !== undefined) {
+        if ('type' in instrument_settings) {
+            play_position_marker.instrument_type = instrument_settings.type;
+        }
+        
+        if ('p0' in instrument_settings) {
+            play_position_marker.instrument_params.p0 = instrument_settings.p0;
+        }
+
+        if ('p1' in instrument_settings) {
+            play_position_marker.instrument_params.p1 = instrument_settings.p1;
+        }
+
+        if ('p2' in instrument_settings) {
+            play_position_marker.instrument_params.p2 = instrument_settings.p2;
+        }
+
+        if ('p3' in instrument_settings) {
+            play_position_marker.instrument_params.p3 = instrument_settings.p3;
+        }
+
+        if ('p4' in instrument_settings) {
+            play_position_marker.instrument_params.p4 = instrument_settings.p4;
+        }
+
+        if ('muted' in instrument_settings) {
+            play_position_marker.instrument_muted = instrument_settings.muted;
+        }
+    }
     
     _computeOutputChannels();
     
@@ -1047,4 +1120,6 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
     }
 
     _updateSliceChnVisibility();
+
+    _fasSendIntrumentsInfos();
 };

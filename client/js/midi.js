@@ -257,7 +257,7 @@ var _midiUpdateSlices = function (doc) {
         if (slice.midi_out.enabled) {
             output_name_div = doc.createElement("div");
             output_name_div.className = "fs-pjs-input";
-            output_name_div.innerHTML = "Slice " + i;
+            output_name_div.innerHTML = "Instrument " + i;
 
             if (selected_output === slice) {
                 output_name_div.classList.add("fs-midi-selected");
@@ -601,11 +601,6 @@ var _midiDataOut = function (pixels_data) {
         inv_full_brightness = 1 / 255.0;
     }
     
-    if (_audio_infos.monophonic) {
-        li = 3;
-        ri = 3;
-    }
-
     for (i = 0; i < _output_channels; i += 1) {
         buffer.push(new _synth_data_array(_canvas_height_mul4));
     }
@@ -818,7 +813,7 @@ var _onMIDIMessage = function (midi_message) {
 
 // MPE/MIDI messages (provided by mpejs)
 var _mpeMIDIMessage = function (notes) {
-    var i = 0,
+    var i = 0, j = 0,
         data, note, key, chn, d;
     
     for (i = 0; i < notes.length; i += 1) {
@@ -831,18 +826,6 @@ var _mpeMIDIMessage = function (notes) {
         if (data.noteState !== 0) {
             if (!data.frq) {
                 data.frq = _frequencyFromNoteNumber(data.noteNumber);
-            }
-            
-            if (_fasEnabled()) {
-                // re-trigger on FAS side for physical modelling / wavetable (because this type of synthesis require it)
-                if (_chn_settings[chn] !== undefined) {
-                    if ((_chn_settings[chn].osc[1] === 5 || _chn_settings[chn].osc[1] === 6) && note) {
-                        if (note.noteoff) {
-                            var osc = _hzToOscillator(data.frq, _audio_infos.base_freq, _audio_infos.octaves, _audio_infos.h);
-                            _fasNotify(_FAS_ACTION, { type: 1, note: osc, chn: chn + 1 });
-                        }
-                    }
-                }
             }
             
             if (note) { // note update / re-trigger
@@ -864,6 +847,17 @@ var _mpeMIDIMessage = function (notes) {
                     _keyboard.data[note.id + 4] = note.pitchBend;
                     _keyboard.data[note.id + 5] = note.timbre;
                     _keyboard.data[note.id + 6] = note.pressure;
+
+                    if (_fasEnabled()) {
+                        for (j = 0; j < _play_position_markers.length; j += 1) {
+                            var slice = _play_position_markers[j];
+                            // re-trigger on FAS side for physical modelling / wavetable (because this type of synthesis require it)
+                            if ((slice.instrument_type === 5 || (slice.instrument_type === 6 && slice.instrument_params.p0))) {
+                                //var osc = _hzToOscillator(data.frq, _audio_infos.base_freq, _audio_infos.octaves, _audio_infos.h);
+                                _fasNotify(_FAS_ACTION, { type: 1, note: i, instrument: j });
+                            }
+                        }
+                    }
                 } else { // note update
                     if (note.pitchBend === data.pitchBend && 
                         note.timbre === data.timbre && 

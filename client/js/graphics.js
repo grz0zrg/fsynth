@@ -460,7 +460,7 @@ var _drawSpectrum = function () {
 };
 
 var _allocateFramesData = function () {
-    var i = 0;
+    var i = 0, j = 0;
 
     _data = [];
     _prev_data = [];
@@ -470,12 +470,17 @@ var _allocateFramesData = function () {
     _prev_osc_data = [];
 
     for (i = 0; i < _output_channels; i += 1) {
-        _data.push(new _synth_data_array(_canvas_height_mul4));
-        _prev_data.push(new _synth_data_array(_canvas_height_mul4));
         _midi_data.push(new _synth_data_array(_canvas_height_mul4));
         _prev_midi_data.push(new _synth_data_array(_canvas_height_mul4));
-        _osc_data.push(new _synth_data_array(_canvas_height_mul4));
-        _prev_osc_data.push(new _synth_data_array(_canvas_height_mul4));
+    }
+
+    for (i = 0; i < _play_position_markers.length; i += 1) {
+        //for (j = 0; j < _output_channels; j += 1) {
+            _data.push(new _synth_data_array(_canvas_height_mul4));
+            _prev_data.push(new _synth_data_array(_canvas_height_mul4));
+            _osc_data.push(new _synth_data_array(_canvas_height_mul4));
+            _prev_osc_data.push(new _synth_data_array(_canvas_height_mul4));
+        //}
     }
 };
 
@@ -487,6 +492,8 @@ var _canvasRecord = function () {
         ro = 0,
         go = 1,
         bo = 2,
+
+        slice,
         
         i = 0, j = 0, o = 0, m = 1,
         
@@ -499,12 +506,29 @@ var _canvasRecord = function () {
         if (_read_pixels_format === _gl.FLOAT) {
             m = 255;
         }
-        
-        for (i = 0; i < _output_channels; i += 1) {
-            for (j = 0; j <= _canvas_height_mul4; j += 1) {
-                temp_data[j] += (_record_fn[_record_type](i,j) * m);
+
+        if (_record_type === 0 ||
+            _record_type === 1 ||
+            _record_type === 2) {
+            for (i = 0; i < _play_position_markers.length; i += 1) {
+                slice = _play_position_markers[i];
+
+                for (j = 0; j <= _canvas_height_mul4; j += 1) {
+                    temp_data[j] += (_record_slice_fn[_record_type](i,j) * m);
                 
-                temp_data[j] = Math.min(temp_data[j], 255);
+                    temp_data[j] = Math.min(temp_data[j], 255);
+                }
+            }
+        }
+        
+        // midi
+        if (_record_type === 0 || _record_type === 3) {
+            for (i = 0; i < _output_channels; i += 1) {
+                for (j = 0; j <= _canvas_height_mul4; j += 1) {
+                    temp_data[j] += (_record_fn[_record_type](i,j) * m);
+                    
+                    temp_data[j] = Math.min(temp_data[j], 255);
+                }
             }
         }
         
@@ -515,10 +539,6 @@ var _canvasRecord = function () {
             data = new Uint8ClampedArray(_canvas_height_mul4);
         }
 
-        if (_audio_infos.monophonic) {
-            ro = go = bo = 3;
-        }
-        
         for (i = 0; i < _canvas_height_mul4; i += 4) {
             o = _canvas_height_mul4 - i - 4;
 
@@ -803,18 +823,18 @@ var _frame = function (raf_time) {
             _transformData(play_position_marker, _temp_data);
 
             if (play_position_marker.audio_out) {
-                channel_data = _data[channel];
+                channel_data = _data[i];
 
                 for (j = 0; j < _canvas_height_mul4; j += 1) {
-                    channel_data[j] = channel_data[j] + _temp_data[j];
+                    channel_data[j] = /*channel_data[j] + */_temp_data[j];
                 }
             }
 
             if (play_position_marker.osc_out) {
-                channel_data = _osc_data[channel];
+                channel_data = _osc_data[i];
 
                 for (j = 0; j < _canvas_height_mul4; j += 1) {
-                    channel_data[j] = channel_data[j] + _temp_data[j];
+                    channel_data[j] = /*channel_data[j] + */_temp_data[j];
                 }
             }
 
@@ -830,17 +850,17 @@ var _frame = function (raf_time) {
             }
         }
 
-        for (i = 0; i < _output_channels; i += 1) {
+        for (i = 0; i < _play_position_markers.length; i += 1) {
             buffer.push(new _synth_data_array(_canvas_height_mul4));
         }
 
         if (_show_oscinfos) {
             var arr_infos = [];
-            for (j = 0; j < _output_channels; j += 1) {
+            for (j = 0; j < _play_position_markers.length; j += 1) {
                 var c = 0;
 
                 for (i = 0; i < _canvas_height_mul4; i += 4) {
-                    c += (_osc_data[j][i] > 0 || _osc_data[j][i + 1] > 0 || _midi_data[j][i] > 0 || _midi_data[j][i + 1] > 0 || _data[j][i] > 0 || _data[j][i + 1] > 0);
+                    c += (_osc_data[j][i] > 0 || _osc_data[j][i + 1] > 0 || /*_midi_data[j][i] > 0 || _midi_data[j][i + 1] > 0 || */_data[j][i] > 0 || _data[j][i + 1] > 0);
                 }
 
                 arr_infos.push(c);
@@ -856,19 +876,19 @@ var _frame = function (raf_time) {
             if (_osc.out) {
                 // make a copy of all channels again
                 var buffer_osc = [];
-                for (i = 0; i < _output_channels; i += 1) {
+                for (i = 0; i < _play_position_markers.length; i += 1) {
                     buffer_osc.push(new _synth_data_array(_osc_data[i]));
                 }
 
                 // and prev_data
-                for (i = 0; i < _output_channels; i += 1) {
+                for (i = 0; i < _play_position_markers.length; i += 1) {
                     buffer_osc.push(new _synth_data_array(_prev_data[i]));
                 }
 
                 _oscNotifyFast(_OSC_FRAME_DATA, buffer_osc);
 
                 if (_fas.status) {
-                    for (i = 0; i < _output_channels; i += 1) {
+                    for (i = 0; i < _play_position_markers.length; i += 1) {
                         _prev_data[i] = new _synth_data_array(_data[i]);
                     }
                 }

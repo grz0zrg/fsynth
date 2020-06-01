@@ -15,7 +15,6 @@ var _audio_context = new window.AudioContext(),
             base_freq: 0,
             octaves: 0,
             gain: _volume,
-            monophonic: false,
             float_data: false
         },
         

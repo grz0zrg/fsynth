@@ -23,7 +23,8 @@ var _fas = false,
     _FAS_CHN_INFOS = 5,
     _FAS_CHN_FX_INFOS = 6,
     _FAS_ACTION = 7,
-    
+    _FAS_INSTRUMENT_INFOS = 8,
+
     _FAS_ACTION_RELOAD = 0,
     _FAS_ACTION_RETRIGGER = 1,
     _FAS_ACTION_FAUST_GENS_RELOAD = 2,
@@ -141,7 +142,7 @@ var _sendAction = function (action) {
 
         uint8_view[0] = 5;
         uint8_view[1] = action.type;
-        uint32_view[0] = action.chn;
+        uint32_view[0] = action.instrument;
         uint32_view[1] = action.note;
     }
     
@@ -165,6 +166,35 @@ var _doChnInfos = function (_doChnInfos) {
         _fas_chn_settings_queue.splice(i, 1);
 
         _sendChnInfos(queue[i]);
+    }
+};
+
+var _sendInstrInfos = function (instr_infos) {
+    if (!_fas) {
+        return;
+    }
+
+    if (_fas_ws.readyState !== 1) {
+        //_fas_chn_settings_queue.push(chn_infos);
+
+        setTimeout(_sendInstrInfos, 1000, instr_infos);
+        return;
+    }
+
+    var buffer = new ArrayBuffer(8 + 8 + 8);
+    var uint8_view = new Uint8Array(buffer, 0, 1);
+    var uint32_view = new Uint32Array(buffer, 8, 2);
+    var float64_view = new Float64Array(buffer, 16, 1);
+
+    uint8_view[0] = 6;
+    uint32_view[0] = instr_infos.instrument;
+    uint32_view[1] = instr_infos.target;
+    float64_view[0] = instr_infos.value;
+
+    try {
+        _fas_ws.send(buffer);
+    } finally {
+
     }
 };
 
@@ -227,7 +257,7 @@ var _sendChnFxInfos = function (chn_fx_infos) {
     }
 };
 
-var _sendFrame = function (frame, mono, float) {
+var _sendFrame = function (frame, float) {
     if (_fas_ws.readyState !== 1) {
         return;
     }
@@ -249,12 +279,11 @@ var _sendFrame = function (frame, mono, float) {
     
     fas_data = new ArrayBuffer(data_length);
     uint8_view = new Uint8Array(fas_data, 0, 1);
-    uint32_view = new Uint32Array(fas_data, 8, 2);
+    uint32_view = new Uint32Array(fas_data, 8, 1);
     i = 0;
     
     uint8_view[0] = 1; // packet id
     uint32_view[0] = frame.length;
-    uint32_view[1] = mono === true ? 1 : 0;
 
     if (float) {
         for (i = 0; i < frame.length; i += 1) {
@@ -302,11 +331,13 @@ var _connect = function (opts) {
         };
     
     _fas_ws.onmessage = function (event) {
-            var stream_load = new Int32Array(event.data);
-            postMessage({
-                    status: "streamload",
-                    load: stream_load
-                });
+            var data = new Int32Array(event.data);
+            if (data[0] === 0) {
+                postMessage({
+                        status: "streamload",
+                        load: data[1]
+                    });
+            }
         };
 
     _fas_ws.onclose = function (event) {
@@ -342,12 +373,14 @@ self.onmessage = function (m) {
     } else if (cmd === _FAS_GAIN_INFOS) {
         _sendGain(arg);
     } else if (cmd === _FAS_FRAME) {
-        _sendFrame(arg, data.mono, data.float);
+        _sendFrame(arg, data.float);
     } else if (cmd === _FAS_CHN_INFOS) {
         _sendChnInfos(arg);
     } else if (cmd === _FAS_CHN_FX_INFOS) {
         _sendChnFxInfos(arg);
     } else if (cmd === _FAS_ACTION) {
         _sendAction(arg);
+    } else if (cmd === _FAS_INSTRUMENT_INFOS) {
+        _sendInstrInfos(arg);
     }
 };

@@ -212,6 +212,10 @@ var _loadEditorsMarks = function (editor) {
 
                 var code_editor = _code_editors[i];
 
+                if (!code_editor.marks) {
+                    continue;
+                }
+
                 code_editor.marks = [];
 
                 var j = 0;

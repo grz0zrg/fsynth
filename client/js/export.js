@@ -21,7 +21,6 @@ var _exportRecord = function () {
         
         opts = {
             float: _audio_infos.float_data,
-            mono: _audio_infos.monophonic,
             ffreq: 0,
             sps: _fps,
             octaves: _audio_infos.octaves,
@@ -29,14 +28,14 @@ var _exportRecord = function () {
             flipY: false
         };
     
-    sonogram_left_boundary = _getSonogramBoundary(image_data.data, _record_canvas.width, _record_canvas.height, opts.mono);
-    sonogram_right_boundary = _getSonogramBoundary(image_data.data, _record_canvas.width, _record_canvas.height, opts.mono, true);
+    sonogram_left_boundary = _getSonogramBoundary(image_data.data, _record_canvas.width, _record_canvas.height);
+    sonogram_right_boundary = _getSonogramBoundary(image_data.data, _record_canvas.width, _record_canvas.height, true);
 
     if (sonogram_left_boundary != -1 && sonogram_right_boundary != 1 && sonogram_left_boundary != sonogram_right_boundary) {
         image_data = _record_canvas_ctx.getImageData(sonogram_left_boundary, 0, sonogram_right_boundary - sonogram_left_boundary, _record_canvas.height);
     }
     
-    opts.ffreq = _getFundamentalFrequency(image_data.data, image_data.width, image_data.height, opts.mono);
+    opts.ffreq = _getFundamentalFrequency(image_data.data, image_data.width, image_data.height);
     
     _notification("image conversion in progress...");
     

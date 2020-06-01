@@ -20,7 +20,8 @@ var _fas = {
     _FAS_FRAME = 4,
     _FAS_CHN_INFOS = 5,
     _FAS_CHN_FX_INFOS = 6,
-    _FAS_ACTION = 7;
+    _FAS_ACTION = 7,
+    _FAS_INSTRUMENT_INFOS = 8;
 
 /***********************************************************
     Functions.
@@ -44,7 +45,6 @@ var _fasNotifyFast = function (cmd, data) {
     _fas.worker.postMessage({
             cmd: cmd,
             arg: output_data_buffer,
-            mono: _audio_infos.monophonic,
             float: _audio_infos.float_data
         }, output_data_buffer);
 };
@@ -58,7 +58,7 @@ var _fasPause = function () {
         
         i = 0;
     
-    for (i = 0; i < _output_channels; i += 1) {
+    for (i = 0; i < _play_position_markers.length; i += 1) {
         data.push(new _synth_data_array(_canvas_height_mul4));
     }
     
@@ -103,7 +103,24 @@ var _fasStatus = function (status) {
     }
     
     _fas.status = status;
-}
+};
+
+var _fasSendIntrumentsInfos = function () {
+    var i = 0;
+    for (i = 0; i < _play_position_markers.length; i += 1) {
+        var slice = _play_position_markers[i];
+        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 0, value: slice.instrument_type });
+        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 1, value: slice.instrument_muted });
+        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 2, value: slice.output_channel - 1 });
+
+        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 3, value: slice.instrument_params.p0 });
+        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 4, value: slice.instrument_params.p1 });
+        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 5, value: slice.instrument_params.p2 });
+        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 6, value: slice.instrument_params.p3 });
+        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 7, value: slice.instrument_params.p4 });
+    }
+    _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: _play_position_markers.length, target: 0, value: 15 }); // FAS_VOID
+};
 
 /***********************************************************
     Init.
@@ -134,10 +151,13 @@ var _fasInit = function () {
 
                 var i = 0, j = 0, k = 0;
                 for (i = 0; i < _chn_settings.length; i += 1) {
+                    _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: i, value: _chn_settings[i].muted });
+                    /*
                     for (j = 0; j < _chn_settings[i].osc.length; j += 2) {
                         var value = _chn_settings[i].osc[j + 1];
                         _fasNotify(_FAS_CHN_INFOS, { target: _chn_settings[i].osc[j], chn: i, value: value });
                     }
+                    */
 
                     var slot_index = 0;
                     for (j = 0; j < _chn_settings[i].efx.length; j += 3) {
@@ -153,6 +173,8 @@ var _fasInit = function () {
                     }
                     _fasNotify(_FAS_CHN_FX_INFOS, { chn: i, slot: slot_index, target: 0, value: -1 });
                 }
+
+                _fasSendIntrumentsInfos();
             } else if (data.status === "streamload") {
                 _fas_stream_load.textContent = data.load + "%";
             } else if (data.status === "error") {

@@ -25,19 +25,18 @@
  *    Note : this will connect from 192.168.0.40 to 192.168.0.48 on ports 3003 to 3006 for each address
  * 
  *  All options can be used with each other, weight option apply to each ip:port of the servers list even with ip/port range (in this case the range weight is the one of the starting addr/port).
+ *
+ * Note : All instruments which use inputs are sent to all instances, this can affect performances when using alot of instruments which use inputs.
  */
 
 const SYNTH_SETTINGS = 0,
       FRAME_DATA = 1,
       GAIN_CHANGE = 2,
-      CHN_SETTINGS = 3;
+      CHN_SETTINGS = 3,
+      INSTRUMENT_SETTINGS = 6;
 
-// distribution methods of pixels value, see simulation.html to watch and interact with all those algorithms
-const DSPLIT = 0, // split the slices in equals chunks for each servers, this is a naive algorithm
-      // interleaved processing
-      // this will distribute data over each servers in a linear & cyclical fashion, it has very good performances
-      DINTER = 1,
-      // smart distribution of load over each servers
+// distribution methods of pixels value, see simulation.html
+const // smart distribution of load over each servers
       // this is the best algorithm, it distribute data equally to all servers, work with distribution weights
       DSMART = 2;
 
@@ -113,11 +112,7 @@ if ("h" in args) {
     process.exit();
 }
 
-if (distribution_method === DSPLIT) {
-    logger.log("info", "Distribution algorithm: DSPLIT");
-} else if (distribution_method === DINTER) {
-    logger.log("info", "Distribution algorithm: DINTER");
-} else if (distribution_method === DSMART) {
+if (distribution_method === DSMART) {
     logger.log("info", "Distribution algorithm: DSMART");
 }
 
@@ -144,7 +139,7 @@ function websocketConnect() {
             smart_piarr = null,
             fas_arr = null,
             frame_length = null,
-            channels = [];
+            instruments = [];
 
         socket.on("message", function incoming(data) {
             var uint8_view,
@@ -155,7 +150,6 @@ function websocketConnect() {
                 frame_data,
                 data_length_per_fas,
                 start = 0,
-                mono,
                 end,
                 index,
                 instance = 0,
@@ -184,13 +178,31 @@ function websocketConnect() {
                         frame_array_type = Uint8Array;
                         frame_data_comp = 1;
                     }
+                } else if (uint8_view[0] === INSTRUMENT_SETTINGS) {
+                    uint8_view = new Uint8Array(data, 0, 1);
+                    uint32_view = new Uint32Array(data, 8, 2);
+                    var float64_view = new Float64Array(data, 16, 1);
+
+                    var instrument_index = uint32_view[0];
+                    if (!instruments[instrument_index]) {
+                        instruments[instrument_index] = {
+                            type: 15,
+                            p3: -1
+                        };
+                    }
+                    
+                    if (uint32_view[1] === 0) { // target
+                        instruments[instrument_index].type = float64_view[0];
+                    } else if (uint32_view[1] === 5) {
+                        instruments[instrument_index].p3 = float64_view[0];
+                    }
                 }
                 
                 for (i = 0; i < fas_wss_count; i += 1) {
                     fas_wss[i].socket.send(data, sendError);
                 }
             } else {
-                uint32_view = new Uint32Array(data, 8, 2);
+                uint32_view = new Uint32Array(data, 8, 1);
 
                 if (frame_length !== uint32_view[0]) {
                     pframes = null;
@@ -198,8 +210,7 @@ function websocketConnect() {
                     fas_arr = null;
                 }
 
-                frame_length = uint32_view[0]; // channels in the frame
-                mono = uint32_view[1];
+                frame_length = uint32_view[0]; // instruments in the frame
                 data_length_per_fas = Math.round((data_length / fas_wss_count) * 4);
 
                 data_view = new frame_array_type(data, 16);
@@ -210,45 +221,7 @@ function websocketConnect() {
                     }
                 } else {
                     // split pixels data and distribute it to FAS instances over the wire
-                    if (distribution_method === DSPLIT) {
-                        for (i = 0; i < fas_wss_count; i += 1) {
-                            ws_obj = fas_wss[i];
-
-                            ws_obj.data = data.slice(0);
-
-                            frame_data = new frame_array_type(ws_obj.data, 16);
-
-                            for (j = 0; j < frame_length; j += 1) {
-                                start = data_length_rgba * j + fi;
-                                end = start + data_length_per_fas;
-
-                                for (k = start; k < end; k += 1) {
-                                    frame_data[k] = data_view[k];
-                                }
-                            }
-
-                            ws_obj.socket.send(ws_obj.data, sendError);
-
-                            fi += data_length_per_fas;
-                        }
-                    } else if (distribution_method === DINTER) {
-                        for (i = 0; i < fas_wss_count; i += 1) {
-                            ws_obj = fas_wss[i];
-
-                            ws_obj.data = data.slice(0);
-
-                            frame_data = new frame_array_type(ws_obj.data, 16);
-
-                            for (j = (i * 4); j < frame_data.length; j += (fas_wss_count * 4)) {
-                                frame_data[j] = data_view[j];
-                                frame_data[j + 1] = data_view[j + 1];
-                                frame_data[j + 2] = data_view[j + 2];
-                                frame_data[j + 3] = data_view[j + 3];
-                            }
-
-                            ws_obj.socket.send(ws_obj.data, sendError);
-                        }
-                    } else if (distribution_method === DSMART) {
+                    if (distribution_method === DSMART) {
                         if (pframes === null) {
                             pframes = new frame_array_type(new frame_array_type(data.slice(0), 16).length);
                             pframes.fill(0);
@@ -268,33 +241,100 @@ function websocketConnect() {
                         }
 
                         for (j = 0; j < frame_length; j += 1) {
-                            for (k = 0; k < data_length_rgba; k += 4) {
-                                index = k + j * data_length_rgba;
+                            var instrument_type = instruments[j].type;
+                            var instrument_p3 = instruments[j].p3;
+                            // instruments which use a source channel / instrument are sent to all instances
+                            // TODO: could probably be optimized...
+                            // TODO: Faust instruments with inputs are not handled at all which may cause strange behaviors (we need a way to detect them)
+                            if (instruments[j] && (
+                                    (instrument_type === 1 && instrument_p3 === 0) || // spectral & factor mode
+                                    instrument_type === 7  ||
+                                    instrument_type === 8  ||
+                                    instrument_type === 9  ||
+                                    instrument_type === 10 ||
+                                    instrument_type === 11 ||
+                                    instrument_type === 12)) {
+                                    //instrument_type === 14) { // remove this to handle Faust instruments with input, downside is Faust with no inputs will be handled additively on all instances...
+                                for (k = 0; k < data_length_rgba; k += 4) {
+                                    index = k + j * data_length_rgba;
 
-                                r = data_view[index];
-                                g = data_view[index + 1];
-                                b = data_view[index + 2];
-                                a = data_view[index + 3];
+                                    r = data_view[index];
+                                    g = data_view[index + 1];
+                                    b = data_view[index + 2];
+                                    a = data_view[index + 3];
 
-                                pr = pframes[index];
-                                pg = pframes[index + 1];
+                                    pr = pframes[index];
+                                    pg = pframes[index + 1];
 
-                                if (r > 0 || g > 0) {
-                                    if (pr > 0 || pg > 0) {
-                                        var pii = smart_piarr[index / 4];
-                                        var f = fas_arr[pii];
-
-                                        f.data_view[index]     = r;
-                                        f.data_view[index + 1] = g;
-                                        f.data_view[index + 2] = b;
-                                        f.data_view[index + 3] = a;
-                                    } else {
+                                    if (r > 0 || g > 0) {
                                         for (i = 0; i < fas_wss_count; i += 1) {
                                             var fa = fas_arr[i];
-                                            var fa2 = fas_arr[i + 1];
 
-                                            if (fa2) {
-                                                if (fa.count < fa2.count) {
+                                            fa.data_view[index]     = r;
+                                            fa.data_view[index + 1] = g;
+                                            fa.data_view[index + 2] = b;
+                                            fa.data_view[index + 3] = a;
+                                        }
+                                    } else {
+                                        if (pr > 0 || pg > 0) {
+                                            for (i = 0; i < fas_wss_count; i += 1) {
+                                                var fa = fas_arr[i];
+
+                                                fa.data_view[index]     = 0;
+                                                fa.data_view[index + 1] = 0;
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                for (k = 0; k < data_length_rgba; k += 4) {
+                                    index = k + j * data_length_rgba;
+
+                                    r = data_view[index];
+                                    g = data_view[index + 1];
+                                    b = data_view[index + 2];
+                                    a = data_view[index + 3];
+
+                                    pr = pframes[index];
+                                    pg = pframes[index + 1];
+
+                                    if (r > 0 || g > 0) {
+                                        if (pr > 0 || pg > 0) {
+                                            var pii = smart_piarr[index / 4];
+                                            var f = fas_arr[pii];
+
+                                            f.data_view[index]     = r;
+                                            f.data_view[index + 1] = g;
+                                            f.data_view[index + 2] = b;
+                                            f.data_view[index + 3] = a;
+                                        } else {
+                                            for (i = 0; i < fas_wss_count; i += 1) {
+                                                var fa = fas_arr[i];
+                                                var fa2 = fas_arr[i + 1];
+
+                                                if (fa2) {
+                                                    if (fa.count < fa2.count) {
+                                                        fa.data_view[index]     = r;
+                                                        fa.data_view[index + 1] = g;
+                                                        fa.data_view[index + 2] = b;
+                                                        fa.data_view[index + 3] = a;
+                                                        fa.count += fas_weight[i];
+
+                                                        smart_piarr[index / 4] = i;
+
+                                                        break;
+                                                    } else if (fa.count > fa2.count) {
+                                                        fa2.data_view[index]     = r;
+                                                        fa2.data_view[index + 1] = g;
+                                                        fa2.data_view[index + 2] = b;
+                                                        fa2.data_view[index + 3] = a;
+                                                        fa2.count += fas_weight[i + 1];
+
+                                                        smart_piarr[index / 4] = i + 1;
+
+                                                        break;
+                                                    }
+                                                } else {
                                                     fa.data_view[index]     = r;
                                                     fa.data_view[index + 1] = g;
                                                     fa.data_view[index + 2] = b;
@@ -304,38 +344,18 @@ function websocketConnect() {
                                                     smart_piarr[index / 4] = i;
 
                                                     break;
-                                                } else if (fa.count > fa2.count) {
-                                                    fa2.data_view[index]     = r;
-                                                    fa2.data_view[index + 1] = g;
-                                                    fa2.data_view[index + 2] = b;
-                                                    fa2.data_view[index + 3] = a;
-                                                    fa2.count += fas_weight[i + 1];
-
-                                                    smart_piarr[index / 4] = i + 1;
-
-                                                    break;
                                                 }
-                                            } else {
-                                                fa.data_view[index]     = r;
-                                                fa.data_view[index + 1] = g;
-                                                fa.data_view[index + 2] = b;
-                                                fa.data_view[index + 3] = a;
-                                                fa.count += fas_weight[i];
-
-                                                smart_piarr[index / 4] = i;
-
-                                                break;
                                             }
                                         }
-                                    }
-                                } else {
-                                    if (pr > 0 || pg > 0) {
-                                        var pii = smart_piarr[index / 4];
-                                        var f = fas_arr[pii];
+                                    } else {
+                                        if (pr > 0 || pg > 0) {
+                                            var pii = smart_piarr[index / 4];
+                                            var f = fas_arr[pii];
 
-                                        f.data_view[index]     = 0;
-                                        f.data_view[index + 1] = 0;
-                                        f.count -= fas_weight[pii];
+                                            f.data_view[index]     = 0;
+                                            f.data_view[index + 1] = 0;
+                                            f.count -= fas_weight[pii];
+                                        }
                                     }
                                 }
                             }
@@ -346,11 +366,10 @@ function websocketConnect() {
 
                             var fas_data = fas_arr[i].data;
                             var v1 = new Uint8Array(fas_data, 0, 1);
-                            var v2 = new Uint32Array(fas_data, 8, 2);
+                            var v2 = new Uint32Array(fas_data, 8, 1);
 
                             v1[0] = uint8_view;
                             v2[0] = frame_length;
-                            v2[1] = mono;
 
                             ws_obj.socket.send(fas_data, sendError);
                         }
@@ -398,15 +417,17 @@ function onFASClose(fas_obj) {
 
 function onFASMessage(i) {
     return function msg(message) {
-        var stream_load = new Int32Array(message);
+        var data = new Int32Array(message);
 
-        fas_loads[i] = stream_load[0];
+        if (data[0] === 0) {
+            fas_loads[i] = data[1];
 
-        if (fas_loads[i] <= 0) {
-          return;
+            if (fas_loads[i] <= 0) {
+                return;
+            }
+
+            logger.log("info", "Server %s stream load: %s.", i, data[1] + "%");
         }
-
-        logger.log("info", "Server %s stream load: %s.", i, stream_load[0] + "%");
     };
 }
 
@@ -438,10 +459,11 @@ function printOverallLoad() {
 
     logger.log("info", "Overall stream load: %s.", l + "%");
 
-    var load_buffer = new ArrayBuffer(4),
+    var load_buffer = new ArrayBuffer(8),
         int32_view = new Int32Array(load_buffer, 0);
 
-    int32_view[0] = l;
+    int32_view[0] = 0;
+    int32_view[1] = l;
 
     try {
       client_socket.send(load_buffer, sendError);

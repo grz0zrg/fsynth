@@ -44,12 +44,7 @@ self.onmessage = function (m) {
     }
     
     dlen = data.length;
-    
-    if (w.options.mono) {
-        li = 3;
-        ri = 3;
-    }
-    
+
     if (w.options.flipY) {
         offset_y = -(score_height - 1);
     }

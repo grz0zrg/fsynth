@@ -44,7 +44,6 @@ var _oscNotifyFast = function (cmd, data) {
     _osc.worker.postMessage({
             cmd: cmd,
             arg: output_data_buffer,
-            mono: _audio_infos.monophonic,
             float: _audio_infos.float_data,
             base_frequency: _audio_infos.base_freq,
             octave_length: _audio_infos.h / _audio_infos.octaves,

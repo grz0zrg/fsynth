@@ -1,24 +1,16 @@
 [![Fragment](https://www.fsynth.com/data/fs_screenshot_logo.png)](https://www.fsynth.com)
 
-# [Fragment - The Collaborative Spectral Synthesizer](https://www.fsynth.com)
+# [Fragment - The Collaborative Graphical Audio Synthesizer](https://www.fsynth.com)
 
 Source code repository for the Fragment app. which can be found at : https://www.fsynth.com
 
 Table of Contents
 =================
 
-   * [<a href="https://www.fsynth.com">Fragment - The Collaborative Spectral Synthesizer</a>](#fragment---the-collaborative-spectral-synthesizer)
+   * [<a href="https://www.fsynth.com">Fragment - The Collaborative Graphical Audio Synthesizer</a>](#fragment---the-collaborative-graphical-audio-synthesizer)
       * [About Fragment](#about-fragment)
       * [Requirement](#requirement)
       * [Features](#features)
-         * [Sound Synthesis](#sound-synthesis)
-            * [Additive Synthesis](#additive-synthesis)
-            * [Granular Synthesis (<a href="https://github.com/grz0zrg/fas">FAS only)</a>](#granular-synthesis-fas-only)
-            * [Sampler (<a href="https://github.com/grz0zrg/fas">FAS only)</a>](#sampler-fas-only)
-            * [PM (<a href="https://github.com/grz0zrg/fas">FAS only)</a>](#pm-fas-only)
-            * [Subtractive (<a href="https://github.com/grz0zrg/fas">FAS only)</a>](#subtractive-fas-only)
-            * [Wavetable synthesis WIP (<a href="https://github.com/grz0zrg/fas">FAS only)</a>](#wavetable-synthesis-fas-only)
-            * [Physical modelling (<a href="https://github.com/grz0zrg/fas">FAS only)</a>](#Physical-modelling-synthesis-fas-only)
       * [MIDI Features](#midi)
       * [OSC](#osc)
       * [Tools](#tools)
@@ -36,67 +28,44 @@ Table of Contents
 
 ## About Fragment
 
-Fragment is a graphical audio synth. / collaborative audiovisual live coding web. environment with pixels based (image-synth) live sound synthesis, the **sound synthesis** is **powered by pixels data** generated from live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) and [Processing.js](http://processingjs.org/) code with many different types of input data.
+Fragment is a graphical audio synth. / collaborative audiovisual live coding web. environment with pixels based (image-synth) real-time sound synthesis, the **sound synthesis** is **powered by pixels data** generated from live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) and [Processing.js](http://processingjs.org/) code with many different types of input data available.
 
 Many videos of most features are available on [YouTube](https://www.youtube.com/c/FragmentSynthesizer)
 
-Fragment has only one fragment shader which has the particularity to be shared between the users of an online session, it update and compile on-the-fly as you or other peoples type, some settings are also synchronized between users such as slices and some global settings.
+Fragment has only one fragment shader which has the particularity to be shared between the users of an online session, it update and compile on-the-fly as you or other peoples type, some settings are also synchronized between users such as slices and some global settings with the exception of inputs data which are not synchronized between users.
 
 Fragment has many features making it a bliss to produce any kind of sounds associated (or not) with visuals, it is aimed at artists seeking a creative environment with few limitations to experiment with, a programmable noise-of-all-kinds software.
 
-Fragment can work as a standalone or as a client for the [Fragment Audio Server](https://github.com/grz0zrg/fas) which extend its possibilities to a pro quality level.
+To output any sounds the client need to be used with the [Fragment Audio Server](https://github.com/grz0zrg/fas) which is a high performance native digital synthesizer.
 
-With WebGL 2 capable web browser, audio can be produced independently from the visuals with the *synthOutput* **vec4** uniform, with WebGL 1 you can use the default pixels output (**gl_FragColor** or **fragColor**) to produce sounds and visuals, use the monophonic mode if you want independent audio & visuals with WebGL 1.
+With WebGL 2 capable web browser, audio can be produced independently from the visuals with the *synthOutput* **vec4** uniform, this is not the case with WebGL 1 as there is only one output for both visuals and sounds. (**gl_FragColor** or **fragColor**)
 
 For any questions, a message board is available [here](https://quiet.fsynth.com/)
 
-You can support this project through [Patreon](https://www.patreon.com/fsynth)
-
 ## Requirement
 
-- Recent web browser such as Chrome, Opera, Safari or Firefox (MIDI is not supported by Firefox at the moment)
+- Web browser such as Chrome, Opera, Safari or Firefox (MIDI is not supported by Firefox at the moment)
 - Mid-range GPU, this app. was made and tested with a GeForce GTX 970
-- Mid-range multi-core CPU (a dual core should be ok with FAS sound server, a beefy CPU is needed if you use more than one output channel)
+- Mid-range multi-core CPU (a beefy CPU is needed if you use many instruments)
 - Not necessary but a MIDI device such as a MIDI keyboard is recommended
 
-**Note on performances :** Fragment has excellent performances with a modern multi-core system and a browser such as Chrome, if you experience crackles or need advanced audio features, it is recommended that you use the sound server and the independent code editor, the things that may cause poor performances is due to the browser reflow (UI side)
+**Note on performances :** Fragment has excellent performances with a modern multi-core system and a browser such as Chrome however due to browser UI reflow you may experience sometimes some latency especially when typing in the code editor, this can be solved by using the independent code editor.
 
-Fragment is also able to do real-time distributed sound synthesis with the sound server, it support any number of machines over the wire and multicore support, this feature also need the fas_relay to work (see below)
+Fragment is able to do real-time distributed sound synthesis with its audio server, it support any number of machines over the wire and multicore support, this feature also need the fas_relay to work (see below)
 
 ## Features
 
-- Standalone additive synthesis powered by WebAudio oscillators / AudioWorklet (work best in Chrome, limited to one stereo output channel)
-- Client for fast & powerful [C native graphical synth. server](https://github.com/grz0zrg/fas) which has a versatile sound engine :
-  - additive / spectral synthesis with per partial effect (bitcrush, phase distorsion, waveshaping, fold, convolve etc.)
-  - spectral (modify or synthesizer sounds)
-  - phase modulation (PM/FM)
-  - granular
-  - subtractive synthesis
-  - physical modelling (Karplus-strong, droplet)
-  - wavetable
-  - formant synthesis (formant filter bank)
-  - string resonator (complex filter bank similar to Karplus-Strong)
-  - modal synthesis (resonant filter bank)
-  - second-order band-pass Butterworth filter (bandpass filter bank)
-  - phase distorsion
-  - unlimited input channels / output channels
-  - effect slots (reverb, convolution, comb, delay, chorus, flanger...)
-  - distributed sound synthesis, multi-machines/multi-core support (with fas_relay)
+- Sound synthesis powered by a fast & powerful [C native audio server](https://github.com/grz0zrg/fas) which has a very versatile high quality stereophonic / polyphonic / multitimbral sound engine with distributed sound synthesis, multi-machines/multi-core support (with fas_relay)
 - Live coding/JIT compilation of shader code
 - Real-time, collaborative app.
-- Stereophonic or monaural
-- Polyphonic
-- Multitimbral
 - MIDI IN/OUT support with [Web MIDI](https://caniuse.com/#feat=midi) compatible web browsers, MPE supported
-- Adjustable audio output channel per slices
-- Real-time frames by frames recording with export as an image or Fragment input (export back into itself, this can be used to build complex brushes for drawing canvas inputs)
-- .wav export (without FAS : additive synthesis only)
+- Multiple positional MIDI / OSC / AUDIO instruments with configurable output channel and more
+- Real-time frames by frames recording with export as an image or as a .wav (additive synthesis only) or Fragment input (export back into itself, this can be used to build complex brushes for drawing canvas inputs)
 - WebGL 2.0 and GLSL 3.0 support when compatibility is detected
-- RGBA Live visuals with stereophonic sound generation (WebGL 2.0) or monophonic sound generation (WebGL 1)
+- RGBA Live visuals with stereophonic sound generation
 - Synthesis data processed in 32-bit precision (WebGL 2.0 & EXT_color_buffer_float extension) or 8-bit precision
-- Slices can be added/deleted anywhere on the canvas without limits, move left or right automatically and have independent pitch offset
 - Feedback via framebuffer (for fx like reverb, delay, spectral distortion etc)
-- OSC in/out support (a [SuperCollider](http://supercollider.github.io/) port of the additive synthesis engine use this)
+- OSC in/out support (there is a crude [SuperCollider](http://supercollider.github.io/) port of the additive synthesis engine)
 - Shader inputs:
   - Webcam (no audio support)
   - Images
@@ -106,7 +75,6 @@ Fragment is also able to do real-time distributed sound synthesis with the sound
   - Drawing canvas with drawing and compositing operations which use images Fragment input as brushes, Fragment is bundled with 20 high-quality brushes, a pack of 969 high-quality brushes is also available as a [separate download](https://www.fsynth.com/data/969_png_brushes_pack.7z)
   - [Processing.js](http://processingjs.org/) sketchs
 - Uniform controllers via OSC [Open Stage Control is recommended](http://osc.ammd.net)
-- Per-sessions discussion system
 - No authentifications needed, anonymous (make use of *localStorage* and is *sessions* based)
 
 ### Sound Synthesis
@@ -117,144 +85,11 @@ Common to all synthesis methods, the canvas represent frequencies (exponential m
 
 It can be seen as a front-end for a huge bank of oscillators / filters.
 
-The [Fragment audio server](https://github.com/grz0zrg/fas) is necessary for very fast sound synthesis and other features such as different output channels per slices.
+Audio synthesis is powered by an independent [audio server](https://github.com/grz0zrg/fas), Fragment doesn't output any real-time sounds on its own.
 
-With the web browser, Fragment is limited to additive synthesis and two output channels, external synthesizers can be triggered via MIDI out.
+External synthesizers can be triggered via MIDI out.
 
-Slices data can be sent via OSC bundles to extend the possibilities of this synthesizer.
-
-#### Additive Synthesis
-
-Fragment default sound synthesis is additive, with additive synthesis, Fragment become a fully capable spectral synthesizer able to do re-synthesis based on imported videos or audio files, an image-synth where any number of partials can be played, there is no limits except the canvas height and the computing resources available.
-
-With additive synthesis and stereo mode, the Red channel is the left oscillator amplitude and the Green channel is the right oscillator amplitude.
-
-In monophonic mode, the alpha value is used for both L&R oscillator amplitude so that RGB is available for visuals. This is usefull when the browser does not support WebGL 2 or to improve performance.
-
-With [FAS](https://github.com/grz0zrg/fas) (Fragment Audio Server), the Blue channel value may be used to add per partial effects which may add characters. (Alpha channel may be used to change effect parameters)
-
-#### Granular Synthesis ([FAS](https://github.com/grz0zrg/fas) only)
-
-FAS load all samples in a "grains" folder and try to guess their pitch to map it on the canvas so that it match the canvas freq. mapping.
-
-Fragment let you manipulate granular synthesis parameters, there is two type of parameters, channels based and dynamic parameters from the fragment shader output.
-
-Channels based parameters :
-
-- Granular envelope
-  - sine
-  - hann
-  - hamming
-  - tukey
-  - gaussian
-  - confined gaussian
-  - trapezoidal
-  - blackman
-  - blackman harris
-  - parzen
-  - nutall
-  - flattop
-  - kaiser
-- Minimum grain length (ms)
-- Maximum grain length (ms)
-
-Dynamics parameters
-
-- Red = Left amplitude
-- Green = Right amplitude
-- Blue = Sample index bounded to [0, 1] (cyclic) and grains density when > 2
-- Alpha = Grains start index bounded [0, 1] (cyclic), grains start index random 
-  [0, 1] factor when > 1, play the grain backward when negative
-
-#### Sampler ([FAS](https://github.com/grz0zrg/fas) only)
-
-Granular synthesis with grain start index of 0 and min/max duration of the sample duration can be used to trigger samples as-is like a regular sampler.
-
-#### PM ([FAS](https://github.com/grz0zrg/fas) only)
-
-Phase modulation (PM) is a mean to generate sounds by modulating the phase of an oscillator (carrier) from another oscillator (modulator), it is very similar to frequency modulation (FM).
-
-PM synthesis in Fragment work by giving an oscillator index (based on image-height) to the note, this oscillator will be used as a modulator.
-
-No filtering is applied.
-
-Dynamics parameters
-
-- Red = Amplitude value of the LEFT channel
-- Green = Amplitude value of the RIGHT channel
-- Blue = Fractionnal part : Modulator amplitude
-- Alpha = Modulator frequency
-
-#### Subtractive ([FAS](https://github.com/grz0zrg/fas) only)
-
-Subtractive synthesis start from harmonically rich waveforms which are then filtered.
-
-It is fast, can use additive synthesized waveforms or Poly BLEP anti-aliased waveforms and many filters are available: moog, diode, korg 35, lpf18...
-
-There is three type of band-limited waveforms : sawtooth, square, triangle
-
-There is also a noise waveform with PolyBLEP and additional brownian / pink noise waveform
-
-**Note** : The waveforms are constitued of a maximum of 128 partials with additive synthesis
-
-Dynamics parameters
-
-- Red = Amplitude value of the LEFT channel
-- Green = Amplitude value of the RIGHT channel
-- Blue = filter cutoff multiplier; the cutoff is set to the fundamental frequency, 1.0 = cutoff at fundamental frequency
-- Alpha = filter resonance [0, 1] & waveform selection on integral part (0.x, 1.x, 2.x etc)
-
-#### Wavetable synthesis ([FAS](https://github.com/grz0zrg/fas) only, WIP)
-
-Wavetable synthesis is a sound synthesis technique that employs arbitrary periodic waveforms in the production of musical tones or notes.
-
-Wavetable synthesis use single cycle waveforms / samples loaded from the grains folder.
-
-The wavetable can be switched with the alpha channel (integral part), a linear interpolation will happen between current & next wavetable upon switch.
-
-Wavetable synthesis is fast.
-
-There is only one high quality low-pass filter (Moog type) implemented.
-
-Dynamics parameters
-
-- Red = Amplitude value of the LEFT channel
-- Green = Amplitude value of the RIGHT channel
-- Blue = Filter cutoff parameter
-- Alpha = Filter resonance [0, 1] & wavetable selection on integral part (0.x, 1.x, 2.x etc)
-
-#### Physical modelling synthesis ([FAS](https://github.com/grz0zrg/fas) only)
-
-Physical modelling synthesis refers to sound synthesis methods in which the waveform of the sound to be generated is computed using a mathematical model, a set of equations and algorithms to simulate a physical source of sound, usually a musical instrument.
-
-Physical modelling in Fragment use Karplus-Strong string synthesis, there is also a droplet model.
-
-Karplus-Strong is a fast method which generate pleasant string-like sounds.
-
-Dynamics parameters
-
-- Red = Amplitude value of the LEFT channel
-- Green = Amplitude value of the RIGHT channel
-- Blue = Noise wavetable cutoff lp filter / fractional part : stretching factor
-- Alpha = Noise wavetable res. lp filter
-
-### Spectral synthesis ([FAS](https://github.com/grz0zrg/fas) only)
-
-### Bandpass synthesis ([FAS](https://github.com/grz0zrg/fas) only)
-
-### Formant synthesis ([FAS](https://github.com/grz0zrg/fas) only)
-
-### Phase Distorsion synthesis ([FAS](https://github.com/grz0zrg/fas) only)
-
-### String resonator synthesis ([FAS](https://github.com/grz0zrg/fas) only)
-
-### Modal synthesis ([FAS](https://github.com/grz0zrg/fas) only)
-
-### Input ([FAS](https://github.com/grz0zrg/fas) only)
-
-### Effects ([FAS](https://github.com/grz0zrg/fas) only)
-
-Fragment with FAS support unlimited number of effects chain per channels with bypass support: phaser, comb, reverb, delay...
+Slices data can be sent via OSC bundles to use Fragment as an interface.
 
 ## MIDI
 
@@ -319,12 +154,6 @@ Many tools are available to enhance Fragment.
 * The main limitation of Fragment is the events granularity caused by the monitor refresh rate (60 or 120 FPS), this can be solved by running the browser without VSYNC, example for Chrome with the command-line parameter **--disable-gpu-vsync** this may be not ideal for visuals. This will be solved as monitor / gpu progress is made with hopefully ideal granularity (granularity of human auditory system ENV / TFS is typically 1 to 3ms which mean ideal would be something like 500 FPS or double than that)
 * Discrete mapping of frequencies can be seen as a limitation, especially for additive synthesis, this is mostly solved by increasing the resolution of the canvas.
 * Additive synthesis : Phases are randomly assigned
-* Many synthesis parameters cannot be mapped well due to RGBA data, this limit the number of algorithms / modulation for example. This would require multiple output framebuffers, it was already tried and is relatively easy to implement but it come with a high performance hit. (the client basically send data * 2 or more)
-
-## Notes
-
-- WebAudio oscillators and the WebAudio Worklet mode can only have two output channels (L/R) due to performances issues
-
 
 ## Tips and tricks
 
@@ -343,8 +172,7 @@ Many tools are available to enhance Fragment.
  * fas_relay - distributed multi-machines/multi-core realtime sound synthesis
  * editor - external GLSL code editor
  * supercollider - the SuperCollider port of the additive synthesis engine (fed through OSC)
- * documentation - MkDocs documentation and previous MAML (Minimalist Anubis Markup Language) documentation with the latest HTML and PDF doc.
- * main.js - Electron app. file
+ * documentation - MkDocs documentation
  * common.js - Server config. file
 
  All servers are clustered for scalability and smooth updates.
@@ -403,61 +231,13 @@ Once those are installed, it is easy to run it locally:
  * *prod* is a shell script which produce an archive from *prod_files* list, perform additional cleanup and unarchive over SSH
  * *setup* is a script which is executed on the server after everything has been uploaded, this configure Fragment for the production system
 
-## The future
-
-Maybe a VST/LV2 plugin for accessibility and of course many new features are coming soon. ;)
-
 ## Credits
 
-Client :
- * [Vanilla JS](http://vanilla-js.com/) yup!
- * [WUI](https://github.com/grz0zrg/wui) vanilla collection of UI widgets for the web
- * [CodeMirror](http://codemirror.net/) for the awesome editor and its addons/modes
- * [osc.js](https://github.com/colinbdclark/osc.js/)
- * [glsl-simulator](https://github.com/burg/glsl-simulator) the GLSL parser is based on glsl-simulator
- * [ShareDB](https://github.com/share/sharedb/) for the collaborative features
- * [mpejs](https://github.com/WeAreROLI/mpejs)
- * [FileSaver.js](https://github.com/eligrey/FileSaver.js/)
- * [Recorderjs](https://github.com/mattdiamond/Recorderjs)
- * [Normalize](https://necolas.github.io/normalize.css/)
- * [Skeleton](http://getskeleton.com/) for the landing page
- * [Showdown](https://github.com/showdownjs/showdown) in-app markdown
- * [Mikola Lysenko stft (enhanced version)](https://github.com/mikolalysenko/stft)
- * [CCWT.js](https://github.com/grz0zrg/ccwt.js)
-
+Libraries :
+ * alot of them can be found in `app_fs.js`
 Papers :
  * [The Scientist and Engineer's Guide to Digital Signal Processing](http://www.dspguide.com)
  * [L'audionumérique 3°ed by Curtis Road](http://www.audionumerique.com/)
-
-Servers :
- * [NodeJS](https://nodejs.org/en/)
- * [NGINX](https://www.nginx.com/)
- * [Flarum](http://flarum.org/)
- * [pm2](https://github.com/Unitech/pm2)
- * [MongoDB](https://www.mongodb.com)
- * [Redis](https://redis.io/)
- * [Winston](https://github.com/winstonjs/winston)
- * [Express](http://expressjs.com/)
- * [strong-cluster-control](https://github.com/strongloop/strong-cluster-control)
-
-Utilities :
- * [FontAwesome](http://fontawesome.io/)
- * [pegjs](https://www.pegjs.org)
- * [fa2png](http://fa2png.io/)
- * [desmos](https://www.desmos.com)
- * [libwebsockets](https://libwebsockets.org/) for [fas](https://github.com/grz0zrg/fas)
- * [portaudio](http://www.portaudio.com/) for [fas](https://github.com/grz0zrg/fas)
- * [libflds](http://liblfds.org/) for [fas](https://github.com/grz0zrg/fas)
- * [SimpleScreenRecorder](http://www.maartenbaert.be/simplescreenrecorder/) for videos recording
- * [KDEnlive](https://kdenlive.org/) to edit the videos
- * [Geogebra](https://www.geogebra.org) for the logo
- * [Inkscape](https://www.inkscape.org) for the logo and some graphics
- * [GIMP](https://www.gimp.org/) some graphics
- * [MkDocs](http://www.mkdocs.org/) Documentation
- * [The Anubis programming language](http://redmine.anubis-language.com/)
- * [Minimalist Anubis Markup Language](http://redmine.anubis-language.com/)
- * [Nut](https://github.com/grz0zrg/nut)
- * [HotShots](https://sourceforge.net/projects/hotshots) for the UI quick reference
 
 Data :
  * [Brushes](http://www.texturemate.com)
@@ -470,8 +250,6 @@ The repository for the early proof of concept can be found [here](https://github
 
 [Twitter](https://twitter.com/fragmentsynth)
 
-[Facebook](https://www.facebook.com/fsynth/)
-
 [SoundCloud](https://soundcloud.com/fsynth/)
 
 ## License
@@ -483,3 +261,5 @@ Simplified BSD license
 The main inspiration for all of this is [Alexander Zolotov Virtual ANS software](http://www.warmplace.ru/soft/ans/)
 
 Heavily inspired by [Shadertoy](https://www.shadertoy.com) as well.
+
+Some ideas also come from [Sonographic sound processing](https://www.tadej-droljc.org/portfolio/sonographic-sound-processing/) and [Metasynth](http://uisoftware.com/MetaSynth/)

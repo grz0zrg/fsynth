@@ -289,7 +289,7 @@ redisClient.on('connect', function() {
                             if (reply !== null) {
                                 var slices = JSON.parse(reply);
                                 
-                                slices.push({ x: msg.data.x, shift: msg.data.shift, mute: msg.data.mute, output_channel: msg.data.output_channel, type: msg.data.type });
+                                slices.push({ x: msg.data.x, shift: msg.data.shift, mute: msg.data.mute, output_channel: msg.data.output_channel, instruments_settings: msg.data.instruments_settings, type: msg.data.type });
                                 
                                 clusterWideBroadcast(ws, prepareMessage("addSlice", { data: msg.data }), client.session);
                                 
@@ -328,7 +328,7 @@ redisClient.on('connect', function() {
                     redisSettingsClient.get(client.session, function (err, reply) {
                             if (reply !== null) {
                                 var slices = JSON.parse(reply),
-                                    slice =  slices[parseInt(msg.data.id, 10)];
+                                    slice = slices[parseInt(msg.data.id, 10)];
 
                                 if (!slice) {
                                     return;
@@ -348,6 +348,14 @@ redisClient.on('connect', function() {
                                 
                                 if (msg.data.obj['output_channel'] !== undefined) {
                                     slice.output_channel = msg.data.obj.output_channel;
+                                }
+
+                                if (msg.data.obj['instruments_settings'] !== undefined) {
+                                    if (!slice.instruments_settings) {
+                                        slice.instruments_settings = { };
+                                    }
+
+                                    slice.instruments_settings = Object.assign(slice.instruments_settings, msg.data.obj.instruments_settings);
                                 }
                                 
                                 if (msg.data.obj['type'] !== undefined) {

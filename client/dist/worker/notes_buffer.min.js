@@ -45,11 +45,6 @@ self.onmessage = function (m) {
     }
     
     dlen = data.length;
-    
-    if (m.data.mono) {
-        li = 3;
-        ri = 3;
-    }
 
     for (i = 0; i < dlen; i += 4) {
         pr = prev_data[i + li];
