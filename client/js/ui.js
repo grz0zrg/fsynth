@@ -73,32 +73,62 @@ var _icon_class = {
             name: "Convolution",
             color: "#00ffff",
             params: [{
-                name: "Impulse index",
+                name: "Impulse index (l)",
                 type: 0,
                 min: 0,
                 step: 1,
                 value: 0,
                 decimals: 0
             }, {
-                name: "Partition length",
+                name: "Partition length (l)",
                 type: [256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536],
                 value: 4
             },
             {
-                name: "Dry",
+                name: "Impulse index (r)",
+                type: 0,
+                min: 0,
+                step: 1,
+                value: 0,
+                decimals: 0
+            }, {
+                name: "Partition length (r)",
+                type: [256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536],
+                value: 4
+            },
+            {
+                name: "Dry (l)",
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.001,
                 value: 1,
                 decimals: 4
             },
             {
-                name: "Wet",
+                name: "Wet (l)",
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.001,
+                value: 0.02,
+                decimals: 4
+            },
+            {
+                name: "Dry (r)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
+                value: 1,
+                decimals: 4
+            },
+            {
+                name: "Wet (r)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
                 value: 0.02,
                 decimals: 4
             }]
@@ -206,22 +236,45 @@ var _icon_class = {
             name: "Autowah",
             color: "#000080",
             params: [{
-                name: "level",
+                name: "level (l)",
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.001,
                 value: 0.1,
                 decimals: 4
             }, {
-                name: "wah",
+                name: "wah (l)",
                 type: 0,
                 min: 0,
-                step: 0.01,
+                step: 0.001,
                 value: 0,
                 decimals: 4
             }, {
-                name: "mix",
+                name: "mix (l)",
+                type: 0,
+                min: 0,
+                max: 100,
+                step: 1,
+                value: 50,
+                decimals: 0
+            },{
+                name: "level (r)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
+                value: 0.1,
+                decimals: 4
+            }, {
+                name: "wah (r)",
+                type: 0,
+                min: 0,
+                step: 0.001,
+                value: 0,
+                decimals: 4
+            }, {
+                name: "mix (r)",
                 type: 0,
                 min: 0,
                 max: 100,
@@ -317,7 +370,7 @@ var _icon_class = {
             name: "Comb filter",
             color: "#daa520",
             params: [{
-                name: "looptime",
+                name: "looptime (l)",
                 type: 0,
                 min: 0,
                 max: 5,
@@ -325,31 +378,136 @@ var _icon_class = {
                 value: 0.1,
                 decimals: 4
             }, {
-                name: "revtime",
+                name: "revtime (l)",
                 type: 0,
                 min: 0,
                 max: 10,
                 step: 0.001,
                 value: 3.5,
                 decimals: 4
-            }]
-        },{
-            name: "V Delay",
-            color: "#8b008b",
-            params: [{
-                name: "maxdel",
+            }, {
+                name: "looptime (r)",
                 type: 0,
                 min: 0,
-                max: 20,
-                step: 0.01,
+                max: 5,
+                step: 0.001,
+                value: 0.1,
+                decimals: 4
+            }, {
+                name: "revtime (r)",
+                type: 0,
+                min: 0,
+                max: 10,
+                step: 0.001,
+                value: 3.5,
+                decimals: 4
+            },
+            {
+                name: "Dry (l)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
+                value: 0.5,
+                decimals: 4
+            },
+            {
+                name: "Wet (l)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
+                value: 0.02,
+                decimals: 4
+            },
+            {
+                name: "Dry (r)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
+                value: 0.5,
+                decimals: 4
+            },
+            {
+                name: "Wet (r)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
+                value: 0.5,
+                decimals: 4
+            }]
+        },{
+            name: "Delay",
+            color: "#8b008b",
+            params: [{
+                name: "delay time (l)",
+                type: 0,
+                min: 0,
+                max: 60,
+                step: 0.001,
                 value: 1.0,
                 decimals: 4
             }, {
-                name: "delay time",
+                name: "feedback (l)",
                 type: 0,
                 min: 0,
-                max: 20,
-                step: 0.01,
+                max: 1,
+                step: 0.001,
+                value: 0,
+                decimals: 6
+            },
+            {
+                name: "delay time (r)",
+                type: 0,
+                min: 0,
+                max: 60,
+                step: 0.001,
+                value: 1.0,
+                decimals: 4
+            }, {
+                name: "feedback (r)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
+                value: 0,
+                decimals: 6
+            },
+            {
+                name: "Dry (l)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
+                value: 0.5,
+                decimals: 4
+            },
+            {
+                name: "Wet (l)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
+                value: 0.5,
+                decimals: 4
+            },
+            {
+                name: "Dry (r)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
+                value: 0.5,
+                decimals: 4
+            },
+            {
+                name: "Wet (r)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
                 value: 0.5,
                 decimals: 4
             }]
@@ -404,6 +562,23 @@ var _icon_class = {
                 step: 1,
                 value: 10000,
                 decimals: 0
+            }, {
+                name: "Dry",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.5,
+                decimals: 4
+            },
+            {
+                name: "Wet",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.5,
+                decimals: 4
             }]
         },{
             name: "Distorsion",
@@ -440,6 +615,23 @@ var _icon_class = {
                 step: 0.01,
                 value: 0,
                 decimals: 4
+            }, {
+                name: "Dry",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.5,
+                decimals: 4
+            },
+            {
+                name: "Wet",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.5,
+                decimals: 4
             }]
         },{
             name: "Saturator",
@@ -459,6 +651,23 @@ var _icon_class = {
                 max: 1,
                 step: 0.01,
                 value: 0,
+                decimals: 4
+            }, {
+                name: "Dry",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.5,
+                decimals: 4
+            },
+            {
+                name: "Wet",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.5,
                 decimals: 4
             }]
         },{
@@ -524,6 +733,23 @@ var _icon_class = {
                 step: 1,
                 value: 0,
                 decimals: 0
+            }, {
+                name: "Dry",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.5,
+                decimals: 4
+            },
+            {
+                name: "Wet",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.5,
+                decimals: 4
             }]
         },{
             name: "Clip",
@@ -535,6 +761,23 @@ var _icon_class = {
                 max: 1,
                 step: 0.01,
                 value: 1,
+                decimals: 4
+            }, {
+                name: "Dry",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.5,
+                decimals: 4
+            },
+            {
+                name: "Wet",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.5,
                 decimals: 4
             }]
         },{
@@ -763,6 +1006,71 @@ var _icon_class = {
                 step: 0.01,
                 value: 0.5,
                 decimals: 4
+            }]
+        },
+        {
+            name: "Fold",
+            color: "#800040",
+            params: [{
+                name: "Increment",
+                type: 0,
+                min: 0,
+                max: 2048,
+                step: 1,
+                value: 1,
+                decimals: 0
+            }]
+        },
+        {
+            name: "DC block filter",
+            color: "#80dd40",
+            params: []
+        },
+        {
+            name: "LPC",
+            color: "#20dd40",
+            params: [
+                {
+                    name: "Encoder frame size",
+                    type: [64, 128, 256, 512, 1024, 2048, 4096],
+                    value: 3
+                }
+            ]
+        },
+        {
+            name: "Time-Stretcher",
+            color: "#90aaaa",
+            params: [{
+                name: "Buffer length (secs)",
+                type: 0,
+                min: 0,
+                step: 0.01,
+                value: 1,
+                decimals: 6
+            }, {
+                name: "Number of repeats",
+                type: 0,
+                min: 0,
+                step: 0.01,
+                value: 1.5,
+                decimals: 6
+            }]
+        },
+        {
+            name: "Panner",
+            color: "#90aaaa",
+            params: [{
+                name: "Type",
+                type: [0, 1, 2, 3],
+                value: 0
+            }, {
+                name: "Panning",
+                type: 0,
+                min: -1,
+                max: 1,
+                step: 0.01,
+                value: 0,
+                decimals: 6
             }]
         },
         {
@@ -1891,7 +2199,7 @@ var _createSynthParametersContent = function () {
             var chn_model_type_label,
                 chn_model_type_select,
                 chn_model_option,
-                chn_models_option = ["Karplus-strong", "Water drop"];
+                chn_models_option = ["Karplus-strong", "Water drop", "Metal bar"];
 
                 chn_model_type_label = document.createElement("label");
                 chn_model_type_select = document.createElement("select");

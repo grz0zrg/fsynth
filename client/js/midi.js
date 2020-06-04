@@ -811,9 +811,23 @@ var _onMIDIMessage = function (midi_message) {
     WUI_RangeSlider.submitMIDIMessage(midi_message);
 };
 
+var _fasRetrigger = function (frq) {
+    var j = 0;
+    if (_fasEnabled()) {
+        for (j = 0; j < _play_position_markers.length; j += 1) {
+            var slice = _play_position_markers[j];
+            // re-trigger on FAS side for physical modelling / wavetable (because this type of synthesis require it)
+            if ((slice.instrument_type === 5 || (slice.instrument_type === 6 && slice.instrument_params.p0))) {
+                var osc = _hzToOscillator(frq, _audio_infos.base_freq, _audio_infos.octaves, _audio_infos.h);
+                _fasNotify(_FAS_ACTION, { type: 1, note: osc, instrument: j });
+            }
+        }
+    }
+};
+
 // MPE/MIDI messages (provided by mpejs)
 var _mpeMIDIMessage = function (notes) {
-    var i = 0, j = 0,
+    var i = 0,
         data, note, key, chn, d;
     
     for (i = 0; i < notes.length; i += 1) {
@@ -848,16 +862,7 @@ var _mpeMIDIMessage = function (notes) {
                     _keyboard.data[note.id + 5] = note.timbre;
                     _keyboard.data[note.id + 6] = note.pressure;
 
-                    if (_fasEnabled()) {
-                        for (j = 0; j < _play_position_markers.length; j += 1) {
-                            var slice = _play_position_markers[j];
-                            // re-trigger on FAS side for physical modelling / wavetable (because this type of synthesis require it)
-                            if ((slice.instrument_type === 5 || (slice.instrument_type === 6 && slice.instrument_params.p0))) {
-                                //var osc = _hzToOscillator(data.frq, _audio_infos.base_freq, _audio_infos.octaves, _audio_infos.h);
-                                _fasNotify(_FAS_ACTION, { type: 1, note: i, instrument: j });
-                            }
-                        }
-                    }
+                    _fasRetrigger(data.frq);
                 } else { // note update
                     if (note.pitchBend === data.pitchBend && 
                         note.timbre === data.timbre && 
@@ -913,6 +918,8 @@ var _mpeMIDIMessage = function (notes) {
 
                 _useProgram(_program);
                 _setUniforms(_gl, "vec", _program, "pKey", _pkeyboard.data, _pkeyboard.data_components);
+
+                //_fasRetrigger(note.frq);
             }
         }
     }

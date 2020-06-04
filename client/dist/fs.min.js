@@ -26619,32 +26619,62 @@ var _icon_class = {
             name: "Convolution",
             color: "#00ffff",
             params: [{
-                name: "Impulse index",
+                name: "Impulse index (l)",
                 type: 0,
                 min: 0,
                 step: 1,
                 value: 0,
                 decimals: 0
             }, {
-                name: "Partition length",
+                name: "Partition length (l)",
                 type: [256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536],
                 value: 4
             },
             {
-                name: "Dry",
+                name: "Impulse index (r)",
+                type: 0,
+                min: 0,
+                step: 1,
+                value: 0,
+                decimals: 0
+            }, {
+                name: "Partition length (r)",
+                type: [256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536],
+                value: 4
+            },
+            {
+                name: "Dry (l)",
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.001,
                 value: 1,
                 decimals: 4
             },
             {
-                name: "Wet",
+                name: "Wet (l)",
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.001,
+                value: 0.02,
+                decimals: 4
+            },
+            {
+                name: "Dry (r)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
+                value: 1,
+                decimals: 4
+            },
+            {
+                name: "Wet (r)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
                 value: 0.02,
                 decimals: 4
             }]
@@ -26752,22 +26782,45 @@ var _icon_class = {
             name: "Autowah",
             color: "#000080",
             params: [{
-                name: "level",
+                name: "level (l)",
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.001,
                 value: 0.1,
                 decimals: 4
             }, {
-                name: "wah",
+                name: "wah (l)",
                 type: 0,
                 min: 0,
-                step: 0.01,
+                step: 0.001,
                 value: 0,
                 decimals: 4
             }, {
-                name: "mix",
+                name: "mix (l)",
+                type: 0,
+                min: 0,
+                max: 100,
+                step: 1,
+                value: 50,
+                decimals: 0
+            },{
+                name: "level (r)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
+                value: 0.1,
+                decimals: 4
+            }, {
+                name: "wah (r)",
+                type: 0,
+                min: 0,
+                step: 0.001,
+                value: 0,
+                decimals: 4
+            }, {
+                name: "mix (r)",
                 type: 0,
                 min: 0,
                 max: 100,
@@ -26863,7 +26916,7 @@ var _icon_class = {
             name: "Comb filter",
             color: "#daa520",
             params: [{
-                name: "looptime",
+                name: "looptime (l)",
                 type: 0,
                 min: 0,
                 max: 5,
@@ -26871,31 +26924,136 @@ var _icon_class = {
                 value: 0.1,
                 decimals: 4
             }, {
-                name: "revtime",
+                name: "revtime (l)",
                 type: 0,
                 min: 0,
                 max: 10,
                 step: 0.001,
                 value: 3.5,
                 decimals: 4
-            }]
-        },{
-            name: "V Delay",
-            color: "#8b008b",
-            params: [{
-                name: "maxdel",
+            }, {
+                name: "looptime (r)",
                 type: 0,
                 min: 0,
-                max: 20,
-                step: 0.01,
+                max: 5,
+                step: 0.001,
+                value: 0.1,
+                decimals: 4
+            }, {
+                name: "revtime (r)",
+                type: 0,
+                min: 0,
+                max: 10,
+                step: 0.001,
+                value: 3.5,
+                decimals: 4
+            },
+            {
+                name: "Dry (l)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
+                value: 0.5,
+                decimals: 4
+            },
+            {
+                name: "Wet (l)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
+                value: 0.02,
+                decimals: 4
+            },
+            {
+                name: "Dry (r)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
+                value: 0.5,
+                decimals: 4
+            },
+            {
+                name: "Wet (r)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
+                value: 0.5,
+                decimals: 4
+            }]
+        },{
+            name: "Delay",
+            color: "#8b008b",
+            params: [{
+                name: "delay time (l)",
+                type: 0,
+                min: 0,
+                max: 60,
+                step: 0.001,
                 value: 1.0,
                 decimals: 4
             }, {
-                name: "delay time",
+                name: "feedback (l)",
                 type: 0,
                 min: 0,
-                max: 20,
-                step: 0.01,
+                max: 1,
+                step: 0.001,
+                value: 0,
+                decimals: 6
+            },
+            {
+                name: "delay time (r)",
+                type: 0,
+                min: 0,
+                max: 60,
+                step: 0.001,
+                value: 1.0,
+                decimals: 4
+            }, {
+                name: "feedback (r)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
+                value: 0,
+                decimals: 6
+            },
+            {
+                name: "Dry (l)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
+                value: 0.5,
+                decimals: 4
+            },
+            {
+                name: "Wet (l)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
+                value: 0.5,
+                decimals: 4
+            },
+            {
+                name: "Dry (r)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
+                value: 0.5,
+                decimals: 4
+            },
+            {
+                name: "Wet (r)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.001,
                 value: 0.5,
                 decimals: 4
             }]
@@ -26950,6 +27108,23 @@ var _icon_class = {
                 step: 1,
                 value: 10000,
                 decimals: 0
+            }, {
+                name: "Dry",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.5,
+                decimals: 4
+            },
+            {
+                name: "Wet",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.5,
+                decimals: 4
             }]
         },{
             name: "Distorsion",
@@ -26986,6 +27161,23 @@ var _icon_class = {
                 step: 0.01,
                 value: 0,
                 decimals: 4
+            }, {
+                name: "Dry",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.5,
+                decimals: 4
+            },
+            {
+                name: "Wet",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.5,
+                decimals: 4
             }]
         },{
             name: "Saturator",
@@ -27005,6 +27197,23 @@ var _icon_class = {
                 max: 1,
                 step: 0.01,
                 value: 0,
+                decimals: 4
+            }, {
+                name: "Dry",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.5,
+                decimals: 4
+            },
+            {
+                name: "Wet",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.5,
                 decimals: 4
             }]
         },{
@@ -27070,6 +27279,23 @@ var _icon_class = {
                 step: 1,
                 value: 0,
                 decimals: 0
+            }, {
+                name: "Dry",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.5,
+                decimals: 4
+            },
+            {
+                name: "Wet",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.5,
+                decimals: 4
             }]
         },{
             name: "Clip",
@@ -27081,6 +27307,23 @@ var _icon_class = {
                 max: 1,
                 step: 0.01,
                 value: 1,
+                decimals: 4
+            }, {
+                name: "Dry",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.5,
+                decimals: 4
+            },
+            {
+                name: "Wet",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.5,
                 decimals: 4
             }]
         },{
@@ -27309,6 +27552,71 @@ var _icon_class = {
                 step: 0.01,
                 value: 0.5,
                 decimals: 4
+            }]
+        },
+        {
+            name: "Fold",
+            color: "#800040",
+            params: [{
+                name: "Increment",
+                type: 0,
+                min: 0,
+                max: 2048,
+                step: 1,
+                value: 1,
+                decimals: 0
+            }]
+        },
+        {
+            name: "DC block filter",
+            color: "#80dd40",
+            params: []
+        },
+        {
+            name: "LPC",
+            color: "#20dd40",
+            params: [
+                {
+                    name: "Encoder frame size",
+                    type: [64, 128, 256, 512, 1024, 2048, 4096],
+                    value: 3
+                }
+            ]
+        },
+        {
+            name: "Time-Stretcher",
+            color: "#90aaaa",
+            params: [{
+                name: "Buffer length (secs)",
+                type: 0,
+                min: 0,
+                step: 0.01,
+                value: 1,
+                decimals: 6
+            }, {
+                name: "Number of repeats",
+                type: 0,
+                min: 0,
+                step: 0.01,
+                value: 1.5,
+                decimals: 6
+            }]
+        },
+        {
+            name: "Panner",
+            color: "#90aaaa",
+            params: [{
+                name: "Type",
+                type: [0, 1, 2, 3],
+                value: 0
+            }, {
+                name: "Panning",
+                type: 0,
+                min: -1,
+                max: 1,
+                step: 0.01,
+                value: 0,
+                decimals: 6
             }]
         },
         {
@@ -28437,7 +28745,7 @@ var _createSynthParametersContent = function () {
             var chn_model_type_label,
                 chn_model_type_select,
                 chn_model_option,
-                chn_models_option = ["Karplus-strong", "Water drop"];
+                chn_models_option = ["Karplus-strong", "Water drop", "Metal bar"];
 
                 chn_model_type_label = document.createElement("label");
                 chn_model_type_select = document.createElement("select");
@@ -33685,9 +33993,23 @@ var _onMIDIMessage = function (midi_message) {
     WUI_RangeSlider.submitMIDIMessage(midi_message);
 };
 
+var _fasRetrigger = function (frq) {
+    var j = 0;
+    if (_fasEnabled()) {
+        for (j = 0; j < _play_position_markers.length; j += 1) {
+            var slice = _play_position_markers[j];
+            // re-trigger on FAS side for physical modelling / wavetable (because this type of synthesis require it)
+            if ((slice.instrument_type === 5 || (slice.instrument_type === 6 && slice.instrument_params.p0))) {
+                var osc = _hzToOscillator(frq, _audio_infos.base_freq, _audio_infos.octaves, _audio_infos.h);
+                _fasNotify(_FAS_ACTION, { type: 1, note: osc, instrument: j });
+            }
+        }
+    }
+};
+
 // MPE/MIDI messages (provided by mpejs)
 var _mpeMIDIMessage = function (notes) {
-    var i = 0, j = 0,
+    var i = 0,
         data, note, key, chn, d;
     
     for (i = 0; i < notes.length; i += 1) {
@@ -33722,16 +34044,7 @@ var _mpeMIDIMessage = function (notes) {
                     _keyboard.data[note.id + 5] = note.timbre;
                     _keyboard.data[note.id + 6] = note.pressure;
 
-                    if (_fasEnabled()) {
-                        for (j = 0; j < _play_position_markers.length; j += 1) {
-                            var slice = _play_position_markers[j];
-                            // re-trigger on FAS side for physical modelling / wavetable (because this type of synthesis require it)
-                            if ((slice.instrument_type === 5 || (slice.instrument_type === 6 && slice.instrument_params.p0))) {
-                                //var osc = _hzToOscillator(data.frq, _audio_infos.base_freq, _audio_infos.octaves, _audio_infos.h);
-                                _fasNotify(_FAS_ACTION, { type: 1, note: i, instrument: j });
-                            }
-                        }
-                    }
+                    _fasRetrigger(data.frq);
                 } else { // note update
                     if (note.pitchBend === data.pitchBend && 
                         note.timbre === data.timbre && 
@@ -33787,6 +34100,8 @@ var _mpeMIDIMessage = function (notes) {
 
                 _useProgram(_program);
                 _setUniforms(_gl, "vec", _program, "pKey", _pkeyboard.data, _pkeyboard.data_components);
+
+                //_fasRetrigger(note.frq);
             }
         }
     }
@@ -35132,14 +35447,16 @@ document.addEventListener('mousemove', function (e) {
                 _nmy = 1. - _cy / _canvas_height;
             }
         } else if (e.target === _record_canvas) {
-            canvas_offset = _getElementOffset(_record_canvas);
+            if (_mouse_btn === _LEFT_MOUSE_BTN) {
+                canvas_offset = _getElementOffset(_record_canvas);
 
-            var cx = e.pageX;
-            var cy = e.pageY - canvas_offset.top;
+                var cx = e.pageX;
+                var cy = e.pageY - canvas_offset.top;
 
-            cx = (cx - canvas_offset.left - 1);
+                cx = (cx - canvas_offset.left - 1);
 
-            _record_position = cx;
+                _record_position = cx;
+            }
         } else {
             if (_xyf_grid) {
                 if (_haxis_infos.style.display !== "none" ||
