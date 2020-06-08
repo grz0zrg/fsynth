@@ -151,9 +151,8 @@ Many tools are available to enhance Fragment.
 
 ## Limitations
 
-* The main limitation of Fragment is the events granularity caused by the monitor refresh rate (60 or 120 FPS), this can be solved by running the browser without VSYNC, example for Chrome with the command-line parameter **--disable-gpu-vsync** this may be not ideal for visuals. This will be solved as monitor / gpu progress is made with hopefully ideal granularity (granularity of human auditory system ENV / TFS is typically 1 to 3ms which mean ideal would be something like 500 FPS or double than that)
-* Discrete mapping of frequencies can be seen as a limitation, especially for additive synthesis, this is mostly solved by increasing the resolution of the canvas.
-* Additive synthesis : Phases are randomly assigned
+* The main limitation of Fragment is the events granularity caused by the monitor refresh rate (which can be maxed out at 240 Hz on some monitors), this can also be solved by running the browser without VSYNC, example for Chrome with the command-line parameter **--disable-gpu-vsync** this may be not ideal for visuals. This will be solved as monitor / gpu progress is made with hopefully ideal granularity (granularity of human auditory system ENV / TFS is typically 1 to 3ms which mean ideal would be something like 500 FPS or double than that)
+* Discrete mapping of frequencies can be seen as a limitation, especially for additive synthesis, this is solved by increasing the resolution of the canvas at a performance / bandwidth price.
 
 ## Tips and tricks
 
@@ -168,8 +167,9 @@ Many tools are available to enhance Fragment.
  * fss - main server (discuss. system, slices)
  * fsdb - sharedb server (collaborative features)
  * fsws - web. server (only used for development or local installation)
+ * ffs - file server (API to provide easy upload / informations of audio samples from FAS grains / impulses / waves directories; for convenience & for embedded uses)
  * osc_relay - an OSC relay which use the osc.js library (must be launched to use OSC features)
- * fas_relay - distributed multi-machines/multi-core realtime sound synthesis
+ * fas_relay - distributed multi-machines/multi-core realtime sound synthesis (interface between client / FAS servers)
  * editor - external GLSL code editor
  * supercollider - the SuperCollider port of the additive synthesis engine (fed through OSC)
  * documentation - MkDocs documentation
@@ -209,6 +209,7 @@ Once those are installed, it is easy to run it locally:
  * cd fss & npm install & node fss
  * cd fsdb & npm install & node fsdb
  * cd fsws & npm install & node fsws
+ * cd ffs & npm install & node ffs
  * point your browser to http://127.0.0.1:3000
 
  Under Linux : proprietary GPU drivers is recommended due to performance reasons.

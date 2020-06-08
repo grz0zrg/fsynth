@@ -515,7 +515,7 @@ var _icon_class = {
             name: "Smooth Delay",
             color: "#ff4500",
             params: [{
-                name: "maxdel",
+                name: "maxdel (l)",
                 type: 0,
                 min: 0,
                 max: 20,
@@ -523,11 +523,11 @@ var _icon_class = {
                 value: 1,
                 decimals: 4
             }, {
-                name: "interp. time",
+                name: "interp. time (l)",
                 type: [64, 128, 256, 512, 1024, 2048, 4096],
                 value: 3
             }, {
-                name: "feedback",
+                name: "feedback (l)",
                 type: 0,
                 min: 0,
                 max: 1,
@@ -535,7 +535,35 @@ var _icon_class = {
                 value: 0.1,
                 decimals: 4
             }, {
-                name: "delay time",
+                name: "delay time (l)",
+                type: 0,
+                min: 0,
+                max: 20,
+                step: 0.01,
+                value: 0.5,
+                decimals: 4
+            },{
+                name: "maxdel (r)",
+                type: 0,
+                min: 0,
+                max: 20,
+                step: 0.01,
+                value: 1,
+                decimals: 4
+            }, {
+                name: "interp. time (r)",
+                type: [64, 128, 256, 512, 1024, 2048, 4096],
+                value: 3
+            }, {
+                name: "feedback (r)",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                value: 0.1,
+                decimals: 4
+            }, {
+                name: "delay time (r)",
                 type: 0,
                 min: 0,
                 max: 20,
@@ -3333,6 +3361,7 @@ var _uiInit = function () {
         settings_ck_show_toolbar_title = document.getElementById("fs_settings_ck_show_toolbar_title"),
         
         fs_settings_show_toolbar_title = localStorage.getItem('fs-show-toolbar-title'),
+        fs_settings_fps = localStorage.getItem('fs-fps'),
         fs_settings_note_lifetime = localStorage.getItem('fs-note-lifetime'),
         fs_settings_max_polyphony = localStorage.getItem('fs-max-polyphony'),
         fs_settings_show_globaltime = localStorage.getItem('fs-show-globaltime'),
@@ -3407,6 +3436,10 @@ var _uiInit = function () {
     
     if (fs_settings_note_lifetime) {
         _keyboard.note_lifetime = _parseInt10(fs_settings_note_lifetime);
+    }
+
+    if (fs_settings_fps) {
+        _fas.fps = _parseInt10(fs_settings_fps);
     }
     
     if (fs_settings_show_globaltime !== null) {
@@ -4546,7 +4579,7 @@ var _uiInit = function () {
             min: 0,
             max: 10,
 
-            step: 0.001,
+            step: "any",
 
             midi: true,
         
@@ -4579,7 +4612,7 @@ var _uiInit = function () {
             min: 0,
             max: 10,
 
-            step: 0.001,
+            step: "any",
         
             midi: true,
         
@@ -4612,7 +4645,7 @@ var _uiInit = function () {
             min: 0.0,
             max: 1.0,
 
-            step: 0.001,
+            step: "any",
             scroll_step: 0.01,
 
             midi: true,
@@ -4644,7 +4677,7 @@ var _uiInit = function () {
             min: 0.0,
             max: 360.0,
 
-            step: 1,
+            step: "any",
             scroll_step: 0.01,
 
             midi: true,
@@ -4804,7 +4837,7 @@ var _uiInit = function () {
         
             bar: false,
 
-            step: 10,
+            step: "any",
             scroll_step: 10,
 
             default_value: _keyboard.note_lifetime,
@@ -4826,6 +4859,38 @@ var _uiInit = function () {
             }
         });
 
+        WUI_RangeSlider.create("fs_settings_fps", {
+            width: 120,
+            height: 8,
+
+            min: 1,
+        
+            bar: false,
+
+            step: 1,
+            scroll_step: 1,
+
+            default_value: _fas.fps,
+            value: _fas.fps,
+
+            title: "FPS / Slices data rate",
+
+            title_min_width: 140,
+            value_min_width: 88,
+
+            on_change: function (fps) {
+                if (fps <= 0) {
+                    return;
+                }
+                
+                _fas.fps = fps;
+                
+                localStorage.setItem('fs-fps', _fas.fps);
+
+                _fasNotify(_FAS_SYNTH_INFOS, { target: 0, value: _fas.fps });
+            }
+        });
+
     WUI_RangeSlider.create("mst_slider", {
             width: 100,
             height: 8,
@@ -4838,7 +4903,7 @@ var _uiInit = function () {
             step: "any",
             scroll_step: 0.001,
         
-            decimals: 3,
+            decimals: 4,
 
             midi: true,
 
@@ -4856,7 +4921,7 @@ var _uiInit = function () {
 
                 _setGain(value);
 
-                _fasNotify(_FAS_GAIN_INFOS, _audio_infos);
+                _fasNotify(_FAS_SYNTH_INFOS, { target: 1, value: _audio_infos.gain });
             }
         });
     

@@ -17,8 +17,8 @@ var _fas = false,
 
     _FAS_ENABLE = 0,
     _FAS_DISABLE = 1,
-    _FAS_AUDIO_INFOS = 2,
-    _FAS_GAIN_INFOS = 3,
+    _FAS_BANK_INFOS = 2,
+    _FAS_SYNTH_INFOS = 3,
     _FAS_FRAME = 4,
     _FAS_CHN_INFOS = 5,
     _FAS_CHN_FX_INFOS = 6,
@@ -47,68 +47,70 @@ var _appendBuffer = function(buffer1, buffer2) {
     return tmp.buffer;
   };
 
-var _getAudioInfosBuffer = function (audio_infos) {
-    if (audio_infos.h <= 0 ||
-        audio_infos.octaves <= 0 ||
-        audio_infos.base_freq <= 0) {
+var _getBankInfosBuffer = function (bank_infos) {
+    if (bank_infos.h <= 0 ||
+        bank_infos.octaves <= 0 ||
+        bank_infos.base_freq <= 0) {
         return;
     }
 
-    var audio_infos_buffer = new ArrayBuffer(8 + 4 + 4 + (4 + 4) + 8),
-        uint8_view = new Uint8Array(audio_infos_buffer, 0, 1),
-        uint32_view = new Uint32Array(audio_infos_buffer, 8, 3),
-        float64_view = new Float64Array(audio_infos_buffer, 24);
+    var bank_infos_buffer = new ArrayBuffer(8 + 4 + 4 + (4 + 4) + 8),
+        uint8_view = new Uint8Array(bank_infos_buffer, 0, 1),
+        uint32_view = new Uint32Array(bank_infos_buffer, 8, 3),
+        float64_view = new Float64Array(bank_infos_buffer, 24);
 
     uint8_view[0] = 0; // packet id
-    uint32_view[0] = audio_infos.h;
-    uint32_view[1] = audio_infos.octaves;
-    uint32_view[2] = audio_infos.float_data === true ? 1 : 0;
+    uint32_view[0] = bank_infos.h;
+    uint32_view[1] = bank_infos.octaves;
+    uint32_view[2] = bank_infos.float_data === true ? 1 : 0;
 
-    float64_view[0] = audio_infos.base_freq;
+    float64_view[0] = bank_infos.base_freq;
 
-    return audio_infos_buffer;
+    return bank_infos_buffer;
 };
 
-var _getGainBuffer = function (audio_infos) {
-    var gain_buffer = new ArrayBuffer(8 + 8),
-        uint8_view = new Uint8Array(gain_buffer, 0, 1),
-        float64_view = new Float64Array(gain_buffer, 8, 1);
+var _getSynthInfosBuffer = function (synth_infos) {
+    var synth_infos_buffer = new ArrayBuffer(8 + 8 + 8),
+        uint8_view = new Uint8Array(synth_infos_buffer, 0, 1),
+        uint32_view = new Uint8Array(synth_infos_buffer, 8, 1),
+        float64_view = new Float64Array(synth_infos_buffer, 16, 1);
 
     uint8_view[0] = 2;
-    float64_view[0] = audio_infos.gain;
+    uint32_view[0] = synth_infos.target;
+    float64_view[0] = synth_infos.value;
 
-    return gain_buffer;
+    return synth_infos_buffer;
 };
 
-var _sendAudioInfos = function (audio_infos) {
+var _sendBankInfos = function (bank_infos) {
     if (!_fas) {
         return;
     }
 
     if (_fas_ws.readyState !== 1) {
-        setTimeout(_sendAudioInfos, 1000, audio_infos);
+        setTimeout(_sendBankInfos, 1000, bank_infos);
         return;
     }
 
     try {
-        _fas_ws.send(_getAudioInfosBuffer(audio_infos));
+        _fas_ws.send(_getBankInfosBuffer(bank_infos));
     } finally {
 
     }
 };
 
-var _sendGain = function (audio_infos) {
+var _sendSynthInfos = function (synth_infos) {
     if (!_fas) {
         return;
     }
 
     if (_fas_ws.readyState !== 1) {
-        setTimeout(_sendGain, 1000, audio_infos);
+        setTimeout(_sendSynthInfos, 1000, synth_infos);
         return;
     }
 
     try {
-        _fas_ws.send(_getGainBuffer(audio_infos));
+        _fas_ws.send(_getSynthInfosBuffer(synth_infos));
     } finally {
 
     }
@@ -368,10 +370,10 @@ self.onmessage = function (m) {
         _fas = false;
 
         _disconnect();
-    } else if (cmd === _FAS_AUDIO_INFOS) {
-        _sendAudioInfos(arg);
-    } else if (cmd === _FAS_GAIN_INFOS) {
-        _sendGain(arg);
+    } else if (cmd === _FAS_BANK_INFOS) {
+        _sendBankInfos(arg);
+    } else if (cmd === _FAS_SYNTH_INFOS) {
+        _sendSynthInfos(arg);
     } else if (cmd === _FAS_FRAME) {
         _sendFrame(arg, data.float);
     } else if (cmd === _FAS_CHN_INFOS) {

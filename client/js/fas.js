@@ -8,15 +8,16 @@ var _fas = {
         address: "127.0.0.1:3003",
         enabled: false,
         status: null,
-        worker: new Worker("dist/worker/fas.min.js")
+        worker: new Worker("dist/worker/fas.min.js"),
+        fps: 60
     },
     
     _fas_address_input = document.getElementById("fs_fas_address"),
     
     _FAS_ENABLE = 0,
     _FAS_DISABLE = 1,
-    _FAS_AUDIO_INFOS = 2,
-    _FAS_GAIN_INFOS = 3,
+    _FAS_BANK_INFOS = 2,
+    _FAS_SYNTH_INFOS = 3,
     _FAS_FRAME = 4,
     _FAS_CHN_INFOS = 5,
     _FAS_CHN_FX_INFOS = 6,
@@ -146,8 +147,9 @@ var _fasInit = function () {
             if (data.status === "open") {
                 _fasStatus(true);
 
-                _fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
-                _fasNotify(_FAS_GAIN_INFOS, _audio_infos);
+                _fasNotify(_FAS_BANK_INFOS, _audio_infos);
+                _fasNotify(_FAS_SYNTH_INFOS, { target: 0, value: _fas.fps });
+                _fasNotify(_FAS_SYNTH_INFOS, { target: 1, value: _audio_infos.gain });
 
                 var i = 0, j = 0, k = 0;
                 for (i = 0; i < _chn_settings.length; i += 1) {

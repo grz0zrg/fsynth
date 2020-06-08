@@ -9,6 +9,7 @@ var clusterControl = require('strong-cluster-control');
 var WebSocketJSONStream = require('websocket-json-stream');
 var winston = require('winston');
 var shareDbRedisPubSub = require('sharedb-redis-pubsub');
+var mongodb = require('mongodb');
 
 var logger = winston.createLogger({
     format: winston.format.combine(winston.format.splat(), winston.format.simple()),
@@ -61,7 +62,9 @@ var clientVerification = function (info) {
     return false;
 };
 
-const db = require('sharedb-mongo')('mongodb://localhost:27017/fs');
+const db = require('sharedb-mongo')({mongo: (callback) => {
+        mongodb.connect('mongodb://localhost:27017/fs', { useUnifiedTopology: true }, callback);
+    }});
 
 var share = new ShareDB({ db: db, pubsub: shareDbRedisPubSub('redis://localhost:6379/0') });
 

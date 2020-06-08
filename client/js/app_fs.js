@@ -729,7 +729,7 @@ var FragmentSynth = function (params) {
 
         _updateAllPlayPosition();
 
-        _fasNotify(_FAS_AUDIO_INFOS, _audio_infos);
+        _fasNotify(_FAS_BANK_INFOS, _audio_infos);
 
         WUI_RangeSlider.setValue("fs_score_width_input", _canvas_width);
         WUI_RangeSlider.setValue("fs_score_height_input", _canvas_height);
