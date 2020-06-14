@@ -21292,6 +21292,7 @@ _utter_fail_element.innerHTML = "";
         _osc_infos = document.getElementById("fs_osc_infos"),
         _poly_infos_element = document.getElementById("fs_polyphony_infos"),
         _fas_stream_load = document.getElementById("fs_fas_stream_load"),
+        _fas_stream_latency = document.getElementById("fs_fas_stream_latency"),
 
         _synth_output_element = document.getElementById("fs_synth_output"),
 
@@ -21610,8 +21611,6 @@ _utter_fail_element.innerHTML = "";
 
         _LEFT_MOUSE_BTN = 1,
         _RIGHT_MOUSE_BTN = 2,
-
-        _fps = 60, // FPS is fixed when using WebAudio version of Fragment TODO : find a solution to update this in real-time ?
 
         _raf,
 
@@ -26313,7 +26312,7 @@ var _exportRecord = function () {
         opts = {
             float: _audio_infos.float_data,
             ffreq: 0,
-            sps: _fps,
+            sps: _fas.fps,
             octaves: _audio_infos.octaves,
             baseFrequency: _audio_infos.base_freq,
             flipY: false
@@ -26550,6 +26549,412 @@ var _initWorkspace = function () {
     Fields.
 ************************************************************/
 
+var _ffs_address = _domain + ":3122",
+    _dir_state = new Map(),
+    _selected_files = new Map(),
+    _file_check_state = null;
+
+/***********************************************************
+    Functions.
+************************************************************/
+
+var _minimizeFilesTree = function (key) {
+    return function (ev) {
+        if (ev.target.tagName === "INPUT") {
+            return;
+        }
+
+        var target_elem = ev.currentTarget.nextElementSibling;
+
+        if (target_elem.style.display) {
+            target_elem.style.display = "";
+            ev.currentTarget.firstElementChild.classList.remove('fs-rotate-text-right');
+
+            _dir_state.set(key, true);
+        } else {
+            target_elem.style.display = "none";
+            ev.currentTarget.firstElementChild.classList.add('fs-rotate-text-right');
+
+            _dir_state.set(key, false);
+        }
+    };
+};
+
+var _onFmDragStart = function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+};
+
+var _onFmDragOver = function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    e.currentTarget.classList.add('fs-file-manager-dragover');
+
+    e.dataTransfer.dropEffect = "copy";
+};
+
+var _onFmDragEnd = function (e) {
+    e.currentTarget.classList.remove('fs-file-manager-dragover');
+
+    e.preventDefault();
+    e.stopPropagation();
+};
+
+var _onFmDragDrop = function (src_element, target, target_element_id, target_name) {
+    return function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var files = e.dataTransfer.files;
+
+        var form_data = new FormData();
+        for (var i = 0; i < files.length; i++) {
+            form_data.append('file', files[i]);
+        }
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'http://' + _ffs_address + '/uploads?target=' + encodeURI(target), true);
+        xhr.upload.onprogress = function (e) {
+            if (e.lengthComputable) {
+                var complete = (e.loaded / e.total * 100 | 0);
+
+                _notification('Files upload status : ' + complete + '%', 2000);
+            }
+        };
+        xhr.onerror = function () {
+            _notification('File manager server error (is it up ?)', 4000);
+
+            console.log(xhr.responseText);
+
+            src_element.classList.remove('fs-file-manager-dragover');
+        };
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                _notification('Files upload status : done.', 2000);
+
+                _refreshFileManager(target_element_id, target_name)();
+            } else if (xhr.status === 500) {
+                _notification('Files upload error (unsupported file format ?)', 4000)
+            } else {
+                _notification('Files upload error (unknown)', 4000)
+            }
+
+            src_element.classList.remove('fs-file-manager-dragover');
+        };
+        
+        xhr.send(form_data);
+    };
+};
+
+var _fileCheckboxOver = function (id) {
+    return function (e) {
+        if (_mouse_btn === _LEFT_MOUSE_BTN) {
+            var checkbox = document.getElementById(id);
+
+            if (_file_check_state === null) {
+                _file_check_state = 1 - checkbox.checked;
+            }
+
+            checkbox.checked = _file_check_state;
+        } else {
+            _file_check_state = null;
+        }
+
+        e.stopPropagation();
+        e.preventDefault();
+    };
+}
+
+var _renderFilesTree = function (dom_node, target_element_id, target) {
+    return function (leaf_obj, dirname) {
+        var dir_container = document.createElement('div');
+        var header_container = document.createElement('div');
+        var min_btn = document.createElement('div');
+        var dir_name = document.createElement('div');
+        var dir_content = document.createElement('div');
+        var files_content = document.createElement('div');
+        var dir_checkbox = document.createElement('input');
+
+        dir_checkbox.type = 'checkbox';
+        dir_checkbox.className = 'fs-file-manager-file-checkbox';
+        dir_checkbox.id = "fs_" + target + '_' + window.btoa(leaf_obj.basepath);
+
+        dir_checkbox.dataset.fullpath = window.btoa(leaf_obj.basepath);
+
+        dir_container.classList.add('fs-file-manager-node');
+        header_container.classList.add('fs-file-manager-header');
+        min_btn.classList.add('fs-file-manager-min-btn');
+        min_btn.classList.add('fs-rotate-text-right');
+        min_btn.innerHTML = "&#8964;";
+        dir_name.classList.add('fs-file-manager-dir-name');
+        dir_content.classList.add('fs-file-manager-dir-content');
+        files_content.classList.add('fs-file-manager-files-content');
+
+        // drag & drop
+        ['drag','dragstart'].forEach(function (event_name) {
+            files_content.addEventListener(event_name, _onFmDragStart)
+            header_container.addEventListener(event_name, _onFmDragStart)
+        });
+
+        ['dragover','dragenter'].forEach(function (event_name) {
+            files_content.addEventListener(event_name, _onFmDragOver)
+            header_container.addEventListener(event_name, _onFmDragOver)
+        });
+
+        ['dragleave','dragend'].forEach(function (event_name) {
+            files_content.addEventListener(event_name, _onFmDragEnd)
+            header_container.addEventListener(event_name, _onFmDragEnd)
+        });
+
+        header_container.addEventListener('drop', _onFmDragDrop(header_container, leaf_obj.basepath, target_element_id, target));
+        files_content.addEventListener('drop', _onFmDragDrop(files_content, leaf_obj.basepath, target_element_id, target));
+        //
+
+        dir_content.style.display = "none";
+
+        header_container.addEventListener("click", _minimizeFilesTree(leaf_obj.basepath));
+
+        dir_name.innerText = dirname;
+
+        var leaf = leaf_obj.leaf;
+
+        leaf.forEach(_renderFilesTree(dir_content, target_element_id, target))
+
+        if (leaf_obj.items) {
+            var files = leaf_obj.items;
+
+            dir_name.title += files.length;
+
+            if (files.length > 1) {
+                dir_name.title += ' [' + files[0].index + ',' + files[files.length - 1].index + ']';
+            }
+
+            var i = 0;
+            for (i = 0; i < files.length; i += 1) {
+                var file_container = document.createElement('div');
+                var file_name = document.createElement('label');
+                var checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'fs-file-manager-file-checkbox';
+                checkbox.id = "fs_" + target + '_' + files[i].index;
+
+                var f = _fileCheckboxOver(checkbox.id);
+
+                checkbox.addEventListener('mouseleave', f);
+                file_name.addEventListener('mouseleave', f);
+                checkbox.addEventListener('mouseenter', f);
+                file_name.addEventListener('mouseenter', f);
+
+                file_container.classList.add('fs-file-manager-file-container');
+                file_name.classList.add('fs-file-manager-file-name');
+
+                file_name.setAttribute('for', checkbox.id);
+                checkbox.dataset.fullpath = window.btoa(leaf_obj.basepath + "/" + files[i].filename);
+
+                file_name.innerText = files[i].index + " " + files[i].filename;
+                file_name.dataset.clipboardText = files[i].float_index;
+                file_name.title = files[i].float_index;
+
+                file_container.appendChild(checkbox);
+                file_container.appendChild(file_name);
+
+                files_content.appendChild(file_container);
+            }
+        }
+
+        dir_content.appendChild(files_content);
+
+        header_container.appendChild(min_btn);
+        header_container.appendChild(dir_checkbox);
+        header_container.appendChild(dir_name);
+        dir_container.appendChild(header_container);
+
+        dir_container.appendChild(dir_content);
+
+        dom_node.appendChild(dir_container);
+
+        if (_dir_state.has(leaf_obj.basepath)) {
+            var state = _dir_state.get(leaf_obj.basepath);
+            if (state) {
+                dir_content.style.display = "";
+                min_btn.classList.remove('fs-rotate-text-right');
+            } else {
+                dir_content.style.display = "none";
+                min_btn.classList.add('fs-rotate-text-right');    
+            }
+        }
+    };
+};
+
+var _refreshFileManager = function (target_element_id, target) {
+    return function () {
+        var element = document.getElementById(target_element_id).firstElementChild.nextElementSibling;
+
+        var req = new XMLHttpRequest();
+        req.responseType = 'json';
+        req.open('GET', 'http://' + _ffs_address + '/' + target, true);
+        req.onerror = function () {
+            _notification('File manager server error (is it up ?)');
+
+            var error_elem = document.createElement('div');
+            var reload_btn = document.createElement('div');
+            reload_btn.className = 'fs-btn fs-btn-default';
+            reload_btn.innerText = 'refresh';
+
+            reload_btn.addEventListener('click', _refreshFileManager(target_element_id, target));
+
+            error_elem.classList.add('fs-file-manager-error');
+
+            error_elem.innerHTML = 'File manager server connection error...<br>Should be up at <span style="color: yellow; display: contents">' + 'http://' + _ffs_address + '</span><br><br>';
+
+            error_elem.appendChild(reload_btn);
+            element.appendChild(error_elem);
+        };
+        req.onload = function () {
+            element.innerHTML = '';
+
+            var file_index = 0;
+            var leaf = new Map();
+            var tree = { leaf: new Map(), basepath: target };
+            leaf.set(target, tree);
+            var json_response = req.response;
+            var files = json_response.files;
+            var empty_dirs = json_response.empty_dirs;
+
+            // files
+            var i = 0;
+            for (i = 0; i < files.length; i += 1) {
+                var dirs = files[i].split('/');
+
+                var leaf_map = tree.leaf;
+                var leaf_obj = tree;
+                var j = 0;
+                for (j = 0; j < dirs.length - 1; j += 1) {
+                    var basepath = dirs.slice(0, j+1);
+                    basepath = target + '/' + basepath.join('/');
+
+                    var dir_name = dirs[j];
+
+                    if (!leaf_map.has(dir_name)) {
+                        leaf_map.set(dir_name, { leaf: new Map(), basepath: basepath });
+                    }
+
+                    leaf_obj = leaf_map.get(dir_name);
+                    leaf_map = leaf_obj.leaf;
+                }
+
+                if (!leaf_obj.items) {
+                    leaf_obj.items = [];
+                }
+
+                var filename = dirs[dirs.length - 1];
+                leaf_obj.items.push({ filename: filename, index: file_index, float_index: _truncateDecimals(file_index / files.length, 7) });
+
+                file_index += 1;
+            }
+
+            // add empty dirs (done in two pass to compute indexes easily)
+            for (i = 0; i < empty_dirs.length; i += 1) {
+                var dirs = empty_dirs[i].split('/');
+
+                var leaf_map = tree.leaf;
+                var leaf_obj = tree;
+                var j = 0;
+                for (j = 0; j < dirs.length; j += 1) {
+                    var basepath = dirs.slice(0, j+1);
+                    basepath = target + '/' + basepath.join('/');
+
+                    var dir_name = dirs[j];
+                    if (!leaf_map.has(dir_name)) {
+                        leaf_map.set(dir_name, { leaf: new Map(), basepath: basepath });
+                    }
+
+                    leaf_obj = leaf_map.get(dir_name);
+                    leaf_map = leaf_obj.leaf;
+                }
+            }
+
+            var file_manager_container = document.createElement('div');
+            var file_manager_node = document.createElement('div');
+
+            file_manager_container.classList.add('fs-file-manager');
+            file_manager_node.classList.add('fs-file-manager-node');
+            
+            leaf.forEach(_renderFilesTree(file_manager_node, target_element_id, target));
+
+            file_manager_container.appendChild(file_manager_node);
+
+            element.appendChild(file_manager_container);
+
+            element.addEventListener('contextmenu', function(ev) {
+                ev.preventDefault();
+        
+                WUI_CircularMenu.create(
+                    {
+                        x: _mx,
+                        y: _my,
+        
+                        rx: 0,
+                        ry: 0,
+        
+                        item_width:  32,
+                        item_height: 32
+                    },
+                    [
+                        { icon: "fp-trash-icon", tooltip: "Delete selected files",  on_click: function () {
+                                var selected_files = document.querySelectorAll("input[id^='fs_" + target + "_']:checked");
+                                var files_to_delete = [];
+
+                                var i = 0;
+                                for (i = 0; i < selected_files.length; i += 1) {
+                                    var fullpath = window.atob(selected_files[i].dataset.fullpath);
+                                    fullpath = fullpath.split('/');
+                                    fullpath.shift();
+                                    fullpath = fullpath.join('/');
+
+                                    files_to_delete.push(fullpath);
+                                }
+
+                                var xhr = new XMLHttpRequest();
+                                xhr.open('DELETE', 'http://' + _ffs_address + '/' + target, true);
+                                xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                                xhr.onerror = function () {
+                                    _notification('File manager server error (is it up ?)', 4000);
+                        
+                                    console.log(xhr.responseText);
+                                };
+                                xhr.onload = function () {
+                                    if (xhr.status === 200) {
+                                        _refreshFileManager(target_element_id, target)();
+                                    } else {
+                                        _notification('Files deletion error (unknown)', 4000)
+                                    }
+                                };
+
+                                xhr.send(JSON.stringify(files_to_delete));
+                            } }
+                    ]);
+        
+                return false;
+            }, false);
+
+            var clip = new Clipboard('.fs-file-manager-file-name');
+        };
+        req.send(null);
+    };
+};
+
+/***********************************************************
+    Init.
+************************************************************/
+
+/* jslint browser: true */
+
+/***********************************************************
+    Fields.
+************************************************************/
+
 var _icon_class = {
             plus: "fs-plus-icon"
         },
@@ -26586,6 +26991,21 @@ var _icon_class = {
 
     _slices_dialog_id = "fs_slices_dialog",
     _slices_dialog,
+
+    _samples_dialog_id = "fs_samples_dialog",
+    _samples_dialog,
+
+    _waves_dialog_id = "fs_waves_dialog",
+    _waves_dialog,
+
+    _impulses_dialog_id = "fs_impulses_dialog",
+    _impulses_dialog,
+
+    _faust_gens_dialog_id = "fs_faust_gens_dialog",
+    _faust_gens_dialog,
+
+    _faust_effs_dialog_id = "fs_faust_effs_dialog",
+    _faust_effs_dialog,
 
     _slices_dialog_timeout = null,
     
@@ -29126,11 +29546,11 @@ var _createFasFxContent = function (div) {
 
     fx_fieldset.className = "fs-fieldset";
     
-    fx_fieldset_legend.innerHTML = "Channels effects";
+    fx_fieldset_legend.innerHTML = "Channels";
     
     fx_fieldset.appendChild(fx_fieldset_legend);
 
-    _applyCollapsible(fx_fieldset, fx_fieldset_legend, false);
+    _applyCollapsible(fx_fieldset, fx_fieldset_legend, true);
 
     // fx list
     var fx_div = document.createElement("div");
@@ -29214,6 +29634,22 @@ var _createFasFxContent = function (div) {
     }
 };
 
+var _createFasSettingsButton = function (node, title, click_fn) {
+    var btn = document.createElement("button");
+
+    btn.innerHTML = title;
+    btn.className = "fs-btn fs-btn-default";
+
+    btn.style.width = "180px";
+    btn.style.display = "block";
+    btn.style.marginLeft = "auto";
+    btn.style.marginRight = "auto";
+
+    btn.addEventListener("click", click_fn);
+
+    node.appendChild(btn);
+};
+
 var _createFasSettingsContent = function () {
     var dialog_div = document.getElementById(_fas_dialog).lastElementChild,
         detached_dialog = WUI_Dialog.getDetachedDialog(_fas_dialog),
@@ -29227,12 +29663,15 @@ var _createFasSettingsContent = function () {
         
         synthesis_matrix_fieldset = document.createElement("fieldset"),
         actions_fieldset = document.createElement("fieldset"),
+        files_fieldset = document.createElement("fieldset"),
 
         synthesis_matrix_table = document.createElement("table"),
         
         synthesis_matrix_fieldset_legend = document.createElement("legend"),
         
         actions_fieldset_legend = document.createElement("legend"),
+
+        files_fieldset_legend = document.createElement("legend"),
 
         ck_tmp = [],
 
@@ -29253,18 +29692,22 @@ var _createFasSettingsContent = function () {
     // fieldset
     synthesis_matrix_fieldset.className = "fs-fieldset";
     actions_fieldset.className = "fs-fieldset";
+    files_fieldset.className = "fs-fieldset";
     
     dialog_div.style = "overflow: auto";
     dialog_div.innerHTML = "";
     
     synthesis_matrix_fieldset_legend.innerHTML = "Instruments";
     actions_fieldset_legend.innerHTML = "Actions";
+    files_fieldset_legend.innerHTML = "File managers";
     
     synthesis_matrix_fieldset.appendChild(synthesis_matrix_fieldset_legend);
     actions_fieldset.appendChild(actions_fieldset_legend);
+    files_fieldset.appendChild(files_fieldset_legend);
 
     _applyCollapsible(synthesis_matrix_fieldset, synthesis_matrix_fieldset_legend);
     _applyCollapsible(actions_fieldset, actions_fieldset_legend, true);
+    _applyCollapsible(files_fieldset, files_fieldset_legend, true);
 
     // synthesis matrix
     synthesis_matrix_table.className = "fs-matrix";
@@ -29533,7 +29976,7 @@ var _createFasSettingsContent = function () {
     synthesis_matrix_fieldset.appendChild(open_synth_params_btn);
     
     // load sample action
-    load_samples_btn.innerHTML = "Reload samples";
+    load_samples_btn.innerHTML = "Reload samples / grains";
     load_samples_btn.className = "fs-btn fs-btn-default";
 
     load_samples_btn.style.width = "180px";
@@ -29598,14 +30041,21 @@ var _createFasSettingsContent = function () {
     });
 
     actions_fieldset.appendChild(load_samples_btn);
-    actions_fieldset.appendChild(load_faust_gens_btn);
-    actions_fieldset.appendChild(load_faust_effs_btn);
     actions_fieldset.appendChild(load_wavs_btn);
     actions_fieldset.appendChild(load_imps_btn);
+    actions_fieldset.appendChild(load_faust_gens_btn);
+    actions_fieldset.appendChild(load_faust_effs_btn);
+
+    _createFasSettingsButton(files_fieldset, "Grains / samples", function () { WUI_Dialog.open(_samples_dialog); });
+    _createFasSettingsButton(files_fieldset, "Waves (wavetable)", function () { WUI_Dialog.open(_waves_dialog); });
+    _createFasSettingsButton(files_fieldset, "Impulses", function () { WUI_Dialog.open(_impulses_dialog); });
+    _createFasSettingsButton(files_fieldset, "Faust generators", function () { WUI_Dialog.open(_faust_gens_dialog); });
+    _createFasSettingsButton(files_fieldset, "Faust effects", function () { WUI_Dialog.open(_faust_effs_dialog); });
     
     dialog_div.appendChild(synthesis_matrix_fieldset);
     _createFasFxContent(dialog_div);
-    dialog_div.appendChild(actions_fieldset);  
+    dialog_div.appendChild(actions_fieldset); 
+    dialog_div.appendChild(files_fieldset);
 
     _createSynthParametersContent();
 
@@ -30584,6 +31034,165 @@ var _uiInit = function () {
         ]
     });
     
+    _samples_dialog = WUI_Dialog.create(_samples_dialog_id, {
+        title: "File Manager - Grains / samples",
+
+        width: "480px",
+        height: "540px",
+    
+        min_height: 16,
+
+        halign: "center",
+        valign: "center",
+
+        on_open: _refreshFileManager(_samples_dialog_id, "grains"),
+
+        open: false,
+
+        status_bar: false,
+        detachable: true,
+        draggable: true,
+        minimizable: true,
+        resizable: true,
+    
+        header_btn: [
+            {
+                title: "Help",
+                on_click: function () {
+                    window.open(_documentation_link + "fas/file_managers"); 
+                },
+                class_name: "fs-help-icon"
+            }
+        ]
+    });
+
+    _waves_dialog = WUI_Dialog.create(_waves_dialog_id, {
+        title: "File Manager - Waves (wavetable)",
+
+        width: "480px",
+        height: "540px",
+    
+        min_height: 16,
+
+        halign: "center",
+        valign: "center",
+
+        on_open: _refreshFileManager(_waves_dialog_id, "waves"),
+
+        open: false,
+
+        status_bar: false,
+        detachable: true,
+        draggable: true,
+        minimizable: true,
+        resizable: true,
+    
+        header_btn: [
+            {
+                title: "Help",
+                on_click: function () {
+                    window.open(_documentation_link + "fas/file_managers"); 
+                },
+                class_name: "fs-help-icon"
+            }
+        ]
+    });
+
+    _impulses_dialog = WUI_Dialog.create(_impulses_dialog_id, {
+        title: "File Manager - Impulses",
+
+        width: "480px",
+        height: "540px",
+    
+        min_height: 16,
+
+        halign: "center",
+        valign: "center",
+
+        on_open: _refreshFileManager(_impulses_dialog_id, "impulses"),
+
+        open: false,
+
+        status_bar: false,
+        detachable: true,
+        draggable: true,
+        minimizable: true,
+        resizable: true,
+    
+        header_btn: [
+            {
+                title: "Help",
+                on_click: function () {
+                    window.open(_documentation_link + "fas/file_managers"); 
+                },
+                class_name: "fs-help-icon"
+            }
+        ]
+    });
+
+    _faust_gens_dialog = WUI_Dialog.create(_faust_gens_dialog_id, {
+        title: "File Manager - Faust generators",
+
+        width: "480px",
+        height: "540px",
+    
+        min_height: 16,
+
+        halign: "center",
+        valign: "center",
+
+        on_open: _refreshFileManager(_faust_gens_dialog_id, "generators"),
+
+        open: false,
+
+        status_bar: false,
+        detachable: true,
+        draggable: true,
+        minimizable: true,
+        resizable: true,
+    
+        header_btn: [
+            {
+                title: "Help",
+                on_click: function () {
+                    window.open(_documentation_link + "fas/file_managers"); 
+                },
+                class_name: "fs-help-icon"
+            }
+        ]
+    });
+
+    _faust_effs_dialog = WUI_Dialog.create(_faust_effs_dialog_id, {
+        title: "File Manager - Faust effects",
+
+        width: "480px",
+        height: "540px",
+    
+        min_height: 16,
+
+        halign: "center",
+        valign: "center",
+
+        on_open: _refreshFileManager(_faust_effs_dialog_id, "effects"),
+
+        open: false,
+
+        status_bar: false,
+        detachable: true,
+        draggable: true,
+        minimizable: true,
+        resizable: true,
+    
+        header_btn: [
+            {
+                title: "Help",
+                on_click: function () {
+                    window.open(_documentation_link + "fas/file_managers"); 
+                },
+                class_name: "fs-help-icon"
+            }
+        ]
+    });
 /*
     _analysis_dialog = WUI_Dialog.create(_analysis_dialog_id, {
             title: "Audio analysis",
@@ -34310,6 +34919,7 @@ var _fasDisable = function () {
     _fasNotify(_FAS_DISABLE);
     
     _fas_stream_load.textContent = "";
+    _fas_stream_latency.textContent = "";
     
     _fas.enabled = false;
 
@@ -34404,16 +35014,19 @@ var _fasInit = function () {
                 }
 
                 _fasSendIntrumentsInfos();
-            } else if (data.status === "streamload") {
+            } else if (data.status === "streaminfos") {
                 _fas_stream_load.textContent = data.load + "%";
+                _fas_stream_latency.textContent = _truncateDecimals(data.latency, 1) + "ms";
             } else if (data.status === "error") {
                 _fasStatus(false);
 
                 _fas_stream_load.textContent = "";
+                _fas_stream_latency.textContent = "";
             } else if (data.status === "close") {
                 _fasStatus(false);
                 
                 _fas_stream_load.textContent = "";
+                _fas_stream_latency.textContent = "";
 
                 _notification("Audio server connection lost, trying again in ~5s.", 2500);
             }

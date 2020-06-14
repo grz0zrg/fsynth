@@ -28,7 +28,7 @@ Table of Contents
 
 ## About Fragment
 
-Fragment is a graphical audio synth. / collaborative audiovisual live coding web. environment with pixels based (image-synth) real-time sound synthesis, the **sound synthesis** is **powered by pixels data** generated from live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) and [Processing.js](http://processingjs.org/) code with many different types of input data available.
+Fragment is a graphical audio synth. / collaborative audiovisual live coding web. environment with a pixels based (image-synth) real-time sound synthesis approach, the **sound synthesis** is **powered by pixels data** generated from live [GLSL code](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) and [Processing.js](http://processingjs.org/) code with many different types of input data available.
 
 Many videos of most features are available on [YouTube](https://www.youtube.com/c/FragmentSynthesizer)
 
@@ -49,7 +49,7 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
 - Mid-range multi-core CPU (a beefy CPU is needed if you use many instruments)
 - Not necessary but a MIDI device such as a MIDI keyboard is recommended
 
-**Note on performances :** Fragment has excellent performances with a modern multi-core system and a browser such as Chrome however due to browser UI reflow you may experience sometimes some latency especially when typing in the code editor, this can be solved by using the independent code editor.
+**Note on performances :** Fragment has excellent performances with a modern multi-core system and a browser such as Chrome however due to browser UI reflow you may experience latency sometimes especially when typing in the code editor, this can be solved by using the independent code editor.
 
 Fragment is able to do real-time distributed sound synthesis with its audio server, it support any number of machines over the wire and multicore support, this feature also need the fas_relay to work (see below)
 
@@ -144,7 +144,7 @@ Many tools are available to enhance Fragment.
 - [Audio server which communicate via the WebSocket API](https://github.com/grz0zrg/fas)
 - [OSC relay](https://github.com/grz0zrg/fsynth/tree/master/osc_relay)
 - [FAS relay: Distributed multi-machines/multi-core realtime sound synthesis with three distribution algorithm](https://github.com/grz0zrg/fsynth/tree/master/fas_relay)
-
+- [FFS: Audio server files manager API](https://github.com/grz0zrg/fsynth/tree/master/ffs)
 
 - [SuperCollider port of the additive synthesis engine (use OSC)](https://github.com/grz0zrg/fsynth/tree/master/supercollider)
 - [Additive synthesis web. sonogram player](https://github.com/grz0zrg/splayer)
@@ -156,7 +156,6 @@ Many tools are available to enhance Fragment.
 
 ## Tips and tricks
 
-- If you enable the *monophonic* setting, you have the RGB output for live coding visuals which can be fully synchronized with the synthesized sounds, sounds will be synthesized by using the alpha channel
 - Pressing F11 in the GLSL code editor make the editor fullscreen (as an overlay)
 - You can feed the display content of any apps on your desktop (such as GIMP or Krita) by streaming your desktop as a camera (**v4l2loopback** and **ffmpeg** is useful to pull of this on Linux)
 
@@ -177,11 +176,21 @@ Many tools are available to enhance Fragment.
 
  All servers are clustered for scalability and smooth updates.
 
+## Tech
+
+Fragment client is a vanilla JavaScript web application, it use ECMAScript 5 and many Web API technologies. (Web Audio, Web Workers, Web MIDI, Web GL, Web Storage, indexedDB etc.) It was rapidly built from a prototype and had multiple iterations since then, UI code is probably the part which didn't change much in architectural terms and is probably the most bloated one.
+
+Fragment client rely on few dependencies (CodeMirror, sharedb, Recorderjs etc.) and rely on some specifically built libraries such as WUI which handle all the UI widgets.
+
+The client use a custom / simple build system and is architectured around its 'code injection' feature within a single function (see `app_fs.js`), all other files roughly follow a Fields declaration / Functions / Initialization structure, code injection and initialization calls is only done in `app_fs.js` for sanity.
+
+Most backend apps are built using NodeJS.
+
 ## Build system
 
 Fragment is built with a custom build system scanning for changes in real-time and which include files when it read /\*#include file\*/, it execute several programs on the output files such as code minifier, the build system was made with the functional *Anubis* programming language, a programming language based on cartesian closed category theory.
 
-Since the *Anubis* language is relatively unknown, a simplified (without live check & build) Python port of the build system is available, check out [pyNut](https://github.com/grz0zrg/pynut)
+Since the *Anubis* language is mainly private, a simplified (without live check & build) Python port of the build system is available, check out [pyNut](https://github.com/grz0zrg/pynut)
 
 If you want to build it by yourself, install [pyNut](https://github.com/grz0zrg/pynut) script somewhere in your PATH then call `pynutbuild` shell script in the `client` root directory.
 
@@ -192,7 +201,7 @@ You may need to install these dependencies (code minifier) globally through NPM 
  * sudo npm install csso -g
  * sudo npm install uglify-es -g
 
-The Anubis build system can be found [here](https://github.com/grz0zrg/nut) and this build system is called by the shell script named `nutbuild` (root folder)
+The Anubis build system can be found [here](https://github.com/grz0zrg/nut) and the build system is called by the shell script named `nutbuild` (root folder)
 
 ## How to setup your own server
 
@@ -212,17 +221,17 @@ Once those are installed, it is easy to run it locally:
  * cd ffs & npm install & node ffs
  * point your browser to http://127.0.0.1:3000
 
- Under Linux : proprietary GPU drivers is recommended due to performance reasons.
+Under Linux : proprietary GPU drivers is recommended due to performance reasons.
 
- If you just want to try it out without the collaborative feature and GLSL code save, you don't need MongoDB and Redis, you just need "fsws" then point your browser to http://127.0.0.1:3000
+If you just want to try it out without the collaborative feature and GLSL code save, you don't need MongoDB and Redis, you just need "fsws" then point your browser to http://127.0.0.1:3000
 
- If you want to use it with an OSC app like the SuperCollider fs.sc file or [Open Stage Control](http://osc.ammd.net), please look at the osc_relay directory.
+If you want to use it with an OSC app like the SuperCollider fs.sc file or [Open Stage Control](http://osc.ammd.net), please look at the osc_relay directory.
 
- To use the OSC relay :
+To use the OSC relay :
 
 - cd osc_relay & npm install & node osc_relay
 
- To use the FAS relay :
+To use the FAS relay :
 
 - cd fas_relay & npm install & node fas_relay
 
@@ -235,7 +244,7 @@ Once those are installed, it is easy to run it locally:
 ## Credits
 
 Libraries :
- * alot of them can be found in `app_fs.js`
+ * alot of them can be found in `app_fs.js` / `app_fs.css`
 Papers :
  * [The Scientist and Engineer's Guide to Digital Signal Processing](http://www.dspguide.com)
  * [L'audionumérique 3°ed by Curtis Road](http://www.audionumerique.com/)

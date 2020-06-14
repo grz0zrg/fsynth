@@ -83,6 +83,7 @@ var _fasDisable = function () {
     _fasNotify(_FAS_DISABLE);
     
     _fas_stream_load.textContent = "";
+    _fas_stream_latency.textContent = "";
     
     _fas.enabled = false;
 
@@ -177,16 +178,19 @@ var _fasInit = function () {
                 }
 
                 _fasSendIntrumentsInfos();
-            } else if (data.status === "streamload") {
+            } else if (data.status === "streaminfos") {
                 _fas_stream_load.textContent = data.load + "%";
+                _fas_stream_latency.textContent = _truncateDecimals(data.latency, 1) + "ms";
             } else if (data.status === "error") {
                 _fasStatus(false);
 
                 _fas_stream_load.textContent = "";
+                _fas_stream_latency.textContent = "";
             } else if (data.status === "close") {
                 _fasStatus(false);
                 
                 _fas_stream_load.textContent = "";
+                _fas_stream_latency.textContent = "";
 
                 _notification("Audio server connection lost, trying again in ~5s.", 2500);
             }

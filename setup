@@ -1,13 +1,15 @@
 #!/bin/sh
 common_js="
 var fss_port = 4001,
-    fsdb_port = 4002;
+    fsdb_port = 4002,
+    ffs_port = 3122;
 
 exports.allow_fss_origin = [\"https://www.fsynth.com:8042\", \"https://fsynth.com:8042\", \"https://www.fsynth.com\", \"https://fsynth.com\"];
 exports.allow_fsdb_origin = [\"https://www.fsynth.com:8042\", \"https://fsynth.com:8042\", \"https://www.fsynth.com\", \"https://fsynth.com\"];
 
 exports.fss_port = fss_port;
-exports.fsdb_port = fsdb_port;"
+exports.fsdb_port = fsdb_port;
+exports.ffs_port = ffs_port;"
 
 chmod -R 755 ../fsynth
 chown -R fs:fs ../fsynth

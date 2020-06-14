@@ -22,7 +22,7 @@ var _exportRecord = function () {
         opts = {
             float: _audio_infos.float_data,
             ffreq: 0,
-            sps: _fps,
+            sps: _fas.fps,
             octaves: _audio_infos.octaves,
             baseFrequency: _audio_infos.base_freq,
             flipY: false

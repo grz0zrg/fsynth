@@ -41,6 +41,21 @@ var _icon_class = {
     _slices_dialog_id = "fs_slices_dialog",
     _slices_dialog,
 
+    _samples_dialog_id = "fs_samples_dialog",
+    _samples_dialog,
+
+    _waves_dialog_id = "fs_waves_dialog",
+    _waves_dialog,
+
+    _impulses_dialog_id = "fs_impulses_dialog",
+    _impulses_dialog,
+
+    _faust_gens_dialog_id = "fs_faust_gens_dialog",
+    _faust_gens_dialog,
+
+    _faust_effs_dialog_id = "fs_faust_effs_dialog",
+    _faust_effs_dialog,
+
     _slices_dialog_timeout = null,
     
     _import_dialog_id = "fs_import_dialog",
@@ -2580,11 +2595,11 @@ var _createFasFxContent = function (div) {
 
     fx_fieldset.className = "fs-fieldset";
     
-    fx_fieldset_legend.innerHTML = "Channels effects";
+    fx_fieldset_legend.innerHTML = "Channels";
     
     fx_fieldset.appendChild(fx_fieldset_legend);
 
-    _applyCollapsible(fx_fieldset, fx_fieldset_legend, false);
+    _applyCollapsible(fx_fieldset, fx_fieldset_legend, true);
 
     // fx list
     var fx_div = document.createElement("div");
@@ -2668,6 +2683,22 @@ var _createFasFxContent = function (div) {
     }
 };
 
+var _createFasSettingsButton = function (node, title, click_fn) {
+    var btn = document.createElement("button");
+
+    btn.innerHTML = title;
+    btn.className = "fs-btn fs-btn-default";
+
+    btn.style.width = "180px";
+    btn.style.display = "block";
+    btn.style.marginLeft = "auto";
+    btn.style.marginRight = "auto";
+
+    btn.addEventListener("click", click_fn);
+
+    node.appendChild(btn);
+};
+
 var _createFasSettingsContent = function () {
     var dialog_div = document.getElementById(_fas_dialog).lastElementChild,
         detached_dialog = WUI_Dialog.getDetachedDialog(_fas_dialog),
@@ -2681,12 +2712,15 @@ var _createFasSettingsContent = function () {
         
         synthesis_matrix_fieldset = document.createElement("fieldset"),
         actions_fieldset = document.createElement("fieldset"),
+        files_fieldset = document.createElement("fieldset"),
 
         synthesis_matrix_table = document.createElement("table"),
         
         synthesis_matrix_fieldset_legend = document.createElement("legend"),
         
         actions_fieldset_legend = document.createElement("legend"),
+
+        files_fieldset_legend = document.createElement("legend"),
 
         ck_tmp = [],
 
@@ -2707,18 +2741,22 @@ var _createFasSettingsContent = function () {
     // fieldset
     synthesis_matrix_fieldset.className = "fs-fieldset";
     actions_fieldset.className = "fs-fieldset";
+    files_fieldset.className = "fs-fieldset";
     
     dialog_div.style = "overflow: auto";
     dialog_div.innerHTML = "";
     
     synthesis_matrix_fieldset_legend.innerHTML = "Instruments";
     actions_fieldset_legend.innerHTML = "Actions";
+    files_fieldset_legend.innerHTML = "File managers";
     
     synthesis_matrix_fieldset.appendChild(synthesis_matrix_fieldset_legend);
     actions_fieldset.appendChild(actions_fieldset_legend);
+    files_fieldset.appendChild(files_fieldset_legend);
 
     _applyCollapsible(synthesis_matrix_fieldset, synthesis_matrix_fieldset_legend);
     _applyCollapsible(actions_fieldset, actions_fieldset_legend, true);
+    _applyCollapsible(files_fieldset, files_fieldset_legend, true);
 
     // synthesis matrix
     synthesis_matrix_table.className = "fs-matrix";
@@ -2987,7 +3025,7 @@ var _createFasSettingsContent = function () {
     synthesis_matrix_fieldset.appendChild(open_synth_params_btn);
     
     // load sample action
-    load_samples_btn.innerHTML = "Reload samples";
+    load_samples_btn.innerHTML = "Reload samples / grains";
     load_samples_btn.className = "fs-btn fs-btn-default";
 
     load_samples_btn.style.width = "180px";
@@ -3052,14 +3090,21 @@ var _createFasSettingsContent = function () {
     });
 
     actions_fieldset.appendChild(load_samples_btn);
-    actions_fieldset.appendChild(load_faust_gens_btn);
-    actions_fieldset.appendChild(load_faust_effs_btn);
     actions_fieldset.appendChild(load_wavs_btn);
     actions_fieldset.appendChild(load_imps_btn);
+    actions_fieldset.appendChild(load_faust_gens_btn);
+    actions_fieldset.appendChild(load_faust_effs_btn);
+
+    _createFasSettingsButton(files_fieldset, "Grains / samples", function () { WUI_Dialog.open(_samples_dialog); });
+    _createFasSettingsButton(files_fieldset, "Waves (wavetable)", function () { WUI_Dialog.open(_waves_dialog); });
+    _createFasSettingsButton(files_fieldset, "Impulses", function () { WUI_Dialog.open(_impulses_dialog); });
+    _createFasSettingsButton(files_fieldset, "Faust generators", function () { WUI_Dialog.open(_faust_gens_dialog); });
+    _createFasSettingsButton(files_fieldset, "Faust effects", function () { WUI_Dialog.open(_faust_effs_dialog); });
     
     dialog_div.appendChild(synthesis_matrix_fieldset);
     _createFasFxContent(dialog_div);
-    dialog_div.appendChild(actions_fieldset);  
+    dialog_div.appendChild(actions_fieldset); 
+    dialog_div.appendChild(files_fieldset);
 
     _createSynthParametersContent();
 
@@ -4038,6 +4083,165 @@ var _uiInit = function () {
         ]
     });
     
+    _samples_dialog = WUI_Dialog.create(_samples_dialog_id, {
+        title: "File Manager - Grains / samples",
+
+        width: "480px",
+        height: "540px",
+    
+        min_height: 16,
+
+        halign: "center",
+        valign: "center",
+
+        on_open: _refreshFileManager(_samples_dialog_id, "grains"),
+
+        open: false,
+
+        status_bar: false,
+        detachable: true,
+        draggable: true,
+        minimizable: true,
+        resizable: true,
+    
+        header_btn: [
+            {
+                title: "Help",
+                on_click: function () {
+                    window.open(_documentation_link + "fas/file_managers"); 
+                },
+                class_name: "fs-help-icon"
+            }
+        ]
+    });
+
+    _waves_dialog = WUI_Dialog.create(_waves_dialog_id, {
+        title: "File Manager - Waves (wavetable)",
+
+        width: "480px",
+        height: "540px",
+    
+        min_height: 16,
+
+        halign: "center",
+        valign: "center",
+
+        on_open: _refreshFileManager(_waves_dialog_id, "waves"),
+
+        open: false,
+
+        status_bar: false,
+        detachable: true,
+        draggable: true,
+        minimizable: true,
+        resizable: true,
+    
+        header_btn: [
+            {
+                title: "Help",
+                on_click: function () {
+                    window.open(_documentation_link + "fas/file_managers"); 
+                },
+                class_name: "fs-help-icon"
+            }
+        ]
+    });
+
+    _impulses_dialog = WUI_Dialog.create(_impulses_dialog_id, {
+        title: "File Manager - Impulses",
+
+        width: "480px",
+        height: "540px",
+    
+        min_height: 16,
+
+        halign: "center",
+        valign: "center",
+
+        on_open: _refreshFileManager(_impulses_dialog_id, "impulses"),
+
+        open: false,
+
+        status_bar: false,
+        detachable: true,
+        draggable: true,
+        minimizable: true,
+        resizable: true,
+    
+        header_btn: [
+            {
+                title: "Help",
+                on_click: function () {
+                    window.open(_documentation_link + "fas/file_managers"); 
+                },
+                class_name: "fs-help-icon"
+            }
+        ]
+    });
+
+    _faust_gens_dialog = WUI_Dialog.create(_faust_gens_dialog_id, {
+        title: "File Manager - Faust generators",
+
+        width: "480px",
+        height: "540px",
+    
+        min_height: 16,
+
+        halign: "center",
+        valign: "center",
+
+        on_open: _refreshFileManager(_faust_gens_dialog_id, "generators"),
+
+        open: false,
+
+        status_bar: false,
+        detachable: true,
+        draggable: true,
+        minimizable: true,
+        resizable: true,
+    
+        header_btn: [
+            {
+                title: "Help",
+                on_click: function () {
+                    window.open(_documentation_link + "fas/file_managers"); 
+                },
+                class_name: "fs-help-icon"
+            }
+        ]
+    });
+
+    _faust_effs_dialog = WUI_Dialog.create(_faust_effs_dialog_id, {
+        title: "File Manager - Faust effects",
+
+        width: "480px",
+        height: "540px",
+    
+        min_height: 16,
+
+        halign: "center",
+        valign: "center",
+
+        on_open: _refreshFileManager(_faust_effs_dialog_id, "effects"),
+
+        open: false,
+
+        status_bar: false,
+        detachable: true,
+        draggable: true,
+        minimizable: true,
+        resizable: true,
+    
+        header_btn: [
+            {
+                title: "Help",
+                on_click: function () {
+                    window.open(_documentation_link + "fas/file_managers"); 
+                },
+                class_name: "fs-help-icon"
+            }
+        ]
+    });
 /*
     _analysis_dialog = WUI_Dialog.create(_analysis_dialog_id, {
             title: "Audio analysis",

@@ -175,6 +175,7 @@ var FragmentSynth = function (params) {
         _osc_infos = document.getElementById("fs_osc_infos"),
         _poly_infos_element = document.getElementById("fs_polyphony_infos"),
         _fas_stream_load = document.getElementById("fs_fas_stream_load"),
+        _fas_stream_latency = document.getElementById("fs_fas_stream_latency"),
 
         _synth_output_element = document.getElementById("fs_synth_output"),
 
@@ -494,8 +495,6 @@ var FragmentSynth = function (params) {
         _LEFT_MOUSE_BTN = 1,
         _RIGHT_MOUSE_BTN = 2,
 
-        _fps = 60, // FPS is fixed when using WebAudio version of Fragment TODO : find a solution to update this in real-time ?
-
         _raf,
 
         _gl,
@@ -580,6 +579,7 @@ var FragmentSynth = function (params) {
     /*#include transports.js*/
     /*#include export.js*/
     /*#include workspace.js*/
+    /*#include file_manager.js*/
     /*#include ui.js*/
     /*#include pjs.js*/
     /*#include slices.js*/

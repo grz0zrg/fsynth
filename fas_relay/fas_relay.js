@@ -75,6 +75,7 @@ var WebSocket = require("ws"),
     fas_servers = [],
     fas_weight = [],
     fas_loads = [],
+    fas_latencies = [],
     fas_count = 1,
     fas_addr_range = null;
 
@@ -418,15 +419,17 @@ function onFASClose(fas_obj) {
 function onFASMessage(i) {
     return function msg(message) {
         var data = new Int32Array(message);
+        var datad = new Float64Array(message, 2);
 
         if (data[0] === 0) {
+            fas_latencies[i] = datad[0];
             fas_loads[i] = data[1];
 
             if (fas_loads[i] <= 0) {
                 return;
             }
 
-            logger.log("info", "Server %s stream load: %s.", i, data[1] + "%");
+            logger.log("info", "Server %s stream load: %s latency %s.", i, data[1] + "%", datad[0]);
         }
     };
 }
@@ -442,31 +445,35 @@ function printOverallLoad() {
     clearTimeout(fas_load_timeout);
     fas_load_timeout = setTimeout(printOverallLoad, 2000);
 
-    var i = 0, l = 0;
+    var i = 0, l = 0, overall_latency = 0;
     for (i = 0; i < fas_loads.length; i += 1) {
         l += fas_loads[i];
     }
 
     if (l > 0) {
         l /= i;
-    } else {
-        return;
     }
 
-    if (l <= 0) {
-      return;
+    for (i = 0; i < fas_latencies.length; i += 1) {
+        overall_latency += fas_latencies[i];
     }
 
-    logger.log("info", "Overall stream load: %s.", l + "%");
+    if (overall_latency > 0) {
+        overall_latency /= i;
+    }
 
-    var load_buffer = new ArrayBuffer(8),
-        int32_view = new Int32Array(load_buffer, 0);
+    logger.log("info", "Overall stream load %s latency %s.", l + "%", overall_latency);
+
+    var stream_infos = new ArrayBuffer(8 + 8),
+        int32_view = new Int32Array(stream_infos, 0),
+        float64_view = new Float64Array(stream_infos, 2);
 
     int32_view[0] = 0;
     int32_view[1] = l;
+    float64_view[0] = overall_latency;
 
     try {
-      client_socket.send(load_buffer, sendError);
+      client_socket.send(stream_infos, sendError);
     } catch (e) {
       console.log(e);
     }

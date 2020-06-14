@@ -334,10 +334,12 @@ var _connect = function (opts) {
     
     _fas_ws.onmessage = function (event) {
             var data = new Int32Array(event.data);
+            var datad = new Float64Array(event.data, 2);
             if (data[0] === 0) {
                 postMessage({
-                        status: "streamload",
-                        load: data[1]
+                        status: "streaminfos",
+                        load: data[1],
+                        latency: datad[0]
                     });
             }
         };
