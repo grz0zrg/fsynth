@@ -313,6 +313,8 @@ var FragmentSynth = function (params) {
         ],
         _current_code_editor = _code_editors[0],
 
+        _code_editor_font_size = localStorage.getItem('fs-editor-font-size'),
+
         _code_editor_theme = localStorage.getItem('fs-editor-theme'),
         _code_editor_theme_link,
         _code_editor_highlight = {
@@ -806,6 +808,12 @@ var FragmentSynth = function (params) {
     }
 
     _changeEditorsTheme(_code_editor_theme);
+
+    if (!_code_editor_font_size) {
+        _code_editor_font_size = "S";
+    }
+
+    _changeEditorsFontSize(_code_editor_font_size);
 
     var _onEditorGutterClick = function (code_editor) {
         return function (cm, n) {

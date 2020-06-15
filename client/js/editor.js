@@ -100,6 +100,55 @@ var _changeEditorsTheme = function (theme) {
     localStorage.setItem('fs-editor-theme', theme);
 
     _code_editor_theme = theme;
+
+    // update select
+    var select_elem = document.getElementById("fs_select_editor_themes");
+    var sibling = select_elem.firstElementChild;
+    while (sibling !== null) {
+        if (sibling.textContent === theme) {
+            sibling.selected = true;
+            break;
+        }
+        sibling = sibling.nextElementSibling;
+    }
+};
+
+var _changeEditorsFontSize = function (fontsize) {
+    var em_size = "1em";
+    
+    if (fontsize === "XS") {
+        em_size = "1em";
+    } else if (fontsize === "S") {
+        em_size = "1.25em";
+    } else if (fontsize === "M") {
+        em_size = "1.5em";
+    } else if (fontsize === "L") {
+        em_size = "1.75em";
+    } else if (fontsize === "XL") {
+        em_size = "2em";
+    } else if (fontsize === "XXL") {
+        em_size = "2.25em";
+    }
+
+    var i = 0;
+    for (i = 0; i < _code_editors.length; i += 1) {
+        _code_editors[i].container.style.fontSize = em_size;
+    }
+
+    localStorage.setItem('fs-editor-font-size', fontsize);
+
+    _code_editor_font_size = em_size;
+
+    // update select
+    var select_elem = document.getElementById("fs_select_editor_fontsize");
+    var sibling = select_elem.firstElementChild;
+    while (sibling !== null) {
+        if (sibling.textContent === fontsize) {
+            sibling.selected = true;
+            break;
+        }
+        sibling = sibling.nextElementSibling;
+    }
 };
 
 var _detachCodeEditor = function () {

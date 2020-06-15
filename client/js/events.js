@@ -119,6 +119,13 @@ document.getElementById("fs_select_editor_themes").addEventListener('change', fu
     _changeEditorsTheme(theme);
 });
 
+document.getElementById("fs_select_editor_fontsize").addEventListener('change', function (e) {
+    var size = e.target.value;
+
+    _changeEditorsFontSize(size);
+});
+
+
 document.getElementById("fs_import_audio_mapping").addEventListener('change', function (e) {
     var mapping_type = e.target.value;
     

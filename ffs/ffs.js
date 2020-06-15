@@ -7,6 +7,7 @@ const multer = require('multer')
 const winston = require('winston')
 const fse = require('fs-extra')
 const cors = require('cors')
+const zip = require('express-zip')
 
 const logger = winston.createLogger({
         format: winston.format.combine(winston.format.splat(), winston.format.simple()),
@@ -247,6 +248,62 @@ app.get('/:target', (req, res, next) => {
     }
 })
 
+app.put('/:target', (req, res, next) => {
+    let target = req.params.target
+    let target_path = target
+
+    if (target === 'grains') {
+        target_path = grains_dir
+    } else if (target === 'waves') {
+        target_path = waves_dir
+    } else if (target === 'impulses') {
+        target_path = impulses_dir
+    } else if (target === 'generators') {
+        target_path = faust_generators_dir
+    } else if (target === 'effects') {
+        target_path = faust_effects_dir
+    } else {
+        res.status(403).send(new Error('Unsupported target'))
+
+        return;
+    }
+
+    let action = req.query.action;
+    if (action === 'create') {
+        req.body.forEach((filepath) => {
+            const src = path.join(target_path, filepath)
+
+            if (src) {
+                fse.ensureDirSync(src)
+            }
+        })
+    } else if (action === 'rename') {
+        req.body.forEach((obj) => {
+            const src = path.join(target_path, obj.src)
+            const dst = path.join(target_path, obj.dst)
+
+            if (obj.src && src !== dst) {
+                fse.moveSync(src, dst)
+            }
+        })
+    } else if (action === 'move') {
+        req.body.forEach((obj) => {
+            const src = path.join(target_path, obj.src)
+            const dst = path.join(target_path, obj.dst)
+
+            const filename = path.basename(obj.src)
+
+            if (obj.src && src !== dst) {
+                fse.moveSync(src, path.join(dst, filename), { overwrite: true })
+            }
+        })
+    } else {
+        res.status(400).send(new Error('Unknown action'))
+    }
+
+    res.status(200).send();
+})
+
 app.delete('/:target', (req, res, next) => {
     let target = req.params.target
     let target_path = target
@@ -268,11 +325,62 @@ app.delete('/:target', (req, res, next) => {
     }
 
     req.body.forEach((filepath) => {
-        fse.removeSync(path.join(target_path, filepath))
+        if (filepath) {
+            fse.removeSync(path.join(target_path, filepath))
+        }
     })
 
     res.status(200).send();
-});
+})
+
+app.post('/download/:target', (req, res, next) => {
+    let target = req.params.target
+    let target_path = target
+
+    if (target === 'grains') {
+        target_path = grains_dir
+    } else if (target === 'waves') {
+        target_path = waves_dir
+    } else if (target === 'impulses') {
+        target_path = impulses_dir
+    } else if (target === 'generators') {
+        target_path = faust_generators_dir
+    } else if (target === 'effects') {
+        target_path = faust_effects_dir
+    } else {
+        res.status(403).send(new Error('Unsupported target'))
+
+        return;
+    }
+
+    const transformed_result = req.body.map((filepath) => {
+        const filename = path.basename(filepath)
+
+        const localpath = filepath.replace(target_path, '')
+        const fullpath = path.join(target_path, (filepath !== target) ? localpath : filepath)
+
+        return { path: fullpath, name: path.join(target, filepath) }
+    })
+
+    const files_to_send = []
+    transformed_result.forEach((obj) => {
+        try {
+            const stat = fse.lstatSync(obj.path)
+            if (stat.isDirectory()) {
+                const files = listAllFiles(obj.path)
+                files.forEach((filepath) => {
+                    files_to_send.push({ path: filepath, name: path.join(target, filepath.replace(target_path, ''))});
+                })
+            } else if (stat.isFile()) {
+                files_to_send.push(obj);
+            }
+        } catch (e) {
+            logger.log('error', "%s", e)
+        }
+    })
+
+    res.zip(files_to_send)
+})
 
 app.listen(fsynthcommon.ffs_port, () => {
     logger.log("info", 'Fragment - File Server listening on *:' + fsynthcommon.ffs_port)

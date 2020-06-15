@@ -324,7 +324,7 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                         </label>
                     </div>
                     <div class="fs-spacer"></div>
-                    <div style="text-align: center;">
+                    <div style="text-align: right;">
                         <label class="fs-input-label" for="fs_select_editor_themes">Editor theme:</label>
                         <select id="fs_select_editor_themes" class="fs-btn">
                             <option selected>default</option>
@@ -389,6 +389,17 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                             <option>yeti</option>
                             <option>yonce</option>
                             <option>zenburn</option>
+                        </select>
+                    </div>
+                    <div style="text-align: right;">
+                        <label style="width: 100px" class="fs-input-label" for="fs_select_editor_fontsize">Editor font size:</label>
+                        <select id="fs_select_editor_fontsize" class="fs-btn">
+                            <option>XS</option>
+                            <option selected>S</option>
+                            <option>M</option>
+                            <option>L</option>
+                            <option>XL</option>
+                            <option>XXL</option>
                         </select>
                     </div>
                 </fieldset>

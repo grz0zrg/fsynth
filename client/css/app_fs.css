@@ -73,8 +73,6 @@ body {
     font-family: "Inconsolata", monospace;
     font-style: normal;
     font-weight: normal;
-    
-    font-size: 11pt;
 }
 
 .canvas {
@@ -1020,6 +1018,7 @@ div[class~=fs-workspace-item]:hover {
     margin: auto;
     padding: auto;
     display: flex;
+    font-size: 12px;
 }
 
 .node {

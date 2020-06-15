@@ -136,6 +136,12 @@ var _renderFilesTree = function (dom_node, target_element_id, target) {
         dir_checkbox.id = "fs_" + target + '_' + window.btoa(leaf_obj.basepath);
 
         dir_checkbox.dataset.fullpath = window.btoa(leaf_obj.basepath);
+        var basepath = dir_checkbox.dataset.fullpath;
+        basepath = basepath.split('/');
+        basepath.pop();
+        basepath = basepath.join('/');
+        dir_checkbox.dataset.basepath = basepath;
+        dir_checkbox.dataset.filename = window.btoa(dirname);
 
         dir_container.classList.add('fs-file-manager-node');
         header_container.classList.add('fs-file-manager-header');
@@ -179,7 +185,7 @@ var _renderFilesTree = function (dom_node, target_element_id, target) {
         if (leaf_obj.items) {
             var files = leaf_obj.items;
 
-            dir_name.title += files.length;
+            dir_name.title += "Files : " + files.length;
 
             if (files.length > 1) {
                 dir_name.title += ' [' + files[0].index + ',' + files[files.length - 1].index + ']';
@@ -206,6 +212,8 @@ var _renderFilesTree = function (dom_node, target_element_id, target) {
 
                 file_name.setAttribute('for', checkbox.id);
                 checkbox.dataset.fullpath = window.btoa(leaf_obj.basepath + "/" + files[i].filename);
+                checkbox.dataset.filename = window.btoa(files[i].filename);
+                checkbox.dataset.basepath = window.btoa(leaf_obj.basepath);
 
                 file_name.innerText = files[i].index + " " + files[i].filename;
                 file_name.dataset.clipboardText = files[i].float_index;
@@ -342,23 +350,239 @@ var _refreshFileManager = function (target_element_id, target) {
 
             element.appendChild(file_manager_container);
 
-            element.addEventListener('contextmenu', function(ev) {
+            element.addEventListener('contextmenu', function (ev) {
                 ev.preventDefault();
+
+                if (ev.target.classList.contains('fs-file-manager-header') ||
+                    ev.target.classList.contains('fs-file-manager-min-btn') ||
+                    ev.target.classList.contains('fs-file-manager-dir-name')) {
+                        WUI_CircularMenu.create(
+                            {
+                                x: _mx,
+                                y: _my,
+                
+                                rx: 24,
+                                ry: 24,
+
+                                angle: -90,
+                
+                                item_width:  32,
+                                item_height: 32
+                            },
+                            [
+                                { icon: "fs-plus-icon", tooltip: "New directory",  on_click: function () {
+                                    var dir_target = ev.target;
+                                    if (ev.target.classList.contains('fs-file-manager-header')) {
+                                        dir_target = ev.target.firstElementChild.nextElementSibling;
+                                    } else if (ev.target.classList.contains('fs-file-manager-min-btn')) {
+                                        dir_target = ev.target.nextElementSibling;
+                                    } else if (ev.target.classList.contains('fs-file-manager-dir-name')) {
+                                        dir_target = ev.target.previousElementSibling;
+                                    }
+
+                                    var target_path = window.atob(dir_target.dataset.fullpath);
+                                    target_path = target_path.split('/');
+                                    target_path.shift();
+                                    target_path = target_path.join('/');
+
+                                    var dir_name = window.prompt('Directory name', '');
+                                    if (!dir_name || !dir_name.length) {
+                                        return;
+                                    }
+
+                                    var directories = [target_path + '/' + dir_name];
+
+                                    var xhr = new XMLHttpRequest();
+                                    xhr.open('PUT', 'http://' + _ffs_address + '/' + target + '?action=create', true);
+                                    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                                    xhr.onerror = function () {
+                                        _notification('File manager server error (is it up ?)', 4000);
+                            
+                                        console.log(xhr.responseText);
+                                    };
+                                    xhr.onload = function () {
+                                        if (xhr.status === 200) {
+                                            _refreshFileManager(target_element_id, target)();
+                                        } else {
+                                            _notification('Files move / rename error (unknown)', 4000)
+                                        }
+                                    };
+    
+                                    xhr.send(JSON.stringify(directories));
+                                } },
+                                { icon: "fs-replace-icon", tooltip: "Move selected files here",  on_click: function () {
+                                        var dir_target = ev.target;
+                                        if (ev.target.classList.contains('fs-file-manager-header')) {
+                                            dir_target = ev.target.firstElementChild.nextElementSibling;
+                                        } else if (ev.target.classList.contains('fs-file-manager-min-btn')) {
+                                            dir_target = ev.target.nextElementSibling;
+                                        } else if (ev.target.classList.contains('fs-file-manager-dir-name')) {
+                                            dir_target = ev.target.previousElementSibling;
+                                        }
+
+                                        var target_path = window.atob(dir_target.dataset.fullpath);
+                                        target_path = target_path.split('/');
+                                        target_path.shift();
+                                        target_path = target_path.join('/');
+
+                                        var selected_files = document.querySelectorAll("input[id^='fs_" + target + "_']:checked");
+
+                                        if (!selected_files.length) {
+                                            return;
+                                        }
+
+                                        var files = [];
         
+                                        var i = 0;
+                                        for (i = 0; i < selected_files.length; i += 1) {
+                                            var fullpath = window.atob(selected_files[i].dataset.fullpath);
+                                            fullpath = fullpath.split('/');
+                                            fullpath.shift();
+                                            fullpath = fullpath.join('/');
+        
+                                            files.push({ src: fullpath, dst: target_path });
+                                        }
+        
+                                        var xhr = new XMLHttpRequest();
+                                        xhr.open('PUT', 'http://' + _ffs_address + '/' + target + '?action=move', true);
+                                        xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                                        xhr.onerror = function () {
+                                            _notification('File manager server error (is it up ?)', 4000);
+                                
+                                            console.log(xhr.responseText);
+                                        };
+                                        xhr.onload = function () {
+                                            if (xhr.status === 200) {
+                                                _refreshFileManager(target_element_id, target)();
+                                            } else {
+                                                _notification('Files move / rename error (unknown)', 4000)
+                                            }
+                                        };
+        
+                                        xhr.send(JSON.stringify(files));
+                                    } }
+                            ]);
+                    return true;
+                }
+
                 WUI_CircularMenu.create(
                     {
                         x: _mx,
                         y: _my,
         
-                        rx: 0,
-                        ry: 0,
-        
+                        rx: 32,
+                        ry: 32,
+
                         item_width:  32,
                         item_height: 32
                     },
                     [
+                        { icon: "fs-audio-file-icon", tooltip: "Download selected files", on_click: function () {
+                            var selected_files = document.querySelectorAll("input[id^='fs_" + target + "_']:checked");
+
+                            if (!selected_files.length) {
+                                return;
+                            }
+
+                            var files_to_download = [];
+
+                            var i = 0;
+                            for (i = 0; i < selected_files.length; i += 1) {
+                                var fullpath = window.atob(selected_files[i].dataset.fullpath);
+                                fullpath = fullpath.split('/');
+                                fullpath.shift();
+                                fullpath = fullpath.join('/');
+
+                                files_to_download.push(fullpath);
+                            }
+
+                            var xhr = new XMLHttpRequest();
+                            xhr.open("POST", 'http://' + _ffs_address + '/download/' + target, true);
+                            xhr.responseType = 'blob';
+                            xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                            xhr.onerror = function () {
+                                _notification('File manager server error (is it up ?)', 4000);
+                    
+                                console.log(xhr.responseText);
+                            };
+                            xhr.onreadystatechange = function() {
+                                if (this.readyState == 4 && this.status == 200) {
+                                    var blob = new Blob([this.response], {type: 'application/zip'});
+
+                                    var url = URL.createObjectURL(xhr.response);
+                                    var a = document.createElement("a");
+
+                                    document.body.appendChild(a);
+                                    a.style = "display: none";
+                                    a.href = url;
+                                    a.download = "";
+
+                                    a.click();
+
+                                    window.URL.revokeObjectURL(url);
+
+                                    document.body.removeChild(a);
+                                } else if (this.status == 200) {
+                                    _notification('Files download error (unknown)', 4000)
+                                }
+                            };
+                            xhr.send(JSON.stringify(files_to_download));
+                        } },
+                        { icon: "fs-code-icon", tooltip: "Rename selected file", on_click: function () {
+                            var selected_files = document.querySelectorAll("input[id^='fs_" + target + "_']:checked");
+
+                            if (!selected_files.length || selected_files.length > 1) {
+                                _notification("Must select a single file to rename", 4000);
+                                return;
+                            }
+
+                            var files_to_rename = [];
+
+                            var file = selected_files[0];
+                            var fullpath = window.atob(file.dataset.fullpath);
+                            fullpath = fullpath.split('/');
+                            fullpath.shift();
+                            fullpath = fullpath.join('/');
+
+                            var basepath = window.atob(file.dataset.basepath);
+                            basepath = basepath.split('/');
+                            basepath.shift();
+                            basepath = basepath.join('/');
+                            var filename = window.atob(file.dataset.filename);
+                            var new_name = window.prompt('Rename file', filename)
+                            if (!new_name || !new_name.length) {
+                                return;
+                            }
+
+                            var file_obj = { src: fullpath, dst: basepath + new_name };
+
+                            files_to_rename.push(file_obj);
+
+                            var xhr = new XMLHttpRequest();
+                            xhr.open('PUT', 'http://' + _ffs_address + '/' + target + '?action=rename', true);
+                            xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                            xhr.onerror = function () {
+                                _notification('File manager server error (is it up ?)', 4000);
+                    
+                                console.log(xhr.responseText);
+                            };
+                            xhr.onload = function () {
+                                if (xhr.status === 200) {
+                                    _refreshFileManager(target_element_id, target)();
+                                } else {
+                                    _notification('Files move / rename error (unknown)', 4000)
+                                }
+                            };
+
+                            xhr.send(JSON.stringify(files_to_rename));
+                        } },
                         { icon: "fp-trash-icon", tooltip: "Delete selected files",  on_click: function () {
                                 var selected_files = document.querySelectorAll("input[id^='fs_" + target + "_']:checked");
+
+                                if (!selected_files.length) {
+                                    return;
+                                }
+
                                 var files_to_delete = [];
 
                                 var i = 0;
