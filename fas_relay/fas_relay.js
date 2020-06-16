@@ -419,7 +419,7 @@ function onFASClose(fas_obj) {
 function onFASMessage(i) {
     return function msg(message) {
         var data = new Int32Array(message);
-        var datad = new Float64Array(message, 2);
+        var datad = new Float64Array(message, 8);
 
         if (data[0] === 0) {
             fas_latencies[i] = datad[0];

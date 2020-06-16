@@ -2282,6 +2282,175 @@ var _createSynthParametersContent = function () {
             chn_fieldset.appendChild(chn_model_type_select);
 
             chn_model_type_select.dispatchEvent(new UIEvent('change'));
+
+            // droplet params
+            var drop_tubes = document.createElement("div");
+
+            drop_tubes.id = "fs_chn_" + j + "_drop_tubes";
+
+            var tubes = slice.instrument_params.p1;
+
+            chn_fieldset.appendChild(drop_tubes);
+
+            _fas_content_list.push(WUI_RangeSlider.create(drop_tubes, {
+                width: 120,
+                height: 8,
+    
+                min: 1,
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: tubes,
+                value: tubes,
+    
+                decimals: 0,
+
+                midi: true,
+                
+                title: "Droplet tubes",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 4)
+            }));
+
+            var drop_deattack = document.createElement("div");
+
+            drop_deattack.id = "fs_chn_" + j + "_drop_deattack";
+
+            var deattack = slice.instrument_params.p2;
+
+            chn_fieldset.appendChild(drop_deattack);
+
+            _fas_content_list.push(WUI_RangeSlider.create(drop_deattack, {
+                width: 120,
+                height: 8,
+    
+                min: 0,
+                bar: false,
+    
+                step: 0.0001,
+                scroll_step: 0.0001,
+    
+                default_value: deattack,
+                value: deattack,
+    
+                decimals: 4,
+
+                midi: true,
+                
+                title: "Droplet deattack",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 5)
+            }));
+
+            // bar params
+            var bar_bcl = document.createElement("div");
+
+            bar_bcl.id = "fs_chn_" + j + "_bar_bcl";
+
+            var bcl = slice.instrument_params.p1;
+
+            chn_fieldset.appendChild(bar_bcl);
+
+            _fas_content_list.push(WUI_RangeSlider.create(bar_bcl, {
+                width: 120,
+                height: 8,
+    
+                min: 1,
+                max: 3,
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: bcl,
+                value: bcl,
+    
+                decimals: 0,
+
+                midi: true,
+                
+                title: "Bar boundary left",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 4)
+            }));
+
+            var bar_bcr = document.createElement("div");
+
+            bar_bcr.id = "fs_chn_" + j + "_bar_bcr";
+
+            var bcr = slice.instrument_params.p2;
+
+            chn_fieldset.appendChild(bar_bcr);
+
+            _fas_content_list.push(WUI_RangeSlider.create(bar_bcr, {
+                width: 120,
+                height: 8,
+    
+                min: 1,
+                max: 3,
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: bcr,
+                value: bcr,
+    
+                decimals: 0,
+
+                midi: true,
+                
+                title: "Bar boundary right",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 5)
+            }));
+
+            var bar_vel = document.createElement("div");
+
+            bar_vel.id = "fs_chn_" + j + "_bar_vel";
+
+            var vel = slice.instrument_params.p3;
+
+            chn_fieldset.appendChild(bar_vel);
+
+            _fas_content_list.push(WUI_RangeSlider.create(bar_vel, {
+                width: 120,
+                height: 8,
+    
+                min: 0,
+                bar: false,
+    
+                step: 1,
+                scroll_step: 1,
+    
+                default_value: vel,
+                value: vel,
+    
+                decimals: 0,
+
+                midi: true,
+                
+                title: "Bar strike velocity",
+    
+                title_min_width: 140,
+                value_min_width: 88,
+    
+                on_change: _onChangeChannelSettings(j, 6)
+            }));
         } else if (_synthesis_types[synth_type] === "Wavetable") {
             var chn_wav1 = document.createElement("div");
 
@@ -2877,8 +3046,14 @@ var _createFasSettingsContent = function () {
                         //_fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 0 });
                         //_fasNotify(_FAS_CHN_INFOS, { target: 2, chn: chn, value: 0 });
                         _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 3, value: 0 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 4, value: 1 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 5, value: 1 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 6, value: 500 });
 
                         slice.instrument_params.p0 = 0;
+                        slice.instrument_params.p1 = 1;
+                        slice.instrument_params.p2 = 1;
+                        slice.instrument_params.p3 = 500;
                     } else if (_synthesis_types[synth_type] === "Wavetable") {
                         //_chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
                         //_fasNotify(_FAS_INSTRUMENT_INFOS, { target: 0, chn: chn, value: synth_type });

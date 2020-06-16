@@ -334,7 +334,7 @@ var _connect = function (opts) {
     
     _fas_ws.onmessage = function (event) {
             var data = new Int32Array(event.data);
-            var datad = new Float64Array(event.data, 2);
+            var datad = new Float64Array(event.data, 8);
             if (data[0] === 0) {
                 postMessage({
                         status: "streaminfos",
