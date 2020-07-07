@@ -29649,7 +29649,7 @@ var _createSynthParametersContent = function () {
 
             bar_vel.id = "fs_chn_" + j + "_bar_vel";
 
-            var vel = slice.instrument_params.p4;
+            var vel = slice.instrument_params.p3;
 
             chn_fieldset.appendChild(bar_vel);
 
@@ -29723,6 +29723,37 @@ var _createSynthParametersContent = function () {
     }
 };
 
+var _chnFxMute = function (elem) {
+    var id = null, chn, efx, muted, slot;
+
+    slot = Array.from(elem.parentElement.children).indexOf(elem);
+
+    id = slot * 3;
+    chn = _parseInt10(elem.parentElement.dataset.chn);
+    efx = _chn_settings[chn].efx;
+    muted = efx[id + 1];
+
+    efx[id + 1] = muted ? 0 : 1;
+
+    if (muted) {
+        elem.classList.remove("fs-fx-mute");
+    } else {
+        elem.classList.add("fs-fx-mute");
+    }
+
+    // save settings
+    _local_session_settings.chn_settings[chn] = _chn_settings[chn];
+    _saveLocalSessionSettings();
+
+    _fasNotify(_FAS_CHN_FX_INFOS, { chn: chn, slot: slot, target: 1, value: efx[id + 1] });
+};
+
+var _onChnFxClick = function (ev) {
+    if (ev.button == 1) {
+        _chnFxMute(ev.target);
+    }
+};
+
 var _onChnFxDblClick = function (ev) {
     WUI_Dialog.open(ev.target.dataset.dialog_id);
 };
@@ -29749,7 +29780,9 @@ var _onChnFxContextMenu = function (ev) {
             icon: "fs-cross-45-icon", tooltip: "Delete", on_click: function () {
                 var id = null, chn, efx, slot;
 
-                slot = Array.from(elem.parentElement.children).indexOf(elem);
+                var chn_nodes = Array.from(elem.parentElement.children);
+
+                slot = chn_nodes.indexOf(elem);
 
                 id = slot * 3;
 
@@ -29758,7 +29791,21 @@ var _onChnFxContextMenu = function (ev) {
 
                 efx.splice(id, 3);
 
+                var next_elem = elem.nextElementSibling;
+
                 elem.parentElement.removeChild(elem);
+
+                // must update all fx after
+                chn_nodes = Array.from(next_elem.parentElement.children);
+                while (next_elem) {
+                    var fxid = chn_nodes.indexOf(next_elem);
+
+                    next_elem.dataset.chn_fxid = fxid * 3;
+
+                    WUI_Dialog.setTitle(next_elem.dataset.dialog_id, _efx[efx[id]].name + " (" + chn + ":" + fxid + ")");
+
+                    next_elem = next_elem.nextElementSibling;
+                }
 
                 // save settings
                 _local_session_settings.chn_settings[chn] = _chn_settings[chn];
@@ -29769,28 +29816,7 @@ var _onChnFxContextMenu = function (ev) {
                 WUI_Dialog.destroy(elem.dataset.dialog_id);
         }}, {
             icon: mute_icon, tooltip: mute_tooltip, on_click: function () {
-                var id = null, chn, efx, muted, slot;
-
-                slot = Array.from(elem.parentElement.children).indexOf(elem);
-
-                id = slot * 3;
-                chn = _parseInt10(elem.parentElement.dataset.chn);
-                efx = _chn_settings[chn].efx;
-                muted = efx[id + 1];
-
-                efx[id + 1] = muted ? 0 : 1;
-
-                if (muted) {
-                    elem.classList.remove("fs-fx-mute");
-                } else {
-                    elem.classList.add("fs-fx-mute");
-                }
-
-                // save settings
-                _local_session_settings.chn_settings[chn] = _chn_settings[chn];
-                _saveLocalSessionSettings();
-
-                _fasNotify(_FAS_CHN_FX_INFOS, { chn: chn, slot: slot, target: 1, value: efx[id + 1] });
+                _chnFxMute(elem);
             }
         }]);
 
@@ -30069,6 +30095,7 @@ var _createFasFxContent = function (div) {
         if (chn_fx) {
             for (j = 0; j < chn_fx.length; j += 3) {
                 fx_card = _createFasFxCard(fx_chn_content, chn_fx[j], chn_fx[j + 1], i, j);
+                fx_card.addEventListener("auxclick", _onChnFxClick);
                 fx_card.addEventListener("contextmenu", _onChnFxContextMenu);
                 fx_card.addEventListener("dblclick", _onChnFxDblClick);
 
@@ -30280,7 +30307,6 @@ var _createFasSettingsContent = function () {
                         slice.instrument_params.p1 = 1;
                         slice.instrument_params.p2 = 1;
                         slice.instrument_params.p3 = 500;
-                        slice.instrument_params.p4 = 500;
                     } else if (_synthesis_types[synth_type] === "Wavetable") {
                         //_chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
                         //_fasNotify(_FAS_INSTRUMENT_INFOS, { target: 0, chn: chn, value: synth_type });
@@ -30356,6 +30382,7 @@ var _createFasSettingsContent = function () {
                         slice.instrument_params.p0 = 1;
                         slice.instrument_params.p1 = 1024;
                         slice.instrument_params.p2 = 0;
+                        slice.instrument_params.p3 = 0;
                     } else if (_synthesis_types[synth_type] === "Faust") {
                         //_chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0];
                         //_fasNotify(_FAS_INSTRUMENT_INFOS, { target: 0, chn: chn, value: synth_type });
@@ -32174,7 +32201,7 @@ var _uiInit = function () {
             },
 
             on_change: function (value) {
-                _paint_delay = value;
+                _paint_delay = parseFloat(value);
             }
         });
     
@@ -32185,7 +32212,7 @@ var _uiInit = function () {
             min: 0,
             max: 10,
 
-            step: "any",
+            //step: "any",
 
             midi: true,
         
@@ -32218,7 +32245,7 @@ var _uiInit = function () {
             min: 0,
             max: 10,
 
-            step: "any",
+            //step: "any",
         
             midi: true,
         
@@ -32238,7 +32265,7 @@ var _uiInit = function () {
             },
 
             on_change: function (value) {
-                _paint_scaley = value;
+                _paint_scaley = parseFloat(value);
                 
                 _drawBrushHelper();
             }
@@ -32251,7 +32278,7 @@ var _uiInit = function () {
             min: 0.0,
             max: 1.0,
 
-            step: "any",
+            //step: "any",
             scroll_step: 0.01,
 
             midi: true,
@@ -32270,7 +32297,7 @@ var _uiInit = function () {
             },
 
             on_change: function (value) {
-                _paint_opacity = value;
+                _paint_opacity = parseFloat(value);
                 
                 _drawBrushHelper();
             }
@@ -32283,7 +32310,7 @@ var _uiInit = function () {
             min: 0.0,
             max: 360.0,
 
-            step: "any",
+            //step: "any",
             scroll_step: 0.01,
 
             midi: true,
@@ -32302,7 +32329,7 @@ var _uiInit = function () {
             },
 
             on_change: function (value) {
-                _paint_angle = _degToRad(value);
+                _paint_angle = _degToRad(parseFloat(value));
                 
                 _drawBrushHelper();
             }
@@ -34050,6 +34077,22 @@ var _unmuteSlice = function (slice_obj, submit) {
     }
 };
 
+var _sliceAuxClickFn = function (play_position_marker_element) {
+    return function (ev) {
+        ev.preventDefault();
+
+        var play_position_marker = _play_position_markers[parseInt(play_position_marker_element.dataset.slice, 10)];
+
+        if (ev.button === 1) {
+            if (play_position_marker.mute) {
+                _unmuteSlice(play_position_marker, true);
+            } else {
+                _muteSlice(play_position_marker, true);
+            }
+        }
+    };
+};
+
 var _showSliceSettingsMenuFn = function (play_position_marker_element) {
     return function (ev) {
         ev.preventDefault();
@@ -34294,6 +34337,8 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
         });
     
     play_position_marker_element.addEventListener('contextmenu', _showSliceSettingsMenuFn(play_position_marker_element), false);
+
+    play_position_marker_element.addEventListener('auxclick', _sliceAuxClickFn(play_position_marker_element), false);
     
     _createMarkerSettings(play_position_marker);  
     

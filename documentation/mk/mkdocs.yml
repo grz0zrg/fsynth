@@ -1,4 +1,4 @@
-site_name: Fragment - The Collaborative Spectral Synthesizer
+site_name: Fragment - Real-time audiovisual live coding platform
 copyright: "<a href='https://www.fsynth.com'>© Julien Verneuil</a>"
 pages:
 - Fragment: 'index.md'

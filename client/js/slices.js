@@ -868,6 +868,22 @@ var _unmuteSlice = function (slice_obj, submit) {
     }
 };
 
+var _sliceAuxClickFn = function (play_position_marker_element) {
+    return function (ev) {
+        ev.preventDefault();
+
+        var play_position_marker = _play_position_markers[parseInt(play_position_marker_element.dataset.slice, 10)];
+
+        if (ev.button === 1) {
+            if (play_position_marker.mute) {
+                _unmuteSlice(play_position_marker, true);
+            } else {
+                _muteSlice(play_position_marker, true);
+            }
+        }
+    };
+};
+
 var _showSliceSettingsMenuFn = function (play_position_marker_element) {
     return function (ev) {
         ev.preventDefault();
@@ -1112,6 +1128,8 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
         });
     
     play_position_marker_element.addEventListener('contextmenu', _showSliceSettingsMenuFn(play_position_marker_element), false);
+
+    play_position_marker_element.addEventListener('auxclick', _sliceAuxClickFn(play_position_marker_element), false);
     
     _createMarkerSettings(play_position_marker);  
     
