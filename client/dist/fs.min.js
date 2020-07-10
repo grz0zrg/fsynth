@@ -24841,7 +24841,8 @@ var _createChannelSettingsDialog = function (input_channel_id) {
             !_isPowerOf2(fragment_input_channel.image.height) || 
             fragment_input_channel.type === 1 || 
             fragment_input_channel.type === 3 || 
-            fragment_input_channel.type === 5) {
+            fragment_input_channel.type === 5 ||
+            fragment_input_channel.type === 6) {
             power_of_two_wrap_options = "";
             mipmap_option = "";
         }
@@ -24852,6 +24853,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
         fragment_input_channel.type === 3 ||
         fragment_input_channel.type === 4 ||
         fragment_input_channel.type === 5 ||
+        fragment_input_channel.type === 6 ||
         fragment_input_channel.type === 404) {
         vflip_style = "display: none";
     }
@@ -29901,16 +29903,18 @@ var _onChnFxContextMenu = function (ev) {
 
                 elem.parentElement.removeChild(elem);
 
-                // must update all fx after
-                chn_nodes = Array.from(next_elem.parentElement.children);
-                while (next_elem) {
-                    var fxid = chn_nodes.indexOf(next_elem);
+                if (next_elem) {
+                    // must update all fx after
+                    chn_nodes = Array.from(next_elem.parentElement.children);
+                    while (next_elem) {
+                        var fxid = chn_nodes.indexOf(next_elem);
 
-                    next_elem.dataset.chn_fxid = fxid * 3;
+                        next_elem.dataset.chn_fxid = fxid * 3;
 
-                    WUI_Dialog.setTitle(next_elem.dataset.dialog_id, _efx[efx[id]].name + " (" + chn + ":" + fxid + ")");
+                        WUI_Dialog.setTitle(next_elem.dataset.dialog_id, _efx[efx[id]].name + " (" + chn + ":" + fxid + ")");
 
-                    next_elem = next_elem.nextElementSibling;
+                        next_elem = next_elem.nextElementSibling;
+                    }
                 }
 
                 // save settings
