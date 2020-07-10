@@ -2569,16 +2569,18 @@ var _onChnFxContextMenu = function (ev) {
 
                 elem.parentElement.removeChild(elem);
 
-                // must update all fx after
-                chn_nodes = Array.from(next_elem.parentElement.children);
-                while (next_elem) {
-                    var fxid = chn_nodes.indexOf(next_elem);
+                if (next_elem) {
+                    // must update all fx after
+                    chn_nodes = Array.from(next_elem.parentElement.children);
+                    while (next_elem) {
+                        var fxid = chn_nodes.indexOf(next_elem);
 
-                    next_elem.dataset.chn_fxid = fxid * 3;
+                        next_elem.dataset.chn_fxid = fxid * 3;
 
-                    WUI_Dialog.setTitle(next_elem.dataset.dialog_id, _efx[efx[id]].name + " (" + chn + ":" + fxid + ")");
+                        WUI_Dialog.setTitle(next_elem.dataset.dialog_id, _efx[efx[id]].name + " (" + chn + ":" + fxid + ")");
 
-                    next_elem = next_elem.nextElementSibling;
+                        next_elem = next_elem.nextElementSibling;
+                    }
                 }
 
                 // save settings
@@ -4128,7 +4130,7 @@ var _uiInit = function () {
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
             title: "Import dialog (images etc.)",
 
-            width: "550px",
+            width: "620px",
             height: "auto",
             min_height: "80px",
 
@@ -4183,6 +4185,12 @@ var _uiInit = function () {
                         on_click: (function () { _addFragmentInput("camera"); }),
                         tooltip: "Webcam",
                         text: "Cam"
+                    },
+                    {
+                        icon: "fs-mic-icon",
+                        on_click: (function () { _addFragmentInput("mic"); }),
+                        tooltip: "Microphone",
+                        text: "Mic"
                     },
                     {
                         icon: "fs-dsk-icon",
@@ -5515,6 +5523,58 @@ var _uiInit = function () {
 
             on_change: function (value) {
                 _audio_import_settings.maxfreq = value;
+            }
+        });
+    
+        WUI_RangeSlider.create("fs_import_cam_width", {
+            width: 100,
+            height: 8,
+
+            min: 1,
+
+            bar: false,
+
+            step: 1,
+            scroll_step: 1,
+
+            midi: false,
+
+            default_value: _audio_import_settings.cam_width,
+            value: _audio_import_settings.cam_width,
+
+            title: "Cam. width",
+
+            title_min_width: 84,
+            value_min_width: 64,
+
+            on_change: function (value) {
+                _audio_import_settings.cam_width = value;
+            }
+        });
+
+        WUI_RangeSlider.create("fs_import_cam_height", {
+            width: 100,
+            height: 8,
+
+            min: 1,
+
+            bar: false,
+
+            step: 1,
+            scroll_step: 1,
+
+            midi: false,
+
+            default_value: _audio_import_settings.cam_height,
+            value: _audio_import_settings.cam_height,
+
+            title: "Cam. height",
+
+            title_min_width: 84,
+            value_min_width: 64,
+
+            on_change: function (value) {
+                _audio_import_settings.cam_height = value;
             }
         });
     

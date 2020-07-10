@@ -90,7 +90,8 @@ var _createChannelSettingsDialog = function (input_channel_id) {
             !_isPowerOf2(fragment_input_channel.image.height) || 
             fragment_input_channel.type === 1 || 
             fragment_input_channel.type === 3 || 
-            fragment_input_channel.type === 5) {
+            fragment_input_channel.type === 5 ||
+            fragment_input_channel.type === 6) {
             power_of_two_wrap_options = "";
             mipmap_option = "";
         }
@@ -101,6 +102,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
         fragment_input_channel.type === 3 ||
         fragment_input_channel.type === 4 ||
         fragment_input_channel.type === 5 ||
+        fragment_input_channel.type === 6 ||
         fragment_input_channel.type === 404) {
         vflip_style = "display: none";
     }
@@ -554,6 +556,12 @@ var _removeInputChannel = function (input_id) {
             });
         }
         fragment_input_data.video_elem = null;
+    } else if (fragment_input_data.type === 6) {
+        if (fragment_input_data.media_stream) {
+            fragment_input_data.media_stream.getTracks().forEach(function(track) {
+                track.stop();
+            });
+        }
     }
 
     if (fragment_input_data.canvas) {
@@ -794,26 +802,64 @@ var _addFragmentInput = async function (type, input, settings, id) {
         _fragment_input_data[input_id].elem.addEventListener("contextmenu", _cbChannelSettings(_fragment_input_data[input_id].dialog_id));
 
         _compile();
-    } else if (type === "camera" || type === "video" || type === "desktop") {
+    } else if (type === "camera" || type === "video" || type === "desktop" || type === "mic") {
         video_element = document.createElement('video');
         video_element.autoplay = true;
         video_element.loop = true;
         video_element.stream = null;
         
-        if (type === "camera") {
-            video_element.width = 320;
-            video_element.height = 240;
-            
+        if (type === "camera" || type === "mic") {
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                var user_media_options = {
+                    video: { width: _audio_import_settings.cam_width, height: _audio_import_settings.cam_height, frameRate: 60 },
+                    audio: false
+                };
+
+                var input_type = 1;
+                var analysis_data = null;
+                var analyzer_node = null;
+                var primary_canvas = null;
+
+                if (type === "mic") {
+                    user_media_options = {
+                        video: false,
+                        audio: true
+                    };
+
+                    input_type = 6;
+                }
+
                 try {
-                    var media_stream = await navigator.mediaDevices.getUserMedia({
-                        video: { mandatory: { /*minWidth: 640, maxWidth: 1280, minHeight: 320, maxHeight: 720, minFrameRate: 30*/ }, optional: [{ minFrameRate: 60 }] },
-                        audio: _audio_import_settings.videotrack_import
-                    });
+                    var media_stream = await navigator.mediaDevices.getUserMedia(user_media_options);
 
-                    video_element.srcObject = /*window.URL.createObjectURL(*/media_stream/*)*/;
+                    if (type === "camera") {
+                        var stream_settings = media_stream.getVideoTracks()[0].getSettings();
+                        video_element.width = stream_settings.width;
+                        video_element.height = stream_settings.height;
 
-                    data = _create2DTexture(video_element, false, false);
+                        video_element.srcObject = /*window.URL.createObjectURL(*/media_stream/*)*/;
+
+                        data = _create2DTexture(video_element, false, false);
+                    } else {
+                        // create analysis canvas
+                        primary_canvas = document.createElement("canvas");
+
+                        primary_canvas.width = _canvas_width;
+                        primary_canvas.height = _canvas_height;
+
+                        data = _create2DTexture(primary_canvas, false, true);
+
+                        // mic capture
+                        analyzer_node = _audio_context.createAnalyser();
+                        analyzer_node.fftSize = _audio_import_settings.fft_size;
+                        analyzer_node.smoothingTimeConstant = 0;
+
+                        var mic_node = _audio_context.createMediaStreamSource(media_stream);
+
+                        mic_node.connect(analyzer_node);
+
+                        analysis_data = new Uint8Array(analyzer_node.frequencyBinCount);
+                    }
 
                     _setTextureWrapS(data.texture, "clamp");
                     _setTextureWrapT(data.texture, "clamp");
@@ -821,7 +867,7 @@ var _addFragmentInput = async function (type, input, settings, id) {
                     db_obj.settings.wrap.s = data.wrap.ws;
                     db_obj.settings.wrap.t = data.wrap.wt;
                     db_obj.settings.flip = false;
-                    db_obj.settings.audio = _audio_import_settings.videotrack_import;
+                    //db_obj.settings.audio = _audio_import_settings.videotrack_import;
 
                     _dbStoreInput(input_id, db_obj);
 
@@ -838,16 +884,21 @@ var _addFragmentInput = async function (type, input, settings, id) {
                     }
 
                     _fragment_input_data[input_id] = {
-                        type: 1,
+                        type: input_type,
                         image: data.image,
                         texture: data.texture,
                         video_elem: video_element,
                         elem: null,
                         media_stream: media_stream,
-                        db_obj: db_obj
+                        db_obj: db_obj,
+                        analyzer_node: analyzer_node,
+                        analysis_data: analysis_data,
+                        canvas: primary_canvas,
+                        fft_size: _audio_import_settings.fft_size,
+                        speed: 1
                     };
 
-                    _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/camera.png");
+                    _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/" + type + ".png");
                         
                     _createChannelSettingsDialog(input_id);
 
@@ -856,15 +907,17 @@ var _addFragmentInput = async function (type, input, settings, id) {
                     _compile();
 
                     promise = media_stream;
-
+/*
                     if (db_obj.settings.audio) {
                         await _addFragmentInput("canvas", null, { linked: { input: input_id} });
                     }
+*/
                 } catch (e) {
-                    _notification("Unable to capture video/camera.");
+                    _notification("Unable to capture " + type + ".");
+                    console.log(e);
                 }
             } else {
-                _notification("Unable to capture video/camera, getUserMedia may be not supported by your browser.");
+                _notification("Unable to capture " + type + ", getUserMedia may be not supported by your browser.");
             }
         } else if (type === "desktop") {
             if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {

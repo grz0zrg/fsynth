@@ -138,6 +138,27 @@ var _canvasInputDimensionsUpdate = function (new_width, new_height) {
             input_id = _parseInt10(fragment_input_data.elem.dataset.inputId);
             
             _dbUpdateInput(input_id, fragment_input_data.db_obj);
+        } else if (fragment_input_data.type === 6) {
+            tmp_canvas.width = new_width; 
+            tmp_canvas.height = new_height;
+            tmp_canvas_ctx.fillRect(0, 0, new_width, new_height);
+            tmp_canvas_ctx.drawImage(fragment_input_data.canvas, 0, 0);
+
+            fragment_input_data.canvas.width = new_width; 
+            fragment_input_data.canvas.height = new_height;
+            fragment_input_data.db_obj.width = _canvas_width;
+            fragment_input_data.db_obj.height = _canvas_height;
+            fragment_input_data.canvas_ctx.drawImage(tmp_canvas, 0, 0, new_width, new_height);
+
+            fragment_input_data.texture = _replace2DTexture({ empty: true, width: new_width, height: new_height }, fragment_input_data.texture);
+            
+            //_flipYTexture(fragment_input_data.texture, true);
+            
+            //_canvasInputUpdate(fragment_input_data);
+            
+            input_id = _parseInt10(fragment_input_data.elem.dataset.inputId);
+            
+            _dbUpdateInput(input_id, fragment_input_data.db_obj);
         }
     }
 };

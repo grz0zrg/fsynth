@@ -67,7 +67,8 @@ Fragment is able to do real-time distributed sound synthesis with its audio serv
 - Feedback via framebuffer (for fx like reverb, delay, spectral distortion etc)
 - OSC in/out support (there is a crude [SuperCollider](http://supercollider.github.io/) port of the additive synthesis engine)
 - Shader inputs:
-  - Webcam (no audio support)
+  - Webcam
+  - Microphone (live analysis; mono)
   - Images
   - Videos with rate & rewind & loop settings (can import the audio track as an image)
   - Desktop capture (screen region, specific window or browser tab via `getDisplayMedia`)

@@ -132,6 +132,13 @@ document.getElementById("fs_import_audio_mapping").addEventListener('change', fu
     _audio_import_settings.mapping = mapping_type;
 });
 
+document.getElementById("fs_import_mic_fft_size").addEventListener('change', function (e) {
+    var fft_size = e.target.value;
+    
+    _audio_import_settings.fft_size = _parseInt10(fft_size);
+});
+
+
 document.getElementById("fs_import_audio_ck_videotrack").addEventListener('change', function (e) {
     var videotrack_import = this.checked;
     

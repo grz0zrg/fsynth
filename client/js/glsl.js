@@ -205,6 +205,7 @@ var _glsl_compilation = function () {
                 fragment_input.type === 2 ||
                 fragment_input.type === 4 ||
                 fragment_input.type === 5 ||
+                fragment_input.type === 6 ||
                 fragment_input.type === 404) { // 2D texture from either image, webcam, canvas, pjs
                 glsl_code += "uniform sampler2D " + _input_channel_prefix + "" + i + ";";
             } else if (fragment_input.type === 3) { // video type

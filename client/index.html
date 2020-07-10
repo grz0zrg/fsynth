@@ -704,7 +704,9 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
             <div>
                 <div style="padding: 4px"></div>
                 <fieldset class="fs-fieldset fs-audio-import-settings fs-collapsible fs-collapsed">
-                    <legend class="fs-collapsible-legend" style="margin-top: 5px; margin-left: 5px;">Audio import settings</legend>
+                    <legend class="fs-collapsible-legend" style="margin-top: 5px; margin-left: 5px;">Settings</legend>
+                    <div class="fs-spacer"></div>
+                    <div style="font-size: 12px">Snd / Mov (audio)</div>
                     <div class="fs-spacer"></div>
                     <div class="wui-rangeslider">
                         <label class="wui-rangeslider-title" style="min-width: 84px;" class="fs-input-label" for="fs_import_audio_mapping">Frequencies</label>
@@ -726,6 +728,25 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                             <div>Import / convert media audio</div>&nbsp;
                             <input id="fs_import_audio_ck_videotrack" type="checkbox">
                         </label>
+                    </div>
+                    <div class="fs-spacer"></div>
+                    <div id="fs_import_cam_width"></div>
+                    <div id="fs_import_cam_height"></div>
+                    <div class="wui-rangeslider">
+                        <label class="wui-rangeslider-title" style="min-width: 84px;" class="fs-input-label" for="fs_import_mic_fft_size">Mic. FFT size</label>
+                        <select id="fs_import_mic_fft_size" class="fs-btn">
+                            <option>32</option>
+                            <option>64</option>
+                            <option>128</option>
+                            <option>256</option>
+                            <option>512</option>
+                            <option>1024</option>
+                            <option selected>2048</option>
+                            <option>4096</option>
+                            <option>8192</option>
+                            <option>16384</option>
+                            <option>32768</option>
+                        </select>
                     </div>
                     <div class="fs-spacer"></div>
                 </fieldset>

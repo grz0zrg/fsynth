@@ -698,6 +698,36 @@ var _frame = function (raf_time) {
 
                 _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, fragment_input.image);
             }
+        } else if (fragment_input.type === 6) { // mic
+            fragment_input.analyzer_node.getByteFrequencyData(fragment_input.analysis_data);
+
+            var canvas_ctx = fragment_input.canvas.getContext("2d");
+
+            canvas_ctx.drawImage(fragment_input.canvas, 0, 0, fragment_input.canvas.width, fragment_input.canvas.height);
+    
+            for (var y = 0; y < fragment_input.canvas.height; y += 1) {
+              var freq = _getFrequency(y);
+    
+              var bin_index = Math.round(freq * fragment_input.fft_size / _sample_rate);
+    
+              var color = Math.round(fragment_input.analysis_data[bin_index]);
+    
+              canvas_ctx.fillStyle = 'rgba(' + color + ',' + color + ',' + color + ',' + 1 + ')';
+              canvas_ctx.fillRect(fragment_input.canvas.width - 1 - fragment_input.speed, y, fragment_input.speed, fragment_input.speed);
+            }
+    
+            canvas_ctx.translate(-fragment_input.speed, 0);
+    
+            canvas_ctx.drawImage(fragment_input.canvas, 0, 0, fragment_input.canvas.width, fragment_input.canvas.height, 0, 0, fragment_input.canvas.width, fragment_input.canvas.height);
+    
+            canvas_ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+            _gl.activeTexture(_gl.TEXTURE0 + i);
+            _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
+            _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
+
+            // update
+            _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, fragment_input.canvas);
         }
     }
 

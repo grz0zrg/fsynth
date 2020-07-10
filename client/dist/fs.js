@@ -22077,7 +22077,10 @@ var _audio_to_image_worker = new Worker("dist/worker/audio_to_image.min.js"),
         height: 0,
         minfreq: 0,
         maxfreq: 0,
-        videotrack_import: false
+        videotrack_import: false,
+        cam_width: 320,
+        cam_height: 240,
+        fft_size: 2048
     };
 
 /***********************************************************
@@ -22092,7 +22095,7 @@ var _convertAudioToImage = function (data) {
             settings: JSON.parse(JSON.stringify(_audio_import_settings)),
             left: l,
             right: r,
-            note_time: _getNoteTime(_audio_import_settings.bpm, _audio_import_settings.ppb),
+            //note_time: _getNoteTime(_audio_import_settings.bpm, _audio_import_settings.ppb),
             sample_rate: _sample_rate
         },
         
@@ -23004,6 +23007,36 @@ var _frame = function (raf_time) {
 
                 _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, fragment_input.image);
             }
+        } else if (fragment_input.type === 6) { // mic
+            fragment_input.analyzer_node.getByteFrequencyData(fragment_input.analysis_data);
+
+            var canvas_ctx = fragment_input.canvas.getContext("2d");
+
+            canvas_ctx.drawImage(fragment_input.canvas, 0, 0, fragment_input.canvas.width, fragment_input.canvas.height);
+    
+            for (var y = 0; y < fragment_input.canvas.height; y += 1) {
+              var freq = _getFrequency(y);
+    
+              var bin_index = Math.round(freq * fragment_input.fft_size / _sample_rate);
+    
+              var color = Math.round(fragment_input.analysis_data[bin_index]);
+    
+              canvas_ctx.fillStyle = 'rgba(' + color + ',' + color + ',' + color + ',' + 1 + ')';
+              canvas_ctx.fillRect(fragment_input.canvas.width - 1 - fragment_input.speed, y, fragment_input.speed, fragment_input.speed);
+            }
+    
+            canvas_ctx.translate(-fragment_input.speed, 0);
+    
+            canvas_ctx.drawImage(fragment_input.canvas, 0, 0, fragment_input.canvas.width, fragment_input.canvas.height, 0, 0, fragment_input.canvas.width, fragment_input.canvas.height);
+    
+            canvas_ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+            _gl.activeTexture(_gl.TEXTURE0 + i);
+            _gl.bindTexture(_gl.TEXTURE_2D, fragment_input.texture);
+            _gl.uniform1i(_getUniformLocation(_input_channel_prefix + i), i);
+
+            // update
+            _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, fragment_input.canvas);
         }
     }
 
@@ -23458,6 +23491,7 @@ var _glsl_compilation = function () {
                 fragment_input.type === 2 ||
                 fragment_input.type === 4 ||
                 fragment_input.type === 5 ||
+                fragment_input.type === 6 ||
                 fragment_input.type === 404) { // 2D texture from either image, webcam, canvas, pjs
                 glsl_code += "uniform sampler2D " + _input_channel_prefix + "" + i + ";";
             } else if (fragment_input.type === 3) { // video type
@@ -24691,6 +24725,27 @@ var _canvasInputDimensionsUpdate = function (new_width, new_height) {
             input_id = _parseInt10(fragment_input_data.elem.dataset.inputId);
             
             _dbUpdateInput(input_id, fragment_input_data.db_obj);
+        } else if (fragment_input_data.type === 6) {
+            tmp_canvas.width = new_width; 
+            tmp_canvas.height = new_height;
+            tmp_canvas_ctx.fillRect(0, 0, new_width, new_height);
+            tmp_canvas_ctx.drawImage(fragment_input_data.canvas, 0, 0);
+
+            fragment_input_data.canvas.width = new_width; 
+            fragment_input_data.canvas.height = new_height;
+            fragment_input_data.db_obj.width = _canvas_width;
+            fragment_input_data.db_obj.height = _canvas_height;
+            fragment_input_data.canvas_ctx.drawImage(tmp_canvas, 0, 0, new_width, new_height);
+
+            fragment_input_data.texture = _replace2DTexture({ empty: true, width: new_width, height: new_height }, fragment_input_data.texture);
+            
+            //_flipYTexture(fragment_input_data.texture, true);
+            
+            //_canvasInputUpdate(fragment_input_data);
+            
+            input_id = _parseInt10(fragment_input_data.elem.dataset.inputId);
+            
+            _dbUpdateInput(input_id, fragment_input_data.db_obj);
         }
     }
 };
@@ -25250,6 +25305,12 @@ var _removeInputChannel = function (input_id) {
             });
         }
         fragment_input_data.video_elem = null;
+    } else if (fragment_input_data.type === 6) {
+        if (fragment_input_data.media_stream) {
+            fragment_input_data.media_stream.getTracks().forEach(function(track) {
+                track.stop();
+            });
+        }
     }
 
     if (fragment_input_data.canvas) {
@@ -25490,26 +25551,64 @@ var _addFragmentInput = async function (type, input, settings, id) {
         _fragment_input_data[input_id].elem.addEventListener("contextmenu", _cbChannelSettings(_fragment_input_data[input_id].dialog_id));
 
         _compile();
-    } else if (type === "camera" || type === "video" || type === "desktop") {
+    } else if (type === "camera" || type === "video" || type === "desktop" || type === "mic") {
         video_element = document.createElement('video');
         video_element.autoplay = true;
         video_element.loop = true;
         video_element.stream = null;
         
-        if (type === "camera") {
-            video_element.width = 320;
-            video_element.height = 240;
-            
+        if (type === "camera" || type === "mic") {
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                var user_media_options = {
+                    video: { width: _audio_import_settings.cam_width, height: _audio_import_settings.cam_height, frameRate: 60 },
+                    audio: false
+                };
+
+                var input_type = 1;
+                var analysis_data = null;
+                var analyzer_node = null;
+                var primary_canvas = null;
+
+                if (type === "mic") {
+                    user_media_options = {
+                        video: false,
+                        audio: true
+                    };
+
+                    input_type = 6;
+                }
+
                 try {
-                    var media_stream = await navigator.mediaDevices.getUserMedia({
-                        video: { mandatory: { /*minWidth: 640, maxWidth: 1280, minHeight: 320, maxHeight: 720, minFrameRate: 30*/ }, optional: [{ minFrameRate: 60 }] },
-                        audio: _audio_import_settings.videotrack_import
-                    });
+                    var media_stream = await navigator.mediaDevices.getUserMedia(user_media_options);
 
-                    video_element.srcObject = /*window.URL.createObjectURL(*/media_stream/*)*/;
+                    if (type === "camera") {
+                        var stream_settings = media_stream.getVideoTracks()[0].getSettings();
+                        video_element.width = stream_settings.width;
+                        video_element.height = stream_settings.height;
 
-                    data = _create2DTexture(video_element, false, false);
+                        video_element.srcObject = /*window.URL.createObjectURL(*/media_stream/*)*/;
+
+                        data = _create2DTexture(video_element, false, false);
+                    } else {
+                        // create analysis canvas
+                        primary_canvas = document.createElement("canvas");
+
+                        primary_canvas.width = _canvas_width;
+                        primary_canvas.height = _canvas_height;
+
+                        data = _create2DTexture(primary_canvas, false, true);
+
+                        // mic capture
+                        analyzer_node = _audio_context.createAnalyser();
+                        analyzer_node.fftSize = _audio_import_settings.fft_size;
+                        analyzer_node.smoothingTimeConstant = 0;
+
+                        var mic_node = _audio_context.createMediaStreamSource(media_stream);
+
+                        mic_node.connect(analyzer_node);
+
+                        analysis_data = new Uint8Array(analyzer_node.frequencyBinCount);
+                    }
 
                     _setTextureWrapS(data.texture, "clamp");
                     _setTextureWrapT(data.texture, "clamp");
@@ -25517,7 +25616,7 @@ var _addFragmentInput = async function (type, input, settings, id) {
                     db_obj.settings.wrap.s = data.wrap.ws;
                     db_obj.settings.wrap.t = data.wrap.wt;
                     db_obj.settings.flip = false;
-                    db_obj.settings.audio = _audio_import_settings.videotrack_import;
+                    //db_obj.settings.audio = _audio_import_settings.videotrack_import;
 
                     _dbStoreInput(input_id, db_obj);
 
@@ -25534,16 +25633,21 @@ var _addFragmentInput = async function (type, input, settings, id) {
                     }
 
                     _fragment_input_data[input_id] = {
-                        type: 1,
+                        type: input_type,
                         image: data.image,
                         texture: data.texture,
                         video_elem: video_element,
                         elem: null,
                         media_stream: media_stream,
-                        db_obj: db_obj
+                        db_obj: db_obj,
+                        analyzer_node: analyzer_node,
+                        analysis_data: analysis_data,
+                        canvas: primary_canvas,
+                        fft_size: _audio_import_settings.fft_size,
+                        speed: 1
                     };
 
-                    _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/camera.png");
+                    _fragment_input_data[input_id].elem = _createInputThumb(input_id, null, _input_channel_prefix + input_id, "data/ui-icons/" + type + ".png");
                         
                     _createChannelSettingsDialog(input_id);
 
@@ -25552,15 +25656,17 @@ var _addFragmentInput = async function (type, input, settings, id) {
                     _compile();
 
                     promise = media_stream;
-
+/*
                     if (db_obj.settings.audio) {
                         await _addFragmentInput("canvas", null, { linked: { input: input_id} });
                     }
+*/
                 } catch (e) {
-                    _notification("Unable to capture video/camera.");
+                    _notification("Unable to capture " + type + ".");
+                    console.log(e);
                 }
             } else {
-                _notification("Unable to capture video/camera, getUserMedia may be not supported by your browser.");
+                _notification("Unable to capture " + type + ", getUserMedia may be not supported by your browser.");
             }
         } else if (type === "desktop") {
             if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
@@ -31354,7 +31460,7 @@ var _uiInit = function () {
     _import_dialog = WUI_Dialog.create(_import_dialog_id, {
             title: "Import dialog (images etc.)",
 
-            width: "550px",
+            width: "620px",
             height: "auto",
             min_height: "80px",
 
@@ -31409,6 +31515,12 @@ var _uiInit = function () {
                         on_click: (function () { _addFragmentInput("camera"); }),
                         tooltip: "Webcam",
                         text: "Cam"
+                    },
+                    {
+                        icon: "fs-mic-icon",
+                        on_click: (function () { _addFragmentInput("mic"); }),
+                        tooltip: "Microphone",
+                        text: "Mic"
                     },
                     {
                         icon: "fs-dsk-icon",
@@ -32741,6 +32853,58 @@ var _uiInit = function () {
 
             on_change: function (value) {
                 _audio_import_settings.maxfreq = value;
+            }
+        });
+    
+        WUI_RangeSlider.create("fs_import_cam_width", {
+            width: 100,
+            height: 8,
+
+            min: 1,
+
+            bar: false,
+
+            step: 1,
+            scroll_step: 1,
+
+            midi: false,
+
+            default_value: _audio_import_settings.cam_width,
+            value: _audio_import_settings.cam_width,
+
+            title: "Cam. width",
+
+            title_min_width: 84,
+            value_min_width: 64,
+
+            on_change: function (value) {
+                _audio_import_settings.cam_width = value;
+            }
+        });
+
+        WUI_RangeSlider.create("fs_import_cam_height", {
+            width: 100,
+            height: 8,
+
+            min: 1,
+
+            bar: false,
+
+            step: 1,
+            scroll_step: 1,
+
+            midi: false,
+
+            default_value: _audio_import_settings.cam_height,
+            value: _audio_import_settings.cam_height,
+
+            title: "Cam. height",
+
+            title_min_width: 84,
+            value_min_width: 64,
+
+            on_change: function (value) {
+                _audio_import_settings.cam_height = value;
             }
         });
     
@@ -36540,6 +36704,13 @@ document.getElementById("fs_import_audio_mapping").addEventListener('change', fu
     
     _audio_import_settings.mapping = mapping_type;
 });
+
+document.getElementById("fs_import_mic_fft_size").addEventListener('change', function (e) {
+    var fft_size = e.target.value;
+    
+    _audio_import_settings.fft_size = _parseInt10(fft_size);
+});
+
 
 document.getElementById("fs_import_audio_ck_videotrack").addEventListener('change', function (e) {
     var videotrack_import = this.checked;

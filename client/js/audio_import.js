@@ -15,7 +15,10 @@ var _audio_to_image_worker = new Worker("dist/worker/audio_to_image.min.js"),
         height: 0,
         minfreq: 0,
         maxfreq: 0,
-        videotrack_import: false
+        videotrack_import: false,
+        cam_width: 320,
+        cam_height: 240,
+        fft_size: 2048
     };
 
 /***********************************************************
@@ -30,7 +33,7 @@ var _convertAudioToImage = function (data) {
             settings: JSON.parse(JSON.stringify(_audio_import_settings)),
             left: l,
             right: r,
-            note_time: _getNoteTime(_audio_import_settings.bpm, _audio_import_settings.ppb),
+            //note_time: _getNoteTime(_audio_import_settings.bpm, _audio_import_settings.ppb),
             sample_rate: _sample_rate
         },
         

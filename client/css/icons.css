@@ -22,6 +22,10 @@
     background-image: url("../data/ui-icons/record.png");
 }
 
+.fs-mic-icon {
+    background-image: url("../data/ui-icons/mic.png");
+}
+
 .fs-function-icon {
     background-image: url("../data/ui-icons/function.png");
 }

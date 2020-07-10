@@ -1386,21 +1386,22 @@ body .code .CodeMirror-fullscreen {
 }
 
 .fs-md-uniforms {
-    height: 300px;
+    height: 500px;
     overflow: auto;
 }
 
 .fs-md-uniforms p:nth-child(even) {
-    padding-left: 6px;
-    font-size: 13px;
-    padding-bottom: 3px;
-    padding-top: 2px;
-    font-family: sans-serif;
+    font-size: 11px;
+    padding-bottom: 12px;
+    padding-left: 8px;
+    padding-top: 4px;
+    font-family: monospace;
 }
 
 .fs-md-uniforms p:nth-child(odd) {
-    border-bottom: solid 1px #555555;
+    margin-right: 8px;
     font-size: 14px;
+    background-color: rgba(48, 48, 48, 0.5);
 }
 
 .fs-text {
@@ -1450,7 +1451,6 @@ body .code .CodeMirror-fullscreen {
 .fs-text code {
     font-family: monospace,monospace;
     font-size: 0.9em;
-    color: #ff0;
 }
 
 .fs-uniforms {
