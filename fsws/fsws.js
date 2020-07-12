@@ -73,6 +73,8 @@ app.use('/ed/client/data', serveStatic(__dirname + '/../client/data/'));
 app.use('/ed/css', serveStatic(__dirname + '/../editor/css/'));
 app.use('/ed/favicon.png', serveStatic(__dirname + '/../editor/favicon.png'));
 
+app.use('/FFTW.wasm', serveStatic(__dirname + '/../client/dist/worker/FFTW.wasm'));
+
 app.get('/', serveStatic(index));
 
 app.get('/app', function (req, res) {

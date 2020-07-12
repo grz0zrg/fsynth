@@ -13,10 +13,6 @@
 // dependency
 /*#include ../ccwt/ccwt.js*/
 
-CCWT.onReady = function () {
-
-};
-
 /***********************************************************
     Fields.
 ************************************************************/
@@ -29,7 +25,7 @@ var _progress = 0,
     Functions.
 ************************************************************/
 
-var _convert = function (params, data) {
+var _convert = function (ccwt_lib, params, data) {
     var length_in_seconds = data.length / params.sample_rate,
     
         height = params.settings.height,
@@ -75,14 +71,14 @@ var _convert = function (params, data) {
 
     if (params.settings.mapping === "linear") {
         // linear
-        frequencies = CCWT.frequencyBand(height, frequency_range_linear, frequency_offset_linear, frequency_basis_linear, deviation);
+        frequencies = ccwt_lib.frequencyBand(height, frequency_range_linear, frequency_offset_linear, frequency_basis_linear, deviation);
     } else {
         // logarithmic
-        frequencies = CCWT.frequencyBand(height, frequency_range_log, frequency_offset_log, frequency_basis_log, deviation);
+        frequencies = ccwt_lib.frequencyBand(height, frequency_range_log, frequency_offset_log, frequency_basis_log, deviation);
     }
 
     // add some padding to avoid start / end oddities (when there is data at one/both end of the signal)
-    fourier_transformed_signal = CCWT.fft1d(data, padding, gain_factor);
+    fourier_transformed_signal = ccwt_lib.fft1d(data, padding, gain_factor);
 
     output_width = Math.floor(length_in_seconds * pixels_per_second);
 
@@ -121,7 +117,7 @@ var _convert = function (params, data) {
         }
     };
 
-    CCWT.numericOutput(fourier_transformed_signal, padding, frequencies, 0, frequencies.length / 2, output_width, row_callback);
+    ccwt_lib.numericOutput(fourier_transformed_signal, padding, frequencies, 0, frequencies.length / 2, output_width, row_callback);
 
     var i, n, amax = 0, amin = 255, adiff;
 
@@ -181,19 +177,21 @@ self.onmessage = function (m) {
     
     _stereo = (data.right !== null);
     
-    ll = _convert(data, l);
+    CCWT.then(function (ccwt_lib) {
+        ll = _convert(ccwt_lib, data, l);
 
-    if (data.right) {
-        r = new Float32Array(data.right);
-        rr = _convert(data, r);
+        if (data.right) {
+            r = new Float32Array(data.right);
+            rr = _convert(ccwt_lib, data, r);
+            
+            result.pbuffer = _mergeChannels(ll.data, rr.data).buffer;
+        } else {
+            result.pbuffer = ll.data.buffer;
+        }
+
+        result.width = ll.width;
+        result.height = ll.height;
         
-        result.pbuffer = _mergeChannels(ll.data, rr.data).buffer;
-    } else {
-        result.pbuffer = ll.data.buffer;
-    }
-
-    result.width = ll.width;
-    result.height = ll.height;
-    
-    postMessage(result, [result.pbuffer]);
+        postMessage(result, [result.pbuffer]);
+    });
 };

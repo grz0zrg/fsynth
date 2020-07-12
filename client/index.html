@@ -705,50 +705,55 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                 <div style="padding: 4px"></div>
                 <fieldset class="fs-fieldset fs-audio-import-settings fs-collapsible fs-collapsed">
                     <legend class="fs-collapsible-legend" style="margin-top: 5px; margin-left: 5px;">Settings</legend>
-                    <div class="fs-spacer"></div>
-                    <div style="font-size: 12px">Snd / Mov</div>
-                    <div class="fs-spacer"></div>
-                    <div class="wui-rangeslider">
-                        <label class="wui-rangeslider-title" style="min-width: 84px;" class="fs-input-label" for="fs_import_audio_mapping">Frequencies</label>
-                        <select id="fs_import_audio_mapping" class="fs-btn">
-                            <option>logarithmic</option>
-                            <option>linear</option>
-                        </select>
-                    </div>
-                    <div id="fs_import_audio_gain_settings"></div>
-                    <div id="fs_import_audio_deviation_settings"></div>
-                    <div id="fs_import_audio_padding_settings"></div>
-                    <div id="fs_import_audio_pps_settings"></div>
-                    <div id="fs_import_audio_height_settings"></div>
-                    <div id="fs_import_audio_minfreq_settings"></div>
-                    <div id="fs_import_audio_maxfreq_settings"></div>
-                    <div class="fs-spacer"></div>
-                    <div class="fs-ck-container" style="width: 100%;">
-                        <label style="font-size: 12px; margin-right: 4px;" class="fs-ck-label">
-                            <div>Import / convert MOV audio</div>&nbsp;
-                            <input id="fs_import_audio_ck_videotrack" type="checkbox">
-                        </label>
-                    </div>
-                    <div class="fs-spacer"></div>
-                    <div id="fs_import_cam_width"></div>
-                    <div id="fs_import_cam_height"></div>
-                    <div class="wui-rangeslider">
-                        <label class="wui-rangeslider-title" style="min-width: 84px;" class="fs-input-label" for="fs_import_mic_fft_size">Mic. FFT size</label>
-                        <select id="fs_import_mic_fft_size" class="fs-btn">
-                            <option>32</option>
-                            <option>64</option>
-                            <option>128</option>
-                            <option>256</option>
-                            <option>512</option>
-                            <option>1024</option>
-                            <option selected>2048</option>
-                            <option>4096</option>
-                            <option>8192</option>
-                            <option>16384</option>
-                            <option>32768</option>
-                        </select>
-                    </div>
-                    <div class="fs-spacer"></div>
+                    <fieldset class="fs-fieldset fs-collapsible fs-collapsed">
+                        <legend class="fs-collapsible-legend" style="margin-top: 5px; margin-left: 5px;">Snd / Mov</legend>
+                        <div class="fs-spacer"></div>
+                        <div class="wui-rangeslider">
+                            <label class="wui-rangeslider-title" style="min-width: 84px;" class="fs-input-label" for="fs_import_audio_mapping">Frequencies</label>
+                            <select id="fs_import_audio_mapping" class="fs-btn">
+                                <option>logarithmic</option>
+                                <option>linear</option>
+                            </select>
+                        </div>
+                        <div id="fs_import_audio_gain_settings"></div>
+                        <div id="fs_import_audio_deviation_settings"></div>
+                        <div id="fs_import_audio_padding_settings"></div>
+                        <div id="fs_import_audio_pps_settings"></div>
+                        <div id="fs_import_audio_height_settings"></div>
+                        <div id="fs_import_audio_minfreq_settings"></div>
+                        <div id="fs_import_audio_maxfreq_settings"></div>
+                        <div class="fs-spacer"></div>
+                        <div class="fs-ck-container" style="width: 100%;">
+                            <label style="font-size: 12px; margin-right: 4px;" class="fs-ck-label">
+                                <div>Import / convert Mov audio</div>&nbsp;
+                                <input id="fs_import_audio_ck_videotrack" type="checkbox">
+                            </label>
+                        </div>
+                    </fieldset>
+                    <fieldset class="fs-fieldset fs-collapsible fs-collapsed">
+                        <legend class="fs-collapsible-legend" style="margin-top: 5px; margin-left: 5px;">Cam</legend>
+                        <div id="fs_import_cam_width"></div>
+                        <div id="fs_import_cam_height"></div>
+                    </fieldset>
+                    <fieldset class="fs-fieldset fs-collapsible fs-collapsed">
+                        <legend class="fs-collapsible-legend" style="margin-top: 5px; margin-left: 5px;">Mic</legend>
+                        <div class="wui-rangeslider">
+                            <label class="wui-rangeslider-title" style="min-width: 84px;" class="fs-input-label" for="fs_import_mic_fft_size">Mic. FFT size</label>
+                            <select id="fs_import_mic_fft_size" class="fs-btn">
+                                <option>32</option>
+                                <option>64</option>
+                                <option>128</option>
+                                <option>256</option>
+                                <option>512</option>
+                                <option>1024</option>
+                                <option selected>2048</option>
+                                <option>4096</option>
+                                <option>8192</option>
+                                <option>16384</option>
+                                <option>32768</option>
+                            </select>
+                        </div>
+                    </fieldset>
                 </fieldset>
                 <div id="fs_import_toolbar">
 

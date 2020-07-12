@@ -13,7 +13,7 @@
 
 var _fas = false,
     _fas_timeout,
-    _fas_ws,
+    _fas_ws = null,
 
     _FAS_ENABLE = 0,
     _FAS_DISABLE = 1,
@@ -314,6 +314,8 @@ var _disconnect = function () {
     }
 
     clearTimeout(_fas_timeout);
+
+    _fas_ws = null;
 };
 
 var _connect = function (opts) {
@@ -367,7 +369,9 @@ self.onmessage = function (m) {
     if (cmd === _FAS_ENABLE) {
         _fas = true;
 
-        _connect(arg);
+        if (!_fas_ws) {
+            _connect(arg);
+        }
     } else if (cmd === _FAS_DISABLE) {
         _fas = false;
 

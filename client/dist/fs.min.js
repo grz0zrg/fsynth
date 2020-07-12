@@ -35624,6 +35624,39 @@ var _fasSendIntrumentsInfos = function () {
     _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: _play_position_markers.length, target: 0, value: 15 }); // FAS_VOID
 };
 
+var _fasSendAll = function () {
+    _fasNotify(_FAS_BANK_INFOS, _audio_infos);
+    _fasNotify(_FAS_SYNTH_INFOS, { target: 0, value: _fas.fps });
+    _fasNotify(_FAS_SYNTH_INFOS, { target: 1, value: _audio_infos.gain });
+
+    var i = 0, j = 0, k = 0;
+    for (i = 0; i < _chn_settings.length; i += 1) {
+        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: i, value: _chn_settings[i].muted });
+        /*
+        for (j = 0; j < _chn_settings[i].osc.length; j += 2) {
+            var value = _chn_settings[i].osc[j + 1];
+            _fasNotify(_FAS_CHN_INFOS, { target: _chn_settings[i].osc[j], chn: i, value: value });
+        }
+        */
+
+        var slot_index = 0;
+        for (j = 0; j < _chn_settings[i].efx.length; j += 3) {
+            _fasNotify(_FAS_CHN_FX_INFOS, { chn: i, slot: slot_index, target: 0, value: _chn_settings[i].efx[j] });
+            _fasNotify(_FAS_CHN_FX_INFOS, { chn: i, slot: slot_index, target: 1, value: _chn_settings[i].efx[j + 1] });
+
+            var fx_settings = _chn_settings[i].efx[j + 2];
+            for (k = 0; k < fx_settings.length; k += 1) {
+                _fasNotify(_FAS_CHN_FX_INFOS, { chn: i, slot: slot_index, target: 2 + k, value: fx_settings[k] });
+            }
+
+            slot_index += 1;
+        }
+        _fasNotify(_FAS_CHN_FX_INFOS, { chn: i, slot: slot_index, target: 0, value: -1 });
+    }
+
+    _fasSendIntrumentsInfos();
+};
+
 /***********************************************************
     Init.
 ************************************************************/
@@ -35648,36 +35681,7 @@ var _fasInit = function () {
             if (data.status === "open") {
                 _fasStatus(true);
 
-                _fasNotify(_FAS_BANK_INFOS, _audio_infos);
-                _fasNotify(_FAS_SYNTH_INFOS, { target: 0, value: _fas.fps });
-                _fasNotify(_FAS_SYNTH_INFOS, { target: 1, value: _audio_infos.gain });
-
-                var i = 0, j = 0, k = 0;
-                for (i = 0; i < _chn_settings.length; i += 1) {
-                    _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: i, value: _chn_settings[i].muted });
-                    /*
-                    for (j = 0; j < _chn_settings[i].osc.length; j += 2) {
-                        var value = _chn_settings[i].osc[j + 1];
-                        _fasNotify(_FAS_CHN_INFOS, { target: _chn_settings[i].osc[j], chn: i, value: value });
-                    }
-                    */
-
-                    var slot_index = 0;
-                    for (j = 0; j < _chn_settings[i].efx.length; j += 3) {
-                        _fasNotify(_FAS_CHN_FX_INFOS, { chn: i, slot: slot_index, target: 0, value: _chn_settings[i].efx[j] });
-                        _fasNotify(_FAS_CHN_FX_INFOS, { chn: i, slot: slot_index, target: 1, value: _chn_settings[i].efx[j + 1] });
-
-                        var fx_settings = _chn_settings[i].efx[j + 2];
-                        for (k = 0; k < fx_settings.length; k += 1) {
-                            _fasNotify(_FAS_CHN_FX_INFOS, { chn: i, slot: slot_index, target: 2 + k, value: fx_settings[k] });
-                        }
-
-                        slot_index += 1;
-                    }
-                    _fasNotify(_FAS_CHN_FX_INFOS, { chn: i, slot: slot_index, target: 0, value: -1 });
-                }
-
-                _fasSendIntrumentsInfos();
+                _fasSendAll();
             } else if (data.status === "streaminfos") {
                 _fas_stream_load.textContent = data.load + "%";
                 _fas_stream_latency.textContent = _truncateDecimals(data.latency, 1) + "ms";
@@ -36319,7 +36323,9 @@ var _oscInit = function () {
 
         _updateAllPlayPosition();
 
-        _fasNotify(_FAS_BANK_INFOS, _audio_infos);
+        _fasSendAll();
+
+        //_fasNotify(_FAS_BANK_INFOS, _audio_infos);
 
         WUI_RangeSlider.setValue("fs_score_width_input", _canvas_width);
         WUI_RangeSlider.setValue("fs_score_height_input", _canvas_height);
