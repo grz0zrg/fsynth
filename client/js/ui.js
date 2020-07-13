@@ -2524,6 +2524,10 @@ var _chnFxMute = function (elem) {
 
 var _onChnFxClick = function (ev) {
     if (ev.button == 1) {
+        ev.preventDefault();
+
+        _unfocus();
+
         _chnFxMute(ev.target);
     }
 };
@@ -2814,6 +2818,7 @@ var _createFasFxContent = function (div) {
         var fx_chn_div = document.createElement("div"),
             fx_chn_legend = document.createElement("div"),
             fx_chn_content = document.createElement("div"),
+            fx_chn_out_input = document.createElement("input"),
             
             chn_settings = _chn_settings[i],
             chn_fx = chn_settings.efx;
@@ -2826,6 +2831,12 @@ var _createFasFxContent = function (div) {
 
         fx_chn_content.dataset.chn = i;
 
+        fx_chn_out_input.type = "number";
+        fx_chn_out_input.min = -1;
+        fx_chn_out_input.step = 1;
+        fx_chn_out_input.value = chn_settings.output_chn;
+        fx_chn_out_input.classList.add("fs-fx-chn-out");
+
         fx_chn_legend.title = "mute / unmute channel";
         fx_chn_legend.innerHTML = (i + 1) + " :";
         fx_chn_legend.classList.add("fs-fas-chn-id");
@@ -2835,8 +2846,25 @@ var _createFasFxContent = function (div) {
             fx_chn_legend.style.color = "red";
         }
 
+        // channel device output
+        fx_chn_out_input.addEventListener("change", function (e) {
+            var chn_index = parseInt(this.previousElementSibling.dataset.chn, 10);
+            
+            var output_chn = _parseInt10(e.target.value);
+
+            _chn_settings[chn_index].output_chn = output_chn;
+
+            // save settings
+            _local_session_settings.chn_settings[chn_index] = _chn_settings[chn_index];
+            _saveLocalSessionSettings();
+        
+            _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn_index, value: output_chn });
+        });
+
         // mute channel
-        fx_chn_legend.addEventListener("click", function () {
+        fx_chn_legend.addEventListener("click", function (e) {
+            e.preventDefault();
+
             var chn_index = parseInt(this.nextElementSibling.dataset.chn, 10);
 
             var muted = _chn_settings[chn_index].muted;
@@ -2865,6 +2893,7 @@ var _createFasFxContent = function (div) {
 
         fx_chn_div.appendChild(fx_chn_legend);
         fx_chn_div.appendChild(fx_chn_content);
+        fx_chn_div.appendChild(fx_chn_out_input);
 
         fx_fieldset.appendChild(fx_chn_div);
 

@@ -74,13 +74,34 @@ var _generateOscillatorSet = function (n, base_frequency, octaves) {
 };
 
 var _computeOutputChannels = function () {
-    var i = 0, max = 0, marker;
+    var i = 0, j = 0, max = 0, marker;
     
     for (i = 0; i < _play_position_markers.length; i += 1) {
         marker = _play_position_markers[i];
         
         if (max < marker.output_channel) {
-            max = marker.output_channel
+            max = marker.output_channel;
+        }
+    }
+
+    // find unused virtual channels and mark them
+    for (i = 0; i < _chn_settings.length; i += 1) {
+        var uses = 0;
+        for (j = 0; j < _play_position_markers.length; j += 1) {
+            marker = _play_position_markers[j];
+
+            if (marker.output_channel === i) {
+                uses += 1;
+
+                if (!_chn_settings[i]) {
+                    _chn_settings[i].muted = 0;
+                    _chn_settings[i].output_chn = 0;
+                }
+            }
+        }
+        
+        if (uses === 0) {
+            _chn_settings[i].output_chn = -1;
         }
     }
     

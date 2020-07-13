@@ -131,7 +131,16 @@ var _fasSendAll = function () {
 
     var i = 0, j = 0, k = 0;
     for (i = 0; i < _chn_settings.length; i += 1) {
+        if (_chn_settings[i].muted === undefined) {
+            _chn_settings[i].muted = 0;
+        }
+
+        if (_chn_settings[i].chn_output === undefined) {
+            _chn_settings[i].chn_output = 0;
+        }
+
         _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: i, value: _chn_settings[i].muted });
+        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: i, value: _chn_settings[i].chn_output });
         /*
         for (j = 0; j < _chn_settings[i].osc.length; j += 2) {
             var value = _chn_settings[i].osc[j + 1];

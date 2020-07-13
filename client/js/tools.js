@@ -346,6 +346,17 @@ var _getCookie = function getCookie(name) {
     return "";
 };
 
+var _unfocus = function () {
+    var el = document.querySelector(':focus');
+    if (el) {
+        el.blur();
+    }
+};
+
+var _getTimeFunction = function () {
+    return performance.now() / 1000;
+};
+
 var _fnToImageData = function (img, done) {
     return function () {
         var tmp_canvas = document.createElement('canvas'),

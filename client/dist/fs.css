@@ -2945,6 +2945,18 @@ body .code .CodeMirror-fullscreen {
     border: 1px solid #111111;
 }
 
+.fs-fx-chn-out {
+    color: white;
+    width: 42px;
+    border: none;
+    padding: 0;
+    margin: 0;
+    background-color: #282828;
+    font-size: 11pt;
+    outline: solid 1px #000;
+    text-align: center;
+}
+
 .fs-matrix {
     font-size: 12px;
     font-family: monospace;

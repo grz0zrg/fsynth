@@ -875,6 +875,8 @@ var _sliceAuxClickFn = function (play_position_marker_element) {
         var play_position_marker = _play_position_markers[parseInt(play_position_marker_element.dataset.slice, 10)];
 
         if (ev.button === 1) {
+            _unfocus();
+            
             if (play_position_marker.mute) {
                 _unmuteSlice(play_position_marker, true);
             } else {

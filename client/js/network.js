@@ -8,9 +8,11 @@
 var _socket,
     
     _fss_ws,
+    _fsync_ws,
     
     _address_fss = _domain + ":3001",
     _address_sdb = _domain + ":3002",
+    _address_fsync = _domain + ":3100",
     
     _session,
     
@@ -27,7 +29,9 @@ var _socket,
     
     _sharedb_code_changes = [],
     
-    _sharedb_ctrl_doc;
+    _sharedb_ctrl_doc,
+    
+    _sync_client;
 
 /***********************************************************
     Functions.
@@ -199,20 +203,99 @@ var _prepareMessage = function (type, obj) {
     return JSON.stringify(obj);
 };
 
+/*
+// used to sync local clock to fss server clock for the globalTime
+// https://github.com/collective-soundworks/sync
+var _timeSyncInit = function () {
+    _sync_client = new SyncClient(_getTimeFunction);
+
+    var timeSyncSendFn = function (pingId, clientPingTime) {
+        //console.log(`[ping] - id: %s, pingTime: %s`, pingId, clientPingTime);
+        _fss_ws.send(_prepareMessage("timeSync", { session: _session, id: pingId, time: clientPingTime }));
+    };
+    
+    var timeSyncReceiveFn = function (callback) {
+        _fss_ws.addEventListener('message', function (event) {
+            var msg = JSON.parse(event.data);
+
+            if (msg.type === "timeSync") {
+                var pingId = msg.id;
+                var clientPingTime = msg.clientTime;
+                var serverPingTime = msg.serverTime;
+                var serverPongTime = msg.serverPongTime;
+                //console.log(`[pong] - id: %s, clientPingTime: %s, serverPingTime: %s, serverPongTime: %s`, pingId, clientPingTime, serverPingTime, serverPongTime);     
+                callback(pingId, clientPingTime, serverPingTime, serverPongTime);
+            }
+        });
+    };
+
+    var timeSyncStatusFn = function (status) {
+        // JSON.stringify(status, null, 2);
+        console.log(status);
+    };
+
+    _sync_client.start(timeSyncSendFn, timeSyncReceiveFn, timeSyncStatusFn);
+};
+
+var _timeSyncReset = function () {
+    if (_fss_ws) {
+        _fss_ws.send(_prepareMessage("timeSyncReset", { session: _session }));
+    }
+};
+
+var _timeSyncDelete = function () {
+    if (_fss_ws) {
+        _fss_ws.send(_prepareMessage("timeSyncDelete", { session: _session }));
+    }
+};
+
+var _fsyncConnect = function () {
+    _fsync_ws = new WebSocket(_ws_protocol + "://" + _address_fsync);
+    
+    _fsync_ws.onopen = function (event) {
+        _setUsersList([]);
+    
+        var fs_server = document.getElementById("fs_fsync_status");
+
+        fs_server.classList.add("fs-server-status-on");
+    
+        _fsync_ws.send(_prepareMessage("session", { session: _session, username: _username }));
+
+        _timeSyncInit();
+    };
+
+    _fsync_ws.onerror = function (event) {
+
+    };
+
+    _fsync_ws.onclose = function (event) {
+        setTimeout(_fsyncConnect, 5000);
+            
+        _notification("Sync. server connection lost, trying again in ~5s.", 2500);
+
+        var fs_server = document.getElementById("fs_fsync_status");
+
+        fs_server.classList.remove("fs-server-status-on");
+
+        _sync_client = null;
+    };
+};
+*/
+
 var _fssConnect = function () {
     _fss_ws = new WebSocket(_ws_protocol + "://" + _address_fss);
     
     _fss_ws.onopen = function (event) {
-            _setUsersList([]);
-        
-            var fs_server = document.getElementById("fs_server_status");
-
-            fs_server.classList.add("fs-server-status-on");
-        
-            _fss_ws.send(_prepareMessage("session", { session: _session, username: _username }));
-        };
+        _setUsersList([]);
     
-    _fss_ws.onmessage = function (event) {
+        var fs_server = document.getElementById("fs_server_status");
+
+        fs_server.classList.add("fs-server-status-on");
+    
+        _fss_ws.send(_prepareMessage("session", { session: _session, username: _username }));
+    };
+    
+    _fss_ws.addEventListener('message', function (event) {
             var i = 0, msg;
         
             try {
@@ -242,7 +325,7 @@ var _fssConnect = function () {
 
                 console.log(e);
             }
-        };
+        });
     
     _fss_ws.onerror = function (event) {
 
