@@ -432,7 +432,7 @@ var _icon_class = {
                 min: 0,
                 max: 1,
                 step: 0.001,
-                value: 0.02,
+                value: 0.5,
                 decimals: 4
             },
             {
@@ -2653,6 +2653,7 @@ var _dropChnFx = function (ev) {
         cpy_node.addEventListener("dragstart", _dragChnFx)
         ev.target.appendChild(cpy_node);
 
+        cpy_node.addEventListener("auxclick", _onChnFxClick);
         cpy_node.addEventListener("contextmenu", _onChnFxContextMenu);
 
         cpy_node.addEventListener("dblclick", _onChnFxDblClick);
@@ -2998,40 +2999,8 @@ var _createFasSettingsContent = function () {
 
         cell = document.createElement("th");
         cell.innerHTML = i + 1;
-        cell.title = "mute / unmute slice";
-        cell.classList.add("fs-fas-chn-id");
+
         row.appendChild(cell);
-
-        if (_play_position_markers[i].instrument_muted) {
-            cell.style.textDecoration = "line-through";
-            cell.style.color = "red";
-        }
-
-        // mute channel
-        cell.addEventListener("click", function () {
-            var instrument_index = parseInt(this.innerText, 10) - 1;
-            var slice = _play_position_markers[instrument_index];
-
-            if (slice.instrument_muted) {
-                this.style.textDecoration = "none";
-                this.style.color = "white";
-
-                slice.instrument_muted = 0;
-            } else {
-                this.style.textDecoration = "line-through";
-                this.style.color = "red";
-
-                slice.instrument_muted = 1;
-            }
-
-            // save settings
-            //_local_session_settings.chn_settings[chn] = _chn_settings[chn];
-            //_saveLocalSessionSettings();
-        
-            _fasNotify(_FAS_INSTRUMENT_INFOS, { target: 1, instrument: instrument_index, value: slice.instrument_muted });
-
-            _sendSliceUpdate(instrument_index, { instruments_settings : { muted: slice.instrument_muted } }); 
-        });
     }
 
     synthesis_matrix_table.appendChild(row); 
@@ -3629,6 +3598,7 @@ var _uiInit = function () {
         settings_ck_hlmatches_elem = document.getElementById("fs_settings_ck_hlmatches"),
         settings_ck_lnumbers_elem = document.getElementById("fs_settings_ck_lnumbers"),
         settings_ck_inerrors_elem = document.getElementById("fs_settings_ck_inerrors"),
+        settings_ck_osderrors_elem = document.getElementById("fs_settings_ck_osderrors"),
         settings_ck_xscrollbar_elem = document.getElementById("fs_settings_ck_xscrollbar"),
         settings_ck_feedback_elem = document.getElementById("fs_settings_ck_feedback"),
         settings_ck_osc_out_elem = document.getElementById("fs_settings_ck_oscout"),
@@ -3654,7 +3624,9 @@ var _uiInit = function () {
         fs_settings_osc_out = localStorage.getItem('fs-osc-out'),
         fs_settings_quickstart = localStorage.getItem('fs-quickstart'),
         fs_settings_audio = localStorage.getItem('fs-audio'),
-        fs_settings_show_slice_chn = localStorage.getItem('fs-show-slice-chn');
+        fs_settings_show_slice_chn = localStorage.getItem('fs-show-slice-chn'),
+        fs_settings_inerrors = localStorage.getItem('fs-editor-show-inerrors'),
+        fs_settings_osderrors = localStorage.getItem('fs-editor-show-osderrors');
     
     _settings_dialog = WUI_Dialog.create(_settings_dialog_id, {
             title: "Session & global settings",
@@ -3741,6 +3713,14 @@ var _uiInit = function () {
         _cm_show_linenumbers = (fs_settings_lnumbers === "true");
     }
         
+    if (fs_settings_inerrors !== null) {
+        _cm_show_inerrors = (fs_settings_inerrors === "true");
+    }
+
+    if (fs_settings_osderrors !== null) {
+        _cm_show_osderrors = (fs_settings_osderrors === "true");
+    }
+
     if (fs_settings_xscrollbar !== null) {
         _cm_advanced_scrollbar = (fs_settings_xscrollbar === "true");
     }
@@ -3793,6 +3773,12 @@ var _uiInit = function () {
         settings_ck_inerrors_elem.checked = true;
     } else {
         settings_ck_inerrors_elem.checked = false;
+    }
+
+    if (_cm_show_osderrors) {
+        settings_ck_osderrors_elem.checked = true;
+    } else {
+        settings_ck_osderrors_elem.checked = false;
     }
 
     if (fs_settings_audio !== null) {
@@ -3943,6 +3929,18 @@ var _uiInit = function () {
             _cm_show_inerrors = this.checked;
         
             localStorage.setItem('fs-editor-show-inerrors', _cm_show_inerrors);
+
+            _glsl_compilation();
+        });
+
+    settings_ck_osderrors_elem.addEventListener("change", function () {
+            _cm_show_osderrors = this.checked;
+        
+            localStorage.setItem('fs-editor-show-osderrors', _cm_show_osderrors);
+
+            _fail("");
+
+            _glsl_compilation();
         });
 
     settings_ck_xscrollbar_elem.addEventListener("change", function () {
@@ -4006,6 +4004,7 @@ var _uiInit = function () {
     settings_ck_hlmatches_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_lnumbers_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_inerrors_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_osderrors_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_xscrollbar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_feedback_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_osc_in_elem.dispatchEvent(new UIEvent('change'));

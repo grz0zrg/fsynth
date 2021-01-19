@@ -35,9 +35,21 @@ _canvas.addEventListener('contextmenu', function(ev) {
                 item_height: 32
             },
             [
-                { icon: "fs-plus-icon", tooltip: "Slice!",  on_click: function () {
+                {
+                    icon: "fs-plus-icon",
+                    tooltip: "add slice (middle click = muted, right click = muted with settings)",
+                    on_click: function () {
                         _addPlayPositionMarker(_cx, 0, false, 1, 0, { synthesis_type: 0 }, true);
-                    } }
+                    },
+                    on_middle_click: function () {
+                        _addPlayPositionMarker(_cx, 0, true, 1, 0, { synthesis_type: 0 }, true);
+                    },
+                    on_right_click: function () {
+                        var slice = _addPlayPositionMarker(_cx, 0, true, 1, 0, { synthesis_type: 0 }, true);
+
+                        _updateSliceSettingsDialog(slice, true);
+                    }
+                }
             ]);
 
         return false;

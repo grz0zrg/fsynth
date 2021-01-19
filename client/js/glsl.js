@@ -76,9 +76,10 @@ var _createShader = function (shader_type, shader_code) {
             container.appendChild(elem);
         }
         
-        _fail(container);
-            
-
+        if (_cm_show_osderrors) {
+            _fail(container);
+        }
+        
         _gl.deleteShader(shader);
 
         shader = false;
@@ -277,9 +278,9 @@ var _glsl_compilation = function () {
         
         if (_gl2) {
             _gl.bindBuffer(_gl.ARRAY_BUFFER, _quad_vertex_buffer);
-        } else {
-            position = _gl.getAttribLocation(_program, "position");
         }
+        
+        position = _gl.getAttribLocation(_program, "position");
         
         _gl.enableVertexAttribArray(position);
         _gl.vertexAttribPointer(position, 2, _gl.FLOAT, false, 0, 0);

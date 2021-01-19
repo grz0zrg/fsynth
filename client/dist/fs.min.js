@@ -5104,6 +5104,14 @@ var WUI_CircularMenu = new (function() {
                 elem.addEventListener("click", _onClickHandler(win, doc, item.on_click));
             }
 
+            if (item.on_right_click) {
+                elem.addEventListener("contextmenu", _onClickHandler(win, doc, item.on_right_click));
+            }
+
+            if (item.on_middle_click) {
+                elem.addEventListener("auxclick", _onClickHandler(win, doc, item.on_middle_click));
+            }
+
             elem.classList.add(_class_name.show);
 
             a += ia;
@@ -21276,7 +21284,7 @@ _utter_fail_element.innerHTML = "";
         Fields.
     ************************************************************/
 
-    var _motd = '<div id="fs_notify" class="fs-notify"><div class="fs-status-bar-date">31/12/2017 :</div><div class="fs-status-bar-content"><a class="fs-link" href="https://quiet.fsynth.com/d/12-fragment-1-0-3">Fragment 1.0.3 released, subtractive/PM synthesis, audio server update etc. (click for more details)</a></div></div>',
+    var _motd = '<div id="fs_notify" class="fs-notify"><div class="fs-status-bar-date">31/12/2020 :</div><div class="fs-status-bar-content"><a class="fs-link" href="https://quiet.fsynth.com/d/12-fragment-1-0-3">Fragment 2.0 released (click for more details)</a></div></div>',
         
         _webmidi_support_msg = '<center>WebMIDI API is not enabled/supported by this browser, please use a <a class="fs-link" href="https://caniuse.com/#search=midi">compatible browser</a>.</center>',
         
@@ -21602,6 +21610,7 @@ _utter_fail_element.innerHTML = "";
         _cm_highlight_matches = false,
         _cm_show_linenumbers = true,
         _cm_show_inerrors = true,
+        _cm_show_osderrors = true,
         _cm_advanced_scrollbar = false,
         _quickstart_on_startup = true,
         
@@ -23394,9 +23403,10 @@ var _createShader = function (shader_type, shader_code) {
             container.appendChild(elem);
         }
         
-        _fail(container);
-            
-
+        if (_cm_show_osderrors) {
+            _fail(container);
+        }
+        
         _gl.deleteShader(shader);
 
         shader = false;
@@ -23595,9 +23605,9 @@ var _glsl_compilation = function () {
         
         if (_gl2) {
             _gl.bindBuffer(_gl.ARRAY_BUFFER, _quad_vertex_buffer);
-        } else {
-            position = _gl.getAttribLocation(_program, "position");
         }
+        
+        position = _gl.getAttribLocation(_program, "position");
         
         _gl.enableVertexAttribArray(position);
         _gl.vertexAttribPointer(position, 2, _gl.FLOAT, false, 0, 0);
@@ -27881,7 +27891,7 @@ var _icon_class = {
                 min: 0,
                 max: 1,
                 step: 0.001,
-                value: 0.02,
+                value: 0.5,
                 decimals: 4
             },
             {
@@ -30102,6 +30112,7 @@ var _dropChnFx = function (ev) {
         cpy_node.addEventListener("dragstart", _dragChnFx)
         ev.target.appendChild(cpy_node);
 
+        cpy_node.addEventListener("auxclick", _onChnFxClick);
         cpy_node.addEventListener("contextmenu", _onChnFxContextMenu);
 
         cpy_node.addEventListener("dblclick", _onChnFxDblClick);
@@ -30447,40 +30458,8 @@ var _createFasSettingsContent = function () {
 
         cell = document.createElement("th");
         cell.innerHTML = i + 1;
-        cell.title = "mute / unmute slice";
-        cell.classList.add("fs-fas-chn-id");
+
         row.appendChild(cell);
-
-        if (_play_position_markers[i].instrument_muted) {
-            cell.style.textDecoration = "line-through";
-            cell.style.color = "red";
-        }
-
-        // mute channel
-        cell.addEventListener("click", function () {
-            var instrument_index = parseInt(this.innerText, 10) - 1;
-            var slice = _play_position_markers[instrument_index];
-
-            if (slice.instrument_muted) {
-                this.style.textDecoration = "none";
-                this.style.color = "white";
-
-                slice.instrument_muted = 0;
-            } else {
-                this.style.textDecoration = "line-through";
-                this.style.color = "red";
-
-                slice.instrument_muted = 1;
-            }
-
-            // save settings
-            //_local_session_settings.chn_settings[chn] = _chn_settings[chn];
-            //_saveLocalSessionSettings();
-        
-            _fasNotify(_FAS_INSTRUMENT_INFOS, { target: 1, instrument: instrument_index, value: slice.instrument_muted });
-
-            _sendSliceUpdate(instrument_index, { instruments_settings : { muted: slice.instrument_muted } }); 
-        });
     }
 
     synthesis_matrix_table.appendChild(row); 
@@ -31078,6 +31057,7 @@ var _uiInit = function () {
         settings_ck_hlmatches_elem = document.getElementById("fs_settings_ck_hlmatches"),
         settings_ck_lnumbers_elem = document.getElementById("fs_settings_ck_lnumbers"),
         settings_ck_inerrors_elem = document.getElementById("fs_settings_ck_inerrors"),
+        settings_ck_osderrors_elem = document.getElementById("fs_settings_ck_osderrors"),
         settings_ck_xscrollbar_elem = document.getElementById("fs_settings_ck_xscrollbar"),
         settings_ck_feedback_elem = document.getElementById("fs_settings_ck_feedback"),
         settings_ck_osc_out_elem = document.getElementById("fs_settings_ck_oscout"),
@@ -31103,7 +31083,9 @@ var _uiInit = function () {
         fs_settings_osc_out = localStorage.getItem('fs-osc-out'),
         fs_settings_quickstart = localStorage.getItem('fs-quickstart'),
         fs_settings_audio = localStorage.getItem('fs-audio'),
-        fs_settings_show_slice_chn = localStorage.getItem('fs-show-slice-chn');
+        fs_settings_show_slice_chn = localStorage.getItem('fs-show-slice-chn'),
+        fs_settings_inerrors = localStorage.getItem('fs-editor-show-inerrors'),
+        fs_settings_osderrors = localStorage.getItem('fs-editor-show-osderrors');
     
     _settings_dialog = WUI_Dialog.create(_settings_dialog_id, {
             title: "Session & global settings",
@@ -31190,6 +31172,14 @@ var _uiInit = function () {
         _cm_show_linenumbers = (fs_settings_lnumbers === "true");
     }
         
+    if (fs_settings_inerrors !== null) {
+        _cm_show_inerrors = (fs_settings_inerrors === "true");
+    }
+
+    if (fs_settings_osderrors !== null) {
+        _cm_show_osderrors = (fs_settings_osderrors === "true");
+    }
+
     if (fs_settings_xscrollbar !== null) {
         _cm_advanced_scrollbar = (fs_settings_xscrollbar === "true");
     }
@@ -31242,6 +31232,12 @@ var _uiInit = function () {
         settings_ck_inerrors_elem.checked = true;
     } else {
         settings_ck_inerrors_elem.checked = false;
+    }
+
+    if (_cm_show_osderrors) {
+        settings_ck_osderrors_elem.checked = true;
+    } else {
+        settings_ck_osderrors_elem.checked = false;
     }
 
     if (fs_settings_audio !== null) {
@@ -31392,6 +31388,18 @@ var _uiInit = function () {
             _cm_show_inerrors = this.checked;
         
             localStorage.setItem('fs-editor-show-inerrors', _cm_show_inerrors);
+
+            _glsl_compilation();
+        });
+
+    settings_ck_osderrors_elem.addEventListener("change", function () {
+            _cm_show_osderrors = this.checked;
+        
+            localStorage.setItem('fs-editor-show-osderrors', _cm_show_osderrors);
+
+            _fail("");
+
+            _glsl_compilation();
         });
 
     settings_ck_xscrollbar_elem.addEventListener("change", function () {
@@ -31455,6 +31463,7 @@ var _uiInit = function () {
     settings_ck_hlmatches_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_lnumbers_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_inerrors_elem.dispatchEvent(new UIEvent('change'));
+    settings_ck_osderrors_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_xscrollbar_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_feedback_elem.dispatchEvent(new UIEvent('change'));
     settings_ck_osc_in_elem.dispatchEvent(new UIEvent('change'));
@@ -33693,7 +33702,7 @@ var _updatePlayMarker = function (id, obj) {
         }
 
         if ('muted' in obj.instruments_settings) {
-            slice.instrument_muted = obj.instrument_settings.muted;
+            slice.mute = obj.instrument_settings.muted;
             _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: _parseInt10(id), target: 1, value: slice.instruments_settings.muted });
         }
 
@@ -34369,7 +34378,7 @@ var _muteSlice = function (slice_obj, submit) {
     } else {
         play_position_top_hook_element.style.borderTopColor = "#555555";
         play_position_bottom_hook_element.style.borderBottomColor = "#555555";
-    }    
+    }
 
     if (submit) {
         _submitSliceUpdate(2, slice_obj.element.dataset.slice, { mute : true }); 
@@ -34542,7 +34551,7 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
                 p3: 0,
                 p4: 0
             },
-            instrument_muted: 0,
+            //instrument_muted: 0,
             dialog_id: -1,
             y: 0,
             height: _canvas_height,
@@ -34616,7 +34625,7 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
         }
 
         if ('muted' in instrument_settings) {
-            play_position_marker.instrument_muted = instrument_settings.muted;
+            play_position_marker.mute = instrument_settings.muted;
         }
     }
     
@@ -34663,6 +34672,8 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
     _updateSliceChnVisibility();
 
     _fasSendIntrumentsInfos();
+
+    return play_position_marker;
 };
 /* jslint browser: true */
 
@@ -35758,7 +35769,7 @@ var _fasSendIntrumentsInfos = function () {
     for (i = 0; i < _play_position_markers.length; i += 1) {
         var slice = _play_position_markers[i];
         _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 0, value: slice.instrument_type });
-        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 1, value: slice.instrument_muted });
+        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 1, value: slice.mute });
         _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 2, value: slice.output_channel - 1 });
 
         _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 3, value: slice.instrument_params.p0 });
@@ -36773,9 +36784,21 @@ _canvas.addEventListener('contextmenu', function(ev) {
                 item_height: 32
             },
             [
-                { icon: "fs-plus-icon", tooltip: "Slice!",  on_click: function () {
+                {
+                    icon: "fs-plus-icon",
+                    tooltip: "add slice (middle click = muted, right click = muted with settings)",
+                    on_click: function () {
                         _addPlayPositionMarker(_cx, 0, false, 1, 0, { synthesis_type: 0 }, true);
-                    } }
+                    },
+                    on_middle_click: function () {
+                        _addPlayPositionMarker(_cx, 0, true, 1, 0, { synthesis_type: 0 }, true);
+                    },
+                    on_right_click: function () {
+                        var slice = _addPlayPositionMarker(_cx, 0, true, 1, 0, { synthesis_type: 0 }, true);
+
+                        _updateSliceSettingsDialog(slice, true);
+                    }
+                }
             ]);
 
         return false;

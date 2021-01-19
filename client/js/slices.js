@@ -172,7 +172,7 @@ var _updatePlayMarker = function (id, obj) {
         }
 
         if ('muted' in obj.instruments_settings) {
-            slice.instrument_muted = obj.instrument_settings.muted;
+            slice.mute = obj.instrument_settings.muted;
             _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: _parseInt10(id), target: 1, value: slice.instruments_settings.muted });
         }
 
@@ -848,7 +848,7 @@ var _muteSlice = function (slice_obj, submit) {
     } else {
         play_position_top_hook_element.style.borderTopColor = "#555555";
         play_position_bottom_hook_element.style.borderBottomColor = "#555555";
-    }    
+    }
 
     if (submit) {
         _submitSliceUpdate(2, slice_obj.element.dataset.slice, { mute : true }); 
@@ -1021,7 +1021,7 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
                 p3: 0,
                 p4: 0
             },
-            instrument_muted: 0,
+            //instrument_muted: 0,
             dialog_id: -1,
             y: 0,
             height: _canvas_height,
@@ -1095,7 +1095,7 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
         }
 
         if ('muted' in instrument_settings) {
-            play_position_marker.instrument_muted = instrument_settings.muted;
+            play_position_marker.mute = instrument_settings.muted;
         }
     }
     
@@ -1142,4 +1142,6 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
     _updateSliceChnVisibility();
 
     _fasSendIntrumentsInfos();
+
+    return play_position_marker;
 };

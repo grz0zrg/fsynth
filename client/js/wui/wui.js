@@ -5099,6 +5099,14 @@ var WUI_CircularMenu = new (function() {
                 elem.addEventListener("click", _onClickHandler(win, doc, item.on_click));
             }
 
+            if (item.on_right_click) {
+                elem.addEventListener("contextmenu", _onClickHandler(win, doc, item.on_right_click));
+            }
+
+            if (item.on_middle_click) {
+                elem.addEventListener("auxclick", _onClickHandler(win, doc, item.on_middle_click));
+            }
+
             elem.classList.add(_class_name.show);
 
             a += ia;

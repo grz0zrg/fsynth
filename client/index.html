@@ -203,16 +203,64 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                         </div>
                         <div class="fs-workspace-title">
                             <div class="fs-workspace-reduce-btn">
-                                -
+                                +
                             </div>
                             Examples
                         </div>
-                        <div id="fs_examples_target" class="fs-workspace-category-content">
+                        <div id="fs_examples_target" class="fs-workspace-category-content" style="display: none">
                             <div class="fs-workspace-item fs-workspace-example-item">
-                                test
+                                additive
                             </div>
                             <div class="fs-workspace-item fs-workspace-example-item">
-                                test 2
+                                spectral
+                            </div>
+                            <div class="fs-workspace-item fs-workspace-example-item">
+                                granular
+                            </div>
+                            <div class="fs-workspace-item fs-workspace-example-item">
+                                fm
+                            </div>
+                            <div class="fs-workspace-item fs-workspace-example-item">
+                                subtractive
+                            </div>
+                            <div class="fs-workspace-item fs-workspace-example-item">
+                                wavetable
+                            </div>
+                            <div class="fs-workspace-item fs-workspace-example-item">
+                                physical model
+                            </div>
+                            <div class="fs-workspace-item fs-workspace-example-item">
+                                karplus-strong
+                            </div>
+                            <div class="fs-workspace-item fs-workspace-example-item">
+                                droplet
+                            </div>
+                            <div class="fs-workspace-item fs-workspace-example-item">
+                                metal
+                            </div>
+                            <div class="fs-workspace-item fs-workspace-example-item">
+                                bandpass
+                            </div>
+                            <div class="fs-workspace-item fs-workspace-example-item">
+                                formant
+                            </div>
+                            <div class="fs-workspace-item fs-workspace-example-item">
+                                phase distorsion
+                            </div>
+                            <div class="fs-workspace-item fs-workspace-example-item">
+                                string resonance
+                            </div>
+                            <div class="fs-workspace-item fs-workspace-example-item">
+                                modal
+                            </div>
+                            <div class="fs-workspace-item fs-workspace-example-item">
+                                modulation
+                            </div>
+                            <div class="fs-workspace-item fs-workspace-example-item">
+                                in
+                            </div>
+                            <div class="fs-workspace-item fs-workspace-example-item">
+                                faust
                             </div>
                         </div>
                     </div>
@@ -302,6 +350,10 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
 -->
                     </div>
                     <div class="fs-ck-container">
+                        <label class="fs-ck-label" title="show/hide code editor errors on display (top left corner)">
+                            <div>Show OSD errors</div>&nbsp;
+                            <input id="fs_settings_ck_osderrors" type="checkbox">
+                        </label>
                         <label class="fs-ck-label" title="show/hide code editor inline errors">
                             <div>Show inline errors</div>&nbsp;
                             <input id="fs_settings_ck_inerrors" type="checkbox">
@@ -503,6 +555,16 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                                                 <ul>
                                                     <li>
                                                         <div id="fs_show_quickstart" class="fs-link">Show quickstart dialog</div>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                            <li>
+                                                <span>
+                                                    Join the Discord
+                                                </span>
+                                                <ul>
+                                                    <li>
+                                                        <a class="fs-link" href="https://discord.gg/CQ3zqpd" target="blank">https://discord.gg/CQ3zqpd</a>
                                                     </li>
                                                 </ul>
                                             </li>

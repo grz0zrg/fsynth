@@ -5,22 +5,22 @@ Fragment Quickstart Guide - Table of contents
       * [User interface](#userinterface)
       * [Making sounds](#makingsounds)
       * [MIDI](#midi)
-      * [Fragment Audio Server](#fragmentaudioserver)
-   * [Help](#help)
+      * [More examples](#moreexamples)
+   * [Getting help](#help)
 
 ## About Fragment
 
-Fragment is a collaborative cross-platform real-time audiovisual live coding environment with a bitmap based approach, the sound synthesis is powered by pixels data produced with live GLSL code.
+Fragment is a collaborative real-time audiovisual live coding environment, an unique combination of a web-based interface / accelerated graphics canvas with an oscillator-bank / filter-bank / spectral synthesizer, the sound synthesis is powered by pixels data produced with live GLSL code.
 
-The GLSL code is executed on the GPU for each pixels (also called fragments), this approach allow hardware accelerated real-time manipulation of the pixels data, making it a bliss to create stunning visuals or stunning sound design.
+The GLSL code is executed on the GPU for each pixels, this approach allow hardware accelerated real-time manipulation of the pixels data, making it a bliss to create stunning visuals or stunning sound design.
 
 Videos of most features are available on [YouTube](https://www.youtube.com/c/FragmentSynthesizer)
 
 **Note**
 
-- With web. browser audio, Fragment is **limited to additive synthesis** and two output channels.
+To output any sounds the audio server available on the homepage must be launched.
 
-For more features launch the Fragment Audio Server (available on the [homepage](https://www.fsynth.com)) for fast additive/granular/karplus/subtractive/PM sound synthesis, multi-output channels (linking to any Digital Audio Workstation) and many other features.
+[Please checkout the software documentation to install the audio server on your machine.](https://www.fsynth.com/documentation/tutorials/audio_server/)
 
 ## Quickstart
 
@@ -37,13 +37,15 @@ Fragment interface is made of 4 parts
 - info. panel/gain settings at the top
 - a graphical area which represent frequency on the vertical axis and time on the horizontal axis
 - a toolbar
-- a GLSL code editor
+- a workspace / GLSL code editor
+
+Red squares indicate that the control can be used with a MIDI controller by clicking on the square and tweaking one of your controller. (MIDI learn)
 
 ### Making sounds
 
 When a session is created for the first time, an example code is made available with a basic MIDI setup, this setup allow playing with an additive synthesis SAW-like waveform and a ~440Hz continuous tone, the audio output is paused by default.
 
-To hear the tone, slice the graphical canvas by right-clicking anywhere on the canvas, click on the (+) icon which appeared then click on the play button.
+To hear the tone, slice the graphical canvas by **right-clicking anywhere on the canvas**, **click on the (+) icon** which appeared then **click on the play button**.
 
 Slices capture the pixels data, the captured data is then sent to the sound synthesis engine in real-time.
 
@@ -59,16 +61,15 @@ You can experiment right away with the sound/visual by tweaking the values of th
 
 To play a saw-like waveform with a MIDI keyboard, click on the Jack plug icon on the toolbar to open the MIDI settings dialog and enable your MIDI controller.
 
-### Fragment Audio Server
+### More examples
 
-The Fragment audio server (FAS) is necessary for fast sound synthesis, additive/granular/subtractive/Karplus/PM synthesis, multiple output channels and many other professional grade features.
-
-[Please checkout the software documentation to setup the audio server on your machine.](https://www.fsynth.com/documentation/tutorials/audio_server/)
+Once done with the basics you may want to explore some examples in the workspace section, just browse the categories then click on an example to load it, all examples can be tweaked but changes are not saved, only the session code **main** and **library** can be saved.
 
 ## Help
 
-- Click on the ? icon on the toolbar, many code snippets, interactive guides and informations are available
+- Click on the **?** icon on the toolbar, many code snippets, interactive guides and informations are available
 - Checkout the [software documentation](https://www.fsynth.com/documentation)
 - Post on the [Fragment message board](https://quiet.fsynth.com)
+- Join the [Discord server](https://discord.gg/CQ3zqpd)
 
 Have fun!

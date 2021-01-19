@@ -396,6 +396,7 @@ canvas {
 
 .fs-ck-label div {
     display: inline-block;
+    user-select: none;
 }
 
 .fs-ck-label input {
@@ -1306,14 +1307,12 @@ body .code .CodeMirror-fullscreen {
     border-bottom: none;
     height: 10px;
     cursor: pointer;
+    padding-top: 0.35em;
+    padding-bottom: 0.15em;
 }
 
 .fs-fieldset.fs-collapsed *:not(legend) {
     display: none;
-}
-
-.fs-fas-chn-id:hover {
-    cursor: pointer;
 }
 
 .fs-fx-card {
@@ -1342,6 +1341,7 @@ body .code .CodeMirror-fullscreen {
     justify-content: center;
     margin: auto;
     flex-wrap: wrap;
+    padding-bottom: 4px;
 }
 
 .fs-fx-chn-content {
@@ -1403,17 +1403,18 @@ body .code .CodeMirror-fullscreen {
 }
 
 .fs-md-uniforms p:nth-child(even) {
-    font-size: 11px;
+    font-size: 15px;
     padding-bottom: 12px;
     padding-left: 8px;
     padding-top: 4px;
-    font-family: monospace;
+    /*font-family: monospace;*/
 }
 
 .fs-md-uniforms p:nth-child(odd) {
     margin-right: 8px;
     font-size: 14px;
     background-color: rgba(48, 48, 48, 0.5);
+    color: darkorange;
 }
 
 .fs-text {

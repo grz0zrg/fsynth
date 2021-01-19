@@ -112,7 +112,7 @@ var _fasSendIntrumentsInfos = function () {
     for (i = 0; i < _play_position_markers.length; i += 1) {
         var slice = _play_position_markers[i];
         _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 0, value: slice.instrument_type });
-        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 1, value: slice.instrument_muted });
+        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 1, value: slice.mute });
         _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 2, value: slice.output_channel - 1 });
 
         _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 3, value: slice.instrument_params.p0 });

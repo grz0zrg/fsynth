@@ -148,7 +148,7 @@ var FragmentSynth = function (params) {
         Fields.
     ************************************************************/
 
-    var _motd = '<div id="fs_notify" class="fs-notify"><div class="fs-status-bar-date">31/12/2017 :</div><div class="fs-status-bar-content"><a class="fs-link" href="https://quiet.fsynth.com/d/12-fragment-1-0-3">Fragment 1.0.3 released, subtractive/PM synthesis, audio server update etc. (click for more details)</a></div></div>',
+    var _motd = '<div id="fs_notify" class="fs-notify"><div class="fs-status-bar-date">31/12/2020 :</div><div class="fs-status-bar-content"><a class="fs-link" href="https://quiet.fsynth.com/d/12-fragment-1-0-3">Fragment 2.0 released (click for more details)</a></div></div>',
         
         _webmidi_support_msg = '<center>WebMIDI API is not enabled/supported by this browser, please use a <a class="fs-link" href="https://caniuse.com/#search=midi">compatible browser</a>.</center>',
         
@@ -474,6 +474,7 @@ var FragmentSynth = function (params) {
         _cm_highlight_matches = false,
         _cm_show_linenumbers = true,
         _cm_show_inerrors = true,
+        _cm_show_osderrors = true,
         _cm_advanced_scrollbar = false,
         _quickstart_on_startup = true,
         
