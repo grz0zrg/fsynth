@@ -23487,10 +23487,12 @@ var _glsl_compilation = function () {
         glsl_code_to_compile = "",
         
         vertex_shader_code,
+
+        example_code_editor = _code_editors[2],
         
         // library code + main code
-        library_code = _code_editors[1].editor.getValue(),
-        main_code = _code_editors[0].editor.getValue(),
+        library_code = (_current_code_editor === example_code_editor) ? '' : _code_editors[1].editor.getValue(),
+        main_code = (_current_code_editor === example_code_editor) ? example_code_editor.editor.getValue() : _code_editors[0].editor.getValue(),
         editor_value = library_code + "\n" + main_code,
 
         position,
@@ -26224,17 +26226,21 @@ var _parseCompileOutput = function (output) {
             line = line - 1;
         }
 
-        if (line >= 1 && line <= _code_editors[1].editor.lineCount()) {
+        if (line >= 1 && line <= _code_editors[1].editor.lineCount() && _current_code_editor !== _code_editors[2]) {
             concerned_editor = _code_editors[1]; // library
-        } else {
+        } else if (_current_code_editor !== _code_editors[2]) {
             line -= _code_editors[1].editor.lineCount();
 
-            concerned_editor = _code_editors[0]; // main
+            concerned_editor = _current_code_editor; // main
+        } else {
+            line -= 1;
+            
+            concerned_editor = _current_code_editor; // examples
         }
         
         result.push({ target: concerned_editor.name, line: line, msg: m[2]});
 
-        if (_cm_show_inerrors || _current_code_editor.editor.getOption("fullScreen")) {
+        if (_cm_show_inerrors || concerned_editor.editor.getOption("fullScreen")) {
             concerned_editor.line_widgets.push(concerned_editor.editor.addLineWidget(line - 1, msg_container, { coverGutter: false, noHScroll: true }));
         }
     }
@@ -26771,6 +26777,8 @@ var _showWorkspace = function (target, i) {
 
                 _current_code_editor = _code_editors[i];
             }
+
+            _compile();
         } else if (target === "fs-workspace-example-item") {
             var rootElement = document.getElementById("fs_examples_target");
 
@@ -26778,9 +26786,13 @@ var _showWorkspace = function (target, i) {
 
             document.getElementById("fs_example_code").style.display = "";
 
-            // assign example code to editor code
+            _current_code_editor = _code_editors[2];
 
-            _current_code_editor = _code_editors[i];
+            _xhrContent("data/examples/" + rootElement.children[i].innerText + ".glsl", function (code) {
+                _current_code_editor.editor.setValue(code);
+
+                _compile();
+            });
         }
 
         _updateWorkView();

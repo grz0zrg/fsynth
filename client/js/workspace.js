@@ -70,6 +70,8 @@ var _showWorkspace = function (target, i) {
 
                 _current_code_editor = _code_editors[i];
             }
+
+            _compile();
         } else if (target === "fs-workspace-example-item") {
             var rootElement = document.getElementById("fs_examples_target");
 
@@ -77,9 +79,13 @@ var _showWorkspace = function (target, i) {
 
             document.getElementById("fs_example_code").style.display = "";
 
-            // assign example code to editor code
+            _current_code_editor = _code_editors[2];
 
-            _current_code_editor = _code_editors[i];
+            _xhrContent("data/examples/" + rootElement.children[i].innerText + ".glsl", function (code) {
+                _current_code_editor.editor.setValue(code);
+
+                _compile();
+            });
         }
 
         _updateWorkView();

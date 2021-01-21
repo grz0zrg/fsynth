@@ -160,10 +160,12 @@ var _glsl_compilation = function () {
         glsl_code_to_compile = "",
         
         vertex_shader_code,
+
+        example_code_editor = _code_editors[2],
         
         // library code + main code
-        library_code = _code_editors[1].editor.getValue(),
-        main_code = _code_editors[0].editor.getValue(),
+        library_code = (_current_code_editor === example_code_editor) ? '' : _code_editors[1].editor.getValue(),
+        main_code = (_current_code_editor === example_code_editor) ? example_code_editor.editor.getValue() : _code_editors[0].editor.getValue(),
         editor_value = library_code + "\n" + main_code,
 
         position,

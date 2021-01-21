@@ -57,17 +57,21 @@ var _parseCompileOutput = function (output) {
             line = line - 1;
         }
 
-        if (line >= 1 && line <= _code_editors[1].editor.lineCount()) {
+        if (line >= 1 && line <= _code_editors[1].editor.lineCount() && _current_code_editor !== _code_editors[2]) {
             concerned_editor = _code_editors[1]; // library
-        } else {
+        } else if (_current_code_editor !== _code_editors[2]) {
             line -= _code_editors[1].editor.lineCount();
 
-            concerned_editor = _code_editors[0]; // main
+            concerned_editor = _current_code_editor; // main
+        } else {
+            line -= 1;
+            
+            concerned_editor = _current_code_editor; // examples
         }
         
         result.push({ target: concerned_editor.name, line: line, msg: m[2]});
 
-        if (_cm_show_inerrors || _current_code_editor.editor.getOption("fullScreen")) {
+        if (_cm_show_inerrors || concerned_editor.editor.getOption("fullScreen")) {
             concerned_editor.line_widgets.push(concerned_editor.editor.addLineWidget(line - 1, msg_container, { coverGutter: false, noHScroll: true }));
         }
     }
