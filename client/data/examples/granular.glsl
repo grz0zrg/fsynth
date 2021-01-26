@@ -1,4 +1,8 @@
-  // Sample program : simple additive synthesis
+  // Sample program : granular synthesis
+  // Note :
+  //   Must add/select "Granular" instrument in "SYNTH".
+  //   Must add grains samples in "grains" audio server directory.
+  // See instrument "Parameters" to change min/max grain length, spread and envelope type.
 
   #define PI 3.141592653
   #define PI2 (3.141592653 * 2.)
@@ -34,3 +38,4 @@
     synthOutput = vec4(l, r, 0., 0.);
     gl_FragColor = vec4(l, r, 0., 1.);
   }
+

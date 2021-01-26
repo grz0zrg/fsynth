@@ -1,4 +1,4 @@
-  // Sample program : simple additive synthesis with per harmonics bitcrushing
+  // Sample program : additive synthesis with per harmonics bitcrushing
 
   #define PI 3.141592653
   #define PI2 (3.141592653 * 2.)
@@ -16,15 +16,17 @@
     
     vec2 uv = gl_FragCoord.xy / resolution;
 
-    float start_frequency = 110.;
-    float harmonics = 8.;
+    float start_frequency = 220.;
+    // sequence
+    start_frequency += (32. * round(mod(globalTime * 4., 2.)));
+    float harmonics = 18.;
     
     const float harmonics_step = 1.;
     for (float h = 1.; h < harmonics; h += max(1., harmonics_step)) {
         // normalize
       	float nh = h / harmonics;
-        // modulate attenuatiation factor (filter cutoff)
-      	float attenuation_factor = 2.0 + sin(globalTime * PI2 + h * PI2 * uv.x * 8.);
+        // modulate attenuation factor (filter cutoff)
+      	float attenuation_factor = 1.75 + sin(globalTime * PI2 + nh * PI2 + uv.x * 64.);
         // attenuate high frequencies harmonics (filter)
         float attenuation = pow(1. - nh, attenuation_factor);
 
@@ -34,14 +36,16 @@
       	r += fline(harmonic_frequency) * attenuation;
       
       	// bitdepth & samplerate is modulated by this oscillator
-        float bitcrush_osc = 0.025 + abs(round(sin(globalTime * 8. * uv.y * 3.) * 2. * (uv.x - uv.y))) / 512.;
+        float bitcrush_osc = 0.005 + abs(round(sin(globalTime * 2. * uv.y * 2.) * 2.)) / 256.;
       
         // modulate this partial bitcrush effect parameters
-        bitdepth += fline(harmonic_frequency) * min(max(0., 0.1 - bitcrush_osc), 0.99);
+        bitdepth += fline(harmonic_frequency) * abs(sin(globalTime * 1. + uv.y * PI2));
         sample_rate += fline(harmonic_frequency) * bitcrush_osc;
     }
+    
+    // make sure it is always enabled (> 1.) & stay a bitcrush (< 2.)
+    bitdepth = bitdepth > 1.5 ? min(max(1., bitdepth), 1.99) : 0.;
 
     synthOutput = vec4(l, r, bitdepth, sample_rate);
     gl_FragColor = vec4(l, r, sample_rate, 1.);
   }
-

@@ -525,7 +525,7 @@ var _canvasRecord = function () {
         if (_record_type === 0 || _record_type === 3) {
             for (i = 0; i < _output_channels; i += 1) {
                 for (j = 0; j <= _canvas_height_mul4; j += 1) {
-                    temp_data[j] += (_record_fn[_record_type](i,j) * m);
+                    temp_data[j] += (_record_slice_fn[_record_type](i,j) * m);
                     
                     temp_data[j] = Math.min(temp_data[j], 255);
                 }

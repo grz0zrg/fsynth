@@ -143,6 +143,20 @@ var FragmentSynth = function (params) {
 
         return;
     }
+    
+    // check WebGL 2 support
+    var test_canvas = document.createElement("canvas");
+    var test_opts = {
+        preserveDrawingBuffer: true,
+        antialias: true,
+        depth: false
+    };
+
+    if (!(test_canvas.getContext("webgl2", test_opts) || test_canvas.getContext("experimental-webgl2", test_opts))) {
+        _fail("Web WebGL 2 is not available, please use a web browser / device with WebGL 2 support.", true);
+
+        return;
+    }
 
     /***********************************************************
         Fields.
@@ -192,11 +206,13 @@ var FragmentSynth = function (params) {
         _record = false,
         _record_input_count = 0,
         _record_slice_fn = [function (i, j) {
-            return _data[i][j] + _osc_data[i][j];
+            return _data[i][j] + _osc_data[i][j] + _midi_data[i][j];
         }, function (i, j) {
             return _data[i][j];
         }, function (i, j) {
             return _osc_data[i][j];
+        }, function (i, j) {
+            return _midi_data[i][j];
         }],
         _record_type = 1, // record AUDIO output only by default
         _record_opts = {
@@ -501,7 +517,7 @@ var FragmentSynth = function (params) {
         _raf,
 
         _gl,
-        _gl2 = false,
+        _gl2 = true,
         
         _pbo = null,
         _pbo_size = 0,
@@ -886,20 +902,7 @@ var FragmentSynth = function (params) {
     
     // WebGL 2 check & init
     _gl = _canvas.getContext("webgl2", _webgl_opts) || _canvas.getContext("experimental-webgl2", _webgl_opts);
-    if (!_gl) {
-        _gl = _canvas.getContext("webgl", _webgl_opts) || _canvas.getContext("experimental-webgl", _webgl_opts);
-        
-        _read_pixels_format = _gl.UNSIGNED_BYTE;
-        
-        _wgl_support_element.innerHTML = "Not supported";
-        _wgl_support_element.style.color = "#ff0000";
-        
-        _wgl_lfloat_support_element.innerHTML = "Not supported";
-        _wgl_lfloat_support_element.style.color = "#ff0000";
-        
-        _wgl_float_support_element.innerHTML = "Not supported (8-bit)";
-        _wgl_float_support_element.style.color = "#ff0000";
-    } else {
+    if (_gl) {
         _gl2 = true;
         
         _wgl_support_element.innerHTML = "Supported";

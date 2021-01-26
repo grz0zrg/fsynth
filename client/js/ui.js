@@ -4168,7 +4168,7 @@ var _uiInit = function () {
             open: false,
 
             status_bar: false,
-            detachable: true,
+            detachable: false,
             minimizable: true,
             draggable: true,
         

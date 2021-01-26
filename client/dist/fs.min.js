@@ -21328,11 +21328,13 @@ _utter_fail_element.innerHTML = "";
         _record = false,
         _record_input_count = 0,
         _record_slice_fn = [function (i, j) {
-            return _data[i][j] + _osc_data[i][j];
+            return _data[i][j] + _osc_data[i][j] + _midi_data[i][j];
         }, function (i, j) {
             return _data[i][j];
         }, function (i, j) {
             return _osc_data[i][j];
+        }, function (i, j) {
+            return _midi_data[i][j];
         }],
         _record_type = 1, // record AUDIO output only by default
         _record_opts = {
@@ -22875,7 +22877,7 @@ var _canvasRecord = function () {
         if (_record_type === 0 || _record_type === 3) {
             for (i = 0; i < _output_channels; i += 1) {
                 for (j = 0; j <= _canvas_height_mul4; j += 1) {
-                    temp_data[j] += (_record_fn[_record_type](i,j) * m);
+                    temp_data[j] += (_record_slice_fn[_record_type](i,j) * m);
                     
                     temp_data[j] = Math.min(temp_data[j], 255);
                 }
@@ -23580,8 +23582,10 @@ var _glsl_compilation = function () {
     );
     
     if (temp_program) {
-        _parseGLSL(1, library_code);
-        _parseGLSL(0, main_code);
+        if (_current_code_editor.index < 2) {
+            _parseGLSL(1, library_code);
+            _parseGLSL(0, main_code);
+        }
         
         _gl.deleteProgram(_program);
         

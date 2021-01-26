@@ -38,7 +38,7 @@ Fragment has many features making it a bliss to produce any kind of sounds assoc
 
 To output any sounds the client need to be used with the [Fragment Audio Server](https://github.com/grz0zrg/fas) which is a high performance native digital synthesizer.
 
-With WebGL 2 capable web browser, audio can be produced independently from the visuals with the *synthOutput* **vec4** uniform, this is not the case with WebGL 1 as there is only one output for both visuals and sounds. (**gl_FragColor** or **fragColor**)
+Fragment require WebGL 2 compatible brower, audio can be produced independently from the visuals with the *synthOutput* **vec4** uniform.
 
 For any questions, a message board is available [here](https://quiet.fsynth.com/)
 
@@ -61,7 +61,7 @@ Fragment is able to do real-time distributed sound synthesis with its audio serv
 - MIDI IN/OUT support with [Web MIDI](https://caniuse.com/#feat=midi) compatible web browsers, MPE supported
 - Multiple positional MIDI / OSC / AUDIO instruments with configurable output channel and more
 - Real-time frames by frames recording with export as an image or as a .wav (additive synthesis only) or Fragment input (export back into itself, this can be used to build complex brushes for drawing canvas inputs)
-- WebGL 2.0 and GLSL 3.0 support when compatibility is detected
+- WebGL 2.0 / GLSL 3.0 support
 - RGBA Live visuals with stereophonic sound generation
 - Synthesis data processed in 32-bit precision (WebGL 2.0 & EXT_color_buffer_float extension) or 8-bit precision
 - Feedback via framebuffer (for fx like reverb, delay, spectral distortion etc)

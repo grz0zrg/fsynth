@@ -253,8 +253,10 @@ var _glsl_compilation = function () {
     );
     
     if (temp_program) {
-        _parseGLSL(1, library_code);
-        _parseGLSL(0, main_code);
+        if (_current_code_editor.index < 2) {
+            _parseGLSL(1, library_code);
+            _parseGLSL(0, main_code);
+        }
         
         _gl.deleteProgram(_program);
         
