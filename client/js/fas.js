@@ -107,7 +107,7 @@ var _fasStatus = function (status) {
     _fas.status = status;
 };
 
-var _fasSendIntrumentsInfos = function () {
+var _fasSendIntrumentsInfos = function (send_parameters) {
     var i = 0;
     for (i = 0; i < _play_position_markers.length; i += 1) {
         var slice = _play_position_markers[i];
@@ -115,13 +115,31 @@ var _fasSendIntrumentsInfos = function () {
         _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 1, value: slice.mute });
         _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 2, value: slice.output_channel - 1 });
 
-        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 3, value: slice.instrument_params.p0 });
-        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 4, value: slice.instrument_params.p1 });
-        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 5, value: slice.instrument_params.p2 });
-        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 6, value: slice.instrument_params.p3 });
-        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 7, value: slice.instrument_params.p4 });
+        if (send_parameters) {
+            _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 3, value: slice.instrument_params.p0 });
+            _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 4, value: slice.instrument_params.p1 });
+            _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 5, value: slice.instrument_params.p2 });
+            _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 6, value: slice.instrument_params.p3 });
+            _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 7, value: slice.instrument_params.p4 });
+        }
     }
     _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: _play_position_markers.length, target: 0, value: 15 }); // FAS_VOID
+};
+
+var _fasSendChannelsInfos = function () {
+    var i = 0, j = 0, k = 0;
+    for (i = 0; i < _chn_settings.length; i += 1) {
+        if (_chn_settings[i].muted === undefined) {
+            _chn_settings[i].muted = 0;
+        }
+
+        if (_chn_settings[i].chn_output === undefined) {
+            _chn_settings[i].chn_output = 0;
+        }
+
+        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: i, value: _chn_settings[i].muted });
+        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: i, value: _chn_settings[i].chn_output });
+    }
 };
 
 var _fasSendAll = function () {
@@ -163,7 +181,7 @@ var _fasSendAll = function () {
         _fasNotify(_FAS_CHN_FX_INFOS, { chn: i, slot: slot_index, target: 0, value: -1 });
     }
 
-    _fasSendIntrumentsInfos();
+    _fasSendIntrumentsInfos(true);
 };
 
 /***********************************************************

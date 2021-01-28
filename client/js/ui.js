@@ -75,6 +75,13 @@ var _icon_class = {
     _wui_main_toolbar,
 
     _collapsible_id = 0,
+
+    _fas_settings_collapses = {
+        instruments: false,
+        channels: true,
+        actions: true,
+        file_managers: true
+    },
     
     _send_slices_settings_timeout,
     _add_slice_timeout,
@@ -1238,7 +1245,7 @@ var _onChangeChannelSettings = function (instrument_index, target) {
     };
 };
 
-var _toggleCollapse = function (element) {
+var _toggleCollapse = function (element, cb) {
     return function (ev) {
         var elem = ev.target.ownerDocument.getElementById(element.id);
 
@@ -1246,10 +1253,18 @@ var _toggleCollapse = function (element) {
         elem.classList.toggle("fs-collapsed");
 
         ev.stopPropagation();
+
+        if (cb) {
+            if (elem.classList.contains("fs-collapsed")) {
+                cb(true);
+            } else {
+                cb(false);
+            }
+        }
     };
 };
 
-var _applyCollapsible = function (element, bind_to, collapsed) {
+var _applyCollapsible = function (element, bind_to, collapsed, cb) {
     element.id = "fs_collapsible_" + _collapsible_id;
 
     element.classList.add("fs-collapsible");
@@ -1262,7 +1277,7 @@ var _applyCollapsible = function (element, bind_to, collapsed) {
         element.classList.toggle("fs-collapsible");
     }    
 
-    bind_to.addEventListener("click", _toggleCollapse(element));
+    bind_to.addEventListener("click", _toggleCollapse(element, cb));
 
     bind_to.id = "fs_collapsible_target_" + _collapsible_id;
 
@@ -2801,7 +2816,7 @@ var _createFasFxContent = function (div) {
     
     fx_fieldset.appendChild(fx_fieldset_legend);
 
-    _applyCollapsible(fx_fieldset, fx_fieldset_legend, true);
+    _applyCollapsible(fx_fieldset, fx_fieldset_legend, _fas_settings_collapses.channels, function (collapsed) { _fas_settings_collapses.channels = collapsed; });
 
     // fx list
     var fx_div = document.createElement("div");
@@ -2815,7 +2830,7 @@ var _createFasFxContent = function (div) {
     div.appendChild(fx_fieldset);
 
     // channels
-    for (i = 0; i < _output_channels; i += 1) {
+    for (i = 0; i < _chn_settings.length; i += 1) {
         var fx_chn_div = document.createElement("div"),
             fx_chn_legend = document.createElement("div"),
             fx_chn_content = document.createElement("div"),
@@ -2835,11 +2850,12 @@ var _createFasFxContent = function (div) {
         fx_chn_out_input.type = "number";
         fx_chn_out_input.min = -1;
         fx_chn_out_input.step = 1;
-        fx_chn_out_input.value = chn_settings.output_chn;
+        fx_chn_out_input.value = chn_settings.chn_output;
         fx_chn_out_input.classList.add("fs-fx-chn-out");
 
         fx_chn_legend.title = "mute / unmute channel";
         fx_chn_legend.innerHTML = (i + 1) + " :";
+        fx_chn_legend.style.userSelect = "none";
         fx_chn_legend.classList.add("fs-fas-chn-id");
 
         if (chn_settings.muted) {
@@ -2853,7 +2869,7 @@ var _createFasFxContent = function (div) {
             
             var output_chn = _parseInt10(e.target.value);
 
-            _chn_settings[chn_index].output_chn = output_chn;
+            _chn_settings[chn_index].chn_output = output_chn;
 
             // save settings
             _local_session_settings.chn_settings[chn_index] = _chn_settings[chn_index];
@@ -2890,6 +2906,39 @@ var _createFasFxContent = function (div) {
             _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn_index, value: muted });
 
             //_sendSliceUpdate(instrument_index, { instruments_settings : { muted: slice.instrument_muted } }); 
+        });
+
+        // channel action menu
+        fx_chn_legend.addEventListener("contextmenu", function (e) {
+            e.preventDefault();
+
+            var actions = [];
+            var deleteAction = { icon: "fs-cross-45-icon", tooltip: "Delete unused channels (start at the last used one)", on_click: function () {
+                // disable channels (probably help performances)
+                for (var j = _output_channels; j < _chn_settings.length; j += 1) {
+                    _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: j, value: -1 });
+                }
+
+                _chn_settings.splice(_output_channels);
+
+                _createFasSettingsContent();
+                _saveLocalSessionSettings();
+            } };
+
+            actions.push(deleteAction);
+
+            WUI_CircularMenu.create({
+                element: e.target,
+        
+                angle: 90,
+                rx: 0,
+                ry: 0,
+        
+                item_width:  32,
+                item_height: 32,
+        
+                window: null
+            }, actions);
         });
 
         fx_chn_div.appendChild(fx_chn_legend);
@@ -2982,9 +3031,9 @@ var _createFasSettingsContent = function () {
     actions_fieldset.appendChild(actions_fieldset_legend);
     files_fieldset.appendChild(files_fieldset_legend);
 
-    _applyCollapsible(synthesis_matrix_fieldset, synthesis_matrix_fieldset_legend);
-    _applyCollapsible(actions_fieldset, actions_fieldset_legend, true);
-    _applyCollapsible(files_fieldset, files_fieldset_legend, true);
+    _applyCollapsible(synthesis_matrix_fieldset, synthesis_matrix_fieldset_legend, _fas_settings_collapses.instruments, function (collapsed) { _fas_settings_collapses.instruments = collapsed; });
+    _applyCollapsible(actions_fieldset, actions_fieldset_legend, _fas_settings_collapses.actions, function (collapsed) { _fas_settings_collapses.instruments = collapsed; });
+    _applyCollapsible(files_fieldset, files_fieldset_legend, _fas_settings_collapses.file_managers, function (collapsed) { _fas_settings_collapses.instruments = collapsed; });
 
     // synthesis matrix
     synthesis_matrix_table.className = "fs-matrix";

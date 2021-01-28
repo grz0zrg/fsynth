@@ -662,7 +662,7 @@ var FragmentSynth = function (params) {
         } else {
             _local_session_settings = {
                 gain: _volume,
-                chn_settings: [{ osc: [], efx: [], muted: 0, output_chn: -1 }],
+                chn_settings: [{ osc: [], efx: [], muted: 0, output_chn: 0 }],
                 markers: [],
                 code_editors: []
             };

@@ -3,7 +3,7 @@
   //   Must add/select "PM/FM" instrument in "SYNTH".
 
   #define PI 3.141592653
-  #define PI2 (3.141592653 * 2.)
+  #define PI2 (PI * 2.)
 
   void main () {
     float l = 0., r = 0.;

@@ -21279,6 +21279,20 @@ _utter_fail_element.innerHTML = "";
 
         return;
     }
+    
+    // check WebGL 2 support
+    var test_canvas = document.createElement("canvas");
+    var test_opts = {
+        preserveDrawingBuffer: true,
+        antialias: true,
+        depth: false
+    };
+
+    if (!(test_canvas.getContext("webgl2", test_opts) || test_canvas.getContext("experimental-webgl2", test_opts))) {
+        _fail("Web WebGL 2 is not available, please use a web browser / device with WebGL 2 support.", true);
+
+        return;
+    }
 
     /***********************************************************
         Fields.
@@ -21639,7 +21653,7 @@ _utter_fail_element.innerHTML = "";
         _raf,
 
         _gl,
-        _gl2 = false,
+        _gl2 = true,
         
         _pbo = null,
         _pbo_size = 0,
@@ -21968,31 +21982,21 @@ var _computeOutputChannels = function () {
             max = marker.output_channel;
         }
     }
-
-    // find unused virtual channels and mark them
-    for (i = 0; i < _chn_settings.length; i += 1) {
-        var uses = 0;
-        for (j = 0; j < _play_position_markers.length; j += 1) {
-            marker = _play_position_markers[j];
-
-            if (marker.output_channel === i) {
-                uses += 1;
-
-                if (!_chn_settings[i]) {
-                    _chn_settings[i].muted = 0;
-                    _chn_settings[i].output_chn = 0;
-                }
-            }
-        }
-        
-        if (uses === 0) {
-            _chn_settings[i].output_chn = -1;
-        }
-    }
     
     _output_channels = max;
+
+    for (i = 0; i < _output_channels; i += 1) {
+        if (!_chn_settings[i]) {
+            _chn_settings[i] = { osc: [], efx: [], muted: 0, chn_output: 0 };
+        }
+    }
+
     _allocateFramesData();
     _createFasSettingsContent();
+
+    _fasSendChannelsInfos();
+
+    _saveLocalSessionSettings();
 };
 
 var _decodeAudioData = function (audio_data, done_cb) {
@@ -27550,6 +27554,13 @@ var _icon_class = {
     _wui_main_toolbar,
 
     _collapsible_id = 0,
+
+    _fas_settings_collapses = {
+        instruments: false,
+        channels: true,
+        actions: true,
+        file_managers: true
+    },
     
     _send_slices_settings_timeout,
     _add_slice_timeout,
@@ -28713,7 +28724,7 @@ var _onChangeChannelSettings = function (instrument_index, target) {
     };
 };
 
-var _toggleCollapse = function (element) {
+var _toggleCollapse = function (element, cb) {
     return function (ev) {
         var elem = ev.target.ownerDocument.getElementById(element.id);
 
@@ -28721,10 +28732,18 @@ var _toggleCollapse = function (element) {
         elem.classList.toggle("fs-collapsed");
 
         ev.stopPropagation();
+
+        if (cb) {
+            if (elem.classList.contains("fs-collapsed")) {
+                cb(true);
+            } else {
+                cb(false);
+            }
+        }
     };
 };
 
-var _applyCollapsible = function (element, bind_to, collapsed) {
+var _applyCollapsible = function (element, bind_to, collapsed, cb) {
     element.id = "fs_collapsible_" + _collapsible_id;
 
     element.classList.add("fs-collapsible");
@@ -28737,7 +28756,7 @@ var _applyCollapsible = function (element, bind_to, collapsed) {
         element.classList.toggle("fs-collapsible");
     }    
 
-    bind_to.addEventListener("click", _toggleCollapse(element));
+    bind_to.addEventListener("click", _toggleCollapse(element, cb));
 
     bind_to.id = "fs_collapsible_target_" + _collapsible_id;
 
@@ -30276,7 +30295,7 @@ var _createFasFxContent = function (div) {
     
     fx_fieldset.appendChild(fx_fieldset_legend);
 
-    _applyCollapsible(fx_fieldset, fx_fieldset_legend, true);
+    _applyCollapsible(fx_fieldset, fx_fieldset_legend, _fas_settings_collapses.channels, function (collapsed) { _fas_settings_collapses.channels = collapsed; });
 
     // fx list
     var fx_div = document.createElement("div");
@@ -30290,7 +30309,7 @@ var _createFasFxContent = function (div) {
     div.appendChild(fx_fieldset);
 
     // channels
-    for (i = 0; i < _output_channels; i += 1) {
+    for (i = 0; i < _chn_settings.length; i += 1) {
         var fx_chn_div = document.createElement("div"),
             fx_chn_legend = document.createElement("div"),
             fx_chn_content = document.createElement("div"),
@@ -30310,11 +30329,12 @@ var _createFasFxContent = function (div) {
         fx_chn_out_input.type = "number";
         fx_chn_out_input.min = -1;
         fx_chn_out_input.step = 1;
-        fx_chn_out_input.value = chn_settings.output_chn;
+        fx_chn_out_input.value = chn_settings.chn_output;
         fx_chn_out_input.classList.add("fs-fx-chn-out");
 
         fx_chn_legend.title = "mute / unmute channel";
         fx_chn_legend.innerHTML = (i + 1) + " :";
+        fx_chn_legend.style.userSelect = "none";
         fx_chn_legend.classList.add("fs-fas-chn-id");
 
         if (chn_settings.muted) {
@@ -30328,7 +30348,7 @@ var _createFasFxContent = function (div) {
             
             var output_chn = _parseInt10(e.target.value);
 
-            _chn_settings[chn_index].output_chn = output_chn;
+            _chn_settings[chn_index].chn_output = output_chn;
 
             // save settings
             _local_session_settings.chn_settings[chn_index] = _chn_settings[chn_index];
@@ -30365,6 +30385,39 @@ var _createFasFxContent = function (div) {
             _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn_index, value: muted });
 
             //_sendSliceUpdate(instrument_index, { instruments_settings : { muted: slice.instrument_muted } }); 
+        });
+
+        // channel action menu
+        fx_chn_legend.addEventListener("contextmenu", function (e) {
+            e.preventDefault();
+
+            var actions = [];
+            var deleteAction = { icon: "fs-cross-45-icon", tooltip: "Delete unused channels (start at the last used one)", on_click: function () {
+                // disable channels (probably help performances)
+                for (var j = _output_channels; j < _chn_settings.length; j += 1) {
+                    _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: j, value: -1 });
+                }
+
+                _chn_settings.splice(_output_channels);
+
+                _createFasSettingsContent();
+                _saveLocalSessionSettings();
+            } };
+
+            actions.push(deleteAction);
+
+            WUI_CircularMenu.create({
+                element: e.target,
+        
+                angle: 90,
+                rx: 0,
+                ry: 0,
+        
+                item_width:  32,
+                item_height: 32,
+        
+                window: null
+            }, actions);
         });
 
         fx_chn_div.appendChild(fx_chn_legend);
@@ -30457,9 +30510,9 @@ var _createFasSettingsContent = function () {
     actions_fieldset.appendChild(actions_fieldset_legend);
     files_fieldset.appendChild(files_fieldset_legend);
 
-    _applyCollapsible(synthesis_matrix_fieldset, synthesis_matrix_fieldset_legend);
-    _applyCollapsible(actions_fieldset, actions_fieldset_legend, true);
-    _applyCollapsible(files_fieldset, files_fieldset_legend, true);
+    _applyCollapsible(synthesis_matrix_fieldset, synthesis_matrix_fieldset_legend, _fas_settings_collapses.instruments, function (collapsed) { _fas_settings_collapses.instruments = collapsed; });
+    _applyCollapsible(actions_fieldset, actions_fieldset_legend, _fas_settings_collapses.actions, function (collapsed) { _fas_settings_collapses.instruments = collapsed; });
+    _applyCollapsible(files_fieldset, files_fieldset_legend, _fas_settings_collapses.file_managers, function (collapsed) { _fas_settings_collapses.instruments = collapsed; });
 
     // synthesis matrix
     synthesis_matrix_table.className = "fs-matrix";
@@ -31643,7 +31696,7 @@ var _uiInit = function () {
             open: false,
 
             status_bar: false,
-            detachable: true,
+            detachable: false,
             minimizable: true,
             draggable: true,
         
@@ -33786,7 +33839,7 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
         _poly_infos_element.textContent = "";
     }
 
-    _fasSendIntrumentsInfos();
+    _fasSendIntrumentsInfos(true);
 
     _createFasSettingsContent();
 };
@@ -34388,6 +34441,9 @@ var _muteSlice = function (slice_obj, submit) {
         play_position_bottom_hook_element = slice_obj.element.lastElementChild;
     
     slice_obj.mute = true;
+
+    _fasSendIntrumentsInfos(false);
+
     if (slice_obj.type === 1) {
         play_position_top_hook_element.style.borderTopColor = "#550000";
         play_position_bottom_hook_element.style.borderBottomColor = "#550000";
@@ -34406,6 +34462,9 @@ var _unmuteSlice = function (slice_obj, submit) {
         play_position_bottom_hook_element = slice_obj.element.lastElementChild;
 
     slice_obj.mute = false;
+
+    _fasSendIntrumentsInfos(false);
+
     play_position_top_hook_element.style.borderTopColor = _slice_type_color[slice_obj.type];
     play_position_bottom_hook_element.style.borderBottomColor = _slice_type_color[slice_obj.type];
 
@@ -34687,7 +34746,7 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
 
     _updateSliceChnVisibility();
 
-    _fasSendIntrumentsInfos();
+    _fasSendIntrumentsInfos(true);
 
     return play_position_marker;
 };
@@ -35780,7 +35839,7 @@ var _fasStatus = function (status) {
     _fas.status = status;
 };
 
-var _fasSendIntrumentsInfos = function () {
+var _fasSendIntrumentsInfos = function (send_parameters) {
     var i = 0;
     for (i = 0; i < _play_position_markers.length; i += 1) {
         var slice = _play_position_markers[i];
@@ -35788,13 +35847,31 @@ var _fasSendIntrumentsInfos = function () {
         _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 1, value: slice.mute });
         _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 2, value: slice.output_channel - 1 });
 
-        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 3, value: slice.instrument_params.p0 });
-        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 4, value: slice.instrument_params.p1 });
-        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 5, value: slice.instrument_params.p2 });
-        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 6, value: slice.instrument_params.p3 });
-        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 7, value: slice.instrument_params.p4 });
+        if (send_parameters) {
+            _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 3, value: slice.instrument_params.p0 });
+            _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 4, value: slice.instrument_params.p1 });
+            _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 5, value: slice.instrument_params.p2 });
+            _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 6, value: slice.instrument_params.p3 });
+            _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 7, value: slice.instrument_params.p4 });
+        }
     }
     _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: _play_position_markers.length, target: 0, value: 15 }); // FAS_VOID
+};
+
+var _fasSendChannelsInfos = function () {
+    var i = 0, j = 0, k = 0;
+    for (i = 0; i < _chn_settings.length; i += 1) {
+        if (_chn_settings[i].muted === undefined) {
+            _chn_settings[i].muted = 0;
+        }
+
+        if (_chn_settings[i].chn_output === undefined) {
+            _chn_settings[i].chn_output = 0;
+        }
+
+        _fasNotify(_FAS_CHN_INFOS, { target: 0, chn: i, value: _chn_settings[i].muted });
+        _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: i, value: _chn_settings[i].chn_output });
+    }
 };
 
 var _fasSendAll = function () {
@@ -35836,7 +35913,7 @@ var _fasSendAll = function () {
         _fasNotify(_FAS_CHN_FX_INFOS, { chn: i, slot: slot_index, target: 0, value: -1 });
     }
 
-    _fasSendIntrumentsInfos();
+    _fasSendIntrumentsInfos(true);
 };
 
 /***********************************************************
@@ -36419,7 +36496,7 @@ var _oscInit = function () {
         } else {
             _local_session_settings = {
                 gain: _volume,
-                chn_settings: [{ osc: [], efx: [], muted: 0, output_chn: -1 }],
+                chn_settings: [{ osc: [], efx: [], muted: 0, output_chn: 0 }],
                 markers: [],
                 code_editors: []
             };
@@ -36659,20 +36736,7 @@ var _oscInit = function () {
     
     // WebGL 2 check & init
     _gl = _canvas.getContext("webgl2", _webgl_opts) || _canvas.getContext("experimental-webgl2", _webgl_opts);
-    if (!_gl) {
-        _gl = _canvas.getContext("webgl", _webgl_opts) || _canvas.getContext("experimental-webgl", _webgl_opts);
-        
-        _read_pixels_format = _gl.UNSIGNED_BYTE;
-        
-        _wgl_support_element.innerHTML = "Not supported";
-        _wgl_support_element.style.color = "#ff0000";
-        
-        _wgl_lfloat_support_element.innerHTML = "Not supported";
-        _wgl_lfloat_support_element.style.color = "#ff0000";
-        
-        _wgl_float_support_element.innerHTML = "Not supported (8-bit)";
-        _wgl_float_support_element.style.color = "#ff0000";
-    } else {
+    if (_gl) {
         _gl2 = true;
         
         _wgl_support_element.innerHTML = "Supported";

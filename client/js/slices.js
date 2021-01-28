@@ -240,7 +240,7 @@ var _removePlayPositionMarker = function (marker_id, force, submit) {
         _poly_infos_element.textContent = "";
     }
 
-    _fasSendIntrumentsInfos();
+    _fasSendIntrumentsInfos(true);
 
     _createFasSettingsContent();
 };
@@ -842,6 +842,9 @@ var _muteSlice = function (slice_obj, submit) {
         play_position_bottom_hook_element = slice_obj.element.lastElementChild;
     
     slice_obj.mute = true;
+
+    _fasSendIntrumentsInfos(false);
+
     if (slice_obj.type === 1) {
         play_position_top_hook_element.style.borderTopColor = "#550000";
         play_position_bottom_hook_element.style.borderBottomColor = "#550000";
@@ -860,6 +863,9 @@ var _unmuteSlice = function (slice_obj, submit) {
         play_position_bottom_hook_element = slice_obj.element.lastElementChild;
 
     slice_obj.mute = false;
+
+    _fasSendIntrumentsInfos(false);
+
     play_position_top_hook_element.style.borderTopColor = _slice_type_color[slice_obj.type];
     play_position_bottom_hook_element.style.borderBottomColor = _slice_type_color[slice_obj.type];
 
@@ -1141,7 +1147,7 @@ var _addPlayPositionMarker = function (x, shift, mute, output_channel, slice_typ
 
     _updateSliceChnVisibility();
 
-    _fasSendIntrumentsInfos();
+    _fasSendIntrumentsInfos(true);
 
     return play_position_marker;
 };
