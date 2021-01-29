@@ -1,6 +1,10 @@
 /* jslint browser: true */
 
 var _pause = function () {
+    if (!document.getElementById("fs_tb_pause").classList.contains("wui-toolbar-toggle-on")) {
+        WUI_ToolBar.toggle(_wui_main_toolbar, 6);
+    }
+
     window.cancelAnimationFrame(_raf);
     
     _fs_state = 1;

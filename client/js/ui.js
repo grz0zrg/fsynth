@@ -88,7 +88,7 @@ var _icon_class = {
     _remove_slice_timeout,
 
     _synthesis_types = ["Additive", "Spectral", "Granular", "PM/FM", "Subtractive", "Physical Model", "Wavetable", "Bandpass (M)", "Formant (M)", "Phase Distorsion (M)", "String resonance (M)", "Modal (M)", "Modulation", "In", "Faust"],
-    _synthesis_enabled = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    _synthesis_enabled = [1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1],
     _synthesis_params = [0, 3, 3, 2, 1, 2, 1, 0, 0, 0, 0, 0, 5, 0, 5],
 
     _efx = [{
@@ -1984,7 +1984,7 @@ var _createSynthParametersContent = function () {
 
                 midi: true,
                 
-                title: "Chn",
+                title: "Chn / Instrument",
     
                 title_min_width: 140,
                 value_min_width: 88,

@@ -26517,6 +26517,10 @@ var _applyEditorsOption = function (key, value) {
 /* jslint browser: true */
 
 var _pause = function () {
+    if (!document.getElementById("fs_tb_pause").classList.contains("wui-toolbar-toggle-on")) {
+        WUI_ToolBar.toggle(_wui_main_toolbar, 6);
+    }
+
     window.cancelAnimationFrame(_raf);
     
     _fs_state = 1;
@@ -26719,6 +26723,7 @@ _audio_recorder_worker.addEventListener("message", function (m) {
 /***********************************************************
     Fields.
 ************************************************************/
+var _last_workspace_target = 0;
 
 /***********************************************************
     Functions.
@@ -26774,20 +26779,30 @@ var _showWorkspace = function (target, i) {
         _workspaceClearSelection();
 
         if (target === "fs-workspace-item") {
+            if (_last_workspace_target > 1) {
+                _pause();
+            }
+            
             if (i === 0) {
                 document.getElementById("fs_code").style.display = "";
                 document.getElementById("fs_code_target").classList.add("fs-workspace-item-active");
 
                 _current_code_editor = _code_editors[i];
+
+                _last_workspace_target = 0;
             } else if (i === 1) {
                 document.getElementById("fs_library_code").style.display = "";
                 document.getElementById("fs_library_target").classList.add("fs-workspace-item-active");
 
                 _current_code_editor = _code_editors[i];
+
+                _last_workspace_target = 1;
             }
 
             _compile();
         } else if (target === "fs-workspace-example-item") {
+            _pause();
+
             var rootElement = document.getElementById("fs_examples_target");
 
             rootElement.children[i].classList.add("fs-workspace-item-active");
@@ -26801,6 +26816,8 @@ var _showWorkspace = function (target, i) {
 
                 _compile();
             });
+
+            _last_workspace_target = 2;
         }
 
         _updateWorkView();
@@ -27567,7 +27584,7 @@ var _icon_class = {
     _remove_slice_timeout,
 
     _synthesis_types = ["Additive", "Spectral", "Granular", "PM/FM", "Subtractive", "Physical Model", "Wavetable", "Bandpass (M)", "Formant (M)", "Phase Distorsion (M)", "String resonance (M)", "Modal (M)", "Modulation", "In", "Faust"],
-    _synthesis_enabled = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    _synthesis_enabled = [1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1],
     _synthesis_params = [0, 3, 3, 2, 1, 2, 1, 0, 0, 0, 0, 0, 5, 0, 5],
 
     _efx = [{
@@ -29425,7 +29442,7 @@ var _createSynthParametersContent = function () {
                 height: 8,
     
                 min: 0,
-                max: 1,
+                max: 2,
                 bar: false,
     
                 step: 1,
@@ -29463,7 +29480,7 @@ var _createSynthParametersContent = function () {
 
                 midi: true,
                 
-                title: "Chn",
+                title: "Chn / Instrument",
     
                 title_min_width: 140,
                 value_min_width: 88,

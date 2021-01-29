@@ -4,6 +4,7 @@
 /***********************************************************
     Fields.
 ************************************************************/
+var _last_workspace_target = 0;
 
 /***********************************************************
     Functions.
@@ -59,20 +60,30 @@ var _showWorkspace = function (target, i) {
         _workspaceClearSelection();
 
         if (target === "fs-workspace-item") {
+            if (_last_workspace_target > 1) {
+                _pause();
+            }
+            
             if (i === 0) {
                 document.getElementById("fs_code").style.display = "";
                 document.getElementById("fs_code_target").classList.add("fs-workspace-item-active");
 
                 _current_code_editor = _code_editors[i];
+
+                _last_workspace_target = 0;
             } else if (i === 1) {
                 document.getElementById("fs_library_code").style.display = "";
                 document.getElementById("fs_library_target").classList.add("fs-workspace-item-active");
 
                 _current_code_editor = _code_editors[i];
+
+                _last_workspace_target = 1;
             }
 
             _compile();
         } else if (target === "fs-workspace-example-item") {
+            _pause();
+
             var rootElement = document.getElementById("fs_examples_target");
 
             rootElement.children[i].classList.add("fs-workspace-item-active");
@@ -86,6 +97,8 @@ var _showWorkspace = function (target, i) {
 
                 _compile();
             });
+
+            _last_workspace_target = 2;
         }
 
         _updateWorkView();
