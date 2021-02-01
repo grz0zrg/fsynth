@@ -27116,6 +27116,14 @@ var _renderFilesTree = function (dom_node, target_element_id, target) {
     };
 };
 
+var _closeFileManager = function (target_element_id) {
+    return function () {
+        var element = document.getElementById(target_element_id).firstElementChild.nextElementSibling;
+
+        element.innerHTML = '';
+    };
+};
+
 var _refreshFileManager = function (target_element_id, target) {
     return function () {
         var element = document.getElementById(target_element_id).firstElementChild.nextElementSibling;
@@ -30528,8 +30536,8 @@ var _createFasSettingsContent = function () {
     files_fieldset.appendChild(files_fieldset_legend);
 
     _applyCollapsible(synthesis_matrix_fieldset, synthesis_matrix_fieldset_legend, _fas_settings_collapses.instruments, function (collapsed) { _fas_settings_collapses.instruments = collapsed; });
-    _applyCollapsible(actions_fieldset, actions_fieldset_legend, _fas_settings_collapses.actions, function (collapsed) { _fas_settings_collapses.instruments = collapsed; });
-    _applyCollapsible(files_fieldset, files_fieldset_legend, _fas_settings_collapses.file_managers, function (collapsed) { _fas_settings_collapses.instruments = collapsed; });
+    _applyCollapsible(actions_fieldset, actions_fieldset_legend, _fas_settings_collapses.actions, function (collapsed) { _fas_settings_collapses.actions = collapsed; });
+    _applyCollapsible(files_fieldset, files_fieldset_legend, _fas_settings_collapses.file_managers, function (collapsed) { _fas_settings_collapses.file_managers = collapsed; });
 
     // synthesis matrix
     synthesis_matrix_table.className = "fs-matrix";
@@ -31751,7 +31759,7 @@ var _uiInit = function () {
                         icon: "fs-video-icon",
                         on_click: (function () { _loadFile("video")(); }),
                         tooltip: "Video",
-                        text: "Mov"
+                        text: "Vid"
                     },
                     {
                         icon: "fs-camera-icon",
@@ -31879,6 +31887,7 @@ var _uiInit = function () {
         valign: "center",
 
         on_open: _refreshFileManager(_samples_dialog_id, "grains"),
+        on_close: _closeFileManager(_samples_dialog_id),
 
         open: false,
 
@@ -31911,6 +31920,7 @@ var _uiInit = function () {
         valign: "center",
 
         on_open: _refreshFileManager(_waves_dialog_id, "waves"),
+        on_close: _closeFileManager(_waves_dialog_id),
 
         open: false,
 
@@ -31943,6 +31953,7 @@ var _uiInit = function () {
         valign: "center",
 
         on_open: _refreshFileManager(_impulses_dialog_id, "impulses"),
+        on_close: _closeFileManager(_impulses_dialog_id),
 
         open: false,
 
@@ -31975,6 +31986,7 @@ var _uiInit = function () {
         valign: "center",
 
         on_open: _refreshFileManager(_faust_gens_dialog_id, "generators"),
+        on_close: _closeFileManager(_faust_gens_dialog_id),
 
         open: false,
 
@@ -32007,6 +32019,7 @@ var _uiInit = function () {
         valign: "center",
 
         on_open: _refreshFileManager(_faust_effs_dialog_id, "effects"),
+        on_close: _closeFileManager(_faust_effs_dialog_id),
 
         open: false,
 
@@ -33952,7 +33965,7 @@ var _compileMarkerMIDIData = function (marker_obj) {
 };
 
 var _getSliceTitle = function (slice_obj) {
-    return "Instrument '" + slice_obj.id + "' settings";
+    return "Instrument '" + (slice_obj.id + 1) + "' settings";
 };
 
 var _createMarkerSettings = function (marker_obj) {

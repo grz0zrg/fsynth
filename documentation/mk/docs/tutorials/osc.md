@@ -35,7 +35,7 @@ The supported OSC address are
 
 - an array of values
 
-This feature is useful to send data to the fragment shader from an external application and control videos, it act as an alternative and powerful controller.
+This feature is useful to send data to the fragment shader from an external application and control parameters / videos, it act as an alternative and powerful controller.
 
 ### Out
 
@@ -51,4 +51,4 @@ The OSC bundle contain :
 - A pixel component
 - Slice channel
 
-This feature is useful to trigger external applications from the slices content, this was used to build a [SuperCollider port](https://github.com/grz0zrg/fsynth/tree/master/supercollider) of the additive synthesis engine.
+This feature is useful to trigger external applications from the slices content, this was used to build a [SuperCollider port](https://github.com/grz0zrg/fsynth/tree/master/supercollider) of the additive synthesis engine for example.

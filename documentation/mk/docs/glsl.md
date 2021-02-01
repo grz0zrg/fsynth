@@ -1,6 +1,6 @@
 ## About
 
-> **OpenGL Shading Language** (abbreviated: **GLSL** or **GLslang**), is a [high-level](https://en.wikipedia.org/wiki/High_level_programming_language) [shading language](https://en.wikipedia.org/wiki/Shading_language) with a syntax based on the [C programming language](https://en.wikipedia.org/wiki/C_(programming_language)). It was created by the [OpenGL ARB](https://en.wikipedia.org/wiki/OpenGL_ARB) (OpenGL Architecture Review Board) to give developers more direct control over the [graphics pipeline](https://en.wikipedia.org/wiki/Graphics_pipeline).
+> **OpenGL Shading Language** (abbreviated: **GLSL**), is a [high-level](https://en.wikipedia.org/wiki/High_level_programming_language) [shading language](https://en.wikipedia.org/wiki/Shading_language) with a syntax based on the [C programming language](https://en.wikipedia.org/wiki/C_(programming_language)). It was created by the [OpenGL ARB](https://en.wikipedia.org/wiki/OpenGL_ARB) (OpenGL Architecture Review Board) to give developers more direct control over the [graphics pipeline](https://en.wikipedia.org/wiki/Graphics_pipeline).
 >
 > Some benefits of using GLSL are:
 >
@@ -10,7 +10,7 @@
 
 ## How-to
 
-Fragment usage of the graphics pipeline is restricted to a single fragment program which will be executed by the GPU for each pixels of the graphical score/canvas.
+Fragment usage of the graphics pipeline is restricted to a single fragment program which will be executed by the GPU for each pixels of the accelerated canvas.
 
 The fragment program is written in GLSL (OpenGL Shading Language) which has a syntax similar to the C language without all the complex bits, it is much simpler to learn.
 
@@ -21,33 +21,33 @@ Here is a simple example of GLSL code that Fragment accept which just set all pi
 ```glsl
 void main () {
   gl_FragColor = vec4(0., 0., 0., 0.);
-  synthOutput = vec4(0., 0., 0., 0.); // WebGL 2.0 only
+  synthOutput = vec4(0., 0., 0., 0.);
 }
 ```
 
 ## Pre-defined uniforms
 
-Fragment has many pre-defined uniforms (global variables) which can be used to access different informations.
+Fragment has many pre-defined uniforms (global variables) which can be used in the code editor to access different informations.
 
 Here is a list of Fragment pre-defined uniforms
 
-- `vec2 resolution` viewport resolution (in pixels)
-- `float globalTime` playback time (in seconds)
-- `float baseFrequency`score base frequency
+- `vec2 resolution` viewport resolution (pixels)
+- `float globalTime` playback time (seconds)
+- `float baseFrequency`score base frequency (hertz)
 - `float octave`score octave range
-- `vec4 mouse`normalized mouse pixel coords.
+- `vec4 mouse`normalized mouse coordinates (pixels)
 - `vec4 date`year, month, day, time in seconds
-- `sampler2D iInputN`Imported data access, typical usage : texture2D(iInput0, uv);
-- `float fvidN`video current playback position (0-1 range)
-- `sampler2D pFrame` The previous frame available as a texture
-- `sampler2D pFrameSynth`The previous synth frame available as a texture (WebGL 2)
-- `int frame` The current frame
-- `float htoy` take a frequency as argument and return its vertical position on the canvas (in pixels units)
-- `float fline` take a frequency as argument and return either 1 or 0 (shortcut to draw a horizontal line)
-- `float yfreq` take a vertical position as argument and a sample rate argument, return the oscillator frequency at the corresponding position for the corresponding sample rate
-- `vec4[N] keyboard`MIDI note-on/note-off events : frequency, velocity, elapsed time since the key was pressed, MIDI channel
-- `vec4[N+1] keyboard`Enhanced MIDI (MPE) : pitch bend, timbre (CC74), pressure (aftertouch), release velocity
-- `vec3[N] pKey`store the previous note-off for each channels, frequency, velocity, elapsed time since the key was pressed
+- `sampler2D iInputN`imported data access, typical usage : texture2D(iInput0, uv);
+- `float fvidN`imported video current playback position (0-1 range)
+- `sampler2D pFrame` previous frame available as a texture (feedback)
+- `sampler2D pFrameSynth`previous score frame available as a texture
+- `int frame` current frame
+- `float htoy` a function with a frequency as argument, return a vertical position on the canvas (pixels)
+- `float fline` ​a function with a frequency as argument, return 1 or 0 (a shortcut to draw a horizontal line)
+- `float yfreq` ​a function with a vertical position as argument and a sample rate argument, return the oscillator frequency at the corresponding position for the corresponding sample rate
+- `vec4[N] keyboard`​MIDI note-on/note-off events : frequency, velocity, elapsed time since the key was pressed, MIDI channel
+- `vec4[N+1] keyboard`​enhanced MIDI (MPE) : pitch bend, timbre (CC74), pressure (aftertouch), release velocity
+- `vec3[N] pKey`​store the previous note-off for each channels, frequency, velocity, elapsed time since the key was pressed
 
 ### Reference cards
 
@@ -55,22 +55,17 @@ The Khronos Group (authors of the language specification) released several refer
 
 Since there is plenty of resources to learn the OpenGL Shading Language, the documentation provided in this section will only provide the official reference cards, many GLSL tutorials are available on the internet and are valid for Fragment.
 
-As Fragment can use WebGL 2.0 if your browser has support for it, the reference cards for both WebGL 1.0 GLSL and WebGL 2.0 GLSL (more functionalities) is provided, keep in mind that if Fragment run fine with your browser, you can safely use the WebGL 1.0 GLSL reference card as a starting point:
-
-- WebGL 1.0 OpenGL Shading Language
-  - [Page 1 PDF](https://www.fsynth.com/pdf/webgl1_glsl_1.pdf)
-  - [Page 2 PDF](https://www.fsynth.com/pdf/webgl1_glsl_2.pdf)
 - WebGL 2.0 OpenGL Shading Language
   - [Page 1 PDF](https://www.fsynth.com/pdf/webgl2_glsl_1.pdf)
   - [Page 2 PDF](https://www.fsynth.com/pdf/webgl2_glsl_2.pdf)
   - [Page 3 PDF](https://www.fsynth.com/pdf/webgl2_glsl_3.pdf)
 
-## Note
+## Notes
 
-Fragment support GLSL 3.0 version automatically if it detect *browser support* for the WebGL 2.0 API (which is recommended), GLSL 3.0 allow to use dynamical indexes with arrays among many other things, it also allow to use shortcuts.
+Fragment support GLSL 3.0, GLSL 3.0 allow to use dynamical indexes with arrays among many other things, it also allow to use some shortcuts.
 
-If WebGL 2.0 is supported, there is actually two output in the fragment shader, gl_FragColor or fragColor for the visuals and synthOutput for the synth pixels data which will be used by the audio synthesis engine, this allow to do visuals alongside stereo audio synthesis.
+There is actually two output in the fragment shader, gl_FragColor or fragColor for the visuals and synthOutput for the synth pixels data which will be used by the sound synthesis engine, this allow to do visuals alongside stereo audio.
 
-When WebGL 2.0 is enabled and the EXT_color_buffer_float extension is available, the pixels data output will be encoded as 32-bit float, this allow higher quality sounds and possibilities.
+When the EXT_color_buffer_float extension is available, the pixels data output will be encoded as 32-bit float, this allow more accuracy to represent values resulting in higher accuracy synthesis / modulation.
 
-There is also many applications that let you create stunning visuals in your browser by the same method, one of the most popular one and compatible with Fragment (by using the convert ShaderToy button of the toolbar) is [ShaderToy](https://www.shadertoy.com/), this program let you build visuals and audio at the same time, just like Fragment with a more conventional approach.
+There is also many applications that let you create stunning visuals in your browser by the same method, one of the most popular one and compatible with Fragment (by using the convert ShaderToy button of the toolbar) is [ShaderToy](https://www.shadertoy.com/), this program let you build visuals and audio at the same time, just like Fragment with a more conventional approach for audio synthesis.

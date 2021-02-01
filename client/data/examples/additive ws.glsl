@@ -22,7 +22,7 @@
         // normalize
       	float nh = h / harmonics;
         // modulate attenuation factor (filter cutoff)
-      	float attenuation_factor = 1.5 + sin(globalTime * PI2 * (round(cos(globalTime) * 2.) * 2.) + nh * PI2 + cos(uv.x * PI2 * 2.) * PI2);
+      	float attenuation_factor = 2.5 + sin(globalTime * PI2 * (round(cos(globalTime) * 2.) * 2.) + nh * PI2 + cos(uv.x * PI2 * 2.) * PI2);
         // attenuate high frequencies harmonics (filter)
         float attenuation = pow(1. - nh, attenuation_factor);
 
@@ -45,3 +45,4 @@
     synthOutput = vec4(l, r, wave_a, wave_b);
     gl_FragColor = vec4(l, r, wave_b, 1.);
   }
+

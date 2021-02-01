@@ -2,7 +2,7 @@
 
 Fragment has the capability to provide a visual feedback over any parameters by modulating the parameters with the current horizontal or vertical position, the canvas will then show you the changes along the chosen axis.
 
-Specific parts can be listened by adding and positioning slices on the canvas, you can also modulate the horizontal position to move between parameters possibilities.
+Specific parts can be listened by adding and positioning slices on the canvas, you can also modulate the horizontal position to move inside the parameter space.
 
 By adding many slices at different positions, complex sounds can be built and explored easily without code.
 
@@ -65,6 +65,6 @@ void main () {
   }
 
   gl_FragColor = vec4(l, r, 0., 1.);
-  synthOutput = vec4(l, r, (l + r) / 2., 0.); // WebGL 2.0 only
+  synthOutput = vec4(l, r, (l + r) / 2., 0.);
 }
 ```

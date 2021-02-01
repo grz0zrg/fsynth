@@ -65,7 +65,7 @@ void main () {
     }
   }
 
-    synthOutput = vec4(l, r, 0., 0.); // WebGL 2 only (gl_FragColor otherwise)
+    synthOutput = vec4(l, r, 0., 0.);
     gl_FragColor = vec4(l, r, 0., 1.);
   }
 ```

@@ -1,6 +1,6 @@
 ## About
 
-Fragment multitimbrality is done by splitting the canvas in a multitude of independant parts and assigning (not mandatory) an output channel to the different slices.
+Fragment multitimbrality is done by splitting the canvas in a multitude of independant parts.
 
 ## How-to
 
@@ -54,4 +54,3 @@ void main () {
   synthOutput = vec4(l, r, 0., 0.);//; // WebGL 2 only
 }
 ```
-If you use the Fragment Audio Server, the two slices can also send their result to different output channels, this might come handy for further processing of the two independent timbres.

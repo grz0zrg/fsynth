@@ -336,7 +336,7 @@ var _compileMarkerMIDIData = function (marker_obj) {
 };
 
 var _getSliceTitle = function (slice_obj) {
-    return "Instrument '" + slice_obj.id + "' settings";
+    return "Instrument '" + (slice_obj.id + 1) + "' settings";
 };
 
 var _createMarkerSettings = function (marker_obj) {

@@ -1,12 +1,12 @@
 ## Concept
 
-Fragment is the combination of an accelerated drawing surface with an oscillator-bank / filter-bank / spectral synthesizer.
+Fragment is a combination of an accelerated drawing surface with an oscillator-bank / filter-bank / spectral synthesizer.
 
-The interface is web-based, available [online](https://www.fsynth.com) or locally. It has collaborative features which allow synchronization of the graphics content over multiple users.
+The interface is web-based, available [online](https://www.fsynth.com) or locally. It has collaborative features which allow the same type of graphics content to be shown for multiple users.
 
 The synthesizer part is a separate software which must be downloaded and installed separately. It is also available as a configuration / installation free hardware platform on the [Fragment Store](https://store.fsynth.com).
 
-For sounds, the combination can be thought of as a spectral synthesis / resynthesis environment where all work apply from a frequency domain standpoint.
+For sounds, the combination can be thought of as a spectral synthesis / resynthesis environment where all work apply from a frequency domain graphical standpoint.
 
 ### Accelerated graphics canvas
 
@@ -18,7 +18,7 @@ Drawing on the canvas is done by instructing the GPU to draw with a simple high-
 
 The GLSL script is unique and may be shared in real-time between the users of an online session.
 
-All changes to the GLSL script are immediately applied providing immediate feedback.
+All changes to the GLSL script are immediately applied providing immediate audio and visual feedback.
 
 Fragment also support the [Processing](https://en.wikipedia.org/wiki/Processing_(programming_language)) language which is a general purpose programming language associated with a simple and powerful graphics library.
 
@@ -26,7 +26,7 @@ The graphics canvas can also be manipulated through several other means :
 
 * by drawing over the canvas using a pointer device
 * by any software through desktop capture
-* by displaying images, videos or camera feed
+* by displaying images, videos, sounds / mic spectrum or camera feed
 
 ### Oscillator-bank / filter-bank synthesizer
 
@@ -70,17 +70,18 @@ Fragment oscillators are not limited to sinusoidal oscillations but allow severa
 
 Instead of generators which work additively Fragment also allow the use of the filter-bank concept which work subtractively :
 
-* Spectral filter (analysis / resynthesis)
+* Spectral filter (synthesis / resynthesis)
 * Bandpass filter
-* Formant filter (bandpass filter with resonant component)
 * Modal filter (bandpass filter with resonant component)
-* String resonance filter (complex filter)
+* String resonance filter (complex filter with resonant component)
 
 ### The combination of both
 
 Fragment generate sounds from the direct interpretation of the graphics canvas content as the oscillator-bank / filter-bank content.
 
-To achieve this, vertical slices of the graphics canvas is streamed in real-time to the synthesizer.
+To achieve this, vertical 1px large slices of the graphics canvas are streamed in real-time to the synthesizer.
+
+Slices can be thought of as a single instrument.
 
 All pixels data from the vertical slices are oscillator-bank on / off switch where Red component is the left channel amplitude and the Green component is the right channel amplitude.
 

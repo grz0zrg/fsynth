@@ -250,6 +250,14 @@ var _renderFilesTree = function (dom_node, target_element_id, target) {
     };
 };
 
+var _closeFileManager = function (target_element_id) {
+    return function () {
+        var element = document.getElementById(target_element_id).firstElementChild.nextElementSibling;
+
+        element.innerHTML = '';
+    };
+};
+
 var _refreshFileManager = function (target_element_id, target) {
     return function () {
         var element = document.getElementById(target_element_id).firstElementChild.nextElementSibling;

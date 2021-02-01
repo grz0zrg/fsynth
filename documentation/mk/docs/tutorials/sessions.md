@@ -1,6 +1,6 @@
 ## About
 
-Fragment sessions are isolated spaces open to everyone through the session name, they can be joined by going to the Fragment [homepage](https://www.fsynth.com/) or by typing the session name directly into the address bar as demonstrated below.
+Fragment sessions are isolated spaces open to everyone through the session name, they can be joined by going to the Fragment [homepage](https://www.fsynth.com/) or by typing the session name directly into the address bar as demonstrated in the How-to below.
 
 Fragment store sessions content and settings on a server which mean that any of the synchronizable actions in the session such as the code editor content, canvas settings, slices are automatically saved when Fragment is connected.
 
@@ -8,9 +8,9 @@ Fragment can also be used locally if you don't like the online features, see the
 
 Fragment synchronize the code editor content, slices, canvas settings in real-time across all users in the session which mean that you can jam with your friends if you share the session URL.
 
-Note that MIDI note messages are not synchronized between users due to technical constraints.
+Note that MIDI note messages are not synchronized between users due to technical constraints. Time is also not synchronized which mean that graphics output may be different.
 
-Some settings are saved locally on your browser, some of them are global (like the username and settings related to the editor) and some of them are saved per sessions such as the MIDI settings, gain and inputs.
+Some settings are saved locally on your browser, some of them are global (like the username, settings related to the editor and library code) and some of them are saved per sessions such as the MIDI settings, gain and inputs.
 
 *Fragment is respectful of the user and does not store any informations related to the user outside the boundary defined by the application focus.*
 

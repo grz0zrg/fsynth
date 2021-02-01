@@ -6,6 +6,8 @@ Fragment support a variety of global and session related settings through the se
 
 Detailed description of the settings dialog
 
+### Options
+
 Score width
 
 - The score width in pixels units
@@ -13,7 +15,7 @@ Score width
 Score height
 
 - The score height in pixels units
-- Higher height = better frequencies resolution
+    - Higher height means better frequencies resolution
 
 Score base frequency
 
@@ -23,17 +25,18 @@ Score octave range
 
 - Control the range of frequencies
 
-Osc. fadeout
-
-- WebAudio fadeout time (like a global "release" parameter in other synths, WebAudio oscillators only)
-
 Polyphony
 
 - Maximum polyphony
 
 Note lifetime
 
-- The lifetime of a note in **ms**, this is usefull to handle MIDI keys note-off & release sections part of envelopes
+- The lifetime of a note in **ms**, this is useful to handle MIDI keys note-off & release sections part of envelopes
+
+FPS / Slices data rate
+
+- The rate at which the audio server accept slices data
+    - note : this only relate to the audio server rate; generally the client slices capture data at the display refresh rate which is generally 60 Hz, this has an impact on the synthesizer events resolution. As such it is possible to run the client without VSync or with a higher display rate monitor and change the audio server rate to increase the events resolution.
 
 Show globalTime
 
@@ -45,31 +48,39 @@ Show osc. infos
 
 Show poly. infos
 
-- Hide/Show the polyphony infos for per output channels in the informations bar
+- Hide/Show the polyphony infos per output channels in the informations bar
 
 Show slices
 
 - Hide/Show slices, can be useful for visuals, this settings is not saved
 
-Quickstart startup
+Show slice channel
 
-- Enable/Disable quickstart startup dialog on launch
+- Hide/Show slices channel number at the top of the slice
+
+Show toolbar titles
+
+- Hide/Show toolbar subtitles
+
+Show OSD errors
+
+- Hide/Show errors displayed in the top left or right corner of the window (may be useful to disable the OSD when the fullscreen editor is used)
+
+Show inline errors
+
+- Hide/Show inline errors displayed in the code editor
 
 Show line numbers
 
 - Hide/Show the line number in the code editor
 
-Advanced scrollbar
+Stylized scrollbar
 
 - Enable/disable a better looking scrollbar for the code editor
 
 Highlight matches
 
-- Enable/disable matches highlight in the code editor (when something is selected)
-
-Show slice channel
-
-- Hide/Show slice channel
+- Enable/disable matches highlight in the code editor (when words are selected)
 
 Disable audio
 
@@ -79,13 +90,11 @@ Editor theme
 
 - A list of code editor themes
 
-Monophonic
+Editor font size
 
-- If monophonic is enabled, only the alpha value is used by the synthesis engine, the full RGB output can then be used for visuals
+- Different font size to chose from
 
-Feedback
-
-- Enable/disable the previous frame in the Fragment shader (aka feedback), this is useful for complex effects, may be CPU/GPU intensive
+### Features
 
 OSC IN
 
@@ -93,16 +102,18 @@ OSC IN
 
 OSC OUT
 
-- Enable/disable OSC output, slices data will be sent through OSC bundles via WebSockets, you will need an [OSC relay (https://github.com/grz0zrg/fsynth/tree/master/osc_relay) to use this feature
+- Enable/disable OSC output, slices data will be sent through OSC bundles via WebSockets, you will need an [OSC relay](https://github.com/grz0zrg/fsynth/tree/master/osc_relay) to use this feature
 
-AudioWorklet
+Feedback
 
-- Enable/disable WebAudio AudioWorklet, experimental but fast in-browser additive synthesis engine (enabled by default if supported, this may require a recent browsers)
+- Enable/disable the previous frame in the Fragment shader (aka feedback), this is useful for complex effects, may be CPU/GPU intensive
+
+### Servers
 
 FAS address
 
-- The location of [FAS (Fragment Audio Server)(https://www.fsynth.com/documentation.html#fas) on the network
+- The network location of the [Audio Server](https://www.fsynth.com/documentation.html#fas)
 
 OSC address
 
-- The location of the OSC relay on the network
+- The network location of the OSC relay / OSC websocket server to send data to

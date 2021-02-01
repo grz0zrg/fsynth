@@ -22,11 +22,11 @@ void main () {
 
 ### Usage
 
-The previous frame is accessible as a texture within the main shader, example
+The previous **visuals** frame (what you see) is accessible as a texture within the main shader :
 
 `vec4 pframe = texture(pFrame, vec2(uv.x, uv.y));`
 
-When WebGL 2 is supported, there is also an independant definition for the synth. data frame
+The previous **slices** frame (what is captured by the instruments / slices) is accessible as a texture within the main shader :
 
 `vec4 pframe_synth = texture(pFrameSynth, vec2(uv.x, uv.y));`
 

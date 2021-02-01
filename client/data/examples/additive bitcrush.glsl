@@ -16,10 +16,10 @@
     
     vec2 uv = gl_FragCoord.xy / resolution;
 
-    float start_frequency = 220.;
+    float start_frequency = 110.;
     // sequence
-    start_frequency += (32. * round(mod(globalTime * 4., 2.)));
-    float harmonics = 18.;
+    start_frequency += (8. * round(mod(globalTime * 4., 2.)));
+    float harmonics = 8.;
     
     const float harmonics_step = 1.;
     for (float h = 1.; h < harmonics; h += max(1., harmonics_step)) {
@@ -36,7 +36,7 @@
       	r += fline(harmonic_frequency) * attenuation;
       
       	// bitdepth & samplerate is modulated by this oscillator
-        float bitcrush_osc = 0.005 + abs(round(sin(globalTime * 2. * uv.y * 2.) * 2.)) / 256.;
+        float bitcrush_osc = 0.015 + abs(round(sin(globalTime * 2. * uv.y * 2.) * 2.)) / 256.;
       
         // modulate this partial bitcrush effect parameters
         bitdepth += fline(harmonic_frequency) * abs(sin(globalTime * 1. + uv.y * PI2));
@@ -49,3 +49,4 @@
     synthOutput = vec4(l, r, bitdepth, sample_rate);
     gl_FragColor = vec4(l, r, sample_rate, 1.);
   }
+

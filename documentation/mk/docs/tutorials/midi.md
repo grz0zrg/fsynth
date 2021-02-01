@@ -2,11 +2,11 @@
 
 *You must have a WebMIDI supported browser (such as Chrome or Opera) to use MIDI.*
 
-Fragment support MIDI inputs and output, it has built-in support for MIDI **keyboards** (see OSC for controllers).
+Fragment support MIDI inputs and output, it has built-in support for MIDI **keyboards** (see OSC for MIDI controllers).
 
 Fragment has complete support for *Multidimensional Polyphonic Expression* aka MPE which apply to a new class of controllers like the LinnStrument, Eigenharp and Roli RISE/SeaBoard allowing full per-note expressive support.
 
-Once your MIDI keyboard is plugged in, it can be found and enabled in the Fragment MIDI devices dialog.
+Once your MIDI keyboard is plugged in, it can be found and enabled in the Fragment MIDI devices dialog (JACK plug icon on the toolbar)
 
 The MIDI data of the keyboard will now be available in a pre-defined **vec4 array** named **keyboard**, the array length * 2 is the actual polyphony capability of Fragment, the array contain a series of vec4 items, a note is constitued by two vec4 items containing
 
@@ -18,7 +18,7 @@ The MIDI data of the keyboard will now be available in a pre-defined **vec4 arra
 - the timbre (CC74)
 - the pressure (aftertouch)
 
-All values except frequency/time/channel are normalized to a 0.0-1.0 range.
+All values except frequency/time/channel are normalized (0.0 - 1.0 range).
 
 There is no notions of *note-off* in Fragment, a note-off is simply an item filled with 0 inside the array.
 
@@ -70,7 +70,6 @@ void main () {
   }
 
   gl_FragColor = vec4(l, r, 0., 1.);
-  // WebGL 2.0 only
   synthOutput = vec4(l, r, 0., 0.);
 }
 ```
@@ -146,11 +145,12 @@ See OSC section to use more controllers.
 
 ## MIDI output
 
-- Features
-  - MIDI devices can be assigned to slices through the slice settings dialog
-  - user-defined MIDI messages interpretation of RGBA values via JS scripting (slice settings dialog)
-  - polyphony/stereo panning through 16 channels
-  - microtonal capabilities (frequency mapping is respected)
+Features :
+
+- MIDI devices can be assigned to slices through the slice settings dialog
+- user-defined MIDI messages interpretation of RGBA values via JS scripting (slice settings dialog)
+- polyphony/stereo panning through 16 channels
+- microtonal capabilities (frequency mapping is respected)
 
 External synths can be triggered from pixels data via MIDI OUT, one or multiple MIDI devices can be assigned to one or more slice (note: slices must have different output channels otherwise the last slice with MIDI devices attached is used), RGBA channels can be assigned to user-defined MIDI messages from the slice settings JS script, Fragment has limited MPE support (non-standard for now) to support polyphony through 16 channels, every sounding note is temporarily assigned to its own MIDI channel, allowing microtonal, individual stereo panning and polyphonic capabilities.
 

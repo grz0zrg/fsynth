@@ -1946,7 +1946,7 @@ var _createSynthParametersContent = function () {
                 height: 8,
     
                 min: 0,
-                max: 1,
+                max: 2,
                 bar: false,
     
                 step: 1,
@@ -3032,8 +3032,8 @@ var _createFasSettingsContent = function () {
     files_fieldset.appendChild(files_fieldset_legend);
 
     _applyCollapsible(synthesis_matrix_fieldset, synthesis_matrix_fieldset_legend, _fas_settings_collapses.instruments, function (collapsed) { _fas_settings_collapses.instruments = collapsed; });
-    _applyCollapsible(actions_fieldset, actions_fieldset_legend, _fas_settings_collapses.actions, function (collapsed) { _fas_settings_collapses.instruments = collapsed; });
-    _applyCollapsible(files_fieldset, files_fieldset_legend, _fas_settings_collapses.file_managers, function (collapsed) { _fas_settings_collapses.instruments = collapsed; });
+    _applyCollapsible(actions_fieldset, actions_fieldset_legend, _fas_settings_collapses.actions, function (collapsed) { _fas_settings_collapses.actions = collapsed; });
+    _applyCollapsible(files_fieldset, files_fieldset_legend, _fas_settings_collapses.file_managers, function (collapsed) { _fas_settings_collapses.file_managers = collapsed; });
 
     // synthesis matrix
     synthesis_matrix_table.className = "fs-matrix";
@@ -3637,7 +3637,7 @@ var _uiInit = function () {
 
         md_content_div.innerHTML = _showdown_converter.makeHtml(md_content);
 
-        md_content_div.innerHTML += '<br><br><a href="http://processingjs.org/reference/">Processing.js reference (Official)</a>';
+        md_content_div.innerHTML += '<br><br><a href="https://processing.org/reference/">Processing.js reference</a>';
     });
     
     // may don't scale at all in the future!
@@ -4255,7 +4255,7 @@ var _uiInit = function () {
                         icon: "fs-video-icon",
                         on_click: (function () { _loadFile("video")(); }),
                         tooltip: "Video",
-                        text: "Mov"
+                        text: "Vid"
                     },
                     {
                         icon: "fs-camera-icon",
@@ -4383,6 +4383,7 @@ var _uiInit = function () {
         valign: "center",
 
         on_open: _refreshFileManager(_samples_dialog_id, "grains"),
+        on_close: _closeFileManager(_samples_dialog_id),
 
         open: false,
 
@@ -4415,6 +4416,7 @@ var _uiInit = function () {
         valign: "center",
 
         on_open: _refreshFileManager(_waves_dialog_id, "waves"),
+        on_close: _closeFileManager(_waves_dialog_id),
 
         open: false,
 
@@ -4447,6 +4449,7 @@ var _uiInit = function () {
         valign: "center",
 
         on_open: _refreshFileManager(_impulses_dialog_id, "impulses"),
+        on_close: _closeFileManager(_impulses_dialog_id),
 
         open: false,
 
@@ -4479,6 +4482,7 @@ var _uiInit = function () {
         valign: "center",
 
         on_open: _refreshFileManager(_faust_gens_dialog_id, "generators"),
+        on_close: _closeFileManager(_faust_gens_dialog_id),
 
         open: false,
 
@@ -4511,6 +4515,7 @@ var _uiInit = function () {
         valign: "center",
 
         on_open: _refreshFileManager(_faust_effs_dialog_id, "effects"),
+        on_close: _closeFileManager(_faust_effs_dialog_id),
 
         open: false,
 

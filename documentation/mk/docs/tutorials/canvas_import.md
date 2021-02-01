@@ -10,6 +10,8 @@ Any number of canvas can be created within Fragment.
 
 A complex usage example of this feature is to record a sequence by using the *recording dialog*, export it as a Fragment input, the sequence will then be available as a brush, several sequences can then be integrated into one and the result processed by the fragment shader.
 
+Note that any paint programs could also be used through the desktop capture feature. (see desktop import)
+
 ## How-to
 
 You can draw on any canvas by right-clicking on the canvas input thumbnail, Fragment will select it, display the canvas content above the main canvas and enter in paint mode, the canvas settings dialog will then be displayed.
@@ -62,4 +64,4 @@ Any brushes can be selected by clicking on their thumbnail displayed in the brus
 
 ## Note
 
-The bundled brushes data is specifically encoded for monophonic usage, all the pixels data is encoded inside the alpha channel, using the alpha channel as R/G/B output in the fragment shader to display a drawing made of those brushes is thus mandatory.
+The bundled brushes data is encoded as monophonic, all the pixels data is encoded inside the alpha channel, using the alpha channel as R/G/B output in the fragment shader to display a drawing made of those brushes is thus mandatory.

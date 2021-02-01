@@ -17,7 +17,7 @@
     vec2 uv = gl_FragCoord.xy / resolution;
 
     // harmonics attenuation constant (low-pass filter)
-    float attenuation_constant = 2.5;
+    float attenuation_constant = 8.5;
 
     const float harmonics = 24.;
 
@@ -43,15 +43,16 @@
         float env = adsr(ktim - uv.x, vec4(0., 0.5, 0.0, 1.0), 0.25);
         
         // modulated low-pass filter (attenuate high frequencies)
-        float modulation = cos(ni * 3.1415 * 2. - ktim * 8.);
+        float modulation = cos(ni * 3.1415 * 2. - ktim * 2.) * 4.;
         float attenuation = pow(ni, attenuation_constant - modulation);
 
         float frequency = kfrq * i;
-        l += fline(frequency) * kvel * attenuation * env;
-        r += fline(frequency) * kvel * attenuation * env;
+        l += fline(frequency) * kvel * attenuation * env * 3.;
+        r += fline(frequency) * kvel * attenuation * env * 3.;
       }
     }
 
     synthOutput = vec4(l, r, 0., 0.);
     gl_FragColor = vec4(l, r, 0., 1.);
   }
+

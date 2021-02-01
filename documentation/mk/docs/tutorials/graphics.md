@@ -1,10 +1,10 @@
 ## How-to
 
-Fragment excel at visuals because it use specifically designed computer graphics languages as it's basis.
+Fragment excel at graphics because it use a specifically designed computer graphics languages as it's basis.
 
-You can generate complex graphics within Fragment, you can also use videos or images and you can control those graphics with peripherals.
+Complex graphics can be generated within Fragment, videos, images and many other type of inputs can also used and the graphics can be controlled with peripherals.
 
-Visuals can be synchronized to the synthesized sound easily.
+Graphics can be synchronized to the synthesized sound easily.
 
 Many computer art example compatible with Fragment are available on [ShaderToy](https://www.shadertoy.com), just copy any code and paste it into the Fragment code editor then click on the "Convert from ShaderToy" button.
 

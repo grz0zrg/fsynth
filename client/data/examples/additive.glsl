@@ -9,7 +9,7 @@
     vec2 uv = gl_FragCoord.xy / resolution;
 
     float start_frequency = 120.;
-    float harmonics = 32. + sin(globalTime + uv.x * PI2 + uv.y * PI2) * 32.;
+    float harmonics = 32. + sin(globalTime + uv.x * PI2 + uv.y * PI2 * 8.) * 32.;
     
     // 1 = saw wave (even harmonics), 2 = square wave (odd harmonics)
     const float harmonics_step = 1.;
@@ -34,3 +34,4 @@
     synthOutput = vec4(l, r, 0., 0.);
     gl_FragColor = vec4(l, r, 0., 1.);
   }
+
