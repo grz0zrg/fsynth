@@ -1,0 +1,2 @@
+#!/bin/sh
+python pynut.py js/app_fp.js css/app_fp.css
