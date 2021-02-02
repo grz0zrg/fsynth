@@ -4,7 +4,7 @@ Fragment is a combination of an accelerated drawing surface with an oscillator-b
 
 The interface is web-based, available [online](https://www.fsynth.com) or locally. It has collaborative features which allow the same type of graphics content to be shown for multiple users.
 
-The synthesizer part is a separate software which must be downloaded and installed separately. It is also available as a configuration / installation free hardware platform on the [Fragment Store](https://store.fsynth.com).
+The synthesizer part is a separate software which must be downloaded and installed separately.
 
 For sounds, the combination can be thought of as a spectral synthesis / resynthesis environment where all work apply from a frequency domain graphical standpoint.
 

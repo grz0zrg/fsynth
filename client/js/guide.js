@@ -86,11 +86,21 @@ var _ux_helper_overlay = new PlainOverlay(),
             }
         },
         {
-            content: "Server status (chat & slices)",
+            content: "Chat and settings server status",
             sub_content: [
-                "Chat and slices settings are managed by this server"
+                ""
             ],
             target: "fs_server_status",
+            leaderline: {
+                endSocket: "bottom"
+            }
+        },
+        {
+            content: "Audio server status",
+            sub_content: [
+                ""
+            ],
+            target: "fs_fas_status",
             leaderline: {
                 endSocket: "bottom"
             }
@@ -121,10 +131,10 @@ var _ux_helper_overlay = new PlainOverlay(),
             }
         },
         {
-            content: "Canvas (generated visual content)",
+            content: "Canvas (accelerated drawing surface)",
             sub_content: [
-                "Right click to add a slice",
-                "Double click to open slices panel"
+                "Right click to add a slice / instrument",
+                "Double click to open slices / instruments panel"
             ],
             target: "canvas_container",
             point_anchor: true
@@ -135,14 +145,22 @@ var _ux_helper_overlay = new PlainOverlay(),
             point_anchor: true
         },
         {
-            content: "Data / inputs (images, videos, etc.)",
+            content: "Data / inputs container (images, videos, etc.)",
             sub_content: [
-                "Bitmaps / texture accessible as iInput0, iInput1 etc. (in order of appearance)",
+                "Textures accessible as iInput0, iInput1 etc. (in order of appearance)",
                 "Inputs can be reordered in realtime by a drag and drop",
                 "Click on an input to open its action menu",
                 "Some data / inputs have a shortcut accessible by a right click"
             ],
             target: "fs_input_panel",
+            point_anchor: true
+        },
+        {
+            content: "Workspaces pane",
+            sub_content: [
+                "The session workspace with main code, library and examples"
+            ],
+            target: "fs_explorer",
             point_anchor: true
         },
         {
@@ -195,6 +213,11 @@ var _startUXHelper = function (scenario) {
 
 var _stopUXHelper = function () {
     _ux_helper_overlay.hide();
+
+    if (_ux_helper_current_line) {
+        _ux_helper_current_line.remove();
+        _ux_helper_current_line = null;
+    }
 
     _ux_helper_step = -1;
 
@@ -287,7 +310,8 @@ document.body.addEventListener("keydown", function (evt) {
 document.getElementById("fs_ux_tour").addEventListener("click", function () {
     _startUXHelper(_ux_helper_ui_scenario);
 });
-
+/*
 document.getElementById("fs_quickstart_tour").addEventListener("click", function () {
     _startUXHelper(_ux_helper_quickstart_scenario);
 });
+*/

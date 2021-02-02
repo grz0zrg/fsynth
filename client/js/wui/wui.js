@@ -5027,8 +5027,8 @@ var WUI_CircularMenu = new (function() {
 
     var _getElementOffset = function (elem) {
         var box = elem.getBoundingClientRect(),
-            body = document.body,
-            docEl = document.documentElement,
+            body = elem.ownerDocument.body,
+            docEl = elem.ownerDocument.documentElement,
 
             scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop,
             scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft,
@@ -5057,7 +5057,7 @@ var WUI_CircularMenu = new (function() {
         for (i = 0; i < c; i += 1) {
             item = items[i];
 
-            elem = document.createElement("div");
+            elem = doc.createElement("div");
 
             elem.classList.add(_class_name.item);
 
@@ -5076,7 +5076,7 @@ var WUI_CircularMenu = new (function() {
             }
 
             if (item.content) {
-                content = document.createElement("div");
+                content = doc.createElement("div");
 
                 content.style.width = opts.item_width  + "px";
                 content.style.height = opts.item_height + "px";

@@ -2,7 +2,7 @@
 /*#include Skeleton/skeleton.css*/
 
 /*#include WUI_CircularMenu/skeleton/wui_circular_menu.min.css*/
-/*#include FontAwesome/font-awesome.min.css*/
+/*#include FontAwesome/fontawesome.min.css*/
 
 /*#include icons.css*/
 
@@ -122,6 +122,12 @@ hr {
 
 .fp-donate input {
     margin: 0;
+}
+
+.fp-social-page-dsc {
+    font-size: 23px;
+
+    text-decoration: none;
 }
 
 .fp-social-page-fbl {
@@ -864,4 +870,8 @@ hr {
         width: 460px;
         height: 259px;
     }
+}
+
+td {
+    border-bottom: none;
 }

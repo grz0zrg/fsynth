@@ -6,10 +6,10 @@ Fragment allow the import of
 
 - images
 - sounds
-- videos (images and converted sounds)
-- camera (only images)
-- mic input (audio is converted to a spectrum in real-time)
-- desktop capture (images)
+- videos (audio channel is imported as a sonogram)
+- camera (video only)
+- mic input (audio is imported as a sonogram continuously in real-time)
+- desktop capture (video only)
 - canvas
 - Processing.js
 

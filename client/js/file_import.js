@@ -11,7 +11,9 @@ var _import_dropzone_elem = document.getElementById("fs_import_dropzone");
 ************************************************************/
 
 var _fileChoice = function (cb) {
-    var input = document.createElement("input");
+    var detached_dialog = WUI_Dialog.getDetachedDialog(_import_dialog);
+    var input = detached_dialog ? detached_dialog.document.createElement("input") :  document.createElement("input");
+
     input.type = "file";
     input.multiple = true;
     input.addEventListener("change", cb, false);
@@ -91,26 +93,65 @@ var _importDropzoneDrop = function (e) {
     e.target.style = "";
 };
 
+var _createImportDropzone = function (element) {
+    element.addEventListener("drop", _importDropzoneDrop);
+
+    element.addEventListener("dragleave", function (e) {
+        e.preventDefault();
+        
+        e.target.style = "";
+    });
+    
+    element.addEventListener("dragover", function (e) {
+        e.preventDefault();
+        
+        e.dataTransfer.dropEffect = "copy";
+    });
+    
+    element.addEventListener("dragenter", function (e) {
+        e.preventDefault();
+        
+        e.target.style = "outline: dashed 1px #00ff00; background-color: #444444";
+    });
+};
+
+var _createImportListeners = function (doc) {
+    doc.getElementById("fs_import_audio_mapping").addEventListener('change', function (e) {
+        var mapping_type = e.target.value;
+
+        _audio_import_settings.mapping = mapping_type;
+    });
+    
+    doc.getElementById("fs_import_mic_fft_size").addEventListener('change', function (e) {
+        var fft_size = e.target.value;
+        
+        _audio_import_settings.fft_size = _parseInt10(fft_size);
+    });
+    
+    
+    doc.getElementById("fs_import_audio_ck_videotrack").addEventListener('change', function (e) {
+        var videotrack_import = this.checked;
+        
+        _audio_import_settings.videotrack_import = videotrack_import;
+    });
+};
+
+var _updateImportWidgets = function (doc) {
+    var current_doc = doc;
+    if (!doc) {
+        current_doc = document;
+    }
+    
+    // synchronize in case it was detached
+    current_doc.getElementById("fs_import_audio_mapping").value = _audio_import_settings.mapping;
+    current_doc.getElementById("fs_import_mic_fft_size").value = _audio_import_settings.fft_size;
+    current_doc.getElementById("fs_import_audio_ck_videotrack").checked = _audio_import_settings.videotrack_import;
+};
+
 /***********************************************************
     Init.
 ************************************************************/
 
-_import_dropzone_elem.addEventListener("drop", _importDropzoneDrop);
+_createImportDropzone(_import_dropzone_elem);
 
-_import_dropzone_elem.addEventListener("dragleave", function (e) {
-    e.preventDefault();
-    
-    e.target.style = "";
-});
-
-_import_dropzone_elem.addEventListener("dragover", function (e) {
-    e.preventDefault();
-    
-    e.dataTransfer.dropEffect = "copy";
-});
-
-_import_dropzone_elem.addEventListener("dragenter", function (e) {
-    e.preventDefault();
-    
-    e.target.style = "outline: dashed 1px #00ff00; background-color: #444444";
-});
+_createImportListeners(document);

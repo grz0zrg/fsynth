@@ -11,7 +11,7 @@ var _midi_dialog_id = "fs_midi_output",
     _current_midi_out_slice = null,
 
     _midi_code_change_timeout = null,
-    _midi_code_change_ms = 2000,
+    _midi_code_change_ms = 1500,
     
     _midi_codemirror_instance,
     _midi_codemirror_instance_detached,
@@ -102,8 +102,6 @@ var _midiDialogInit = function () {
         },
 
         on_detach: function (new_window) {
-            _current_midi_output = null;
-
             _midiUnbindCodeChangeEvent();
 
             var midi_editor_div = new_window.document.getElementById("fs_midi_editor"),
@@ -119,7 +117,7 @@ var _midiDialogInit = function () {
 
             midi_editor_div.appendChild(textarea);
 
-            _midi_codemirror_instance = CodeMirror.fromTextArea(textarea, {
+            _midi_codemirror_instance_detached = CodeMirror.fromTextArea(textarea, {
                 mode: "text/javascript",
                 styleActiveLine: true,
                 lineNumbers: true,
@@ -129,23 +127,29 @@ var _midiDialogInit = function () {
                 scrollbarStyle: "native"
             });
 
-            cm_element = _midi_codemirror_instance.getWrapperElement();
+            cm_element = _midi_codemirror_instance_detached.getWrapperElement();
             cm_element.style = "font-size: 12pt";
 
             _midi_codemirror_instance_detached.setValue(_midi_codemirror_instance.getValue());
 
             _midi_codemirror_instance_detached.refresh();
 
-            CodeMirror.on(_midi_codemirror_instance_detached, 'change', _midi_wrapped_code_change_detached);
+            //CodeMirror.on(_midi_codemirror_instance_detached, 'change', _midi_wrapped_code_change_detached);
 
             _midiBindCodeChangeEvent();
+        },
+
+        on_close: function () {
+            _midi_codemirror_instance_detached = null;
+
+            _midiUnbindCodeChangeEvent();
         },
     
         header_btn: [
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "tutorials/midi_output_editor/");
+                    window.open(_documentation_link + "midi/");
                 },
                 class_name: "fs-help-icon"
             }
@@ -173,23 +177,23 @@ var _midiDialogInit = function () {
     };
 
     _midi_wrapped_code_change_detached = function () {
-        clearTimeout(_midi_code_change_timeout);
-        _midi_code_change_timeout = setTimeout(_midiCodeChange, _midi_code_change_ms, _midi_codemirror_instance_detached.getValue());
-
         _midiUnbindCodeChangeEvent();
 
         _midi_codemirror_instance.setValue(_midi_codemirror_instance_detached.getValue());
 
         _midiBindCodeChangeEvent();
+
+        clearTimeout(_midi_code_change_timeout);
+        _midi_code_change_timeout = setTimeout(_midiCodeChange, _midi_code_change_ms, _midi_codemirror_instance_detached.getValue());
     };
 
     _midiBindCodeChangeEvent();
 
     _midiUpdateSlices();
 
-    var detached_dialog = WUI_Dialog.getDetachedDialog(_midi_dialog);
-    if (detached_dialog) {
-        _midiUpdateSlices(detached_dialog.document);
+    var detached_window = WUI_Dialog.getDetachedDialog(_midi_dialog);
+    if (detached_window) {
+        _midiUpdateSlices(detached_window.document);
     }
 };
 
@@ -210,12 +214,14 @@ var _midiSelectSlice = function (slice) {
 
     _midiUpdateSlices();
 
-    var detached_dialog = WUI_Dialog.getDetachedDialog(_midi_dialog);
-    if (detached_dialog) {
-        _midiUpdateSlices(detached_dialog.document);
+    var detached_window = WUI_Dialog.getDetachedDialog(_midi_dialog);
+    if (detached_window) {
+        _midiUpdateSlices(detached_window.document);
     }
 
     _midiBindCodeChangeEvent();
+
+    _midiCodeChange();
 };
 
 var _midiChangeSourceCb = function (slice) {

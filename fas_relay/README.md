@@ -15,16 +15,18 @@ Listen (websocket) on 127.0.0.1:3003 then split the incoming data and distribute
 The load output / latency infos from all the connected Fragment Audio Server incoming data is also printed at regular interval
 
 Usage:
-    Simple usage (same machine, will try to connect to 127.0.0.1:3004, 127.0.0.1:3005 etc) :
-        `node fas_relay -c 2`
-    Usage by specifying address/port of each sound server :
-        `node fas_relay -s="127.0.0.1:3004 127.0.0.1:3005"`
-    Usage by specifying address/port + distribution weight of each sound server :
-        `node fas_relay -w="1 1.5" -s="127.0.0.1:3004 127.0.0.1:3005"`
-    Usage by specifying a starting address/port and the number of sound server instances on each address + address range :
-        `node fas_relay -r 8 -c 4 -s="192.168.0.40:3003"`
-      Note : this will connect from 192.168.0.40 to 192.168.0.48 on ports 3003 to 3006 for each address
+
+* Simple usage (same machine, will try to connect to 127.0.0.1:3004, 127.0.0.1:3005 etc) :
+    * `node fas_relay -c 2`
+
+* Usage by specifying address/port of each sound server :
+    * `node fas_relay -s="127.0.0.1:3004 127.0.0.1:3005"`
+* Usage by specifying address/port + distribution weight of each sound server :
+    * `node fas_relay -w="1 1.5" -s="127.0.0.1:3004 127.0.0.1:3005"`
+* Usage by specifying a starting address/port and the number of sound server instances on each address + address range :
+    * `node fas_relay -r 8 -c 4 -s="192.168.0.40:3003"`
+        * Note : this will connect from 192.168.0.40 to 192.168.0.48 on ports 3003 to 3006 for each address
 
 All options can be used with each other, weight option apply to each ip:port of the servers list even with ip/port range (in this case the range weight is the one of the starting addr/port).
 
-Note : All instruments which use inputs are sent to all instances which can affect performances when using alot of instruments which use inputs.
+Note : All instruments which use inputs are sent to all instances, this is a limitation which can affect performances when alot of instruments use inputs.

@@ -331,7 +331,7 @@ var _updateOutline = function (code_editor_index) {
         param,
 
         code_editor = _code_editors[code_editor_index],
-        outline_element = code_editor.outline.element,
+        outline_element = code_editor.outline.element(),
         outline_data = code_editor.outline.data,
         
         elem;

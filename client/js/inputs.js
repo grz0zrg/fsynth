@@ -340,7 +340,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "tutorials/import/"); 
+                    window.open(_documentation_link + "import/"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -612,6 +612,19 @@ var _createInputThumb = function (input_id, image, thumb_title, src) {
     dom_image.draggable = true;
 
     dom_image.addEventListener("click", _inputThumbMenu);
+
+    dom_image.addEventListener("auxclick", function (e) {
+        e.preventDefault();
+
+        var input_id = _parseInt10(e.target.dataset.inputId),
+            input = _fragment_input_data[input_id],
+            dom_image = input.elem;
+            
+        _input_panel_element.removeChild(dom_image);
+    
+        _removeInputChannel(input_id);
+        _delBrush(input_id);
+    });
     
     // drag & drop
     dom_image.addEventListener("drop", function (e) {

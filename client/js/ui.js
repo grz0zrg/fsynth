@@ -1301,14 +1301,29 @@ var _applyCollapsible = function (element, bind_to, collapsed, cb) {
 var _updateSlicesDialog = function () {
     var slices_dialog_ul = document.createElement("ul");
     slices_dialog_ul.classList.add("fs-slices-list");
-    var slices_dialog_content = document.getElementById(_slices_dialog_id).lastElementChild;
+    var detached_window = WUI_Dialog.getDetachedDialog(_slices_dialog);
+    var slices_dialog_content = null;
+    var doc = null;
+
+    if (detached_window) {
+        doc = detached_window.document;
+    } else {
+        doc = document;
+    }
+
+    slices_dialog_content = doc.getElementById(_slices_dialog_id).getElementsByClassName('wui-dialog-content')[0];
+    
     slices_dialog_content.innerHTML = "";
+
+    if (!_play_position_markers.length) {
+        slices_dialog_ul.innerHTML = '<li>No instruments.</li>';
+    }
 
     var i = 0;
     for (i = 0; i < _play_position_markers.length; i += 1) {
         var play_position_marker = _play_position_markers[i];
 
-        var slices_dialog_li = document.createElement("li");
+        var slices_dialog_li = doc.createElement("li");
 
         var li_content = [
             "<span>CHN " + play_position_marker.output_channel + "</span>"];
@@ -1328,7 +1343,7 @@ var _updateSlicesDialog = function () {
         }
 
         slices_dialog_li.addEventListener("click", _openSliceSettingsDialogFn(play_position_marker));
-        slices_dialog_li.addEventListener("contextmenu", _showSliceSettingsMenuFn(play_position_marker.element));
+        slices_dialog_li.addEventListener("contextmenu", _showSliceSettingsMenuFn(play_position_marker.element, _slices_dialog));
         
         slices_dialog_li.innerHTML = play_position_marker.id + ": " + li_content.join(' - ');
 
@@ -1357,7 +1372,16 @@ var _openSynthParameters = function () {
 var _onChangeEfxParameter = function (chn, efx, efxi, pid) {
     return function (ev_value) {
         var value,
+            elem = null,
+            detached_window = null;
+        
+        detached_window = WUI_Dialog.getDetachedDialog(_fas_dialog);
+        
+        if (detached_window) {
+            elem = detached_window.document.getElementById("fs_chn_" + chn + "_fx_" + efx + "_" + efxi);
+        } else {
             elem = document.getElementById("fs_chn_" + chn + "_fx_" + efx + "_" + efxi);
+        }
 
         if (this) {
             value = _efx[efx].params[pid].type[this.selectedIndex];
@@ -1525,7 +1549,7 @@ var _createChnFxSettings = function (chn, ind, efxi, id) {
 var _createSynthParametersContent = function () {
     var dialog_div = document.getElementById(_fas_synth_params_dialog).lastElementChild,
     
-        detached_dialog = WUI_Dialog.getDetachedDialog(_fas_synth_params_dialog),    
+        detached_window = WUI_Dialog.getDetachedDialog(_fas_synth_params_dialog),    
     
         synth_type = 0,    
         chn_fieldset,
@@ -1548,8 +1572,8 @@ var _createSynthParametersContent = function () {
 
         i = 0, j = 0;
     
-    if (detached_dialog) {
-        dialog_div = detached_dialog.document.body;
+    if (detached_window) {
+        dialog_div = detached_window.document.body;
     }
     
     for (i = 0; i < _fas_content_list.length; i += 1) {
@@ -2632,7 +2656,8 @@ var _dropChnFx = function (ev) {
     ev.preventDefault();
 
     var data = ev.dataTransfer.getData("text"),
-        src_node = document.getElementById(data),
+        detached_window = WUI_Dialog.getDetachedDialog(_fas_dialog),
+        src_node = detached_window ? detached_window.document.getElementById(data) : document.getElementById(data),
         cpy_node = null,
         
         chn = null,
@@ -2978,7 +3003,7 @@ var _createFasSettingsButton = function (node, title, click_fn) {
 
 var _createFasSettingsContent = function () {
     var dialog_div = document.getElementById(_fas_dialog).lastElementChild,
-        detached_dialog = WUI_Dialog.getDetachedDialog(_fas_dialog),
+        detached_window = WUI_Dialog.getDetachedDialog(_fas_dialog),
 
         load_samples_btn = document.createElement("button"),
         load_faust_gens_btn = document.createElement("button"),
@@ -3011,8 +3036,8 @@ var _createFasSettingsContent = function () {
         
         i = 0, j = 0;
     
-    if (detached_dialog) {
-        dialog_div = detached_dialog.document.body;
+    if (detached_window) {
+        dialog_div = detached_window.document.body;
     }
     
     // fieldset
@@ -3425,6 +3450,8 @@ var _onImportDialogClose = function () {
     WUI_ToolBar.toggle(_wui_main_toolbar, 13);
     
     WUI_Dialog.close(_import_dialog);
+    
+    _updateImportWidgets();
 };
 
 var _onRecordDialogClose = function () {
@@ -3450,6 +3477,8 @@ var _showImportDialog = function (toggle_ev) {
     } else {
         WUI_Dialog.close(_import_dialog);
     }
+
+    _updateImportWidgets();
 };
 
 var _toggleMIDIRecord = function (toggle_ev) {
@@ -4090,7 +4119,7 @@ var _uiInit = function () {
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "tutorials/midi/"); 
+                        window.open(_documentation_link + "midi/"); 
                     },
                     class_name: "fs-help-icon"
                 }
@@ -4119,7 +4148,7 @@ var _uiInit = function () {
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "tutorials/spectral_record/"); 
+                        window.open(_documentation_link + "record_dialog/"); 
                     },
                     class_name: "fs-help-icon"
                 }
@@ -4163,7 +4192,7 @@ var _uiInit = function () {
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "tutorials/audio_server/"); 
+                        window.open(_documentation_link + "audio_server/"); 
                     },
                     class_name: "fs-help-icon"
                 }
@@ -4197,7 +4226,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "tutorials/audio_server/"); 
+                    window.open(_documentation_link + "audio_server/"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -4217,9 +4246,18 @@ var _uiInit = function () {
             open: false,
 
             status_bar: false,
-            detachable: false,
+            detachable: true,
             minimizable: true,
             draggable: true,
+
+            on_detach: function (new_window) {
+                var detached_dropzone = new_window.document.getElementById("fs_import_dropzone");
+                _createImportDropzone(detached_dropzone);
+
+                _createImportListeners(new_window.document);
+
+                _updateImportWidgets(new_window.document);
+            },
         
             on_close: _onImportDialogClose,
         
@@ -4227,7 +4265,7 @@ var _uiInit = function () {
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "tutorials/import/"); 
+                        window.open(_documentation_link + "import/"); 
                     },
                     class_name: "fs-help-icon"
                 }
@@ -4310,6 +4348,11 @@ var _uiInit = function () {
         
             on_detach: function (new_window) {
                 new_window.document.body.style.overflow = "hidden";
+            },
+
+            on_open: function () {
+                _updateOutline(0);
+                _updateOutline(1);
             }
         });
     
@@ -4356,7 +4399,7 @@ var _uiInit = function () {
         open: false,
 
         status_bar: false,
-        detachable: false,
+        detachable: true,
         draggable: true,
         minimizable: true,
     
@@ -4364,7 +4407,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "tutorials/instruments/"); 
+                    window.open(_documentation_link + "instruments/"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -4384,6 +4427,7 @@ var _uiInit = function () {
 
         on_open: _refreshFileManager(_samples_dialog_id, "grains"),
         on_close: _closeFileManager(_samples_dialog_id),
+        on_detach: _refreshFileManager(_samples_dialog_id, "grains"),
 
         open: false,
 
@@ -4397,7 +4441,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "fas/file_managers"); 
+                    window.open(_documentation_link + "audio_server/#file-managers"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -4417,6 +4461,7 @@ var _uiInit = function () {
 
         on_open: _refreshFileManager(_waves_dialog_id, "waves"),
         on_close: _closeFileManager(_waves_dialog_id),
+        on_detach: _refreshFileManager(_waves_dialog_id, "waves"),
 
         open: false,
 
@@ -4430,7 +4475,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "fas/file_managers"); 
+                    window.open(_documentation_link + "audio_server/#file-managers"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -4450,6 +4495,7 @@ var _uiInit = function () {
 
         on_open: _refreshFileManager(_impulses_dialog_id, "impulses"),
         on_close: _closeFileManager(_impulses_dialog_id),
+        on_detach: _refreshFileManager(_impulses_dialog_id, "impulses"),
 
         open: false,
 
@@ -4463,7 +4509,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "fas/file_managers"); 
+                    window.open(_documentation_link + "audio_server/#file-managers"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -4483,6 +4529,7 @@ var _uiInit = function () {
 
         on_open: _refreshFileManager(_faust_gens_dialog_id, "generators"),
         on_close: _closeFileManager(_faust_gens_dialog_id),
+        on_detach: _refreshFileManager(_faust_gens_dialog_id, "generators"),
 
         open: false,
 
@@ -4496,7 +4543,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "fas/file_managers"); 
+                    window.open(_documentation_link + "audio_server/#file-managers"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -4516,6 +4563,7 @@ var _uiInit = function () {
 
         on_open: _refreshFileManager(_faust_effs_dialog_id, "effects"),
         on_close: _closeFileManager(_faust_effs_dialog_id),
+        on_detach: _refreshFileManager(_faust_effs_dialog_id, "effects"),
 
         open: false,
 
@@ -4529,7 +4577,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "fas/file_managers"); 
+                    window.open(_documentation_link + "audio_server/#file-managers"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -4600,7 +4648,7 @@ var _uiInit = function () {
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "tutorials/canvas_import/"); 
+                        window.open(_documentation_link + "canvas_import/"); 
                     },
                     class_name: "fs-help-icon"
                 }

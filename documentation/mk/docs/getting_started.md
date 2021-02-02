@@ -2,12 +2,15 @@
 
 The quickest way to get started is to join/create a session on the [homepage](https://www.fsynth.com)
 
-To output any sounds the audio server available on the [homepage](https://www.fsynth.com) must be downloaded and installed.
+To output any sounds the audio server available on the [homepage](https://www.fsynth.com) must be downloaded and run alongside any Fragment sessions.
 
-To install the audio server on Ubuntu/Debian system :
+To run the audio server on Linux :
 
-- Download the .deb package on the [homepage](https://www.fsynth.com)
-- In a terminal `sudo apt install ./fragment_2.0_amd64.deb`
+- Download the AppImage binary on the [homepage](https://www.fsynth.com)
+- `sudo chmod +x fas` in a terminal (or allow the file to be executable through file properties)
+- launch with `./fas` in a terminal
+
+The audio server will select the default audio output device.
 
 Once the session is created, you will join automatically the Fragment application, an example code which produce basic sounds will be provided automatically along with a quickstart guide.
 

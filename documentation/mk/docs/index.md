@@ -28,5 +28,3 @@ For any questions, a message board is available [here](https://quiet.fsynth.com/
 - Not necessary but a MIDI device such as a MIDI keyboard is recommended
 
 Note : A high amount of memory is needed to support high number of instruments and use many audio samples / distributed sound synthesis.
-
-Fragment audio server is also available as an easy to use and configuration / installation free hardware platform on the [Fragment Store](https://store.fsynth.com)

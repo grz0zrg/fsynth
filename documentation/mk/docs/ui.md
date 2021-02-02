@@ -97,19 +97,21 @@ The toolbar is a grouped collection of tools / settings, here is a detailed list
 - import
     - inputs import dialog (inputs can be accessed with `texture(iInput0, vec2(uv.x, uv.y))` where 0 is the input ID)
 
-### Inputs
+### Input data
 
 ![Fragment inputs](tutorials/gifs/input_reorder.gif)
 
-Fragment GLSL inputs are complex data (images, sounds transformed to images, videos, canvas etc.) imported from the GLSL inputs import dialog.
+Fragment GLSL inputs are complex data (images, sounds transformed to images, videos, canvas etc.) imported from the import dialog.
 
-The fragment input panel is a complete list of all the added inputs, each of them appear as a thumbnail near the import button, nothing will be shown in the panel if no inputs were added.
+The fragment input panel is a complete list of all added inputs, each of them appear as a thumbnail near the import button, nothing will be shown in the panel if no inputs were added.
 
-All GLSL inputs can be used as a 2D texture (**texture** keyword) within the code editor, they are pre-defined as **iInputN** where N is the id of the input starting from 0.
+All inputs can be used as a 2D texture (**texture** keyword) within the code editor (GLSL code editor or Processing.js code editor), they are pre-defined as **iInputN** where N is the id of the input starting from 0.
 
 You can find the input id by hovering over the thumbnail or in the title of the complex input settings dialog.
 
-GLSL inputs can be ordered in real-time by drag & drop as shown above.
+Inputs can be ordered in real-time by drag & drop as shown above.
+
+Inputs can deleted quickly with a middle click on the input thumbnail.
 
 ### Collaborative Code editor
 
@@ -174,9 +176,9 @@ To resize a dialogs, place the mouse cursor on the bottom right corner of the di
 
 ![Resizing dialogs](tutorials/gifs/dialog_resize.gif)
 
-### Inputs & MIDI learn
+### Input fields & MIDI learn
 
-Inputs are widgets accepting user values.
+Inputs fields are widgets accepting user values.
 
 Some inputs have a red square which indicate MIDI learn functionality support for this widget
 

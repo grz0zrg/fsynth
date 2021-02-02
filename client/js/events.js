@@ -137,26 +137,6 @@ document.getElementById("fs_select_editor_fontsize").addEventListener('change', 
     _changeEditorsFontSize(size);
 });
 
-
-document.getElementById("fs_import_audio_mapping").addEventListener('change', function (e) {
-    var mapping_type = e.target.value;
-    
-    _audio_import_settings.mapping = mapping_type;
-});
-
-document.getElementById("fs_import_mic_fft_size").addEventListener('change', function (e) {
-    var fft_size = e.target.value;
-    
-    _audio_import_settings.fft_size = _parseInt10(fft_size);
-});
-
-
-document.getElementById("fs_import_audio_ck_videotrack").addEventListener('change', function (e) {
-    var videotrack_import = this.checked;
-    
-    _audio_import_settings.videotrack_import = videotrack_import;
-});
-
 document.getElementById("fs_show_quickstart").addEventListener('click', function (e) {
     WUI_Dialog.open(_quickstart_dialog);
 });

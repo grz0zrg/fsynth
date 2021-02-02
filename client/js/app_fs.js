@@ -162,7 +162,7 @@ var FragmentSynth = function (params) {
         Fields.
     ************************************************************/
 
-    var _motd = '<div id="fs_notify" class="fs-notify"><div class="fs-status-bar-date">31/12/2020 :</div><div class="fs-status-bar-content"><a class="fs-link" href="https://quiet.fsynth.com/d/12-fragment-1-0-3">Fragment 2.0 released (click for more details)</a></div></div>',
+    var _motd = '<div id="fs_notify" class="fs-notify"><div class="fs-status-bar-date">31/12/2020 :</div><div class="fs-status-bar-content"><a class="fs-link" href="https://quiet.fsynth.com/d/19-fragment-2-0">Fragment 2.0 released (click for more details)</a></div></div>',
         
         _webmidi_support_msg = '<center>WebMIDI API is not enabled/supported by this browser, please use a <a class="fs-link" href="https://caniuse.com/#search=midi">compatible browser</a>.</center>',
         
@@ -273,7 +273,14 @@ var FragmentSynth = function (params) {
                 },
                 collaborative: true,
                 outline: {
-                    element: document.getElementById("fs_main_outline"),
+                    element: function () {
+                        var detachedWindow = WUI_Dialog.getDetachedDialog(_outline_dialog);
+                        if (detachedWindow) {
+                            return detachedWindow.document.getElementById("fs_main_outline");
+                        }
+                        
+                        return document.getElementById("fs_main_outline");
+                    },
                     data: []
                 },
                 detached_windows: [],
@@ -308,7 +315,14 @@ var FragmentSynth = function (params) {
                 default_value: localStorage.getItem('fs-user-library') ? localStorage.getItem('fs-user-library') : "// my library",
                 collaborative: false,
                 outline: {
-                    element: document.getElementById("fs_library_outline"),
+                    element: function () {
+                        var detachedWindow = WUI_Dialog.getDetachedDialog(_outline_dialog);
+                        if (detachedWindow) {
+                            return detachedWindow.document.getElementById("fs_library_outline");
+                        }
+                        
+                        return document.getElementById("fs_library_outline");
+                    },
                     data: []
                 },
                 detached_windows: [],

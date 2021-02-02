@@ -495,12 +495,14 @@ var _createMarkerSettings = function (marker_obj) {
 
         _midiUpdateSlices();
 
-        var detached_dialog = WUI_Dialog.getDetachedDialog(_midi_dialog);
-        if (detached_dialog) {
-            _midiUpdateSlices(detached_dialog.document);
+        var detached_window = WUI_Dialog.getDetachedDialog(_midi_dialog);
+        if (detached_window) {
+            _midiUpdateSlices(detached_window.document);
         }
 
-        WUI_Dialog.open(_midi_dialog);
+        if (marker_obj.midi_out.enabled) {
+            WUI_Dialog.open(_midi_dialog);
+        }
     });
 
     midi_dev_list.id = "fs_slice_settings_midi_device_" + marker_obj.id;
@@ -521,9 +523,9 @@ var _createMarkerSettings = function (marker_obj) {
 
         _midiUpdateSlices();
 
-        var detached_dialog = WUI_Dialog.getDetachedDialog(_midi_dialog);
-        if (detached_dialog) {
-            _midiUpdateSlices(detached_dialog.document);
+        var detached_window = WUI_Dialog.getDetachedDialog(_midi_dialog);
+        if (detached_window) {
+            _midiUpdateSlices(detached_window.document);
         }
     }));
 
@@ -776,7 +778,7 @@ var _createMarkerSettings = function (marker_obj) {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "tutorials/slices/"); 
+                    window.open(_documentation_link + "instruments/"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -892,7 +894,7 @@ var _sliceAuxClickFn = function (play_position_marker_element) {
     };
 };
 
-var _showSliceSettingsMenuFn = function (play_position_marker_element) {
+var _showSliceSettingsMenuFn = function (play_position_marker_element, dialog) {
     return function (ev) {
         ev.preventDefault();
 
@@ -925,16 +927,26 @@ var _showSliceSettingsMenuFn = function (play_position_marker_element) {
             obj = unmute_obj;
         }
 
+        var target_window = null;
+        if (dialog) {
+            var detached_window = WUI_Dialog.getDetachedDialog(dialog);
+            if (detached_window) {
+                target_window = detached_window;
+            }
+        }
+
         WUI_CircularMenu.create(
             {
-                x: _mx,
-                y: _my,
+                x: ev.clientX,
+                y: ev.clientY,
 
                 rx: 32,
                 ry: 32,
 
                 item_width:  32,
-                item_height: 32
+                item_height: 32,
+
+                window: target_window
             },
             [
                 obj,

@@ -5032,8 +5032,8 @@ var WUI_CircularMenu = new (function() {
 
     var _getElementOffset = function (elem) {
         var box = elem.getBoundingClientRect(),
-            body = document.body,
-            docEl = document.documentElement,
+            body = elem.ownerDocument.body,
+            docEl = elem.ownerDocument.documentElement,
 
             scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop,
             scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft,
@@ -5062,7 +5062,7 @@ var WUI_CircularMenu = new (function() {
         for (i = 0; i < c; i += 1) {
             item = items[i];
 
-            elem = document.createElement("div");
+            elem = doc.createElement("div");
 
             elem.classList.add(_class_name.item);
 
@@ -5081,7 +5081,7 @@ var WUI_CircularMenu = new (function() {
             }
 
             if (item.content) {
-                content = document.createElement("div");
+                content = doc.createElement("div");
 
                 content.style.width = opts.item_width  + "px";
                 content.style.height = opts.item_height + "px";
@@ -21298,7 +21298,7 @@ _utter_fail_element.innerHTML = "";
         Fields.
     ************************************************************/
 
-    var _motd = '<div id="fs_notify" class="fs-notify"><div class="fs-status-bar-date">31/12/2020 :</div><div class="fs-status-bar-content"><a class="fs-link" href="https://quiet.fsynth.com/d/12-fragment-1-0-3">Fragment 2.0 released (click for more details)</a></div></div>',
+    var _motd = '<div id="fs_notify" class="fs-notify"><div class="fs-status-bar-date">31/12/2020 :</div><div class="fs-status-bar-content"><a class="fs-link" href="https://quiet.fsynth.com/d/19-fragment-2-0">Fragment 2.0 released (click for more details)</a></div></div>',
         
         _webmidi_support_msg = '<center>WebMIDI API is not enabled/supported by this browser, please use a <a class="fs-link" href="https://caniuse.com/#search=midi">compatible browser</a>.</center>',
         
@@ -21409,7 +21409,14 @@ _utter_fail_element.innerHTML = "";
                 },
                 collaborative: true,
                 outline: {
-                    element: document.getElementById("fs_main_outline"),
+                    element: function () {
+                        var detachedWindow = WUI_Dialog.getDetachedDialog(_outline_dialog);
+                        if (detachedWindow) {
+                            return detachedWindow.document.getElementById("fs_main_outline");
+                        }
+                        
+                        return document.getElementById("fs_main_outline");
+                    },
                     data: []
                 },
                 detached_windows: [],
@@ -21444,7 +21451,14 @@ _utter_fail_element.innerHTML = "";
                 default_value: localStorage.getItem('fs-user-library') ? localStorage.getItem('fs-user-library') : "// my library",
                 collaborative: false,
                 outline: {
-                    element: document.getElementById("fs_library_outline"),
+                    element: function () {
+                        var detachedWindow = WUI_Dialog.getDetachedDialog(_outline_dialog);
+                        if (detachedWindow) {
+                            return detachedWindow.document.getElementById("fs_library_outline");
+                        }
+                        
+                        return document.getElementById("fs_library_outline");
+                    },
                     data: []
                 },
                 detached_windows: [],
@@ -22252,7 +22266,9 @@ var _import_dropzone_elem = document.getElementById("fs_import_dropzone");
 ************************************************************/
 
 var _fileChoice = function (cb) {
-    var input = document.createElement("input");
+    var detached_dialog = WUI_Dialog.getDetachedDialog(_import_dialog);
+    var input = detached_dialog ? detached_dialog.document.createElement("input") :  document.createElement("input");
+
     input.type = "file";
     input.multiple = true;
     input.addEventListener("change", cb, false);
@@ -22332,29 +22348,68 @@ var _importDropzoneDrop = function (e) {
     e.target.style = "";
 };
 
+var _createImportDropzone = function (element) {
+    element.addEventListener("drop", _importDropzoneDrop);
+
+    element.addEventListener("dragleave", function (e) {
+        e.preventDefault();
+        
+        e.target.style = "";
+    });
+    
+    element.addEventListener("dragover", function (e) {
+        e.preventDefault();
+        
+        e.dataTransfer.dropEffect = "copy";
+    });
+    
+    element.addEventListener("dragenter", function (e) {
+        e.preventDefault();
+        
+        e.target.style = "outline: dashed 1px #00ff00; background-color: #444444";
+    });
+};
+
+var _createImportListeners = function (doc) {
+    doc.getElementById("fs_import_audio_mapping").addEventListener('change', function (e) {
+        var mapping_type = e.target.value;
+
+        _audio_import_settings.mapping = mapping_type;
+    });
+    
+    doc.getElementById("fs_import_mic_fft_size").addEventListener('change', function (e) {
+        var fft_size = e.target.value;
+        
+        _audio_import_settings.fft_size = _parseInt10(fft_size);
+    });
+    
+    
+    doc.getElementById("fs_import_audio_ck_videotrack").addEventListener('change', function (e) {
+        var videotrack_import = this.checked;
+        
+        _audio_import_settings.videotrack_import = videotrack_import;
+    });
+};
+
+var _updateImportWidgets = function (doc) {
+    var current_doc = doc;
+    if (!doc) {
+        current_doc = document;
+    }
+    
+    // synchronize in case it was detached
+    current_doc.getElementById("fs_import_audio_mapping").value = _audio_import_settings.mapping;
+    current_doc.getElementById("fs_import_mic_fft_size").value = _audio_import_settings.fft_size;
+    current_doc.getElementById("fs_import_audio_ck_videotrack").checked = _audio_import_settings.videotrack_import;
+};
+
 /***********************************************************
     Init.
 ************************************************************/
 
-_import_dropzone_elem.addEventListener("drop", _importDropzoneDrop);
+_createImportDropzone(_import_dropzone_elem);
 
-_import_dropzone_elem.addEventListener("dragleave", function (e) {
-    e.preventDefault();
-    
-    e.target.style = "";
-});
-
-_import_dropzone_elem.addEventListener("dragover", function (e) {
-    e.preventDefault();
-    
-    e.dataTransfer.dropEffect = "copy";
-});
-
-_import_dropzone_elem.addEventListener("dragenter", function (e) {
-    e.preventDefault();
-    
-    e.target.style = "outline: dashed 1px #00ff00; background-color: #444444";
-});/* jslint browser: true */
+_createImportListeners(document);/* jslint browser: true */
 
 /**
  * Manage graphics stuff.
@@ -23664,7 +23719,7 @@ var _updateOutline = function (code_editor_index) {
         param,
 
         code_editor = _code_editors[code_editor_index],
-        outline_element = code_editor.outline.element,
+        outline_element = code_editor.outline.element(),
         outline_data = code_editor.outline.data,
         
         elem;
@@ -25498,6 +25553,19 @@ var _createInputThumb = function (input_id, image, thumb_title, src) {
     dom_image.draggable = true;
 
     dom_image.addEventListener("click", _inputThumbMenu);
+
+    dom_image.addEventListener("auxclick", function (e) {
+        e.preventDefault();
+
+        var input_id = _parseInt10(e.target.dataset.inputId),
+            input = _fragment_input_data[input_id],
+            dom_image = input.elem;
+            
+        _input_panel_element.removeChild(dom_image);
+    
+        _removeInputChannel(input_id);
+        _delBrush(input_id);
+    });
     
     // drag & drop
     dom_image.addEventListener("drop", function (e) {
@@ -26971,7 +27039,7 @@ var _onFmDragDrop = function (src_element, target, target_element_id, target_nam
 var _fileCheckboxOver = function (id) {
     return function (e) {
         if (_mouse_btn === _LEFT_MOUSE_BTN) {
-            var checkbox = document.getElementById(id);
+            var checkbox = this.ownerDocument.getElementById(id);
 
             if (_file_check_state === null) {
                 _file_check_state = 1 - checkbox.checked;
@@ -26989,25 +27057,30 @@ var _fileCheckboxOver = function (id) {
 
 var _renderFilesTree = function (dom_node, target_element_id, target) {
     return function (leaf_obj, dirname) {
-        var dir_container = document.createElement('div');
-        var header_container = document.createElement('div');
-        var min_btn = document.createElement('div');
-        var dir_name = document.createElement('div');
-        var dir_content = document.createElement('div');
-        var files_content = document.createElement('div');
-        var dir_checkbox = document.createElement('input');
+        var detached_window = WUI_Dialog.getDetachedDialog(target_element_id);
+
+        var doc = detached_window ? detached_window.document : document;
+        var win = detached_window ? detached_window : window;
+
+        var dir_container = doc.createElement('div');
+        var header_container = doc.createElement('div');
+        var min_btn = doc.createElement('div');
+        var dir_name = doc.createElement('div');
+        var dir_content = doc.createElement('div');
+        var files_content = doc.createElement('div');
+        var dir_checkbox = doc.createElement('input');
 
         dir_checkbox.type = 'checkbox';
         dir_checkbox.className = 'fs-file-manager-file-checkbox';
-        dir_checkbox.id = "fs_" + target + '_' + window.btoa(leaf_obj.basepath);
+        dir_checkbox.id = "fs_" + target + '_' + win.btoa(leaf_obj.basepath);
 
-        dir_checkbox.dataset.fullpath = window.btoa(leaf_obj.basepath);
+        dir_checkbox.dataset.fullpath = win.btoa(leaf_obj.basepath);
         var basepath = dir_checkbox.dataset.fullpath;
         basepath = basepath.split('/');
         basepath.pop();
         basepath = basepath.join('/');
         dir_checkbox.dataset.basepath = basepath;
-        dir_checkbox.dataset.filename = window.btoa(dirname);
+        dir_checkbox.dataset.filename = win.btoa(dirname);
 
         dir_container.classList.add('fs-file-manager-node');
         header_container.classList.add('fs-file-manager-header');
@@ -27059,9 +27132,9 @@ var _renderFilesTree = function (dom_node, target_element_id, target) {
 
             var i = 0;
             for (i = 0; i < files.length; i += 1) {
-                var file_container = document.createElement('div');
-                var file_name = document.createElement('label');
-                var checkbox = document.createElement('input');
+                var file_container = doc.createElement('div');
+                var file_name = doc.createElement('label');
+                var checkbox = doc.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.className = 'fs-file-manager-file-checkbox';
                 checkbox.id = "fs_" + target + '_' + files[i].index;
@@ -27077,9 +27150,9 @@ var _renderFilesTree = function (dom_node, target_element_id, target) {
                 file_name.classList.add('fs-file-manager-file-name');
 
                 file_name.setAttribute('for', checkbox.id);
-                checkbox.dataset.fullpath = window.btoa(leaf_obj.basepath + "/" + files[i].filename);
-                checkbox.dataset.filename = window.btoa(files[i].filename);
-                checkbox.dataset.basepath = window.btoa(leaf_obj.basepath);
+                checkbox.dataset.fullpath = win.btoa(leaf_obj.basepath + "/" + files[i].filename);
+                checkbox.dataset.filename = win.btoa(files[i].filename);
+                checkbox.dataset.basepath = win.btoa(leaf_obj.basepath);
 
                 file_name.innerText = files[i].index + " " + files[i].filename;
                 file_name.dataset.clipboardText = files[i].float_index;
@@ -27126,7 +27199,19 @@ var _closeFileManager = function (target_element_id) {
 
 var _refreshFileManager = function (target_element_id, target) {
     return function () {
-        var element = document.getElementById(target_element_id).firstElementChild.nextElementSibling;
+        var detached_window = WUI_Dialog.getDetachedDialog(target_element_id);
+        var doc = document;
+        var win = window;
+        var element = null;
+
+        if (detached_window) {
+            doc = detached_window.document;
+            win = detached_window;
+
+            element = doc.getElementById(target_element_id).firstElementChild;
+        } else {
+            element = doc.getElementById(target_element_id).firstElementChild.nextElementSibling;
+        }
 
         var req = new XMLHttpRequest();
         req.responseType = 'json';
@@ -27134,8 +27219,8 @@ var _refreshFileManager = function (target_element_id, target) {
         req.onerror = function () {
             _notification('File manager server error (is it up ?)');
 
-            var error_elem = document.createElement('div');
-            var reload_btn = document.createElement('div');
+            var error_elem = doc.createElement('div');
+            var reload_btn = doc.createElement('div');
             reload_btn.className = 'fs-btn fs-btn-default';
             reload_btn.innerText = 'refresh';
 
@@ -27212,8 +27297,8 @@ var _refreshFileManager = function (target_element_id, target) {
                 }
             }
 
-            var file_manager_container = document.createElement('div');
-            var file_manager_node = document.createElement('div');
+            var file_manager_container = doc.createElement('div');
+            var file_manager_node = doc.createElement('div');
 
             file_manager_container.classList.add('fs-file-manager');
             file_manager_node.classList.add('fs-file-manager-node');
@@ -27232,8 +27317,8 @@ var _refreshFileManager = function (target_element_id, target) {
                     ev.target.classList.contains('fs-file-manager-dir-name')) {
                         WUI_CircularMenu.create(
                             {
-                                x: _mx,
-                                y: _my,
+                                x: ev.clientX,
+                                y: ev.clientY,
                 
                                 rx: 24,
                                 ry: 24,
@@ -27241,7 +27326,9 @@ var _refreshFileManager = function (target_element_id, target) {
                                 angle: -90,
                 
                                 item_width:  32,
-                                item_height: 32
+                                item_height: 32,
+
+                                window: detached_window
                             },
                             [
                                 { icon: "fs-plus-icon", tooltip: "New directory",  on_click: function () {
@@ -27254,12 +27341,12 @@ var _refreshFileManager = function (target_element_id, target) {
                                         dir_target = ev.target.previousElementSibling;
                                     }
 
-                                    var target_path = window.atob(dir_target.dataset.fullpath);
+                                    var target_path = win.atob(dir_target.dataset.fullpath);
                                     target_path = target_path.split('/');
                                     target_path.shift();
                                     target_path = target_path.join('/');
 
-                                    var dir_name = window.prompt('Directory name', '');
+                                    var dir_name = win.prompt('Directory name', '');
                                     if (!dir_name || !dir_name.length) {
                                         return;
                                     }
@@ -27294,12 +27381,12 @@ var _refreshFileManager = function (target_element_id, target) {
                                             dir_target = ev.target.previousElementSibling;
                                         }
 
-                                        var target_path = window.atob(dir_target.dataset.fullpath);
+                                        var target_path = win.atob(dir_target.dataset.fullpath);
                                         target_path = target_path.split('/');
                                         target_path.shift();
                                         target_path = target_path.join('/');
 
-                                        var selected_files = document.querySelectorAll("input[id^='fs_" + target + "_']:checked");
+                                        var selected_files = doc.querySelectorAll("input[id^='fs_" + target + "_']:checked");
 
                                         if (!selected_files.length) {
                                             return;
@@ -27309,7 +27396,7 @@ var _refreshFileManager = function (target_element_id, target) {
         
                                         var i = 0;
                                         for (i = 0; i < selected_files.length; i += 1) {
-                                            var fullpath = window.atob(selected_files[i].dataset.fullpath);
+                                            var fullpath = win.atob(selected_files[i].dataset.fullpath);
                                             fullpath = fullpath.split('/');
                                             fullpath.shift();
                                             fullpath = fullpath.join('/');
@@ -27341,18 +27428,20 @@ var _refreshFileManager = function (target_element_id, target) {
 
                 WUI_CircularMenu.create(
                     {
-                        x: _mx,
-                        y: _my,
+                        x: ev.clientX,
+                        y: ev.clientY,
         
                         rx: 32,
                         ry: 32,
 
                         item_width:  32,
-                        item_height: 32
+                        item_height: 32,
+
+                        window: detached_window
                     },
                     [
                         { icon: "fs-audio-file-icon", tooltip: "Download selected files", on_click: function () {
-                            var selected_files = document.querySelectorAll("input[id^='fs_" + target + "_']:checked");
+                            var selected_files = doc.querySelectorAll("input[id^='fs_" + target + "_']:checked");
 
                             if (!selected_files.length) {
                                 return;
@@ -27362,7 +27451,7 @@ var _refreshFileManager = function (target_element_id, target) {
 
                             var i = 0;
                             for (i = 0; i < selected_files.length; i += 1) {
-                                var fullpath = window.atob(selected_files[i].dataset.fullpath);
+                                var fullpath = win.atob(selected_files[i].dataset.fullpath);
                                 fullpath = fullpath.split('/');
                                 fullpath.shift();
                                 fullpath = fullpath.join('/');
@@ -27384,18 +27473,18 @@ var _refreshFileManager = function (target_element_id, target) {
                                     var blob = new Blob([this.response], {type: 'application/zip'});
 
                                     var url = URL.createObjectURL(xhr.response);
-                                    var a = document.createElement("a");
+                                    var a = doc.createElement("a");
 
-                                    document.body.appendChild(a);
+                                    doc.body.appendChild(a);
                                     a.style = "display: none";
                                     a.href = url;
                                     a.download = "";
 
                                     a.click();
 
-                                    window.URL.revokeObjectURL(url);
+                                    win.URL.revokeObjectURL(url);
 
-                                    document.body.removeChild(a);
+                                    doc.body.removeChild(a);
                                 } else if (this.status == 200) {
                                     _notification('Files download error (unknown)', 4000)
                                 }
@@ -27403,7 +27492,7 @@ var _refreshFileManager = function (target_element_id, target) {
                             xhr.send(JSON.stringify(files_to_download));
                         } },
                         { icon: "fs-code-icon", tooltip: "Rename selected file", on_click: function () {
-                            var selected_files = document.querySelectorAll("input[id^='fs_" + target + "_']:checked");
+                            var selected_files = doc.querySelectorAll("input[id^='fs_" + target + "_']:checked");
 
                             if (!selected_files.length || selected_files.length > 1) {
                                 _notification("Must select a single file to rename", 4000);
@@ -27413,17 +27502,17 @@ var _refreshFileManager = function (target_element_id, target) {
                             var files_to_rename = [];
 
                             var file = selected_files[0];
-                            var fullpath = window.atob(file.dataset.fullpath);
+                            var fullpath = win.atob(file.dataset.fullpath);
                             fullpath = fullpath.split('/');
                             fullpath.shift();
                             fullpath = fullpath.join('/');
 
-                            var basepath = window.atob(file.dataset.basepath);
+                            var basepath = win.atob(file.dataset.basepath);
                             basepath = basepath.split('/');
                             basepath.shift();
                             basepath = basepath.join('/');
-                            var filename = window.atob(file.dataset.filename);
-                            var new_name = window.prompt('Rename file', filename)
+                            var filename = win.atob(file.dataset.filename);
+                            var new_name = win.prompt('Rename file', filename)
                             if (!new_name || !new_name.length) {
                                 return;
                             }
@@ -27451,7 +27540,7 @@ var _refreshFileManager = function (target_element_id, target) {
                             xhr.send(JSON.stringify(files_to_rename));
                         } },
                         { icon: "fp-trash-icon", tooltip: "Delete selected files",  on_click: function () {
-                                var selected_files = document.querySelectorAll("input[id^='fs_" + target + "_']:checked");
+                                var selected_files = doc.querySelectorAll("input[id^='fs_" + target + "_']:checked");
 
                                 if (!selected_files.length) {
                                     return;
@@ -27461,7 +27550,7 @@ var _refreshFileManager = function (target_element_id, target) {
 
                                 var i = 0;
                                 for (i = 0; i < selected_files.length; i += 1) {
-                                    var fullpath = window.atob(selected_files[i].dataset.fullpath);
+                                    var fullpath = win.atob(selected_files[i].dataset.fullpath);
                                     fullpath = fullpath.split('/');
                                     fullpath.shift();
                                     fullpath = fullpath.join('/');
@@ -28805,14 +28894,29 @@ var _applyCollapsible = function (element, bind_to, collapsed, cb) {
 var _updateSlicesDialog = function () {
     var slices_dialog_ul = document.createElement("ul");
     slices_dialog_ul.classList.add("fs-slices-list");
-    var slices_dialog_content = document.getElementById(_slices_dialog_id).lastElementChild;
+    var detached_window = WUI_Dialog.getDetachedDialog(_slices_dialog);
+    var slices_dialog_content = null;
+    var doc = null;
+
+    if (detached_window) {
+        doc = detached_window.document;
+    } else {
+        doc = document;
+    }
+
+    slices_dialog_content = doc.getElementById(_slices_dialog_id).getElementsByClassName('wui-dialog-content')[0];
+    
     slices_dialog_content.innerHTML = "";
+
+    if (!_play_position_markers.length) {
+        slices_dialog_ul.innerHTML = '<li>No instruments.</li>';
+    }
 
     var i = 0;
     for (i = 0; i < _play_position_markers.length; i += 1) {
         var play_position_marker = _play_position_markers[i];
 
-        var slices_dialog_li = document.createElement("li");
+        var slices_dialog_li = doc.createElement("li");
 
         var li_content = [
             "<span>CHN " + play_position_marker.output_channel + "</span>"];
@@ -28832,7 +28936,7 @@ var _updateSlicesDialog = function () {
         }
 
         slices_dialog_li.addEventListener("click", _openSliceSettingsDialogFn(play_position_marker));
-        slices_dialog_li.addEventListener("contextmenu", _showSliceSettingsMenuFn(play_position_marker.element));
+        slices_dialog_li.addEventListener("contextmenu", _showSliceSettingsMenuFn(play_position_marker.element, _slices_dialog));
         
         slices_dialog_li.innerHTML = play_position_marker.id + ": " + li_content.join(' - ');
 
@@ -28861,7 +28965,16 @@ var _openSynthParameters = function () {
 var _onChangeEfxParameter = function (chn, efx, efxi, pid) {
     return function (ev_value) {
         var value,
+            elem = null,
+            detached_window = null;
+        
+        detached_window = WUI_Dialog.getDetachedDialog(_fas_dialog);
+        
+        if (detached_window) {
+            elem = detached_window.document.getElementById("fs_chn_" + chn + "_fx_" + efx + "_" + efxi);
+        } else {
             elem = document.getElementById("fs_chn_" + chn + "_fx_" + efx + "_" + efxi);
+        }
 
         if (this) {
             value = _efx[efx].params[pid].type[this.selectedIndex];
@@ -29029,7 +29142,7 @@ var _createChnFxSettings = function (chn, ind, efxi, id) {
 var _createSynthParametersContent = function () {
     var dialog_div = document.getElementById(_fas_synth_params_dialog).lastElementChild,
     
-        detached_dialog = WUI_Dialog.getDetachedDialog(_fas_synth_params_dialog),    
+        detached_window = WUI_Dialog.getDetachedDialog(_fas_synth_params_dialog),    
     
         synth_type = 0,    
         chn_fieldset,
@@ -29052,8 +29165,8 @@ var _createSynthParametersContent = function () {
 
         i = 0, j = 0;
     
-    if (detached_dialog) {
-        dialog_div = detached_dialog.document.body;
+    if (detached_window) {
+        dialog_div = detached_window.document.body;
     }
     
     for (i = 0; i < _fas_content_list.length; i += 1) {
@@ -30136,7 +30249,8 @@ var _dropChnFx = function (ev) {
     ev.preventDefault();
 
     var data = ev.dataTransfer.getData("text"),
-        src_node = document.getElementById(data),
+        detached_window = WUI_Dialog.getDetachedDialog(_fas_dialog),
+        src_node = detached_window ? detached_window.document.getElementById(data) : document.getElementById(data),
         cpy_node = null,
         
         chn = null,
@@ -30482,7 +30596,7 @@ var _createFasSettingsButton = function (node, title, click_fn) {
 
 var _createFasSettingsContent = function () {
     var dialog_div = document.getElementById(_fas_dialog).lastElementChild,
-        detached_dialog = WUI_Dialog.getDetachedDialog(_fas_dialog),
+        detached_window = WUI_Dialog.getDetachedDialog(_fas_dialog),
 
         load_samples_btn = document.createElement("button"),
         load_faust_gens_btn = document.createElement("button"),
@@ -30515,8 +30629,8 @@ var _createFasSettingsContent = function () {
         
         i = 0, j = 0;
     
-    if (detached_dialog) {
-        dialog_div = detached_dialog.document.body;
+    if (detached_window) {
+        dialog_div = detached_window.document.body;
     }
     
     // fieldset
@@ -30929,6 +31043,8 @@ var _onImportDialogClose = function () {
     WUI_ToolBar.toggle(_wui_main_toolbar, 13);
     
     WUI_Dialog.close(_import_dialog);
+    
+    _updateImportWidgets();
 };
 
 var _onRecordDialogClose = function () {
@@ -30954,6 +31070,8 @@ var _showImportDialog = function (toggle_ev) {
     } else {
         WUI_Dialog.close(_import_dialog);
     }
+
+    _updateImportWidgets();
 };
 
 var _toggleMIDIRecord = function (toggle_ev) {
@@ -31141,7 +31259,7 @@ var _uiInit = function () {
 
         md_content_div.innerHTML = _showdown_converter.makeHtml(md_content);
 
-        md_content_div.innerHTML += '<br><br><a href="http://processingjs.org/reference/">Processing.js reference (Official)</a>';
+        md_content_div.innerHTML += '<br><br><a href="https://processing.org/reference/">Processing.js reference</a>';
     });
     
     // may don't scale at all in the future!
@@ -31721,9 +31839,18 @@ var _uiInit = function () {
             open: false,
 
             status_bar: false,
-            detachable: false,
+            detachable: true,
             minimizable: true,
             draggable: true,
+
+            on_detach: function (new_window) {
+                var detached_dropzone = new_window.document.getElementById("fs_import_dropzone");
+                _createImportDropzone(detached_dropzone);
+
+                _createImportListeners(new_window.document);
+
+                _updateImportWidgets(new_window.document);
+            },
         
             on_close: _onImportDialogClose,
         
@@ -31814,6 +31941,11 @@ var _uiInit = function () {
         
             on_detach: function (new_window) {
                 new_window.document.body.style.overflow = "hidden";
+            },
+
+            on_open: function () {
+                _updateOutline(0);
+                _updateOutline(1);
             }
         });
     
@@ -31860,7 +31992,7 @@ var _uiInit = function () {
         open: false,
 
         status_bar: false,
-        detachable: false,
+        detachable: true,
         draggable: true,
         minimizable: true,
     
@@ -31888,6 +32020,7 @@ var _uiInit = function () {
 
         on_open: _refreshFileManager(_samples_dialog_id, "grains"),
         on_close: _closeFileManager(_samples_dialog_id),
+        on_detach: _refreshFileManager(_samples_dialog_id, "grains"),
 
         open: false,
 
@@ -31921,6 +32054,7 @@ var _uiInit = function () {
 
         on_open: _refreshFileManager(_waves_dialog_id, "waves"),
         on_close: _closeFileManager(_waves_dialog_id),
+        on_detach: _refreshFileManager(_waves_dialog_id, "waves"),
 
         open: false,
 
@@ -31954,6 +32088,7 @@ var _uiInit = function () {
 
         on_open: _refreshFileManager(_impulses_dialog_id, "impulses"),
         on_close: _closeFileManager(_impulses_dialog_id),
+        on_detach: _refreshFileManager(_impulses_dialog_id, "impulses"),
 
         open: false,
 
@@ -31987,6 +32122,7 @@ var _uiInit = function () {
 
         on_open: _refreshFileManager(_faust_gens_dialog_id, "generators"),
         on_close: _closeFileManager(_faust_gens_dialog_id),
+        on_detach: _refreshFileManager(_faust_gens_dialog_id, "generators"),
 
         open: false,
 
@@ -32020,6 +32156,7 @@ var _uiInit = function () {
 
         on_open: _refreshFileManager(_faust_effs_dialog_id, "effects"),
         on_close: _closeFileManager(_faust_effs_dialog_id),
+        on_detach: _refreshFileManager(_faust_effs_dialog_id, "effects"),
 
         open: false,
 
@@ -34124,12 +34261,14 @@ var _createMarkerSettings = function (marker_obj) {
 
         _midiUpdateSlices();
 
-        var detached_dialog = WUI_Dialog.getDetachedDialog(_midi_dialog);
-        if (detached_dialog) {
-            _midiUpdateSlices(detached_dialog.document);
+        var detached_window = WUI_Dialog.getDetachedDialog(_midi_dialog);
+        if (detached_window) {
+            _midiUpdateSlices(detached_window.document);
         }
 
-        WUI_Dialog.open(_midi_dialog);
+        if (marker_obj.midi_out.enabled) {
+            WUI_Dialog.open(_midi_dialog);
+        }
     });
 
     midi_dev_list.id = "fs_slice_settings_midi_device_" + marker_obj.id;
@@ -34150,9 +34289,9 @@ var _createMarkerSettings = function (marker_obj) {
 
         _midiUpdateSlices();
 
-        var detached_dialog = WUI_Dialog.getDetachedDialog(_midi_dialog);
-        if (detached_dialog) {
-            _midiUpdateSlices(detached_dialog.document);
+        var detached_window = WUI_Dialog.getDetachedDialog(_midi_dialog);
+        if (detached_window) {
+            _midiUpdateSlices(detached_window.document);
         }
     }));
 
@@ -34405,7 +34544,7 @@ var _createMarkerSettings = function (marker_obj) {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "tutorials/slices/"); 
+                    window.open(_documentation_link + "tutorials/instruments/"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -34521,7 +34660,7 @@ var _sliceAuxClickFn = function (play_position_marker_element) {
     };
 };
 
-var _showSliceSettingsMenuFn = function (play_position_marker_element) {
+var _showSliceSettingsMenuFn = function (play_position_marker_element, dialog) {
     return function (ev) {
         ev.preventDefault();
 
@@ -34554,16 +34693,26 @@ var _showSliceSettingsMenuFn = function (play_position_marker_element) {
             obj = unmute_obj;
         }
 
+        var target_window = null;
+        if (dialog) {
+            var detached_window = WUI_Dialog.getDetachedDialog(dialog);
+            if (detached_window) {
+                target_window = detached_window;
+            }
+        }
+
         WUI_CircularMenu.create(
             {
-                x: _mx,
-                y: _my,
+                x: ev.clientX,
+                y: ev.clientY,
 
                 rx: 32,
                 ry: 32,
 
                 item_width:  32,
-                item_height: 32
+                item_height: 32,
+
+                window: target_window
             },
             [
                 obj,
@@ -34793,7 +34942,7 @@ var _midi_dialog_id = "fs_midi_output",
     _current_midi_out_slice = null,
 
     _midi_code_change_timeout = null,
-    _midi_code_change_ms = 2000,
+    _midi_code_change_ms = 1500,
     
     _midi_codemirror_instance,
     _midi_codemirror_instance_detached,
@@ -34884,8 +35033,6 @@ var _midiDialogInit = function () {
         },
 
         on_detach: function (new_window) {
-            _current_midi_output = null;
-
             _midiUnbindCodeChangeEvent();
 
             var midi_editor_div = new_window.document.getElementById("fs_midi_editor"),
@@ -34901,7 +35048,7 @@ var _midiDialogInit = function () {
 
             midi_editor_div.appendChild(textarea);
 
-            _midi_codemirror_instance = CodeMirror.fromTextArea(textarea, {
+            _midi_codemirror_instance_detached = CodeMirror.fromTextArea(textarea, {
                 mode: "text/javascript",
                 styleActiveLine: true,
                 lineNumbers: true,
@@ -34911,16 +35058,22 @@ var _midiDialogInit = function () {
                 scrollbarStyle: "native"
             });
 
-            cm_element = _midi_codemirror_instance.getWrapperElement();
+            cm_element = _midi_codemirror_instance_detached.getWrapperElement();
             cm_element.style = "font-size: 12pt";
 
             _midi_codemirror_instance_detached.setValue(_midi_codemirror_instance.getValue());
 
             _midi_codemirror_instance_detached.refresh();
 
-            CodeMirror.on(_midi_codemirror_instance_detached, 'change', _midi_wrapped_code_change_detached);
+            //CodeMirror.on(_midi_codemirror_instance_detached, 'change', _midi_wrapped_code_change_detached);
 
             _midiBindCodeChangeEvent();
+        },
+
+        on_close: function () {
+            _midi_codemirror_instance_detached = null;
+
+            _midiUnbindCodeChangeEvent();
         },
     
         header_btn: [
@@ -34955,23 +35108,23 @@ var _midiDialogInit = function () {
     };
 
     _midi_wrapped_code_change_detached = function () {
-        clearTimeout(_midi_code_change_timeout);
-        _midi_code_change_timeout = setTimeout(_midiCodeChange, _midi_code_change_ms, _midi_codemirror_instance_detached.getValue());
-
         _midiUnbindCodeChangeEvent();
 
         _midi_codemirror_instance.setValue(_midi_codemirror_instance_detached.getValue());
 
         _midiBindCodeChangeEvent();
+
+        clearTimeout(_midi_code_change_timeout);
+        _midi_code_change_timeout = setTimeout(_midiCodeChange, _midi_code_change_ms, _midi_codemirror_instance_detached.getValue());
     };
 
     _midiBindCodeChangeEvent();
 
     _midiUpdateSlices();
 
-    var detached_dialog = WUI_Dialog.getDetachedDialog(_midi_dialog);
-    if (detached_dialog) {
-        _midiUpdateSlices(detached_dialog.document);
+    var detached_window = WUI_Dialog.getDetachedDialog(_midi_dialog);
+    if (detached_window) {
+        _midiUpdateSlices(detached_window.document);
     }
 };
 
@@ -34992,12 +35145,14 @@ var _midiSelectSlice = function (slice) {
 
     _midiUpdateSlices();
 
-    var detached_dialog = WUI_Dialog.getDetachedDialog(_midi_dialog);
-    if (detached_dialog) {
-        _midiUpdateSlices(detached_dialog.document);
+    var detached_window = WUI_Dialog.getDetachedDialog(_midi_dialog);
+    if (detached_window) {
+        _midiUpdateSlices(detached_window.document);
     }
 
     _midiBindCodeChangeEvent();
+
+    _midiCodeChange();
 };
 
 var _midiChangeSourceCb = function (slice) {
@@ -36077,11 +36232,21 @@ var _ux_helper_overlay = new PlainOverlay(),
             }
         },
         {
-            content: "Server status (chat & slices)",
+            content: "Chat and settings server status",
             sub_content: [
-                "Chat and slices settings are managed by this server"
+                ""
             ],
             target: "fs_server_status",
+            leaderline: {
+                endSocket: "bottom"
+            }
+        },
+        {
+            content: "Audio server status",
+            sub_content: [
+                ""
+            ],
+            target: "fs_fas_status",
             leaderline: {
                 endSocket: "bottom"
             }
@@ -36112,10 +36277,10 @@ var _ux_helper_overlay = new PlainOverlay(),
             }
         },
         {
-            content: "Canvas (generated visual content)",
+            content: "Canvas (accelerated drawing surface)",
             sub_content: [
-                "Right click to add a slice",
-                "Double click to open slices panel"
+                "Right click to add a slice / instrument",
+                "Double click to open slices / instruments panel"
             ],
             target: "canvas_container",
             point_anchor: true
@@ -36126,14 +36291,22 @@ var _ux_helper_overlay = new PlainOverlay(),
             point_anchor: true
         },
         {
-            content: "Data / inputs (images, videos, etc.)",
+            content: "Data / inputs container (images, videos, etc.)",
             sub_content: [
-                "Bitmaps / texture accessible as iInput0, iInput1 etc. (in order of appearance)",
+                "Textures accessible as iInput0, iInput1 etc. (in order of appearance)",
                 "Inputs can be reordered in realtime by a drag and drop",
                 "Click on an input to open its action menu",
                 "Some data / inputs have a shortcut accessible by a right click"
             ],
             target: "fs_input_panel",
+            point_anchor: true
+        },
+        {
+            content: "Workspaces pane",
+            sub_content: [
+                "The session workspace with main code, library and examples"
+            ],
+            target: "fs_explorer",
             point_anchor: true
         },
         {
@@ -36186,6 +36359,11 @@ var _startUXHelper = function (scenario) {
 
 var _stopUXHelper = function () {
     _ux_helper_overlay.hide();
+
+    if (_ux_helper_current_line) {
+        _ux_helper_current_line.remove();
+        _ux_helper_current_line = null;
+    }
 
     _ux_helper_step = -1;
 
@@ -36278,10 +36456,11 @@ document.body.addEventListener("keydown", function (evt) {
 document.getElementById("fs_ux_tour").addEventListener("click", function () {
     _startUXHelper(_ux_helper_ui_scenario);
 });
-
+/*
 document.getElementById("fs_quickstart_tour").addEventListener("click", function () {
     _startUXHelper(_ux_helper_quickstart_scenario);
-});/* jslint browser: true */
+});
+*//* jslint browser: true */
 
 /***********************************************************
     Fields.
@@ -36994,26 +37173,6 @@ document.getElementById("fs_select_editor_fontsize").addEventListener('change', 
     var size = e.target.value;
 
     _changeEditorsFontSize(size);
-});
-
-
-document.getElementById("fs_import_audio_mapping").addEventListener('change', function (e) {
-    var mapping_type = e.target.value;
-    
-    _audio_import_settings.mapping = mapping_type;
-});
-
-document.getElementById("fs_import_mic_fft_size").addEventListener('change', function (e) {
-    var fft_size = e.target.value;
-    
-    _audio_import_settings.fft_size = _parseInt10(fft_size);
-});
-
-
-document.getElementById("fs_import_audio_ck_videotrack").addEventListener('change', function (e) {
-    var videotrack_import = this.checked;
-    
-    _audio_import_settings.videotrack_import = videotrack_import;
 });
 
 document.getElementById("fs_show_quickstart").addEventListener('click', function (e) {

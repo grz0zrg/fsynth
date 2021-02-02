@@ -323,7 +323,7 @@ var _pjsInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "tutorials/pjs/");
+                    window.open(_documentation_link + "pjs_import/");
                 },
                 class_name: "fs-help-icon"
             }

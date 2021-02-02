@@ -1,5 +1,5 @@
 Fragment Quickstart Guide - Table of contents
-   * [About Fragment](#aboutfragment)
+   * [About Fragment](#about)
    * [Quickstart](#quickstart)
       * [Sessions](#sessions)
       * [User interface](#userinterface)
@@ -8,7 +8,7 @@ Fragment Quickstart Guide - Table of contents
       * [More examples](#moreexamples)
    * [Getting help](#help)
 
-## About Fragment
+## About
 
 Fragment is a collaborative real-time audiovisual live coding environment, an unique combination of a web-based interface / accelerated graphics canvas with an oscillator-bank / filter-bank / spectral synthesizer, the sound synthesis is powered by pixels data produced with live GLSL code.
 
@@ -20,7 +20,7 @@ Videos of most features are available on [YouTube](https://www.youtube.com/c/Fra
 
 To output any sounds the audio server available on the homepage must be launched.
 
-[Please checkout the software documentation to install the audio server on your machine.](https://www.fsynth.com/documentation/tutorials/audio_server/)
+[Please checkout the software documentation to install the audio server on your machine.](https://www.fsynth.com/documentation/getting_started/)
 
 ## Quickstart
 
@@ -47,7 +47,7 @@ When a session is created for the first time, an example code is made available 
 
 To hear the tone, slice the graphical canvas by **right-clicking anywhere on the canvas**, **click on the (+) icon** which appeared then **click on the play button**.
 
-Slices capture the pixels data, the captured data is then sent to the sound synthesis engine in real-time.
+Slices capture the pixels data, the captured data is then sent to the audio server in real-time.
 
 Any number of slices can be added, slices can be removed, muted or tweaked by right-clicking on it.
 
@@ -63,7 +63,7 @@ To play a saw-like waveform with a MIDI keyboard, click on the Jack plug icon on
 
 ### More examples
 
-Once done with the basics you may want to explore some examples in the workspace section, just browse the categories then click on an example to load it, all examples can be tweaked but changes are not saved, only the session code **main** and **library** can be saved.
+Once done with the basics you may want to explore some examples in the workspace section, just browse the categories then click on an example to load it, all examples can be tweaked but changes are not saved, only the session code **main** and **library** are saved and synchronized as you type.
 
 ## Help
 

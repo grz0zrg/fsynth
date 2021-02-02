@@ -105,7 +105,7 @@ var _onFmDragDrop = function (src_element, target, target_element_id, target_nam
 var _fileCheckboxOver = function (id) {
     return function (e) {
         if (_mouse_btn === _LEFT_MOUSE_BTN) {
-            var checkbox = document.getElementById(id);
+            var checkbox = this.ownerDocument.getElementById(id);
 
             if (_file_check_state === null) {
                 _file_check_state = 1 - checkbox.checked;
@@ -123,25 +123,30 @@ var _fileCheckboxOver = function (id) {
 
 var _renderFilesTree = function (dom_node, target_element_id, target) {
     return function (leaf_obj, dirname) {
-        var dir_container = document.createElement('div');
-        var header_container = document.createElement('div');
-        var min_btn = document.createElement('div');
-        var dir_name = document.createElement('div');
-        var dir_content = document.createElement('div');
-        var files_content = document.createElement('div');
-        var dir_checkbox = document.createElement('input');
+        var detached_window = WUI_Dialog.getDetachedDialog(target_element_id);
+
+        var doc = detached_window ? detached_window.document : document;
+        var win = detached_window ? detached_window : window;
+
+        var dir_container = doc.createElement('div');
+        var header_container = doc.createElement('div');
+        var min_btn = doc.createElement('div');
+        var dir_name = doc.createElement('div');
+        var dir_content = doc.createElement('div');
+        var files_content = doc.createElement('div');
+        var dir_checkbox = doc.createElement('input');
 
         dir_checkbox.type = 'checkbox';
         dir_checkbox.className = 'fs-file-manager-file-checkbox';
-        dir_checkbox.id = "fs_" + target + '_' + window.btoa(leaf_obj.basepath);
+        dir_checkbox.id = "fs_" + target + '_' + win.btoa(leaf_obj.basepath);
 
-        dir_checkbox.dataset.fullpath = window.btoa(leaf_obj.basepath);
+        dir_checkbox.dataset.fullpath = win.btoa(leaf_obj.basepath);
         var basepath = dir_checkbox.dataset.fullpath;
         basepath = basepath.split('/');
         basepath.pop();
         basepath = basepath.join('/');
         dir_checkbox.dataset.basepath = basepath;
-        dir_checkbox.dataset.filename = window.btoa(dirname);
+        dir_checkbox.dataset.filename = win.btoa(dirname);
 
         dir_container.classList.add('fs-file-manager-node');
         header_container.classList.add('fs-file-manager-header');
@@ -193,9 +198,9 @@ var _renderFilesTree = function (dom_node, target_element_id, target) {
 
             var i = 0;
             for (i = 0; i < files.length; i += 1) {
-                var file_container = document.createElement('div');
-                var file_name = document.createElement('label');
-                var checkbox = document.createElement('input');
+                var file_container = doc.createElement('div');
+                var file_name = doc.createElement('label');
+                var checkbox = doc.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.className = 'fs-file-manager-file-checkbox';
                 checkbox.id = "fs_" + target + '_' + files[i].index;
@@ -211,9 +216,9 @@ var _renderFilesTree = function (dom_node, target_element_id, target) {
                 file_name.classList.add('fs-file-manager-file-name');
 
                 file_name.setAttribute('for', checkbox.id);
-                checkbox.dataset.fullpath = window.btoa(leaf_obj.basepath + "/" + files[i].filename);
-                checkbox.dataset.filename = window.btoa(files[i].filename);
-                checkbox.dataset.basepath = window.btoa(leaf_obj.basepath);
+                checkbox.dataset.fullpath = win.btoa(leaf_obj.basepath + "/" + files[i].filename);
+                checkbox.dataset.filename = win.btoa(files[i].filename);
+                checkbox.dataset.basepath = win.btoa(leaf_obj.basepath);
 
                 file_name.innerText = files[i].index + " " + files[i].filename;
                 file_name.dataset.clipboardText = files[i].float_index;
@@ -260,7 +265,19 @@ var _closeFileManager = function (target_element_id) {
 
 var _refreshFileManager = function (target_element_id, target) {
     return function () {
-        var element = document.getElementById(target_element_id).firstElementChild.nextElementSibling;
+        var detached_window = WUI_Dialog.getDetachedDialog(target_element_id);
+        var doc = document;
+        var win = window;
+        var element = null;
+
+        if (detached_window) {
+            doc = detached_window.document;
+            win = detached_window;
+
+            element = doc.getElementById(target_element_id).firstElementChild;
+        } else {
+            element = doc.getElementById(target_element_id).firstElementChild.nextElementSibling;
+        }
 
         var req = new XMLHttpRequest();
         req.responseType = 'json';
@@ -268,8 +285,8 @@ var _refreshFileManager = function (target_element_id, target) {
         req.onerror = function () {
             _notification('File manager server error (is it up ?)');
 
-            var error_elem = document.createElement('div');
-            var reload_btn = document.createElement('div');
+            var error_elem = doc.createElement('div');
+            var reload_btn = doc.createElement('div');
             reload_btn.className = 'fs-btn fs-btn-default';
             reload_btn.innerText = 'refresh';
 
@@ -346,8 +363,8 @@ var _refreshFileManager = function (target_element_id, target) {
                 }
             }
 
-            var file_manager_container = document.createElement('div');
-            var file_manager_node = document.createElement('div');
+            var file_manager_container = doc.createElement('div');
+            var file_manager_node = doc.createElement('div');
 
             file_manager_container.classList.add('fs-file-manager');
             file_manager_node.classList.add('fs-file-manager-node');
@@ -366,8 +383,8 @@ var _refreshFileManager = function (target_element_id, target) {
                     ev.target.classList.contains('fs-file-manager-dir-name')) {
                         WUI_CircularMenu.create(
                             {
-                                x: _mx,
-                                y: _my,
+                                x: ev.clientX,
+                                y: ev.clientY,
                 
                                 rx: 24,
                                 ry: 24,
@@ -375,7 +392,9 @@ var _refreshFileManager = function (target_element_id, target) {
                                 angle: -90,
                 
                                 item_width:  32,
-                                item_height: 32
+                                item_height: 32,
+
+                                window: detached_window
                             },
                             [
                                 { icon: "fs-plus-icon", tooltip: "New directory",  on_click: function () {
@@ -388,12 +407,12 @@ var _refreshFileManager = function (target_element_id, target) {
                                         dir_target = ev.target.previousElementSibling;
                                     }
 
-                                    var target_path = window.atob(dir_target.dataset.fullpath);
+                                    var target_path = win.atob(dir_target.dataset.fullpath);
                                     target_path = target_path.split('/');
                                     target_path.shift();
                                     target_path = target_path.join('/');
 
-                                    var dir_name = window.prompt('Directory name', '');
+                                    var dir_name = win.prompt('Directory name', '');
                                     if (!dir_name || !dir_name.length) {
                                         return;
                                     }
@@ -428,12 +447,12 @@ var _refreshFileManager = function (target_element_id, target) {
                                             dir_target = ev.target.previousElementSibling;
                                         }
 
-                                        var target_path = window.atob(dir_target.dataset.fullpath);
+                                        var target_path = win.atob(dir_target.dataset.fullpath);
                                         target_path = target_path.split('/');
                                         target_path.shift();
                                         target_path = target_path.join('/');
 
-                                        var selected_files = document.querySelectorAll("input[id^='fs_" + target + "_']:checked");
+                                        var selected_files = doc.querySelectorAll("input[id^='fs_" + target + "_']:checked");
 
                                         if (!selected_files.length) {
                                             return;
@@ -443,7 +462,7 @@ var _refreshFileManager = function (target_element_id, target) {
         
                                         var i = 0;
                                         for (i = 0; i < selected_files.length; i += 1) {
-                                            var fullpath = window.atob(selected_files[i].dataset.fullpath);
+                                            var fullpath = win.atob(selected_files[i].dataset.fullpath);
                                             fullpath = fullpath.split('/');
                                             fullpath.shift();
                                             fullpath = fullpath.join('/');
@@ -475,18 +494,20 @@ var _refreshFileManager = function (target_element_id, target) {
 
                 WUI_CircularMenu.create(
                     {
-                        x: _mx,
-                        y: _my,
+                        x: ev.clientX,
+                        y: ev.clientY,
         
                         rx: 32,
                         ry: 32,
 
                         item_width:  32,
-                        item_height: 32
+                        item_height: 32,
+
+                        window: detached_window
                     },
                     [
                         { icon: "fs-audio-file-icon", tooltip: "Download selected files", on_click: function () {
-                            var selected_files = document.querySelectorAll("input[id^='fs_" + target + "_']:checked");
+                            var selected_files = doc.querySelectorAll("input[id^='fs_" + target + "_']:checked");
 
                             if (!selected_files.length) {
                                 return;
@@ -496,7 +517,7 @@ var _refreshFileManager = function (target_element_id, target) {
 
                             var i = 0;
                             for (i = 0; i < selected_files.length; i += 1) {
-                                var fullpath = window.atob(selected_files[i].dataset.fullpath);
+                                var fullpath = win.atob(selected_files[i].dataset.fullpath);
                                 fullpath = fullpath.split('/');
                                 fullpath.shift();
                                 fullpath = fullpath.join('/');
@@ -518,18 +539,18 @@ var _refreshFileManager = function (target_element_id, target) {
                                     var blob = new Blob([this.response], {type: 'application/zip'});
 
                                     var url = URL.createObjectURL(xhr.response);
-                                    var a = document.createElement("a");
+                                    var a = doc.createElement("a");
 
-                                    document.body.appendChild(a);
+                                    doc.body.appendChild(a);
                                     a.style = "display: none";
                                     a.href = url;
                                     a.download = "";
 
                                     a.click();
 
-                                    window.URL.revokeObjectURL(url);
+                                    win.URL.revokeObjectURL(url);
 
-                                    document.body.removeChild(a);
+                                    doc.body.removeChild(a);
                                 } else if (this.status == 200) {
                                     _notification('Files download error (unknown)', 4000)
                                 }
@@ -537,7 +558,7 @@ var _refreshFileManager = function (target_element_id, target) {
                             xhr.send(JSON.stringify(files_to_download));
                         } },
                         { icon: "fs-code-icon", tooltip: "Rename selected file", on_click: function () {
-                            var selected_files = document.querySelectorAll("input[id^='fs_" + target + "_']:checked");
+                            var selected_files = doc.querySelectorAll("input[id^='fs_" + target + "_']:checked");
 
                             if (!selected_files.length || selected_files.length > 1) {
                                 _notification("Must select a single file to rename", 4000);
@@ -547,17 +568,17 @@ var _refreshFileManager = function (target_element_id, target) {
                             var files_to_rename = [];
 
                             var file = selected_files[0];
-                            var fullpath = window.atob(file.dataset.fullpath);
+                            var fullpath = win.atob(file.dataset.fullpath);
                             fullpath = fullpath.split('/');
                             fullpath.shift();
                             fullpath = fullpath.join('/');
 
-                            var basepath = window.atob(file.dataset.basepath);
+                            var basepath = win.atob(file.dataset.basepath);
                             basepath = basepath.split('/');
                             basepath.shift();
                             basepath = basepath.join('/');
-                            var filename = window.atob(file.dataset.filename);
-                            var new_name = window.prompt('Rename file', filename)
+                            var filename = win.atob(file.dataset.filename);
+                            var new_name = win.prompt('Rename file', filename)
                             if (!new_name || !new_name.length) {
                                 return;
                             }
@@ -585,7 +606,7 @@ var _refreshFileManager = function (target_element_id, target) {
                             xhr.send(JSON.stringify(files_to_rename));
                         } },
                         { icon: "fp-trash-icon", tooltip: "Delete selected files",  on_click: function () {
-                                var selected_files = document.querySelectorAll("input[id^='fs_" + target + "_']:checked");
+                                var selected_files = doc.querySelectorAll("input[id^='fs_" + target + "_']:checked");
 
                                 if (!selected_files.length) {
                                     return;
@@ -595,7 +616,7 @@ var _refreshFileManager = function (target_element_id, target) {
 
                                 var i = 0;
                                 for (i = 0; i < selected_files.length; i += 1) {
-                                    var fullpath = window.atob(selected_files[i].dataset.fullpath);
+                                    var fullpath = win.atob(selected_files[i].dataset.fullpath);
                                     fullpath = fullpath.split('/');
                                     fullpath.shift();
                                     fullpath = fullpath.join('/');
