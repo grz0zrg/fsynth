@@ -8,7 +8,7 @@
     
     vec2 uv = gl_FragCoord.xy / resolution;
 
-    float start_frequency = 120.;
+    float start_frequency = 64.;
     float harmonics = 32. + sin(globalTime + uv.x * PI2 + uv.y * PI2 * 8.) * 32.;
     
     // 1 = saw wave (even harmonics), 2 = square wave (odd harmonics)
@@ -17,7 +17,7 @@
         // normalize
       	float nh = h / harmonics;
         // modulate attenuation factor (filter cutoff)
-      	float attenuation_factor = 8.0 + sin(globalTime * PI2) * 1.;
+      	float attenuation_factor = 8.0 + sin(mod(globalTime + (uv.y * 2. - 1.), 0.1) * 16. * PI2) * 1.;
         // attenuate high frequencies harmonics (filter)
         float attenuation = pow(1. - nh, attenuation_factor);
       
@@ -34,4 +34,5 @@
     synthOutput = vec4(l, r, 0., 0.);
     gl_FragColor = vec4(l, r, 0., 1.);
   }
+
 

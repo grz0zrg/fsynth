@@ -25281,7 +25281,7 @@ var _createChannelSettingsDialog = function (input_channel_id) {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "tutorials/import/"); 
+                    window.open(_documentation_link + "import/"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -28132,9 +28132,9 @@ var _icon_class = {
             params: [{
                 name: "maxdel (l)",
                 type: 0,
-                min: 0,
+                min: 0.0001,
                 max: 20,
-                step: 0.01,
+                step: 0.0001,
                 value: 1,
                 decimals: 4
             }, {
@@ -28152,17 +28152,17 @@ var _icon_class = {
             }, {
                 name: "delay time (l)",
                 type: 0,
-                min: 0,
+                min: 0.0001,
                 max: 20,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },{
                 name: "maxdel (r)",
                 type: 0,
-                min: 0,
+                min: 0.0001,
                 max: 20,
-                step: 0.01,
+                step: 0.0001,
                 value: 1,
                 decimals: 4
             }, {
@@ -28180,9 +28180,9 @@ var _icon_class = {
             }, {
                 name: "delay time (r)",
                 type: 0,
-                min: 0,
+                min: 0.0001,
                 max: 20,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             }]
@@ -31712,7 +31712,7 @@ var _uiInit = function () {
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "tutorials/midi/"); 
+                        window.open(_documentation_link + "midi/"); 
                     },
                     class_name: "fs-help-icon"
                 }
@@ -31741,7 +31741,7 @@ var _uiInit = function () {
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "tutorials/spectral_record/"); 
+                        window.open(_documentation_link + "record_dialog/"); 
                     },
                     class_name: "fs-help-icon"
                 }
@@ -31785,7 +31785,7 @@ var _uiInit = function () {
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "tutorials/audio_server/"); 
+                        window.open(_documentation_link + "audio_server/"); 
                     },
                     class_name: "fs-help-icon"
                 }
@@ -31819,7 +31819,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "tutorials/audio_server/"); 
+                    window.open(_documentation_link + "audio_server/"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -31858,7 +31858,7 @@ var _uiInit = function () {
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "tutorials/import/"); 
+                        window.open(_documentation_link + "import/"); 
                     },
                     class_name: "fs-help-icon"
                 }
@@ -32000,7 +32000,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "tutorials/instruments/"); 
+                    window.open(_documentation_link + "instruments/"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -32034,7 +32034,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "fas/file_managers"); 
+                    window.open(_documentation_link + "audio_server/#file-managers"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -32068,7 +32068,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "fas/file_managers"); 
+                    window.open(_documentation_link + "audio_server/#file-managers"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -32102,7 +32102,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "fas/file_managers"); 
+                    window.open(_documentation_link + "audio_server/#file-managers"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -32136,7 +32136,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "fas/file_managers"); 
+                    window.open(_documentation_link + "audio_server/#file-managers"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -32170,7 +32170,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "fas/file_managers"); 
+                    window.open(_documentation_link + "audio_server/#file-managers"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -32241,7 +32241,7 @@ var _uiInit = function () {
                 {
                     title: "Help",
                     on_click: function () {
-                        window.open(_documentation_link + "tutorials/canvas_import/"); 
+                        window.open(_documentation_link + "canvas_import/"); 
                     },
                     class_name: "fs-help-icon"
                 }
@@ -33639,7 +33639,7 @@ var _pjsInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "tutorials/pjs/");
+                    window.open(_documentation_link + "pjs_import/");
                 },
                 class_name: "fs-help-icon"
             }
@@ -34544,7 +34544,7 @@ var _createMarkerSettings = function (marker_obj) {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "tutorials/instruments/"); 
+                    window.open(_documentation_link + "instruments/"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -35080,7 +35080,7 @@ var _midiDialogInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "tutorials/midi_output_editor/");
+                    window.open(_documentation_link + "midi/");
                 },
                 class_name: "fs-help-icon"
             }
