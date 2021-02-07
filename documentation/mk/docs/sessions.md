@@ -2,7 +2,9 @@
 
 Fragment sessions are isolated spaces open to everyone through the session name, they can be joined by going to the Fragment [homepage](https://www.fsynth.com/) or by typing the session name directly into the address bar as demonstrated in the How-to below.
 
-Fragment store sessions content and settings on a server which mean that any of the synchronizable actions in the session such as the code editor content, canvas settings, slices are automatically saved when Fragment is connected.
+Fragment store sessions content and settings on a server which mean that any of the synchronizable actions in the session such as the code editor content, canvas settings, slices are automatically saved when Fragment is connected, the connection status to different services is displayed on the top left part of the screen.
+
+Sessions can be used offline however any code / settings will be forgotten once you leave the session; close the browser tab / window. Some potential side effects may also arise such as parameters reset when opening the audio server dialog due to the fact that nothing is remembered.
 
 Fragment can also be used locally if you don't like the online features, see the [github repository](https://github.com/grz0zrg/fsynth)
 

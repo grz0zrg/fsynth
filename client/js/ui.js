@@ -539,9 +539,9 @@ var _icon_class = {
             params: [{
                 name: "maxdel (l)",
                 type: 0,
-                min: 0,
+                min: 0.0001,
                 max: 20,
-                step: 0.01,
+                step: 0.0001,
                 value: 1,
                 decimals: 4
             }, {
@@ -559,17 +559,17 @@ var _icon_class = {
             }, {
                 name: "delay time (l)",
                 type: 0,
-                min: 0,
+                min: 0.0001,
                 max: 20,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },{
                 name: "maxdel (r)",
                 type: 0,
-                min: 0,
+                min: 0.0001,
                 max: 20,
-                step: 0.01,
+                step: 0.0001,
                 value: 1,
                 decimals: 4
             }, {
@@ -587,9 +587,9 @@ var _icon_class = {
             }, {
                 name: "delay time (r)",
                 type: 0,
-                min: 0,
+                min: 0.0001,
                 max: 20,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             }]
@@ -2532,7 +2532,7 @@ var _createSynthParametersContent = function () {
     }
 
     if (dialog_div.innerHTML.length <= 0) {
-        dialog_div.innerHTML = '<div style="padding: 8px; color: #ffffff">No synthesis parameters.</div>';
+        dialog_div.innerHTML = '<div style="padding: 8px; color: #ffffff">No parameters.</div>';
     }
 };
 
@@ -3098,7 +3098,10 @@ var _createFasSettingsContent = function () {
 
         cell = document.createElement("th");
         cell.className = "fs-matrix-first-cell";
-        cell.innerHTML = _synthesis_types[i];
+        var label = document.createElement("label");
+        label.htmlFor = "radio_instr_type" + i;
+        label.innerHTML = _synthesis_types[i];
+        cell.appendChild(label);
         row.appendChild(cell);
         
         for (j = 0; j < _play_position_markers.length; j += 1) {
@@ -3110,6 +3113,7 @@ var _createFasSettingsContent = function () {
             checkbox.name = j;
             checkbox.value = i;
             checkbox.type = "radio";
+            checkbox.id = "radio_instr_type" + i;
 
             // create channel settings if it does not exist
 /*

@@ -30691,7 +30691,10 @@ var _createFasSettingsContent = function () {
 
         cell = document.createElement("th");
         cell.className = "fs-matrix-first-cell";
-        cell.innerHTML = _synthesis_types[i];
+        var label = document.createElement("label");
+        label.htmlFor = "radio_instr_type" + i;
+        label.innerHTML = _synthesis_types[i];
+        cell.appendChild(label);
         row.appendChild(cell);
         
         for (j = 0; j < _play_position_markers.length; j += 1) {
@@ -30703,6 +30706,7 @@ var _createFasSettingsContent = function () {
             checkbox.name = j;
             checkbox.value = i;
             checkbox.type = "radio";
+            checkbox.id = "radio_instr_type" + i;
 
             // create channel settings if it does not exist
 /*
