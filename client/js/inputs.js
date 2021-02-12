@@ -616,16 +616,18 @@ var _createInputThumb = function (input_id, image, thumb_title, src) {
     dom_image.addEventListener("auxclick", function (e) {
         e.preventDefault();
 
-        var input_id = _parseInt10(e.target.dataset.inputId),
-            input = _fragment_input_data[input_id],
-            dom_image = input.elem;
-            
-        _input_panel_element.removeChild(dom_image);
-    
-        _removeInputChannel(input_id);
-        _delBrush(input_id);
+        if (e.button == 1) {
+            var input_id = _parseInt10(e.target.dataset.inputId),
+                input = _fragment_input_data[input_id],
+                dom_image = input.elem;
+                
+            _input_panel_element.removeChild(dom_image);
+        
+            _removeInputChannel(input_id);
+            _delBrush(input_id);
+        }
     });
-    
+
     // drag & drop
     dom_image.addEventListener("drop", function (e) {
         e.preventDefault();

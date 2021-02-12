@@ -466,11 +466,11 @@ var _icon_class = {
             params: [{
                 name: "delay time (l)",
                 type: 0,
-                min: 0,
-                max: 60,
-                step: 0.001,
+                min: 1,
+                max: 120,
+                step: 1,
                 value: 1.0,
-                decimals: 4
+                decimals: 0
             }, {
                 name: "feedback (l)",
                 type: 0,
@@ -483,11 +483,11 @@ var _icon_class = {
             {
                 name: "delay time (r)",
                 type: 0,
-                min: 0,
-                max: 60,
-                step: 0.001,
+                min: 1,
+                max: 120,
+                step: 1,
                 value: 1.0,
-                decimals: 4
+                decimals: 0
             }, {
                 name: "feedback (r)",
                 type: 0,
