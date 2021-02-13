@@ -53,6 +53,6 @@
     }
 
     synthOutput = vec4(l, r, mb, ma);
-    gl_FragColor = vec4(l, r, 0., 1.);
+    fragColor = vec4(l, r, 0., 1.);
   }
 

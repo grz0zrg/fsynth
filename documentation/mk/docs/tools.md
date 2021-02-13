@@ -52,11 +52,13 @@ To use the OSC relay once NodeJS and NPM is installed, type `cd osc_relay & npm 
 
 ## FFS: Audio server files manager
 
-The audio server files manager server which provide an API for easy upload / informations of audio samples from FAS grains / impulses / waves directories; for convenience and for embedded uses.
+The audio server files manager server provide an API for easy upload / informations of audio samples from FAS grains / impulses / waves directories; for convenience and for embedded uses.
 
 FFS is required in order to use the **File managers** pane of the **SYNTH** / **Audio Server settings** dialog.
 
-FFS need [NodeJS](https://nodejs.org/en/) and [NPM](https://www.npmjs.com) and can be found [here](https://github.com/grz0zrg/fsynth/tree/master/fss)
+FFS is available on the [homepage](https://www.fsynth.com) as a download.
+
+To compile FFS, [NodeJS](https://nodejs.org/en/) and [NPM](https://www.npmjs.com) are required and can be found [here](https://github.com/grz0zrg/fsynth/tree/master/fss)
 
 To use FFS once NodeJS and NPM is installed, type `cd ffs & npm install & node ffs` in a terminal at the FFS root level directory
 

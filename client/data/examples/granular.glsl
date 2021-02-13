@@ -47,7 +47,5 @@
     float grains_start = uv.y + sin(globalTime * 32.) / 128.;
 
     synthOutput = vec4(l, r, grains_density, grains_start);
-    gl_FragColor = vec4(l, r, 0., 1.);
+    fragColor = vec4(l, r, 0., 1.);
   }
-
-

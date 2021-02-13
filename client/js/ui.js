@@ -4445,7 +4445,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "audio_server/#file-managers"); 
+                    window.open(_documentation_link + "tools/#ffs-audio-server-files-manager"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -4479,7 +4479,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "audio_server/#file-managers"); 
+                    window.open(_documentation_link + "tools/#ffs-audio-server-files-manager"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -4513,7 +4513,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "audio_server/#file-managers"); 
+                    window.open(_documentation_link + "tools/#ffs-audio-server-files-manager"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -4547,7 +4547,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "audio_server/#file-managers"); 
+                    window.open(_documentation_link + "tools/#ffs-audio-server-files-manager"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -4581,7 +4581,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "audio_server/#file-managers"); 
+                    window.open(_documentation_link + "tools/#ffs-audio-server-files-manager"); 
                 },
                 class_name: "fs-help-icon"
             }

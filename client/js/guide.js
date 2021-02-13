@@ -308,6 +308,7 @@ document.body.addEventListener("keydown", function (evt) {
 });
 
 document.getElementById("fs_ux_tour").addEventListener("click", function () {
+    _ux_helper_ui_scenario[_ux_helper_ui_scenario.length - 2].target = _current_code_editor.container.id;
     _startUXHelper(_ux_helper_ui_scenario);
 });
 /*

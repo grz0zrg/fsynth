@@ -28,5 +28,5 @@
     }
     
     synthOutput = vec4(vec2(lr)/2., droplet_first_resonant_freq, droplet_second_resonant_freq);
-    gl_FragColor = vec4(vec3(lr), 1.0 );
+    fragColor = vec4(vec3(lr), 1.0 );
 }

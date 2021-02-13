@@ -26,5 +26,5 @@
     }
     
     synthOutput = vec4(vec2(lr), karplus_stretching, karplus_res);
-    gl_FragColor = vec4(vec3(lr), 1.0 );
+    fragColor = vec4(vec3(lr), 1.0 );
 }

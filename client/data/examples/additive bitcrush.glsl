@@ -47,6 +47,6 @@
     bitdepth = bitdepth > 1.5 ? min(max(1., bitdepth), 1.99) : 0.;
 
     synthOutput = vec4(l, r, bitdepth, sample_rate);
-    gl_FragColor = vec4(l, r, sample_rate, 1.);
+    fragColor = vec4(l, r, sample_rate, 1.);
   }
 

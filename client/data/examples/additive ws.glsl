@@ -43,6 +43,6 @@
     wave_a = abs(min(2.999, max(2., wave_a)));
   
     synthOutput = vec4(l, r, wave_a, wave_b);
-    gl_FragColor = vec4(l, r, wave_b, 1.);
+    fragColor = vec4(l, r, wave_b, 1.);
   }
 

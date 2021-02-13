@@ -26,6 +26,5 @@
     r += fline(frequency);
 
     synthOutput = vec4(l, r, wave_start, wave_end);
-    gl_FragColor = vec4(l, r, 0., 1.);
+    fragColor = vec4(l, r, 0., 1.);
   }
-
