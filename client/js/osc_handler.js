@@ -116,7 +116,7 @@ var _oscInit = function () {
 
     _osc.worker.addEventListener("message", function (m) {
             var data = m.data, i;
-        
+
             if (data.status === "data") {
                 if (!_osc.inputs.hasOwnProperty(data.osc_input.name)) {
                     if (!data.osc_input.i) {
@@ -181,6 +181,8 @@ var _oscInit = function () {
             } else if (data.status === "ready") {
                 _notification("OSC: Connected to " + _osc.address, 2500);
             } else if (data.status === "error") {
+                console.log(data.error);
+
                 _notification("OSC: Connection error!", 2500);
             } else if (data.status === "close") {
                 _notification("OSC connection lost, trying again in ~5s!", 2500);

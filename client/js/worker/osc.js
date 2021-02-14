@@ -57,7 +57,7 @@ var _connect = function (opts) {
             prefix = address.slice(0, 2),
             
             i;
-        
+
         if (address === "/clear") {
             postMessage({
                     status: "clear"
@@ -103,7 +103,8 @@ var _connect = function (opts) {
 
     _osc_port.on("error", function (e) {
         postMessage({
-                status: "error"
+                status: "error",
+                error: e
             });
         
         if (_osc) {

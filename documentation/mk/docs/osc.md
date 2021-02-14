@@ -12,7 +12,7 @@ Note: If your application does not support OSC through WebSocket, you will have 
 
 ### In
 
-Fragment accept OSC inputs from *127.0.0.1:8081*
+Fragment accept OSC inputs from *127.0.0.1:8081* (the address can be defined in session / global settings dialog)
 
 The supported OSC address are
 
@@ -20,20 +20,33 @@ The supported OSC address are
 
 `/video` An array which control a video settings
 
+arguments :
+
 - input id (must be a video)
 - playback rate
 - video loop start
 - video loop end
 - video current time (seek)
 
-`/i[uniformname]` Create/extend a **float** uniform **array** or update a specific index
+`/i[uniformname]` Can be used to update a **float** uniform **array** (the array will automatically grow if needed) or set a **float** uniform
+
+To define / set a single float uniform, arguments :
+
+- 0
+- value
+
+To update a **float** uniform **array** value, arguments :
 
 - index
 - value
 
-`/a[uniformname]` Create or update a **float** uniform **array**
+Note : The type (array of float or single float) is set when the first message is received, if a message with 0 as first value is received first the defined type will be a single float uniform, to define an array the first index will define the length of the array.
 
-- an array of values
+`/a[uniformname]` Create or update whole **float** uniform **array**
+
+arguments :
+
+- a list of values
 
 This feature is useful to send data to the fragment shader from an external application and control parameters / videos, it act as an alternative and powerful controller.
 
@@ -52,3 +65,14 @@ The OSC bundle contain :
 - Slice channel
 
 This feature is useful to trigger external applications from the slices content, this was used to build a [SuperCollider port](https://github.com/grz0zrg/fsynth/tree/master/supercollider) of the additive synthesis engine for example.
+
+### Open Stage Control
+
+[Open Stage Control](https://openstagecontrol.ammd.net/) is a libre and modular OSC / MIDI controller with many widgets type and can be used as an effective way to control Fragment OSC uniforms.
+
+When widgets are added the `id` field of the `widget` property section specify the OSC address, this can also be specified more directly in the `address` field in `osc` property section.
+
+Example to define a float uniform :
+
+* specify uniform name in widget `id` or `address` field such as `iMyUniform`
+* add `[0]` to `preArgs` widget property field

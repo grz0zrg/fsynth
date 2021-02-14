@@ -248,7 +248,7 @@
                                     </ul>
                                 </li>
                                 <li>
-                                    Multi-output, <a href="https://jackaudio.org/">JACK</a> support, virtual channels with over 30 stereo effects
+                                    Multi-output, ASIO / <a href="https://jackaudio.org/">JACK</a> support, virtual channels with over 30 stereo effects
                                     <ul>
                                         <li>
                                             new effects can be created live through the <a href="https://faust.grame.fr/">Faust language</a>
@@ -290,19 +290,22 @@
                                         <li>
                                             MIDI IN with Multidimensional Polyphonic Expression (MPE) support
                                         </li>
+                                        <li>
+                                            MIDI OUT with JavaScript scripting
+                                        </li>
                                     </ul>
                                 </li>
                                 <li>
-                                    OSC in/out
+                                    <a href="https://en.wikipedia.org/wiki/Open_Sound_Control">OSC</a> in/out
                                 </li>
                                 <li>
                                     Graphics data recording with WAV export (additive synthesis)
                                 </li>
                                 <li>
-                                    Anonymous online sessions, no authentifications needed, can also work offline or locally
+                                    Anonymous online sessions, no authentifications required, can also work offline or locally
                                 </li>
                                 <li>
-                                    Distributed sound synthesis, multi-machines/multi-core support (Audio Server with <a href="https://github.com/grz0zrg/fsynth/tree/master/fas_relay" rel="noopener">fas_relay</a>)
+                                    Distributed sound synthesis, multi-machines/multi-core support (Fragment Audio Server with <a href="https://github.com/grz0zrg/fsynth/tree/master/fas_relay">fas_relay</a>)
                                 </li>
                                 <li>
                                     Free, cross-platform, open-source software (Simplified BSD License)
@@ -349,28 +352,47 @@
                         </h5>
                         <hr/>
                         <p class="fp-margin fp-justify value-description">
-                            Fragment require an audio server in order to output any sounds, the audio server must be launched and run alongside any sessions. It is only available for Linux as an installation free <a href="https://appimage.org/">AppImage</a>.
+                            Fragment require an audio server in order to output any sounds, the audio server must be launched and run alongside any sessions. It is available for Windows as a .zip package and Linux as an installation free <a href="https://appimage.org/">AppImage</a>.
                         </p>
 
                         <table class="fp-dl-table u-full-width">
                             <thead>
                                 <tr>
-                                    <th>MD5 Checksum</th>
+                                    <th>SHA3-256 Checksum</th>
                                     <th>Platform</th>
+                                    <th>Description</th>
                                     <th>Download</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
                                     <td>
-                                        7c4b3ca9a947952846dc7a67d15123f8
+                                        
                                     </td>
                                     <td>
-                                        <i class="fab fa-linux" aria-hidden="true"></i>&nbsp;Linux AppImage 32/64 Bits 1.4MB
+                                        <i class="fab fa-linux" aria-hidden="true"></i>
                                     </td>
-
+                                    <td>
+                                        Linux 64 Bits (1.4MB; AppImage)
+                                    </td>
                                     <td class="fp-download">
-                                        <a href="dl/fragment_1.0.3_amd64.deb" title="Download Fragment launcher for Linux as a .deb 32/64 Bits (1.4MB)" rel="noopener">
+                                        <a href="dl/fas-2.0.0-x86_64.AppImage" title="Download Fragment Audio Server for Linux as an AppImage (64 Bits; 1.4MB)" rel="noopener">
+                                            <i class="fas fa-download" aria-hidden="true"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        
+                                    </td>
+                                    <td>
+                                        <i class="fab fa-windows" aria-hidden="true"></i>
+                                    </td>
+                                    <td>
+                                        Windows 64 Bits (1.4MB; .zip)
+                                    </td>
+                                    <td class="fp-download">
+                                        <a href="dl/fas-2.0.0-x86_64.zip" title="Download Fragment launcher for Windows as a ZIP file (64 Bits; 1.4MB)" rel="noopener">
                                             <i class="fas fa-download" aria-hidden="true"></i>
                                         </a>
                                     </td>
@@ -385,6 +407,17 @@
                                 </li>
                                 <li>
                                     launch with <code>./fas</code> command in a terminal
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="fp-margin fp-justify value-description">
+                            <strong>&nbsp;Fragment File Server download</strong> (only required to upload samples from the client)
+                            <ul class="fp-features">
+                                <li>
+                                    <i class="fab fa-linux" aria-hidden="true"></i>&nbsp;<a href="dl/ffs-2.0.0-x86_64-linux.zip" title="Download Fragment File Server for Linux as a ZIP file (64 bits; 1.4MB)" rel="noopener">Fragment File Server 64 bits (1.4MB; .zip) Linux</a>
+                                </li>
+                                <li>
+                                    <i class="fab fa-windows" aria-hidden="true"></i>&nbsp;<a href="dl/ffs-2.0.0-x86_64-win.zip" title="Download Fragment File Server for Windows as a ZIP file (64 bits; 1.4MB)" rel="noopener">Fragment File Server 64 bits (1.4MB; .zip) Windows</a>
                                 </li>
                             </ul>
                         </div>
@@ -413,7 +446,7 @@
                                     </ul>
                                 </li>
                                 <li>
-                                    Mid-range GPU, Fragment is made and tested with a GeForce GTX 970
+                                    Mid-range GPU, Fragment develoment use a GeForce GTX 970
                                 </li>
                                 <li>
                                     Mid-range multi-core CPU, a beefy CPU may be needed for some instrument type such as granular synthesis

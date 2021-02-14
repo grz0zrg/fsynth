@@ -30,6 +30,7 @@
       float kvel = data.y; // velocity
       float ktim = data.z; // elapsed time
       float kchn = data.w; // channel
+      float kbnd = data_mpe.x; // pitch bend
 
       // escape the loop on silent note
       if (kfrq == 0.) {
@@ -47,12 +48,11 @@
         float attenuation = pow(ni, attenuation_constant - modulation);
 
         float frequency = kfrq * i;
-        l += fline(frequency) * kvel * attenuation * env * 3.;
-        r += fline(frequency) * kvel * attenuation * env * 3.;
+        l += fline(frequency + kbnd) * kvel * attenuation * env * 3.;
+        r += fline(frequency + kbnd) * kvel * attenuation * env * 3.;
       }
     }
 
     synthOutput = vec4(l, r, 0., 0.);
     fragColor = vec4(l, r, 0., 1.);
   }
-

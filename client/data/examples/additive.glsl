@@ -34,6 +34,3 @@
     synthOutput = vec4(l, r, 0., 0.);
     fragColor = vec4(l, r, 0., 1.);
   }
-
-
-

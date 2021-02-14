@@ -1,11 +1,10 @@
 /**
  * Simple OSC relay.
- * Relay incoming data from websocket 127.0.0.1:8081 to UDP 127.0.0.1:57120
- * Relay incoming data from UDP 127.0.0.1:57121 to websocket 127.0.0.1:8081
+ * Relay incoming data from websocket 127.0.0.1:8081 to UDP 127.0.0.1:57120 (correspond to OSC OUT on Fragment client)
+ * Relay incoming data from UDP 127.0.0.1:57121 to websocket 127.0.0.1:8081 (correspond to OSC IN on Fragment client)
  */
 
 var osc = require("osc"),
-    http = require("http"),
     WebSocket = require("ws"),
 
     express = require("express"),
@@ -13,8 +12,7 @@ var osc = require("osc"),
     server = app.listen(8081),
 
     websocketPort,
-    wss,
-    udp;
+    wss;
 
 app.use("/", express.static(__dirname + "/static"));
 
@@ -47,7 +45,15 @@ function websocketConnect() {
         websocketPort.on("error", function (e) {
             console.log("websocketPort error: ", e);
         });
+
+        console.log("New connection...");
     });
+
+    wss.on("close", function () {
+        console.log("Connection closed.")
+    });
+
+    console.log("Websocket listening on 127.0.0.1:8081");
 }
 
 udpPort.on("ready", function () {
@@ -64,6 +70,10 @@ udpPort.on("message", function (m) {
     if (websocketPort) {
         websocketPort.send(m);
     }
+});
+
+udpPort.on("osc", function (m) {
+    console.log(m);
 });
 
 udpPort.on("error", function (e) {
