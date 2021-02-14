@@ -56,7 +56,7 @@ The audio server files manager server provide an API for easy upload / informati
 
 FFS is required in order to use the **File managers** pane of the **SYNTH** / **Audio Server settings** dialog.
 
-FFS is available on the [homepage](https://www.fsynth.com) as a download.
+FFS is available on the [homepage](https://www.fsynth.com) as a download, it is generally placed / run into / from the audio server directory.
 
 To compile FFS, [NodeJS](https://nodejs.org/en/) and [NPM](https://www.npmjs.com) are required and can be found [here](https://github.com/grz0zrg/fsynth/tree/master/fss)
 

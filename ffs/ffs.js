@@ -7,6 +7,7 @@ const multer = require('multer')
 const winston = require('winston')
 const fse = require('fs-extra')
 const cors = require('cors')
+const { execSync } = require('child_process');
 const zip = require('express-zip')
 
 const logger = winston.createLogger({
@@ -16,7 +17,8 @@ const logger = winston.createLogger({
         ]
     });
 
-let fas_path = "/usr/local/share/fragment/"
+let default_path = "/usr/local/share/fragment/"
+let fas_path = default_path
 
 // args
 const args = require('minimist')(process.argv.slice(2), {
@@ -32,12 +34,23 @@ if ("h" in args) {
 
 if ("p" in args) {
     fas_path = args.p;
+} else {
+    // try to detect FAS in working directory
+    if (fse.existsSync('./fas') || fse.existsSync('./fas.exe')) {
+        fas_path = process.platform === 'win32' ? process.cwd() : process.env.PWD
+
+        logger.log('info', 'Fragment Audio Server found in working directory : %s', fas_path)
+    }
 }
 
 if (!fse.pathExistsSync(fas_path)) {
-    logger.log("error", 'FAS path does not exist : %s', fas_path)
+    if (fas_path !== default_path) {
+        logger.log("error", 'FAS path does not exist : %s', fas_path)
+    } else {
+        logger.log("error", 'Default FAS path does not exist : %s', fas_path)
+    }
 
-    process.exit();
+    process.exit()
 } else {
     logger.log("info", 'FAS path : %s', fas_path)
 }
@@ -237,11 +250,6 @@ app.get('/:target', (req, res, next) => {
             empty_dirs.push(transformed_dir)
         })
 
-/*// debug
-        transformed_result.forEach((value, index) => {
-            console.log(index + " " + value)
-        });
-*/      
         res.send({ files: transformed_result, empty_dirs: empty_dirs })
     } catch (e) {
         res.status(400).send(new Error('Unable to scan target directory'))

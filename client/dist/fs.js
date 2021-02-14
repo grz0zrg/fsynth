@@ -32040,7 +32040,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "audio_server/#file-managers"); 
+                    window.open(_documentation_link + "tools/#ffs-audio-server-files-manager"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -32074,7 +32074,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "audio_server/#file-managers"); 
+                    window.open(_documentation_link + "tools/#ffs-audio-server-files-manager"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -32108,7 +32108,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "audio_server/#file-managers"); 
+                    window.open(_documentation_link + "tools/#ffs-audio-server-files-manager"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -32142,7 +32142,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "audio_server/#file-managers"); 
+                    window.open(_documentation_link + "tools/#ffs-audio-server-files-manager"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -32176,7 +32176,7 @@ var _uiInit = function () {
             {
                 title: "Help",
                 on_click: function () {
-                    window.open(_documentation_link + "audio_server/#file-managers"); 
+                    window.open(_documentation_link + "tools/#ffs-audio-server-files-manager"); 
                 },
                 class_name: "fs-help-icon"
             }
@@ -34347,40 +34347,44 @@ var _createMarkerSettings = function (marker_obj) {
     */
     if (!_webMIDISupport()) {
         midi_dev_out_container.style.display = "none";
-        cm_element.style.display = "none";
+        //cm_element.style.display = "none";
 
         tmp_element = document.createElement("div");
         tmp_element.innerHTML = _webmidi_support_msg;
+
+        midi_dev_list_container.removeChild(midi_dev_list_ck_label);
+        midi_dev_list_container.removeChild(midi_device_fieldset);
+        midi_dev_list_container.removeChild(midi_out_editor_btn);
 
         midi_dev_list_container.appendChild(tmp_element);
 
         _applyCollapsible(midi_dev_list_container, midi_dev_list_container_legend, true);
     } else {
         _applyCollapsible(midi_dev_list_container, midi_dev_list_container_legend, true);
+
+        _buildMarkerMIDIDevices(marker_obj, midi_dev_list);
+
+        midi_dev_list.addEventListener("change", _cbMarkerSettingsChange(marker_obj, function (self, value, marker_obj) {
+            var len = self.options.length,
+                opt = null,
+                uids = [],
+                i = 0;
+            
+            for (i = 0; i < len; i += 1) {
+                opt = self.options[i];
+    
+                if (opt.selected) {
+                    uids.push(opt.dataset.uid);
+                }
+            }
+    
+            marker_obj.midi_out.device_uids = uids;
+            
+            _saveMarkersSettings();
+        }));    
     }
 
     //marker_obj.custom_midi_codemirror = midi_custom_codemirror;
-
-    _buildMarkerMIDIDevices(marker_obj, midi_dev_list);
-
-    midi_dev_list.addEventListener("change", _cbMarkerSettingsChange(marker_obj, function (self, value, marker_obj) {
-        var len = self.options.length,
-            opt = null,
-            uids = [],
-            i = 0;
-        
-        for (i = 0; i < len; i += 1) {
-            opt = self.options[i];
-
-            if (opt.selected) {
-                uids.push(opt.dataset.uid);
-            }
-        }
-
-        marker_obj.midi_out.device_uids = uids;
-        
-        _saveMarkersSettings();
-    }));    
     
     fs_slice_settings_x_input.id = "fs_slice_settings_x_input_" + marker_obj.id;
     fs_slice_settings_shift_input.id = "fs_slice_settings_shift_input_" + marker_obj.id;
