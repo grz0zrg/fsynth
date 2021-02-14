@@ -48,6 +48,8 @@ Fragment support OSC input and output with WebSockets, some tools does not suppo
 
 The OSC relay need [NodeJS](https://nodejs.org/en/) and [NPM](https://www.npmjs.com) and can be found [here](https://github.com/grz0zrg/fsynth/tree/master/osc_relay)
 
+The OSC relay can also be found on the homepage as a binary for Windows and Linux.
+
 To use the OSC relay once NodeJS and NPM is installed, type `cd osc_relay & npm install & node osc_relay` in a terminal at the OSC relay root level directory
 
 ## FFS: Audio server files manager
