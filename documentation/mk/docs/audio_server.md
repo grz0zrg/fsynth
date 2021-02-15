@@ -40,6 +40,8 @@ Any added effects can be configured by double clicking on their square, they can
 
 Each channels can be routed to a physical / device driver / OS mixer port by changing the value at the end of effects space. The value correspond to the index of the port (0 based)
 
+Note : Effects are not shared, they are saved locally.
+
 ## Actions
 
 This pane allow to reload the audio server samples, impulse responses and Faust generators / effects.

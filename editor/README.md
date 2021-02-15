@@ -4,8 +4,8 @@ This is a standalone collaborative GLSL editor which communicate directly with t
 
 Can be used directly / locally by opening the `index.html` file.
 
-Usage : append the session name / target as URL query parameters, example : `index.html?session=my_session&target=code_main`
+Usage : append the session name / target as URL query parameters, example : `index.html?session=my_session&target=main`
 
-There is only one type of target support as of now (collaborative targets) : `code_main`
+There is only one type of target support as of now : `main`
 
 The editor is much less featured than the app. editor focusing on code edition only, any customizations such as themes may need some source tweaks and GLSL checks are still done in the client app.

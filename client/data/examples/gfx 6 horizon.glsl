@@ -14,7 +14,7 @@
 
 	tuv.y += globalTime * 0.175;
     
-	vec4 depth = vec4(pow(abs(cuv.x / cuv.y), 0.25 * (1.+abs(cuv.y)))) * pow(abs(cuv.x), 0.05);
+	vec4 depth = vec4(pow(abs(cuv.x), 0.25 * (1.+abs(cuv.y)))) * pow(abs(cuv.x), 0.05);
 	
     vec4 col = texture(iInput0, vec2(tuv.x, tuv.y)) * depth;
     col += texture(iInput0, vec2(tuv.y / 2., tuv.x*2.0)) * depth;

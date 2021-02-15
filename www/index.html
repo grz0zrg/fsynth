@@ -386,6 +386,22 @@
                                         
                                     </td>
                                     <td>
+                                        <i class="fab fa-linux" aria-hidden="true"></i>
+                                    </td>
+                                    <td>
+                                        Linux 64 Bits JACK only (1.4MB; AppImage)
+                                    </td>
+                                    <td class="fp-download">
+                                        <a href="dl/fas-2.0.0-jack-x86_64.AppImage" title="Download Fragment Audio Server with JACK support for Linux as an AppImage (64 Bits; 1.4MB)" rel="noopener">
+                                            <i class="fas fa-download" aria-hidden="true"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        
+                                    </td>
+                                    <td>
                                         <i class="fab fa-windows" aria-hidden="true"></i>
                                     </td>
                                     <td>
@@ -410,28 +426,6 @@
                                 </li>
                             </ul>
                         </div>
-                        <div class="fp-margin fp-justify value-description">
-                            <strong>&nbsp;Fragment File Server download</strong> (only required to upload samples from the client)
-                            <ul class="fp-features">
-                                <li>
-                                    <i class="fab fa-linux" aria-hidden="true"></i>&nbsp;<a href="dl/ffs-2.0.0-x86_64-linux.zip" title="Download Fragment File Server for Linux as a ZIP file (64 bits; 1.4MB)" rel="noopener">Fragment File Server 64 bits (1.4MB; .zip) Linux</a>
-                                </li>
-                                <li>
-                                    <i class="fab fa-windows" aria-hidden="true"></i>&nbsp;<a href="dl/ffs-2.0.0-x86_64-win.zip" title="Download Fragment File Server for Windows as a ZIP file (64 bits; 1.4MB)" rel="noopener">Fragment File Server 64 bits (1.4MB; .zip) Windows</a>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="fp-margin fp-justify value-description">
-                            <strong>&nbsp;Fragment OSC relay download</strong> (only required to use OSC)
-                            <ul class="fp-features">
-                                <li>
-                                    <i class="fab fa-linux" aria-hidden="true"></i>&nbsp;<a href="dl/osc-relay-2.0.0-x86_64-linux.zip" title="Download Fragment OSC relay for Linux as a ZIP file (64 bits; 1.4MB)" rel="noopener">Fragment File Server 64 bits (1.4MB; .zip) Linux</a>
-                                </li>
-                                <li>
-                                    <i class="fab fa-windows" aria-hidden="true"></i>&nbsp;<a href="dl/osc-relay-2.0.0-x86_64-win.zip" title="Download Fragment OSC relay for Windows as a ZIP file (64 bits; 1.4MB)" rel="noopener">Fragment File Server 64 bits (1.4MB; .zip) Windows</a>
-                                </li>
-                            </ul>
-                        </div>
                         <div class="fp-margin fp-right value-description">
                             <strong>Fragment source-code</strong>
                             <ul class="fp-features">
@@ -443,7 +437,7 @@
                 </div>
                 <div class="fp-anchor row">
                     <div class="column value">
-                        <h5 class="value-heading">
+                        <h5 class="value-heading" style="margin-bottom: -12px;">
                             Requirements
                         </h5>
                         <hr/>
@@ -468,6 +462,56 @@
                             </ul>
                             <strong>Note</strong> : Performance and latency may vary with the overall computer load, Fragment is quite latency sensitive.
                             <br/><br/>
+                        </div>
+                    </div>
+                </div>
+                <div class="fp-anchor row">
+                    <div class="column value">
+                        <h5 class="value-heading" style="margin-bottom: -12px;">
+                            Tools download
+                        </h5>
+                        <hr/>
+                        <div class="fp-margin fp-justify value-description">
+                            <strong>&nbsp;Fragment File Server</strong> (only required to upload samples from the client)
+                            <ul class="fp-features">
+                                <li>
+                                    <i class="fab fa-linux" aria-hidden="true"></i>&nbsp;<a href="dl/ffs-2.0.0-x86_64-linux.zip" title="Download Fragment File Server for Linux as a ZIP file (64 bits; 1.4MB)" rel="noopener">Fragment File Server 64 bits (1.4MB; .zip) Linux</a>
+                                </li>
+                                <li>
+                                    <i class="fab fa-windows" aria-hidden="true"></i>&nbsp;<a href="dl/ffs-2.0.0-x86_64-win.zip" title="Download Fragment File Server for Windows as a ZIP file (64 bits; 1.4MB)" rel="noopener">Fragment File Server 64 bits (1.4MB; .zip) Windows</a>
+                                </li>
+                                <li>
+                                    <a title="SHA3-256 Checksum" href="dl/ffs-sha3.txt">SHA3-256 Checksum</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="fp-margin fp-justify value-description">
+                            <strong>&nbsp;Fragment OSC relay</strong> (only required to use OSC)
+                            <ul class="fp-features">
+                                <li>
+                                    <i class="fab fa-linux" aria-hidden="true"></i>&nbsp;<a href="dl/osc-relay-2.0.0-x86_64-linux.zip" title="Download Fragment OSC relay for Linux as a ZIP file (64 bits; 1.4MB)" rel="noopener">Fragment OSC relay 64 bits (1.4MB; .zip) Linux</a>
+                                </li>
+                                <li>
+                                    <i class="fab fa-windows" aria-hidden="true"></i>&nbsp;<a href="dl/osc-relay-2.0.0-x86_64-win.zip" title="Download Fragment OSC relay for Windows as a ZIP file (64 bits; 1.4MB)" rel="noopener">Fragment OSC relay 64 bits (1.4MB; .zip) Windows</a>
+                                </li>
+                                <li>
+                                    <a title="SHA3-256 Checksum" href="dl/osc-relay-sha3.txt">SHA3-256 Checksum</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="fp-margin fp-justify value-description">
+                            <strong>&nbsp;Fragment FAS relay</strong> (only required to use multiple audio server for multi-machines/multi-core distributed sound synthesis)
+                            <ul class="fp-features">
+                                <li>
+                                    <i class="fab fa-linux" aria-hidden="true"></i>&nbsp;<a href="dl/fas-relay-2.0.0-x86_64-linux.zip" title="Download Fragment relay for Linux as a ZIP file (64 bits; 1.4MB)" rel="noopener">Fragment FAS relay 64 bits (1.4MB; .zip) Linux</a>
+                                </li>
+                                <li>
+                                    <i class="fab fa-windows" aria-hidden="true"></i>&nbsp;<a href="dl/fas-relay-2.0.0-x86_64-win.zip" title="Download Fragment relay for Windows as a ZIP file (64 bits; 1.4MB)" rel="noopener">Fragment FAS relay 64 bits (1.4MB; .zip) Windows</a>
+                                </li>
+                                <li>
+                                    <a title="SHA3-256 Checksum" href="dl/fas-relay-sha3.txt">SHA3-256 Checksum</a>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>

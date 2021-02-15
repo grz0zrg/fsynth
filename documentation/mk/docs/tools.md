@@ -36,11 +36,11 @@ On the [Raspberry PI](https://www.raspberrypi.org) ~700 additive synthesis oscil
 
 ## Fragment Independent GLSL editor
 
-The integrated GLSL editor can be too cumbersome to use sometimes with complex sessions and can make the sound choppy when you type.
+The integrated GLSL editor can be too cumbersome to use sometimes with complex sessions with latency downsides due to browser reflow.
 
 A solution is to use the independent editor which is the Fragment GLSL editor as an entirely separate application, the independent editor can connect to any sessions and has the same features as the integrated code editor.
 
-The independent GLSL editor can be found [here](https://github.com/grz0zrg/fsynth/tree/master/editor), the [development server](https://github.com/grz0zrg/fsynth/tree/master/fsws) is needed in order to execute it, some instructions can be found on the [GitHub page](https://github.com/grz0zrg/fsynth)
+The independent GLSL editor can be found [here](https://github.com/grz0zrg/fsynth/tree/master/editor), the [development server](https://github.com/grz0zrg/fsynth/tree/master/fsws) is needed in order to execute it and fsdb, some instructions can be found on the [GitHub page](https://github.com/grz0zrg/fsynth) and [GitHub editor page](https://github.com/grz0zrg/fsynth/tree/master/editor)
 
 ## OSC relay
 
@@ -67,6 +67,8 @@ To use FFS once NodeJS and NPM is installed, type `cd ffs & npm install & node f
 ## FAS relay
 
 Fragment audio server support distributed sound synthesis on any machines or cores over the network
+
+This tool is available on the homepage.
 
 The [FAS relay](https://github.com/grz0zrg/fsynth/tree/master/fas_relay) is a program which listen to port 3003 and wait a client connection, when a client is connected, it relay the data from the client to all audio server instances specified at launch, audio server instances can be remote or local (same computer = multi-core)
 

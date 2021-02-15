@@ -10545,7 +10545,7 @@ var _shareDBConnect = function () {
     ws.addEventListener("close", function (ev) {
             _sharedb_doc_ready = false;
 
-            _notification("Connection to data server was lost, trying again in ~5s.", 2500);
+            _notification("Data server connection lost, trying again in ~5s.", 2500);
         
             clearTimeout(_sharedb_timeout);
             _sharedb_timeout = setTimeout(_shareDBConnect, 5000);
