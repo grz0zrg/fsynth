@@ -20,8 +20,6 @@ Table of Contents
       * [Build system](#build-system)
       * [How to setup your own server](#how-to-setup-your-own-server)
       * [Prod. system](#prod-system)
-      * [The future](#the-future)
-      * [Stuff used to make this](#stuff-used-to-make-this)
       * [Fragment on social medias](#fragment-on-social-medias)
       * [License](#license)
       * [Credits](#credits)
@@ -158,7 +156,6 @@ Many tools are available to enhance Fragment.
 ## Tips and tricks
 
 - Pressing F11 in the GLSL code editor make the editor fullscreen (as an overlay)
-- You can feed the display content of any apps on your desktop (such as GIMP or Krita) by streaming your desktop as a camera (**v4l2loopback** and **ffmpeg** is useful to pull of this on Linux)
 
 ## Project organization
 
@@ -179,7 +176,7 @@ Many tools are available to enhance Fragment.
 
 ## Tech
 
-Fragment client is a vanilla JavaScript web application, it use ECMAScript 5 and many Web API technologies. (Web Audio, Web Workers, Web MIDI, Web GL, Web Storage, indexedDB etc.) It was rapidly built from a prototype and had multiple iterations since then, UI code is probably the part which didn't change much in architectural terms and is probably the most bloated one.
+Fragment client is a vanilla JavaScript web application, it use ECMAScript 5 and 6 (due to some API requiring it) and many Web API technologies. (Web Audio, Web Workers, Web MIDI, Web GL 2, Web Storage, indexedDB etc.) It was rapidly built from a prototype and had multiple iterations since then, UI code is probably the part which didn't change much in architectural terms and is probably the most bloated one, slices also.
 
 Fragment client rely on few dependencies (CodeMirror, sharedb, Recorderjs etc.) and rely on some specifically built libraries such as WUI which handle all the UI widgets.
 
@@ -206,12 +203,14 @@ The Anubis build system can be found [here](https://github.com/grz0zrg/nut) and 
 
 ## How to setup your own server
 
-Fragment make use of NodeJS, NPM, MongoDB and Redis database, install steps with APT (adapt to your package manager) :
+Fragment make use of NodeJS, NPM, MongoDB and Redis database (all defaults port so should work out of the box), install steps with APT (adapt to your package manager) :
 
  * sudo apt install nodejs
  * sudo apt install npm
  * sudo apt install mongodb
  * sudo apt install redis-server
+ 
+On Windows the installation is also easy, just download & install each dependencies above, Redis does not have a Windows build but it may be replaced by [memurai](https://www.memurai.com/)
 
 Once those are installed, it is easy to run it locally:
 
@@ -260,8 +259,6 @@ The repository for the early proof of concept can be found [here](https://github
 [YouTube](https://www.youtube.com/c/FragmentSynthesizer)
 
 [Twitter](https://twitter.com/fragmentsynth)
-
-[SoundCloud](https://soundcloud.com/fsynth/)
 
 ## License
 
