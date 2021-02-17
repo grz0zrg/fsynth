@@ -3163,6 +3163,7 @@ var _createFasSettingsContent = function () {
                         //_chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
                         //_fasNotify(_FAS_INSTRUMENT_INFOS, { target: 0, chn: chn, value: synth_type });
                         //_fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 1 });
+                        slice.instrument_params.p0 = 0;
                     } else if (_synthesis_types[synth_type] === "Subtractive") {
                         //_chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
                         //_fasNotify(_FAS_INSTRUMENT_INFOS, { target: 0, chn: chn, value: synth_type });
