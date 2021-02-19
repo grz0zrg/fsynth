@@ -44,8 +44,8 @@
         float source_index = 0.; // correspond to either channel or instrument index
         // amount of phase distorsion to add to the source, should be between -1 and 1
         float phase_dist_amount = -0.95 + abs(sin(globalTime * 8.)) / 24.; // apply some varying distorsion
-    	l += fline(band) * 1.;
-      	r += fline(band) * 1.;
+    	l += fline(band) * 2.;
+      	r += fline(band) * 2.;
         g += fline(band) * (source_index + source_mode);
         b += fline(band) * phase_dist_amount;
     }

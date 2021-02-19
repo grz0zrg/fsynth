@@ -6,13 +6,20 @@ To output any sounds the audio server available on the [homepage](https://www.fs
 
 To run the audio server on Linux :
 
-- Download the AppImage binary on the [homepage](https://www.fsynth.com)
+- download the AppImage .zip file on the [homepage](https://www.fsynth.com)
+- unzip somewhere
 - `sudo chmod +x fas` in a terminal (or allow the file to be executable through file properties)
 - launch with `./fas` in a terminal
 
-The audio server will select the default audio output device.
+To run the audio server on Windows :
 
-Once the session is created, you will join automatically the Fragment application, an example code which produce basic sounds will be provided automatically along with a quickstart guide.
+- download the corresponding .zip file on the [homepage](https://www.fsynth.com)
+- unzip somewhere
+- double click on the `fas` binary
+
+The audio server will detect and select the default audio output device.
+
+Once the session is created from the homepage, you will join automatically the Fragment application, an example code which produce basic sounds will be provided automatically along with a quickstart guide and some examples.
 
 The Fragment user interface layout is made of :
 

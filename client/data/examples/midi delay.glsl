@@ -52,8 +52,8 @@
           float env_l = adsr(delay, vec4(2.75 * (harmonics - i * 2.), 0.05, 0., .25 + delay_parameter), 0.75) / j;
           float env_r = adsr(delay, vec4(2.75 * (harmonics - i * 2.), 0.05, 0., .25 + delay_parameter), 0.75) / j;
 
-          l += fline(kfrq * i) * a * kvel * env_l;
-          r += fline(kfrq * i) * a * kvel * env_r;
+          l += fline(kfrq * i) * a * kvel * env_l * 8.;
+          r += fline(kfrq * i) * a * kvel * env_r * 8.;
         }
       }
     }

@@ -20,7 +20,7 @@ Here is a simple example of GLSL code that Fragment accept which just set all pi
 
 ```glsl
 void main () {
-  gl_FragColor = vec4(0., 0., 0., 0.);
+  fragColog = vec4(0., 0., 0., 0.); // can also be gl_FragColor
   synthOutput = vec4(0., 0., 0., 0.);
 }
 ```
@@ -31,23 +31,40 @@ Fragment has many pre-defined uniforms (global variables) which can be used in t
 
 Here is a list of Fragment pre-defined uniforms
 
-- `vec2 resolution` viewport resolution (pixels)
-- `float globalTime` playback time (seconds)
-- `float baseFrequency`score base frequency (hertz)
-- `float octave`score octave range
-- `vec4 mouse`normalized mouse coordinates (pixels)
-- `vec4 date`year, month, day, time in seconds
-- `sampler2D iInputN`imported data access, typical usage : texture2D(iInput0, uv);
-- `float fvidN`imported video current playback position (0-1 range)
-- `sampler2D pFrame` previous frame available as a texture (feedback)
-- `sampler2D pFrameSynth`previous score frame available as a texture
-- `int frame` current frame
-- `float htoy` a function with a frequency as argument, return a vertical position on the canvas (pixels)
-- `float fline` ​a function with a frequency as argument, return 1 or 0 (a shortcut to draw a horizontal line)
-- `float yfreq` ​a function with a vertical position as argument and a sample rate argument, return the oscillator frequency at the corresponding position for the corresponding sample rate
-- `vec4[N] keyboard`​MIDI note-on/note-off events : frequency, velocity, elapsed time since the key was pressed, MIDI channel
-- `vec4[N+1] keyboard`​enhanced MIDI (MPE) : pitch bend, timbre (CC74), pressure (aftertouch), release velocity
-- `vec3[N] pKey`​store the previous note-off for each channels, frequency, velocity, elapsed time since the key was pressed
+- `vec2 resolution`
+    - viewport resolution (pixels)
+- `float globalTime`
+    - playback time (seconds)
+- `float baseFrequency`
+    - score base frequency (hertz)
+- `float octave`
+    - score octave range
+- `vec4 mouse`
+    - normalized mouse coordinates (pixels)
+- `vec4 date`
+    - year, month, day, time in seconds
+- `sampler2D iInputN`
+    - imported data access, typical usage : texture2D(iInput0, uv);
+- `float fvidN`
+    - imported video current playback position (0-1 range)
+- `sampler2D pFrame`
+    - previous frame available as a texture (feedback)
+- `sampler2D pFrameSynth`
+    - previous score frame available as a texture
+- `int frame`
+    - current frame
+- `float htoy`
+    - a function with a frequency as argument, return a vertical position on the canvas (pixels)
+- `float fline`
+    - ​a function with a frequency as argument, return 1 or 0 (a shortcut to draw a horizontal line)
+- `float yfreq`
+    - ​a function with a vertical position as argument and a sample rate argument, return the oscillator frequency at the corresponding position for the corresponding sample rate
+- `vec4[N] keyboard`
+    - ​MIDI note-on/note-off events : frequency, velocity, elapsed time since the key was pressed, MIDI channel
+- `vec4[N+1] keyboard`
+    - ​enhanced MIDI (MPE) : pitch bend, timbre (CC74), pressure (aftertouch), release velocity
+- `vec3[N] pKey`
+    - ​store the previous note-off for each channels, frequency, velocity, elapsed time since the key was pressed
 
 ### Reference cards
 
@@ -64,8 +81,8 @@ Since there is plenty of resources to learn the OpenGL Shading Language, the doc
 
 Fragment support GLSL 3.0, GLSL 3.0 allow to use dynamical indexes with arrays among many other things, it also allow to use some shortcuts.
 
-There is actually two output in the fragment shader, gl_FragColor or fragColor for the visuals and synthOutput for the synth pixels data which will be used by the sound synthesis engine, this allow to do visuals alongside stereo audio.
+There is actually two output in the fragment shader, `gl_FragColor` or `fragColor` for the visuals and `synthOutput` for the synth pixels data which will be used by the sound synthesis engine, this allow to do visuals alongside stereo audio.
 
-When the EXT_color_buffer_float extension is available, the pixels data output will be encoded as 32-bit float, this allow more accuracy to represent values resulting in higher accuracy synthesis / modulation.
+When the EXT_color_buffer_float extension is available, the pixels data output will be encoded as 32-bit float, this allow more accuracy to represent values resulting in higher accuracy synthesis / modulation. This can be checked in the help dialog.
 
 There is also many applications that let you create stunning visuals in your browser by the same method, one of the most popular one and compatible with Fragment (by using the convert ShaderToy button of the toolbar) is [ShaderToy](https://www.shadertoy.com/), this program let you build visuals and audio at the same time, just like Fragment with a more conventional approach for audio synthesis.

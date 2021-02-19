@@ -28,7 +28,7 @@ The Fragment [homepage](https://www.fsynth.com/) can be used to retrieve the var
 
 You can join a session from the list by clicking on it and by clicking on the door icon.
 
-You can remove a session from the list by clicking on it and by clicking on the trash icon.
+You can remove a session from the list by clicking on it and by clicking on the trash icon. This will only delete it from the list, the session is still accessible directly.
 
-You can also clear the sessions history by clicking on the corresponding button, it will not delete the session content, just your settings for that session and the session will removed from the list, a deleted session can be joined back from the homepage form or from the browser address bar if you know its name.
+You can also clear the sessions history by clicking on the corresponding button, it will not delete the session content, just your settings for that session and the session will be removed from the list, a deleted session can be joined back from the homepage form or from the browser address bar if you know its name.
 

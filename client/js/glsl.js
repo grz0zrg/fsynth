@@ -235,7 +235,7 @@ var _glsl_compilation = function () {
     glsl_code += "float fline(float frequency) {return step(abs(gl_FragCoord.y - htoy(frequency)), 0.5);}";
 
     // add yfreq
-    glsl_code += "float getFrequency(float y, float sample_rate) { return (baseFrequency * pow(2., (resolution.y - floor((y * resolution.y) + 0.5)) / octave)) / sample_rate; }";
+    glsl_code += "float yfreq(float y, float sample_rate) { return (baseFrequency * pow(2., (resolution.y - floor((y * resolution.y) + 0.5)) / octave)) / sample_rate; }";
 
     // inputs uniform from OSC
     for (ctrl_name in _osc.inputs) { 

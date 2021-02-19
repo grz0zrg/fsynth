@@ -89,7 +89,7 @@ var _icon_class = {
 
     _synthesis_types = ["Additive", "Spectral", "Granular", "PM/FM", "Subtractive", "Physical Model", "Wavetable", "Bandpass (M)", "Formant (M)", "Phase Distorsion (M)", "String resonance (M)", "Modal (M)", "Modulation", "In", "Faust"],
     _synthesis_enabled = [1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1],
-    _synthesis_params = [0, 3, 3, 2, 1, 2, 1, 0, 0, 0, 0, 0, 5, 0, 5],
+    _synthesis_params = [0, 3, 3, 2, 1, 2, 1, 1, 0, 0, 0, 0, 5, 0, 5],
 
     _efx = [{
             name: "Convolution",
@@ -1743,6 +1743,46 @@ var _createSynthParametersContent = function () {
             }));
 
             chn_genv_type_select.dispatchEvent(new UIEvent('change'));
+        } else if (_synthesis_types[synth_type] === "Bandpass (M)") {
+            var chn_order_label = document.createElement("label");
+            var chn_order_select = document.createElement("select");
+            var chn_order_options = ["2", "4", "6", "8"];
+            
+            for (i = 0; i < chn_order_options.length; i += 1) {
+                var chn_order_option = document.createElement("option");
+                chn_order_option.innerHTML = chn_order_options[i];
+                
+                chn_order_select.appendChild(chn_order_option);
+            }
+            
+            chn_order_label.classList.add("fs-input-label");
+
+            chn_order_label.innerHTML = "Filter order: &nbsp;";
+            chn_order_label.htmlFor = "fs_chn_" + j + "_bp_order_settings";
+            
+            chn_order_select.classList.add("fs-btn");
+            chn_order_select.style = "margin-top: 4px";
+
+            chn_order_select.dataset.chnId = j;
+            chn_order_select.id = chn_order_label.htmlFor;
+
+            chn_order_select.childNodes[slice.instrument_params.p0].selected = true;
+
+            chn_order_select.addEventListener("change", function() {
+                var j = parseInt(this.dataset.chnId, 10),
+                    value = parseInt(this.selectedIndex, 10);
+
+                var slice = _play_position_markers[j];
+
+                slice.instrument_params.p0 = value;
+
+                _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: j, target: 3, value: value });
+
+                _sendSliceUpdate(j, { instruments_settings : { p0: value } });
+            });
+
+            chn_fieldset.appendChild(chn_order_label);
+            chn_fieldset.appendChild(chn_order_select);
         } else if (_synthesis_types[synth_type] === "Spectral") {
             var chn_input = document.createElement("div");
             chn_input.id = "fs_chn_" + j + "_chn_input";
@@ -2938,7 +2978,9 @@ var _createFasFxContent = function (div) {
             e.preventDefault();
 
             var actions = [];
-            var deleteAction = { icon: "fs-cross-45-icon", tooltip: "Delete unused channels (start at the last used one)", on_click: function () {
+            var deleteAction = { icon: "fs-cross-45-icon", tooltip: "Delete unused channels (start at the last used one)", on_click: function (ev) {
+                ev.preventDefault();
+                
                 // disable channels (probably help performances)
                 for (var j = _output_channels; j < _chn_settings.length; j += 1) {
                     _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: j, value: -1 });
@@ -3163,6 +3205,15 @@ var _createFasSettingsContent = function () {
                         //_chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
                         //_fasNotify(_FAS_INSTRUMENT_INFOS, { target: 0, chn: chn, value: synth_type });
                         //_fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 1 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 3, value: 0 });
+
+                        slice.instrument_params.p0 = 0;
+                    } else if (_synthesis_types[synth_type] === "Bandpass (M)") {
+                        //_chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
+                        //_fasNotify(_FAS_INSTRUMENT_INFOS, { target: 0, chn: chn, value: synth_type });
+                        //_fasNotify(_FAS_CHN_INFOS, { target: 1, chn: chn, value: 1 });
+                        _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 3, value: 0 });
+
                         slice.instrument_params.p0 = 0;
                     } else if (_synthesis_types[synth_type] === "Subtractive") {
                         //_chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];

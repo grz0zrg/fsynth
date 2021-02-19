@@ -50,8 +50,8 @@
         float source_index = 0.; // correspond to either channel or instrument index
         float feedback_amount = 0.99; // typically > 0.9
         
-      	l += fline(frequency) * 0.5;
-      	r += fline(frequency) * 0.5;
+      	l += fline(frequency) * 1.;
+      	r += fline(frequency) * 1.;
         b += fline(frequency) * (source_index + source_mode);
         a += fline(frequency) * feedback_amount;
       }

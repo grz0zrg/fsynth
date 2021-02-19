@@ -16,7 +16,7 @@ It is accelerated which mean that all drawing operations will be computed on any
 
 Drawing on the canvas is done by instructing the GPU to draw with a simple high-level programming language called [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language), the Fragment GLSL script (also called a **fragment** shader) is called by the GPU for every pixels on the canvas. This approach allow very fast real-time manipulation of the bitmap data.
 
-The GLSL script is unique and may be shared in real-time between the users of an online session.
+The GLSL script is unique and is shared in real-time between the users of an online session.
 
 All changes to the GLSL script are immediately applied providing immediate audio and visual feedback.
 
@@ -55,7 +55,7 @@ Fragment default oscillator-bank is sinusoidal.
 
 When every oscillators produce sinusoidal oscillations the method is called Additive synthesis.
 
-Additive synthesis can reproduce any waveforms, it allow to precisely define the timbre of any sounds and is the default instrument.
+Additive synthesis can reproduce any waveforms, it allow to precisely define the timbre of any sounds and is the default instrument type.
 
 Fragment oscillators are not limited to sinusoidal oscillations but allow several type of generators / oscillators all working from the same oscillator-bank concept :
 
@@ -87,7 +87,7 @@ All pixels data from the vertical slices are oscillator-bank on / off switch whe
 
 With Fragment, all sounds is generated from a frequency domain, frequency is represented on the vertical axis and stereo/mono amplitude is represented by the intensity of each pixels, parts of the canvas is then captured by user-positioned slices.
 
-The basics of making sounds with Fragment is by first slicing the canvas in vertical slices, pixels data is then captured continuously from the slices at the browser display refresh rate and is then translated to notes from the RGBA pixels value, the notes are then interpreted and played by one or more synthesis method in real-time.
+The basics of making sounds with Fragment is by first slicing the canvas in vertical slices, pixels data is then captured continuously from the slices at the browser display refresh rate and is then converted to notes from the RGBA pixels value, the notes are then interpreted and played by one or more synthesis method in real-time.
 
 The canvas represent frequencies (exponential map) on the vertical axis, the horizontal axis generally represent time.
 

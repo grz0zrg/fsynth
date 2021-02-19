@@ -19,7 +19,7 @@ void main () {
     r += fline(base_frequency * i);
   }
 
-  gl_FragColor = vec4(l, r, 0., 1.);
+  fragColor = vec4(l, r, 0., 1.);
   synthOutput = vec4(l, r, 0., 0.); // WebGL 2.0 only
 }
 ```
@@ -54,7 +54,7 @@ void main () {
     r += fline(base_frequency * i) * a;
   }
 
-  gl_FragColor = vec4(l, r, 0., 1.);
+  fragColor = vec4(l, r, 0., 1.);
   synthOutput = vec4(l, r, 0., 0.); // WebGL 2.0 only
 }
 ```

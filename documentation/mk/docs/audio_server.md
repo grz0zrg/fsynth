@@ -1,6 +1,6 @@
 ## About
 
-The Fragment Audio Server is a program which is able to do very fast real-time audio synthesis, it run alongside the web application to produce sounds.
+The Fragment Audio Server is a program which is able to do fast real-time audio synthesis, it run alongside the web application to produce sounds.
 
 The audio server **must be launched to output any audio**, it will listen to 127.0.0.1:3003 by default and will use the default audio device. This can be changed by passing command line arguments when launched.
 
@@ -26,7 +26,7 @@ All slices / instruments added are automatically bound to the first virtual chan
 
 Instrument can be assigned a virtual channel by going into the slices settings dialog (see Slice / Instruments section)
 
-Virtual channels can be muted by clicking on their number, a red number indicate a muted channel.
+Virtual channels can be muted by clicking on their number, a red number indicate a muted channel. A muted channel is particularly usefull for instruments with channel input such as bandpass for example by playing an instrument in a muted channel and using the channel as a source for bandpass instrument.
 
 Unused channels can be cleared by right clicking on any channel number and clicking on the trash icon. (Note : this will only delete unused channels starting from the latest used one)
 
@@ -73,7 +73,7 @@ When right clicking on a folder name some actions appear :
 
 The number associated to each files is the internal mapping attributed by the audio server, this is the index of the file which may be asked with some instrument type of parameters (such as granular or wavetable). Sometimes this number may be fractional thus the fractional value is also provided as a tooltip when the filename is hovered.
 
-Note : The audio server files manager need to run in order to use this feature. It is not provided as a pre packaged binary yet.
+**Note : The audio server files manager need to run in order to use this feature. It is available on the homepage.**
 
 ## Instruments type details
 
@@ -129,7 +129,7 @@ Both asynchronous and synchronous granular synthesis is implemented and can be u
 
 The Fragment Audio Server load all samples (*.wav, *.flac or any formats supported by [libsndfile](https://github.com/erikd/libsndfile) ) from a **grains folder** and try to guess their pitch to map it on the canvas so that it match the canvas freq. mapping, the grains folder is at **/usr/local/share/fragment/grains** by default under Linux and if you installed Fragment from the .deb package or run it with the AppImage, otherwise the grain folder should be located in the audio server directory or should be specified from the arguments.
 
-The pitch algorithm used to find the sample pitch may be sometimes wrong on some samples, it is possible to force the pitch of a specific sample by adding the MIDI note to their filename, such as `flute_A#4.wav`  or `flute_As4.wav` for example (the note name can be lowercase or uppercase), it is also possible to force a specific frequency by adding it to the filename between `####`such as `flute_##440##.wav`
+The pitch algorithm used to find the sample pitch may be sometimes wrong on some samples, it is possible to force the pitch of a specific sample by adding the MIDI note to their filename, such as `flute_A#4.wav`  or `flute_As4.wav` for example (the note name can be lowercase or uppercase), it is also possible to force a specific frequency by adding it to the filename between `##`such as `flute_##440##.wav`
 
 Just like with additive synthesis, re-synthesis by granular means is possible altough computationally heavy.
 
@@ -165,11 +165,11 @@ Subtractive synthesis start from harmonically rich waveforms which are then filt
 
 There is many filters type to chose from (see instrument parameters): moog, diode, korg 35, lpf18...
 
-Be careful as some filters may have unstability issues with some parameters! (note : they are all checked against safety but there could be bugs...)
+Be careful as some filters may have unstability issues with some parameters! (note : they are all checked for safety but there could be bugs...)
 
 There is three type of band-limited waveforms : sawtooth, square, triangle
 
-There is also a noise waveform and additional brownian / pink noise.
+There is also a noise waveform and additional brownian / pink noise. This may be usefull for some instruments such as String resonance / Modal.
 
 The RGBA parameters are
 
@@ -293,6 +293,10 @@ The RGBA parameters are
 - GREEN : Right amplitude
 - BLUE : integral part : source channel / instrument index
 - ALPHA : bandwidth factor : a value of 1 mean a bandwidth of current bank above + below gap
+
+Here are the instrument parameters :
+
+* Filter order : High value approach brickwall filter (more precise) at the expense of processing time
 
 ### Phase distorsion (M)
 
@@ -482,6 +486,6 @@ Here are the instrument parameters :
 
 The audio server can be compiled from the sources which are available on [GitHub](https://github.com/grz0zrg/fas).
 
-The audio server can be launched manually by executing it, it will listen to 127.0.0.1:3003 by default and will use the default audio device, see the [GitHub](https://github.com/grz0zrg/fas) README file for all the command-line arguments that the program support.
+The audio server can be launched manually by executing it, it will listen to 127.0.0.1:3003 by default and will use the default audio device, see the [GitHub](https://github.com/grz0zrg/fas) README file for all the command-line arguments that the program support or use `--help` argument.
 
 Once the audio server is started, a link between the audio server and the Fragment application is automatically done when you join any sessions (note : by default the client will try to connect to the default listening address of the audio server).

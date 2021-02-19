@@ -12,7 +12,7 @@ Fragment user interface has a simple layout with five different parts.
 
 The information panel at the top convey minor and major informations such as (in order from left to right)
 
-- connectivity status for each services (SERVER, CHAT, AUDIO SERVER)
+- connectivity status for each services (DATA SERVER, SETTINGS SERVER, AUDIO SERVER)
     - a red color signal that the connection to this service failed
     - a green indicator signal that Fragment is currently connected to this service
     - the service name can be found by hovering the icon with the cursor
@@ -32,9 +32,9 @@ The information panel at the top convey minor and major informations such as (in
 
 ### Canvas
 
-The canvas is a graphically accelerated surface of a chosen dimension where the visual output produce by the code in the code editor is displayed.
+The canvas is a graphically accelerated surface of a chosen dimension where the output result of the Fragment script is displayed.
 
-The canvas content is modified using the **gl_FragColor** GLSL uniform in the code editor.
+The canvas content is modified using the **gl_FragColor** or **fragColor** vec4 GLSL uniform in the code editor.
 
 ### Graphical score
 
@@ -57,7 +57,7 @@ What you hear in Fragment is determined by the position of **instruments** (1px 
 
 All added instruments are set to additive synthesis by default.
 
-Instruments can be configured to output AUDIO (default), OSC data or custom MIDI data.
+Instruments can be configured to output AUDIO (default), OSC data and custom MIDI data.
 
 The score is a hidden surface which can be modified independently from the visual canvas using the **synthOutput** GLSL uniform.
 
@@ -73,9 +73,10 @@ Here are all the possible actions on the canvas :
 
 ![Fragment toolbar](tutorials/images/toolbar.png)
 
-The toolbar is a grouped collection of tools / settings, here is a detailed list of the toolbar items (in order from left to right)
+The toolbar is a collection of tools / settings, here is a detailed list of the toolbar items (in order from left to right)
 
 - help
+    - provide various helpers
 - social
     - session live chat
     - direct link to the community online board
@@ -90,7 +91,7 @@ The toolbar is a grouped collection of tools / settings, here is a detailed list
     - settings
 - tools
     - [ShaderToy](https://www.shadertoy.com/) converter
-    - canvas axis details (appear when the canvas is hovered by the cursor)
+    - canvas axis details (when enabled details appear when the canvas is hovered by the mouse pointer)
     - GLSL functions and uniforms outline dialog
         - open a dialog which list all **main** / **library** code definitions (variables, constants and functions), definitions can be clicked on to access them quickly in the code, all added code bookmarks are also shown here (see Code editor section below)
     - clone the code editor in a separate window
@@ -107,15 +108,15 @@ The fragment input panel is a complete list of all added inputs, each of them ap
 
 All inputs can be used as a 2D texture (**texture** keyword) within the code editor (GLSL code editor or Processing.js code editor), they are pre-defined as **iInputN** where N is the id of the input starting from 0.
 
-You can find the input id by hovering over the thumbnail or in the title of the complex input settings dialog.
+You can find the input id by hovering over the thumbnail or in the title of the input settings dialog.
 
 Inputs can be ordered in real-time by drag & drop as shown above.
 
-Inputs can deleted quickly with a middle click on the input thumbnail.
+Inputs can be deleted quickly with a middle click on the input thumbnail.
 
 ### Collaborative Code editor
 
-The code editor is one of the most important tool of Fragment, it allow the user to generate the visuals and the spectral score which is fed to the sound synthesis server.
+The code editor is one of the most important tool of Fragment, it allow to control the graphical canvas content and the spectral score which is fed to the sound synthesis server.
 
 [GLSL](https://www.khronos.org/files/opengles_shading_language.pdf) code is what you type in the code editor to generate the visuals and sound synthesis data.
 
@@ -147,11 +148,11 @@ Workspaces panel contain the code, library and examples.
 
 The code of the session can be found into **Code** and is named **main**, it is opened by default when any sessions is joined.
 
-"My library" is a global **user** code library which is shared between sessions, definition of constants, variables or functions can be defined here to be used in the main code of any sessions. It is very usefull to build a personal library of functions, constants etc.
+"My library" is a global **user** code library which is shared between sessions, definition of constants, variables or functions can be defined here to be used in the main code of any sessions. It is usefull to build a personal library of functions, constants etc.
 
 Fragment come with many examples which can be found in the **Examples** part of the workspace, some examples may require some pre actions from the users as such it is recommended to read the first part of the example.
 
-All additive examples does not require actions from the user and can be listened right away.
+All additive examples does not require actions from the user and can be tried right away.
 
 ## Widgets
 
@@ -178,7 +179,7 @@ To resize a dialogs, place the mouse cursor on the bottom right corner of the di
 
 ### Input fields & MIDI learn
 
-Inputs fields are widgets accepting user values.
+Inputs fields are widgets accepting user values. Some input fields turn red when the input value is out of range.
 
 Some inputs have a red square which indicate MIDI learn functionality support for this widget
 
@@ -190,4 +191,4 @@ By left clicking on the red square, it turn green and any inputs from enabled MI
 
 Once the MIDI input is captured, the green square become red again (a locked state) and the MIDI control will be assigned to the widget.
 
-It is possible to reset the MIDI control assigned to the widget by clicking on the red square and clicking again on the green square aka double clicking.
+It is possible to reset the MIDI control assigned to the widget by clicking on the red square and clicking again on the green square (double click).

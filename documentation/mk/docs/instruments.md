@@ -18,12 +18,6 @@ Once added an instrument can be assigned to the slice in the **SYNTH** dialog (b
 
 Slices can be moved by dragging them on the X axis, to do so, maintain the left mouse button on a slice and move the mouse cursor around on the horizontal axis.
 
-![Dragging slices](gifs/dragging_slices.gif)
-
-Double-clicking on a slice open its settings dialog :
-
-![Slices settings](images/slice_settings.png)
-
 The following actions are possible when right-clicking on a slice
 
 delete
@@ -34,16 +28,22 @@ mute/unmute
 
 - the slice will not output anything (muted)
 
+![Dragging slices](gifs/dragging_slices.gif)
+
+Double-clicking on a slice open its settings dialog :
+
+![Slices settings](images/slice_settings.png)
+
 open slice settings dialog
 
 - X Offset: the slice horizontal position
-- Y Shift: offset the slice vertically by some amount (frequency band offset)
+- Y Shift: offset the slice vertically by some amount (frequency band offset; has no visual indication)
 - Increment per frame: This allow the slice to move left or right autonomously
 - Output channel index (virtual; has no relation with physical output channel)
 - AUDIO out: Enable/disable audio output for this slice
 - OSC out: Enable/disable OSC output for this slice
 - MIDI out: Enable/disable MIDI output for this slice
-    - one or multiple MIDI devices can be selected from the **Devices** list (see MIDI)
+    - one or multiple (with shift + click) MIDI devices can be selected from the **Devices** list (see MIDI)
     - open MIDI OUT editor: show the editor for custom MIDI OUT messages
 
 ##### Muting a slice
