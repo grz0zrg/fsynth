@@ -38,6 +38,6 @@ This control the ending point of the video, the video duration is normalized to 
 
 ## Note
 
-- Video play position is accessible within the Fragment shader as `fvidN` where `N` is the input ID.
+- Video normalized play position is accessible within the Fragment shader as `fvidN` where `N` is the input ID.
 - Imported videos are not saved, instead videos input will be seen as a broken input upon session reload which act as a dummy input until you replace it, videos are not saved because they can be quite large and this may introduce issues on usability.
 - Videos can be rewinded quickly from the input menu (left click on a video input to open the menu)

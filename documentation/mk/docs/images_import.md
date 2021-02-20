@@ -26,7 +26,7 @@ There is several other functions (see GLSL section) that can be used with textur
 
 #### Image access
 
-Simplest example which map the entire image on the totality of the canvas
+Simplest example which map the entire image on the canvas
 
 ```glsl
 void main () {
@@ -38,9 +38,43 @@ void main () {
   vec4 tex_data = texture(iInput0, uv);
 
   fragColor = vec4(l, r, 0., 1.) + tex_data;
-  synthOutput = vec4(l, r, 0., 0.); // WebGL 2 only
+  synthOutput = vec4(l, r, 0., 0.);
 }
 ```
+
+This will affect the aspect ratio, here is a snippet for a fixed aspect ratio canvas centered image
+
+```glsl
+void main () {
+  float l = 0.;
+  float r = 0.;
+
+  vec2 uv = (2. * gl_FragCoord.xy - resolution.xy) / resolution.y * 0.5 + 0.5;
+
+  vec4 tex_data = texture(iInput0, uv);
+
+  fragColor = vec4(l, r, 0., 1.) + tex_data;
+  synthOutput = vec4(l, r, 0., 0.);
+}
+```
+
+Here is an example to display the original image as-is (centered)
+
+```glsl
+void main () {
+  float l = 0.;
+  float r = 0.;
+
+  float aspect = float(textureSize(iInput0, 0).y);
+  vec2 uv = (2. * gl_FragCoord.xy - resolution.xy) / aspect * 0.5 + 0.5;
+
+  vec4 tex_data = texture(iInput0, uv);
+
+  fragColor = vec4(l, r, 0., 1.) + tex_data;
+  synthOutput = vec4(l, r, 0., 0.);
+}
+```
+
 #### Image settings
 
 Imported images have several settings which can be quickly accessed by right-clicking on the image thumbnail or by left-clicking on the image thumbnail and by clicking on the *settings* button, the image settings dialog will be shown
@@ -55,46 +89,25 @@ Imported images have several settings which can be quickly accessed by right-cli
 
 linear
 
-
-
 - Give a smooth result with a weighted average of the surrounding 4 pixels
-- Recommended when using [spectrogram](https://en.wikipedia.org/wiki/Spectrogram) images, the resulting audio may be more pleasant
-
-nearest
-
-
-
-- This is the image processed as-is, this can give a pixelated look and may sound raw with abrupt changes between amplitudes
-
-mipmap
-
-
-
-- Bilinear filtering + mipmap, mipmap are pre-calculated lower resolution representation of the image, this feature can be useful to produce cheap blur and other effects or reduce aliasing artifacts with visuals. (Note : `textureLod` must be used to access specific mipmap level in the code)
+    - Recommended when using [spectrogram](https://en.wikipedia.org/wiki/Spectrogram) images, the resulting audio may be more pleasant
+- nearest (default)
+    - This is the image processed as-is, this can give a pixelated look and may sound raw with abrupt changes between amplitudes
+- mipmap
+    - Bilinear filtering + mipmap, mipmap are pre-calculated lower resolution representation of the image, this feature can be useful to produce cheap blur and other effects or reduce aliasing artifacts with visuals. (Note : `textureLod` must be used to access specific mipmap level in the code)
 
 ##### Wrap S/T
 
-When the texture is sampled and the given coordinates are outside the range of `0` to `1`. Fragment offer 3 ways of handling the resulting image
+When the texture is sampled and the given coordinates are outside the range of `0` to `1`.
 
-clamp (default)
+Fragment offer 3 ways of handling the resulting image :
 
-
-
-- The image will be as-is without anything (black) outside the range of `0` to `1`
-
-repeat
-
-
-
-- The image will repeat
-
-mirrored repeat
-
-
-
-- The image will repeat in a mirrored fashion
+- clamp (default)
+    - The image will be as-is without anything (black) outside the range of `0` to `1`
+- repeat
+    - The image will repeat
+- mirrored repeat
+    - The image will repeat in a mirrored fashion
 
 ##### VFlip
-
 This can be checked to flip the image along the vertical axis, if your image is upside-down, this can be used to fix it
-
