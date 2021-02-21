@@ -574,9 +574,12 @@ var _midiDataOut = function (pixels_data) {
         osc = null,
         l = 0, pl = 0,
         r = 0, pr = 0,
+        pb = 0, pa = 0,
         y = 0,
         li = 0,
         ri = 1,
+        bi = 2,
+        ai = 3,
         i = 0,
         k = 0,
         j = 0,
@@ -621,12 +624,14 @@ var _midiDataOut = function (pixels_data) {
         for (i = 0; i < data_length; i += 4) {
             l = data[i + li];
             r = data[i + ri];
-            b = data[i + 2];
-            a = data[i + 3];
+            b = data[i + bi];
+            a = data[i + ai];
             
             pl = prev_data[i + li];
             pr = prev_data[i + ri];
-            
+            pb = prev_data[i + bi];
+            pa = prev_data[i + ai];
+
             osc = _oscillators[y];
 
             midi_obj = pixels_data[midi_chn_data_index + k];
@@ -701,7 +706,7 @@ var _midiDataOut = function (pixels_data) {
                     }
                 }
                 
-                if (pl !== l || pr !== r) {
+                if (pl !== l || pr !== r || pb !== b || pa !== a) {
                     if (midi_note_obj.on && _midi_notes[midi_note_obj.chn].notes <= 1) {
                         if (midi_obj.custom_midi_message_fn) {
                             midi_message = midi_obj.custom_midi_message_fn("change", l, r, b, a, midi_note_obj.chn).change;

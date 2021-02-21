@@ -153,6 +153,61 @@ Features :
 
 External synths can be triggered from pixels data via MIDI OUT, one or multiple MIDI devices can be assigned to one or more slice (note: slices must have different output channels otherwise the last slice with MIDI devices attached is used), RGBA channels can be assigned to user-defined MIDI messages from the slice settings JS script, Fragment has limited MPE support (non-standard for now) to support polyphony through 16 channels, every sounding note is temporarily assigned to its own MIDI channel, allowing microtonal, individual stereo panning and polyphonic capabilities.
 
+### How it Work
+
+On every 'note on' (or more like a 'data on' event) Fragment send the following MIDI data (in order) :
+
+* user-defined MIDI data (the `on` array content of the MIDI out editor startup code)
+* channel pitch bend (this will fine tune the note frequency to match the activated bank frequency; microtonal capability)
+* channel panning
+* note / volume
+
+On each slice data change (R,G,B,A) a 'change' event is triggered, this 'change' event trigger a MIDI send with data from the `change` user-defined array content.
+
+On a 'note off' event (when a slice data become 0 for both left & right or red & green) the user-defined content of the `off` array is sent, the note off event is also sent afterward.
+
+Note : The MIDI channel is defined by the output channel slice parameter.
+
+### User-defined MIDI OUT messages
+
+This feature allow to send custom MIDI data for each specific events (note-on, change and note-off). This use JavaScript to allow maximum flexibility. The MIDI out messages editor can be accessed from the slices / instrument settings `MIDI out` section.
+
+Here is the default setup for each instruments :
+
+```js
+/*
+ User-defined MIDI messages for note events
+ Pre-defined variables : 
+  Pixels data: l, r, b, a
+  MIDI channel : c
+*/
+
+if (type === "on") {
+    on = [];
+} else if (type === "change") {
+    change = [];
+} else if (type === "off") {
+    off = [];
+}
+```
+
+The pre-defined pixels data variables are all normalized (0,1) which mean they should likely be multiplied before being sent.
+
+Here is an example of user-defined control change (modulation) using A pixel data :
+
+```js
+if (type === "on") {
+    on = [];
+} else if (type === "change") {
+    // send CC on defined output channel of modulation type with the value of pixel data alpha channel
+    change = [0xb0 + c, 0x01, a * 127];
+} else if (type === "off") {
+    off = [];
+}
+```
+
+Most JavaScript features in the MIDI out editor are supported, the editor data is saved and shared between session users.
+
 ## Note
 
 When a note-off is received, Fragment will actually keep the note in memory for an amount of time defined by the **note lifetime** global settings, this is useful for the release portion of envelopes for example or to use the release velocity, this settings can be found in the global settings dialog.

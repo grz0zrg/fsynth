@@ -13,6 +13,16 @@ var _pause = function () {
     
     _pause_time = performance.now();
 
+    // clean playing MIDI notes
+    _MIDInotesCleanup();
+
+    // clean previous midi data (used to dectect note-on events)
+    for (var i = 0; i < _output_channels; i += 1) {
+        if (_prev_midi_data[i]) {
+            _prev_midi_data[i].fill(0, 0);
+        }
+    }
+
     _resetMIDIDevice();
 
     _pjsPauseAll();
