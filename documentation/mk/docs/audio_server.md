@@ -89,8 +89,7 @@ The effect type must be provided as an integer value from the BLUE component, th
 
 * 0: none
 * 1: bitcrush (Bitdepth / Sampling rate : B component [0, 1] / A component [0, 1])
-* 2: tanh waveshaping (Wave 1 / Wave 2 : B component [0, 1] / A component [0, 1))
-* 3: noise (B added white noise factor to sine wave phase)
+* 2: noise (B added white noise factor to sine wave phase)
 
 Any of these can be applied to each partials with real-time parameters change. This allow to easily add character to the additive sound.
 
@@ -418,6 +417,8 @@ Generators code will be hooked to the synthesis part of the sound engine while e
 
 One generator is bundled into the audio server; a pulse wave generator.
 
+One effect is bundled into the audio server; Oberheim LPF filter.
+
 Fragment to Faust DSP parameters can be specified through nentry interface primitive and are used to transfer note / initial generator data.
 
 Here is a list of usable Faust generators nentry key :
@@ -481,6 +482,8 @@ Here are the instrument parameters :
 * p1 : fs_p1
 * p2 : fs_p2
 * p3 : fs_p3
+
+[Faust online IDE](https://faustide.grame.fr/) can be used to get more generator / effect examples and develop Faust DSP easily.
 
 ### Building the Audio Server
 
