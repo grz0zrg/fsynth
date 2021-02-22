@@ -191,4 +191,6 @@ By left clicking on the red square, it turn green and any inputs from enabled MI
 
 Once the MIDI input is captured, the green square become red again (a locked state) and the MIDI control will be assigned to the widget.
 
+Once a MIDI input is assigned the red square tooltip will show the device / controller ID and the MIDI widget mode (relative or absolute; where relative means that this widget does not have a defined range, most of these will be typically assigned to "endless" rotary controls also called encoders)
+
 It is possible to reset the MIDI control assigned to the widget by clicking on the red square and clicking again on the green square (double click).

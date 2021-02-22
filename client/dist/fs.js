@@ -2595,6 +2595,18 @@ var WUI_RangeSlider = new (function() {
         return +(n.slice(0, n.length - 1));
     };
 
+    var _truncateFloat = function (num, precision) {
+        var mult = 1.0, prec = precision;
+
+        if (prec > 0) {
+            while (prec--) {
+                mult *= 10;
+            }
+        }
+
+        return ((num * mult) >> 0) / mult;
+    };
+
     var _getHookElementFromTarget = function (ev_target) {
         if (ev_target.classList.contains(_class_name.hook)) {
             return ev_target;
@@ -2629,7 +2641,7 @@ var WUI_RangeSlider = new (function() {
 
         value_input = bar.nextElementSibling;
 
-        value = _truncateDecimals(value, widget.opts.decimals);
+//        value = _truncateDecimals(value, widget.opts.decimals);
 
         if (rs.opts.vertical) {
             pos = Math.round(pos * bar.offsetHeight);
@@ -2951,9 +2963,9 @@ var WUI_RangeSlider = new (function() {
 
         var hook_element = _getHookElementFromTarget(target),
 */
-            var rs_element = /*hook_element*/ev.target.parentElement/*.parentElement.parentElement*/,
+        var rs_element = /*hook_element*/ev.target.parentElement/*.parentElement.parentElement*/,
 
-            grabbed_widget = _widget_list[rs_element.id];
+        grabbed_widget = _widget_list[rs_element.id];
 
         _update(rs_element, grabbed_widget, ev.target.value);
 
@@ -3321,7 +3333,7 @@ var WUI_RangeSlider = new (function() {
             }
         }
 
-        if (opts.min < 0) {
+        if (opts.min < opts.max) {
             opts.range = opts.max - opts.min;
         }
 
@@ -3528,7 +3540,7 @@ var WUI_RangeSlider = new (function() {
         }
 
         if (_midi_learn_current === id) {
-            midi_learn_current = null;
+            _midi_learn_current = null;
         }
 
         _removeMIDIControls(id);
@@ -3647,39 +3659,45 @@ var WUI_RangeSlider = new (function() {
         if (_midi_learn_current) {
             widget = _widget_list[id];
 
-            if (!_midi_controls[kdevice]) {
-                _midi_controls[kdevice] = {};
-            }
-
-            if (!_midi_controls[kdevice][kcontroller]) {
-                _midi_controls[kdevice][kcontroller] = {
-                        prev_value: value,
-                        widgets: [],
-                        increments: 1
-                    };
-            }
-
-            _midi_controls[kdevice][kcontroller].widgets.push(id);
-
-            detached_slider = _getDetachedElement(id);
-
-            if (detached_slider) {
-                elems = detached_slider.getElementsByClassName(_class_name.midi_learn_btn);
-                if (elems.length > 0) {
-                    elems[0].style = "";
-                    elems[0].title = kdevice + " " + kcontroller;
+            if (!widget) {
+                _midi_learn_current = null;
+            } else {
+                if (!_midi_controls[kdevice]) {
+                    _midi_controls[kdevice] = {};
                 }
+
+                if (!_midi_controls[kdevice][kcontroller]) {
+                    _midi_controls[kdevice][kcontroller] = {
+                            prev_value: value,
+                            widgets: [],
+                            increments: 1
+                        };
+                }
+
+                _midi_controls[kdevice][kcontroller].widgets.push(id);
+
+                var isAbs = (widget.midi.ctrl_type === "abs" && widget.opts.range !== undefined && widget.opts.min !== undefined);
+                var type = isAbs ? "abs" : "rel";
+
+                detached_slider = _getDetachedElement(id);
+                if (detached_slider) {
+                    elems = detached_slider.getElementsByClassName(_class_name.midi_learn_btn);
+                    if (elems.length > 0) {
+                        elems[0].style = "";
+                        elems[0].title = kdevice + " " + kcontroller + " (" + type + ")";
+                    }
+                }
+
+                widget.midi.device = device;
+                widget.midi.controller = controller;
+
+                widget.learn = false;
+                widget.learn_elem.style = "";
+                widget.learn_elem.title = kdevice + " " + kcontroller + " (" + type + ")";
+                _midi_learn_current = null;
+
+                return;
             }
-
-            widget.midi.device = device;
-            widget.midi.controller = controller;
-
-            widget.learn = false;
-            widget.learn_elem.style = "";
-            widget.learn_elem.title = kdevice + " " + kcontroller;
-            _midi_learn_current = null;
-
-            return;
         }
 
         if (_midi_controls[kdevice]) {
@@ -3691,6 +3709,19 @@ var WUI_RangeSlider = new (function() {
 
                     widget = _widget_list[id];
 
+                    // clean MIDI stuff / widget when it don't exist anymore (may have been deleted)
+                    if (!widget) {
+                        if (_midi_learn_current === id) {
+                            _midi_learn_current = null;
+                        }
+                
+                        _removeMIDIControls(id);
+                
+                        delete _widget_list[id];
+
+                        continue;
+                    }
+
                     detached_slider = _getDetachedElement(id);
                     if (detached_slider) {
                         elem = detached_slider;
@@ -3698,13 +3729,14 @@ var WUI_RangeSlider = new (function() {
                         elem = widget.element;
                     }
 
-                    if (widget.midi.ctrl_type === "abs") {
+                    if (widget.midi.ctrl_type === "abs" && widget.opts.range !== undefined && widget.opts.min !== undefined) {
                         new_value = widget.opts.min + widget.opts.range * (value / 127.0);
+                        new_value = _truncateFloat(new_value, widget.opts.decimals);
 
                         _update(elem, widget, new_value);
 
                         _onChange(widget.opts.on_change, new_value);
-                    } else if (widget.midi.ctrl_type === "rel") {
+                    } else if (widget.midi.ctrl_type === "rel" || (widget.midi.ctrl_type === "abs" && (widget.opts.range === undefined || widget.opts.min === undefined))) {
                         var step = widget.opts.step;
                         if (step === "any") {
                             step = 0.5;
@@ -3715,7 +3747,7 @@ var WUI_RangeSlider = new (function() {
 
                             new_value = widget.value - step;
 
-                            if (new_value < widget.opts.min && !widget.endless) {
+                            if (new_value < widget.opts.min && !widget.endless && widget.opts.min !== undefined) {
                                 continue;
                             }
 
@@ -3725,7 +3757,7 @@ var WUI_RangeSlider = new (function() {
 
                             new_value = widget.value + step;
 
-                            if (new_value > widget.opts.max && !widget.endless) {
+                            if (new_value > widget.opts.max && !widget.endless && widget.opts.max !== undefined) {
                                 continue;
                             }
 
@@ -3733,7 +3765,7 @@ var WUI_RangeSlider = new (function() {
                         } else {
                             new_value = widget.value + ctrl_obj.increments;
 
-                            if (!widget.endless) {
+                            if (!widget.endless && widget.opts.min !== undefined && widget.opts.max !== undefined) {
                                 if (new_value > widget.opts.max) {
                                     continue;
                                 } else if (new_value < widget.opts.min) {
@@ -3741,6 +3773,8 @@ var WUI_RangeSlider = new (function() {
                                 }
                             }
                         }
+
+                        new_value = _truncateFloat(new_value, widget.opts.decimals);
 
                         _update(elem, widget, new_value);
 
@@ -27728,7 +27762,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 1,
                 decimals: 4
             },
@@ -27737,7 +27771,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.02,
                 decimals: 4
             },
@@ -27746,7 +27780,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 1,
                 decimals: 4
             },
@@ -27755,7 +27789,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.02,
                 decimals: 4
             }]
@@ -27830,7 +27864,7 @@ var _icon_class = {
                 name: "Mix",
                 type: 0,
                 min: 0,
-                step: 0.01,
+                step: 0.0001,
                 value: 1,
                 decimals: 4
             }, {
@@ -27848,7 +27882,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.1,
                 decimals: 4
             }, {
@@ -27867,14 +27901,14 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.1,
                 decimals: 4
             }, {
                 name: "wah (l)",
                 type: 0,
                 min: 0,
-                step: 0.001,
+                step: 0.0001,
                 value: 0,
                 decimals: 4
             }, {
@@ -27890,14 +27924,14 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.1,
                 decimals: 4
             }, {
                 name: "wah (r)",
                 type: 0,
                 min: 0,
-                step: 0.001,
+                step: 0.0001,
                 value: 0,
                 decimals: 4
             }, {
@@ -27941,7 +27975,7 @@ var _icon_class = {
                 type: 0,
                 min: 1.1,
                 max: 4,
-                step: 0.01,
+                step: 0.0001,
                 value: 1.5,
                 decimals: 4
             }, {
@@ -27957,7 +27991,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 1,
                 decimals: 4
             }, {
@@ -27965,7 +27999,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0,
                 decimals: 4
             }, {
@@ -28001,7 +28035,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 5,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.1,
                 decimals: 4
             }, {
@@ -28009,7 +28043,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 10,
-                step: 0.001,
+                step: 0.0001,
                 value: 3.5,
                 decimals: 4
             }, {
@@ -28017,7 +28051,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 5,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.1,
                 decimals: 4
             }, {
@@ -28025,7 +28059,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 10,
-                step: 0.001,
+                step: 0.0001,
                 value: 3.5,
                 decimals: 4
             },
@@ -28034,7 +28068,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },
@@ -28043,7 +28077,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },
@@ -28052,7 +28086,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },
@@ -28061,7 +28095,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             }]
@@ -28081,7 +28115,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
                 decimals: 6
             },
@@ -28098,7 +28132,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
                 decimals: 6
             },
@@ -28107,7 +28141,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },
@@ -28116,7 +28150,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },
@@ -28125,7 +28159,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },
@@ -28134,7 +28168,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             }]
@@ -28158,7 +28192,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.1,
                 decimals: 4
             }, {
@@ -28186,7 +28220,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.1,
                 decimals: 4
             }, {
@@ -28222,7 +28256,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },
@@ -28231,7 +28265,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             }]
@@ -28243,7 +28277,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 4,
-                step: 0.01,
+                step: 0.0001,
                 value: 2,
                 decimals: 4
             },{
@@ -28251,7 +28285,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 4,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },{
@@ -28259,7 +28293,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0,
                 decimals: 4
             },{
@@ -28267,7 +28301,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0,
                 decimals: 4
             }, {
@@ -28275,7 +28309,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },
@@ -28284,7 +28318,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             }]
@@ -28304,7 +28338,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0,
                 decimals: 4
             }, {
@@ -28312,7 +28346,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },
@@ -28321,7 +28355,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             }]
@@ -28393,7 +28427,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },
@@ -28402,7 +28436,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             }]
@@ -28414,7 +28448,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 1,
                 decimals: 4
             }, {
@@ -28422,7 +28456,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },
@@ -28431,7 +28465,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             }]
@@ -28515,7 +28549,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 1,
                 decimals: 4
             },{
@@ -28523,7 +28557,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 1,
                 decimals: 4
             },{
@@ -28550,7 +28584,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.01,
                 decimals: 4
             }]
@@ -28569,7 +28603,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.01,
                 decimals: 4
             }]
@@ -28588,7 +28622,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 2,
-                step: 0.01,
+                step: 0.0001,
                 value: 1,
                 decimals: 4
             }, {
@@ -28596,7 +28630,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.01,
                 decimals: 4
             }]
@@ -28615,7 +28649,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.8,
                 decimals: 4
             }, {
@@ -28623,7 +28657,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 4,
-                step: 0.01,
+                step: 0.0001,
                 value: 2,
                 decimals: 4
             }]
@@ -28642,7 +28676,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.8,
                 decimals: 4
             }, {
@@ -28650,7 +28684,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 4,
-                step: 0.01,
+                step: 0.0001,
                 value: 2,
                 decimals: 4
             }, {
@@ -28658,7 +28692,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             }]
@@ -28699,14 +28733,14 @@ var _icon_class = {
                 name: "Buffer length (secs)",
                 type: 0,
                 min: 0,
-                step: 0.01,
+                step: 0.000001,
                 value: 1,
                 decimals: 6
             }, {
                 name: "Number of repeats",
                 type: 0,
                 min: 0,
-                step: 0.01,
+                step: 0.000001,
                 value: 1.5,
                 decimals: 6
             }]
@@ -28723,7 +28757,7 @@ var _icon_class = {
                 type: 0,
                 min: -1,
                 max: 1,
-                step: 0.01,
+                step: 0.000001,
                 value: 0,
                 decimals: 6
             }]
@@ -28741,63 +28775,63 @@ var _icon_class = {
             }, {
                 name: "p0",
                 type: 0,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
-                decimals: 4
+                decimals: 6
             }, {
                 name: "p1",
                 type: 0,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
-                decimals: 4
+                decimals: 6
             }, {
                 name: "p2",
                 type: 0,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
-                decimals: 4
+                decimals: 6
             }, {
                 name: "p3",
                 type: 0,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
-                decimals: 4
+                decimals: 6
             }, {
                 name: "p4",
                 type: 0,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
-                decimals: 4
+                decimals: 6
             }, {
                 name: "p5",
                 type: 0,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
-                decimals: 4
+                decimals: 6
             }, {
                 name: "p6",
                 type: 0,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
-                decimals: 4
+                decimals: 6
             }, {
                 name: "p7",
                 type: 0,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
-                decimals: 4
+                decimals: 6
             }, {
                 name: "p8",
                 type: 0,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
-                decimals: 4
+                decimals: 6
             }, {
                 name: "p9",
                 type: 0,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
-                decimals: 4
+                decimals: 6
             }]
         }],
     
@@ -29275,7 +29309,7 @@ var _createSynthParametersContent = function () {
     
                 bar: false,
     
-                step: 0.0001,
+                step: 0.0000001,
                 scroll_step: 0.01,
     
                 default_value: gmin,
@@ -29302,7 +29336,7 @@ var _createSynthParametersContent = function () {
     
                 bar: false,
     
-                step: 0.0001,
+                step: 0.0000001,
                 scroll_step: 0.01,
     
                 default_value: gmax,
@@ -29790,13 +29824,13 @@ var _createSynthParametersContent = function () {
 
                 bar: false,
     
-                step: 1,
-                scroll_step: 1,
+                step: 0.000001,
+                scroll_step: 0.0001,
     
                 default_value: p0,
                 value: p0,
     
-                decimals: 0,
+                decimals: 6,
 
                 midi: true,
                 
@@ -29814,13 +29848,13 @@ var _createSynthParametersContent = function () {
     
                 bar: false,
     
-                step: 0.001,
-                scroll_step: 0.001,
+                step: 0.000001,
+                scroll_step: 0.0001,
     
                 default_value: p1,
                 value: p1,
     
-                decimals: 4,
+                decimals: 6,
 
                 midi: true,
                 
@@ -29838,13 +29872,13 @@ var _createSynthParametersContent = function () {
     
                 bar: false,
     
-                step: 0.001,
-                scroll_step: 0.001,
+                step: 0.000001,
+                scroll_step: 0.0001,
     
                 default_value: p2,
                 value: p2,
     
-                decimals: 4,
+                decimals: 6,
 
                 midi: true,
                 
@@ -29862,13 +29896,13 @@ var _createSynthParametersContent = function () {
     
                 bar: false,
     
-                step: 0.01,
-                scroll_step: 0.001,
+                step: 0.000001,
+                scroll_step: 0.0001,
     
                 default_value: p3,
                 value: p3,
     
-                decimals: 4,
+                decimals: 6,
 
                 midi: true,
                 
@@ -30583,9 +30617,7 @@ var _createFasFxContent = function (div) {
             e.preventDefault();
 
             var actions = [];
-            var deleteAction = { icon: "fs-cross-45-icon", tooltip: "Delete unused channels (start at the last used one)", on_click: function (ev) {
-                ev.preventDefault();
-                
+            var deleteAction = { icon: "fs-cross-45-icon", tooltip: "Delete unused channels (start at the last used one)", on_click: function () {
                 // disable channels (probably help performances)
                 for (var j = _output_channels; j < _chn_settings.length; j += 1) {
                     _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: j, value: -1 });
@@ -33107,7 +33139,7 @@ var _uiInit = function () {
             bar: false,
 
             step: "any",
-            scroll_step: 0.001,
+            scroll_step: 0.0001,
         
             decimals: 4,
 
@@ -33140,7 +33172,7 @@ var _uiInit = function () {
             bar: false,
 
             step: "any",
-            scroll_step: 0.001,
+            scroll_step: 0.0001,
         
             decimals: 4,
 
@@ -33168,7 +33200,7 @@ var _uiInit = function () {
             bar: false,
 
             step: "any",
-            scroll_step: 0.001,
+            scroll_step: 0.0001,
         
             decimals: 4,
 

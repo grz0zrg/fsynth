@@ -123,7 +123,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 1,
                 decimals: 4
             },
@@ -132,7 +132,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.02,
                 decimals: 4
             },
@@ -141,7 +141,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 1,
                 decimals: 4
             },
@@ -150,7 +150,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.02,
                 decimals: 4
             }]
@@ -225,7 +225,7 @@ var _icon_class = {
                 name: "Mix",
                 type: 0,
                 min: 0,
-                step: 0.01,
+                step: 0.0001,
                 value: 1,
                 decimals: 4
             }, {
@@ -243,7 +243,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.1,
                 decimals: 4
             }, {
@@ -262,14 +262,14 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.1,
                 decimals: 4
             }, {
                 name: "wah (l)",
                 type: 0,
                 min: 0,
-                step: 0.001,
+                step: 0.0001,
                 value: 0,
                 decimals: 4
             }, {
@@ -285,14 +285,14 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.1,
                 decimals: 4
             }, {
                 name: "wah (r)",
                 type: 0,
                 min: 0,
-                step: 0.001,
+                step: 0.0001,
                 value: 0,
                 decimals: 4
             }, {
@@ -336,7 +336,7 @@ var _icon_class = {
                 type: 0,
                 min: 1.1,
                 max: 4,
-                step: 0.01,
+                step: 0.0001,
                 value: 1.5,
                 decimals: 4
             }, {
@@ -352,7 +352,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 1,
                 decimals: 4
             }, {
@@ -360,7 +360,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0,
                 decimals: 4
             }, {
@@ -396,7 +396,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 5,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.1,
                 decimals: 4
             }, {
@@ -404,7 +404,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 10,
-                step: 0.001,
+                step: 0.0001,
                 value: 3.5,
                 decimals: 4
             }, {
@@ -412,7 +412,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 5,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.1,
                 decimals: 4
             }, {
@@ -420,7 +420,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 10,
-                step: 0.001,
+                step: 0.0001,
                 value: 3.5,
                 decimals: 4
             },
@@ -429,7 +429,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },
@@ -438,7 +438,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },
@@ -447,7 +447,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },
@@ -456,7 +456,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             }]
@@ -476,7 +476,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
                 decimals: 6
             },
@@ -493,7 +493,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
                 decimals: 6
             },
@@ -502,7 +502,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },
@@ -511,7 +511,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },
@@ -520,7 +520,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },
@@ -529,7 +529,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.001,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             }]
@@ -553,7 +553,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.1,
                 decimals: 4
             }, {
@@ -581,7 +581,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.1,
                 decimals: 4
             }, {
@@ -617,7 +617,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },
@@ -626,7 +626,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             }]
@@ -638,7 +638,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 4,
-                step: 0.01,
+                step: 0.0001,
                 value: 2,
                 decimals: 4
             },{
@@ -646,7 +646,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 4,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },{
@@ -654,7 +654,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0,
                 decimals: 4
             },{
@@ -662,7 +662,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0,
                 decimals: 4
             }, {
@@ -670,7 +670,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },
@@ -679,7 +679,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             }]
@@ -699,7 +699,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0,
                 decimals: 4
             }, {
@@ -707,7 +707,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },
@@ -716,7 +716,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             }]
@@ -788,7 +788,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },
@@ -797,7 +797,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             }]
@@ -809,7 +809,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 1,
                 decimals: 4
             }, {
@@ -817,7 +817,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             },
@@ -826,7 +826,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             }]
@@ -910,7 +910,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 1,
                 decimals: 4
             },{
@@ -918,7 +918,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 1,
                 decimals: 4
             },{
@@ -945,7 +945,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.01,
                 decimals: 4
             }]
@@ -964,7 +964,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.01,
                 decimals: 4
             }]
@@ -983,7 +983,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 2,
-                step: 0.01,
+                step: 0.0001,
                 value: 1,
                 decimals: 4
             }, {
@@ -991,7 +991,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.01,
                 decimals: 4
             }]
@@ -1010,7 +1010,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.8,
                 decimals: 4
             }, {
@@ -1018,7 +1018,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 4,
-                step: 0.01,
+                step: 0.0001,
                 value: 2,
                 decimals: 4
             }]
@@ -1037,7 +1037,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.8,
                 decimals: 4
             }, {
@@ -1045,7 +1045,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 4,
-                step: 0.01,
+                step: 0.0001,
                 value: 2,
                 decimals: 4
             }, {
@@ -1053,7 +1053,7 @@ var _icon_class = {
                 type: 0,
                 min: 0,
                 max: 1,
-                step: 0.01,
+                step: 0.0001,
                 value: 0.5,
                 decimals: 4
             }]
@@ -1094,14 +1094,14 @@ var _icon_class = {
                 name: "Buffer length (secs)",
                 type: 0,
                 min: 0,
-                step: 0.01,
+                step: 0.000001,
                 value: 1,
                 decimals: 6
             }, {
                 name: "Number of repeats",
                 type: 0,
                 min: 0,
-                step: 0.01,
+                step: 0.000001,
                 value: 1.5,
                 decimals: 6
             }]
@@ -1118,7 +1118,7 @@ var _icon_class = {
                 type: 0,
                 min: -1,
                 max: 1,
-                step: 0.01,
+                step: 0.000001,
                 value: 0,
                 decimals: 6
             }]
@@ -1136,63 +1136,63 @@ var _icon_class = {
             }, {
                 name: "p0",
                 type: 0,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
-                decimals: 4
+                decimals: 6
             }, {
                 name: "p1",
                 type: 0,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
-                decimals: 4
+                decimals: 6
             }, {
                 name: "p2",
                 type: 0,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
-                decimals: 4
+                decimals: 6
             }, {
                 name: "p3",
                 type: 0,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
-                decimals: 4
+                decimals: 6
             }, {
                 name: "p4",
                 type: 0,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
-                decimals: 4
+                decimals: 6
             }, {
                 name: "p5",
                 type: 0,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
-                decimals: 4
+                decimals: 6
             }, {
                 name: "p6",
                 type: 0,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
-                decimals: 4
+                decimals: 6
             }, {
                 name: "p7",
                 type: 0,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
-                decimals: 4
+                decimals: 6
             }, {
                 name: "p8",
                 type: 0,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
-                decimals: 4
+                decimals: 6
             }, {
                 name: "p9",
                 type: 0,
-                step: 0.001,
+                step: 0.000001,
                 value: 0,
-                decimals: 4
+                decimals: 6
             }]
         }],
     
@@ -1670,7 +1670,7 @@ var _createSynthParametersContent = function () {
     
                 bar: false,
     
-                step: 0.0001,
+                step: 0.0000001,
                 scroll_step: 0.01,
     
                 default_value: gmin,
@@ -1697,7 +1697,7 @@ var _createSynthParametersContent = function () {
     
                 bar: false,
     
-                step: 0.0001,
+                step: 0.0000001,
                 scroll_step: 0.01,
     
                 default_value: gmax,
@@ -2185,13 +2185,13 @@ var _createSynthParametersContent = function () {
 
                 bar: false,
     
-                step: 1,
-                scroll_step: 1,
+                step: 0.000001,
+                scroll_step: 0.0001,
     
                 default_value: p0,
                 value: p0,
     
-                decimals: 0,
+                decimals: 6,
 
                 midi: true,
                 
@@ -2209,13 +2209,13 @@ var _createSynthParametersContent = function () {
     
                 bar: false,
     
-                step: 0.001,
-                scroll_step: 0.001,
+                step: 0.000001,
+                scroll_step: 0.0001,
     
                 default_value: p1,
                 value: p1,
     
-                decimals: 4,
+                decimals: 6,
 
                 midi: true,
                 
@@ -2233,13 +2233,13 @@ var _createSynthParametersContent = function () {
     
                 bar: false,
     
-                step: 0.001,
-                scroll_step: 0.001,
+                step: 0.000001,
+                scroll_step: 0.0001,
     
                 default_value: p2,
                 value: p2,
     
-                decimals: 4,
+                decimals: 6,
 
                 midi: true,
                 
@@ -2257,13 +2257,13 @@ var _createSynthParametersContent = function () {
     
                 bar: false,
     
-                step: 0.01,
-                scroll_step: 0.001,
+                step: 0.000001,
+                scroll_step: 0.0001,
     
                 default_value: p3,
                 value: p3,
     
-                decimals: 4,
+                decimals: 6,
 
                 midi: true,
                 
@@ -2978,9 +2978,7 @@ var _createFasFxContent = function (div) {
             e.preventDefault();
 
             var actions = [];
-            var deleteAction = { icon: "fs-cross-45-icon", tooltip: "Delete unused channels (start at the last used one)", on_click: function (ev) {
-                ev.preventDefault();
-                
+            var deleteAction = { icon: "fs-cross-45-icon", tooltip: "Delete unused channels (start at the last used one)", on_click: function () {
                 // disable channels (probably help performances)
                 for (var j = _output_channels; j < _chn_settings.length; j += 1) {
                     _fasNotify(_FAS_CHN_INFOS, { target: 1, chn: j, value: -1 });
@@ -5502,7 +5500,7 @@ var _uiInit = function () {
             bar: false,
 
             step: "any",
-            scroll_step: 0.001,
+            scroll_step: 0.0001,
         
             decimals: 4,
 
@@ -5535,7 +5533,7 @@ var _uiInit = function () {
             bar: false,
 
             step: "any",
-            scroll_step: 0.001,
+            scroll_step: 0.0001,
         
             decimals: 4,
 
@@ -5563,7 +5561,7 @@ var _uiInit = function () {
             bar: false,
 
             step: "any",
-            scroll_step: 0.001,
+            scroll_step: 0.0001,
         
             decimals: 4,
 

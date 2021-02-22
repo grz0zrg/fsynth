@@ -2590,6 +2590,18 @@ var WUI_RangeSlider = new (function() {
         return +(n.slice(0, n.length - 1));
     };
 
+    var _truncateFloat = function (num, precision) {
+        var mult = 1.0, prec = precision;
+
+        if (prec > 0) {
+            while (prec--) {
+                mult *= 10;
+            }
+        }
+
+        return ((num * mult) >> 0) / mult;
+    };
+
     var _getHookElementFromTarget = function (ev_target) {
         if (ev_target.classList.contains(_class_name.hook)) {
             return ev_target;
@@ -2624,7 +2636,7 @@ var WUI_RangeSlider = new (function() {
 
         value_input = bar.nextElementSibling;
 
-        value = _truncateDecimals(value, widget.opts.decimals);
+//        value = _truncateDecimals(value, widget.opts.decimals);
 
         if (rs.opts.vertical) {
             pos = Math.round(pos * bar.offsetHeight);
@@ -2946,9 +2958,9 @@ var WUI_RangeSlider = new (function() {
 
         var hook_element = _getHookElementFromTarget(target),
 */
-            var rs_element = /*hook_element*/ev.target.parentElement/*.parentElement.parentElement*/,
+        var rs_element = /*hook_element*/ev.target.parentElement/*.parentElement.parentElement*/,
 
-            grabbed_widget = _widget_list[rs_element.id];
+        grabbed_widget = _widget_list[rs_element.id];
 
         _update(rs_element, grabbed_widget, ev.target.value);
 
@@ -3316,7 +3328,7 @@ var WUI_RangeSlider = new (function() {
             }
         }
 
-        if (opts.min < 0) {
+        if (opts.min < opts.max) {
             opts.range = opts.max - opts.min;
         }
 
@@ -3523,7 +3535,7 @@ var WUI_RangeSlider = new (function() {
         }
 
         if (_midi_learn_current === id) {
-            midi_learn_current = null;
+            _midi_learn_current = null;
         }
 
         _removeMIDIControls(id);
@@ -3642,39 +3654,45 @@ var WUI_RangeSlider = new (function() {
         if (_midi_learn_current) {
             widget = _widget_list[id];
 
-            if (!_midi_controls[kdevice]) {
-                _midi_controls[kdevice] = {};
-            }
-
-            if (!_midi_controls[kdevice][kcontroller]) {
-                _midi_controls[kdevice][kcontroller] = {
-                        prev_value: value,
-                        widgets: [],
-                        increments: 1
-                    };
-            }
-
-            _midi_controls[kdevice][kcontroller].widgets.push(id);
-
-            detached_slider = _getDetachedElement(id);
-
-            if (detached_slider) {
-                elems = detached_slider.getElementsByClassName(_class_name.midi_learn_btn);
-                if (elems.length > 0) {
-                    elems[0].style = "";
-                    elems[0].title = kdevice + " " + kcontroller;
+            if (!widget) {
+                _midi_learn_current = null;
+            } else {
+                if (!_midi_controls[kdevice]) {
+                    _midi_controls[kdevice] = {};
                 }
+
+                if (!_midi_controls[kdevice][kcontroller]) {
+                    _midi_controls[kdevice][kcontroller] = {
+                            prev_value: value,
+                            widgets: [],
+                            increments: 1
+                        };
+                }
+
+                _midi_controls[kdevice][kcontroller].widgets.push(id);
+
+                var isAbs = (widget.midi.ctrl_type === "abs" && widget.opts.range !== undefined && widget.opts.min !== undefined);
+                var type = isAbs ? "abs" : "rel";
+
+                detached_slider = _getDetachedElement(id);
+                if (detached_slider) {
+                    elems = detached_slider.getElementsByClassName(_class_name.midi_learn_btn);
+                    if (elems.length > 0) {
+                        elems[0].style = "";
+                        elems[0].title = kdevice + " " + kcontroller + " (" + type + ")";
+                    }
+                }
+
+                widget.midi.device = device;
+                widget.midi.controller = controller;
+
+                widget.learn = false;
+                widget.learn_elem.style = "";
+                widget.learn_elem.title = kdevice + " " + kcontroller + " (" + type + ")";
+                _midi_learn_current = null;
+
+                return;
             }
-
-            widget.midi.device = device;
-            widget.midi.controller = controller;
-
-            widget.learn = false;
-            widget.learn_elem.style = "";
-            widget.learn_elem.title = kdevice + " " + kcontroller;
-            _midi_learn_current = null;
-
-            return;
         }
 
         if (_midi_controls[kdevice]) {
@@ -3686,6 +3704,19 @@ var WUI_RangeSlider = new (function() {
 
                     widget = _widget_list[id];
 
+                    // clean MIDI stuff / widget when it don't exist anymore (may have been deleted)
+                    if (!widget) {
+                        if (_midi_learn_current === id) {
+                            _midi_learn_current = null;
+                        }
+                
+                        _removeMIDIControls(id);
+                
+                        delete _widget_list[id];
+
+                        continue;
+                    }
+
                     detached_slider = _getDetachedElement(id);
                     if (detached_slider) {
                         elem = detached_slider;
@@ -3693,13 +3724,14 @@ var WUI_RangeSlider = new (function() {
                         elem = widget.element;
                     }
 
-                    if (widget.midi.ctrl_type === "abs") {
+                    if (widget.midi.ctrl_type === "abs" && widget.opts.range !== undefined && widget.opts.min !== undefined) {
                         new_value = widget.opts.min + widget.opts.range * (value / 127.0);
+                        new_value = _truncateFloat(new_value, widget.opts.decimals);
 
                         _update(elem, widget, new_value);
 
                         _onChange(widget.opts.on_change, new_value);
-                    } else if (widget.midi.ctrl_type === "rel") {
+                    } else if (widget.midi.ctrl_type === "rel" || (widget.midi.ctrl_type === "abs" && (widget.opts.range === undefined || widget.opts.min === undefined))) {
                         var step = widget.opts.step;
                         if (step === "any") {
                             step = 0.5;
@@ -3710,7 +3742,7 @@ var WUI_RangeSlider = new (function() {
 
                             new_value = widget.value - step;
 
-                            if (new_value < widget.opts.min && !widget.endless) {
+                            if (new_value < widget.opts.min && !widget.endless && widget.opts.min !== undefined) {
                                 continue;
                             }
 
@@ -3720,7 +3752,7 @@ var WUI_RangeSlider = new (function() {
 
                             new_value = widget.value + step;
 
-                            if (new_value > widget.opts.max && !widget.endless) {
+                            if (new_value > widget.opts.max && !widget.endless && widget.opts.max !== undefined) {
                                 continue;
                             }
 
@@ -3728,7 +3760,7 @@ var WUI_RangeSlider = new (function() {
                         } else {
                             new_value = widget.value + ctrl_obj.increments;
 
-                            if (!widget.endless) {
+                            if (!widget.endless && widget.opts.min !== undefined && widget.opts.max !== undefined) {
                                 if (new_value > widget.opts.max) {
                                     continue;
                                 } else if (new_value < widget.opts.min) {
@@ -3736,6 +3768,8 @@ var WUI_RangeSlider = new (function() {
                                 }
                             }
                         }
+
+                        new_value = _truncateFloat(new_value, widget.opts.decimals);
 
                         _update(elem, widget, new_value);
 
