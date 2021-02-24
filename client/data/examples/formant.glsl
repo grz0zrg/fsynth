@@ -1,55 +1,69 @@
-  // Sample program : additive + bandpass instrument
-  // Note : 
-  //   Must add/select "Additive" instrument in "SYNTH" and move it to the first part of the canvas.
-  //   Must add/select "Bandpass" instrument in "SYNTH" and move it to the second part of the canvas.
+  // Sample program : formant synthesis with subtractive source
+  // Note :
+  //   Must add/select "Subtractive" instrument in "SYNTH" to the first part of the canvas  and assign second output channel.
+  //   Must add/select "Formant" instrument in "SYNTH" to the second part of the canvas.
 
   #define PI 3.141592653
   #define PI2 (PI * 2.)
 
   void main () {
-    float l = 0., r = 0., g = 0., b = 0.;
+    float l = 0., r = 0., b = 0., a = 0.;
     
     vec2 uv = gl_FragCoord.xy / resolution;
-
-    float start_frequency = 220.;
-    float harmonics = 8.;//8. + abs(sin(globalTime + uv.x * PI2 * 1.)) * 16.;
     
-    // 1 = saw wave (even harmonics), 2 = square wave (odd harmonics)
-    const float harmonics_step = 1.;
-    for (float h = 1.; h < harmonics; h += max(1., harmonics_step)) {
-        // normalize
-      	float nh = h / harmonics;
-        // modulate attenuation factor (filter cutoff)
-      	float attenuation_factor = 1.0;
-        // attenuate high frequencies harmonics (filter)
-        float attenuation = pow(1. - nh, attenuation_factor);
+    // subtractive part
+    if (uv.x < 0.5) {
+      // brownian noise
+      float waveform = 0.; // can also try 4 (pink noise)
       
-      	// apply varying amplitude 
-      	float amplitude_osc = abs(sin(uv.y * PI2 * 1.5 + uv.x * PI * 4. + globalTime));
-      	attenuation *= amplitude_osc;
+      // steep envelope
+      float x = globalTime / 4. + uv.x * 1.;
+      float steepness = 1.;
+      float envelope = abs(sign(sin(x)) * (1. - (1. - pow(abs(sin(x * 64.)), steepness))));
 
-      	float harmonic_frequency = start_frequency * h;
+      float frequency = 60. + abs(sin(globalTime)) * 1200.;
+
+      float filter_cutoff = 64.;
+      float filter_resonance = 0.25 + waveform;
+
+      float modulator = 0.25 + abs(sin(globalTime * 2. + cos(globalTime + PI2) * PI2)) / 1.25;
+      filter_cutoff *= modulator;
+      filter_resonance += modulator / 4.;
+
+      l += fline(frequency) * envelope;
+      r += fline(frequency) * envelope;
+      b += fline(frequency) * filter_cutoff;
+      a += fline(frequency) * filter_resonance;
+      
+      l += fline(frequency*2.) * envelope;
+      r += fline(frequency*2.) * envelope;
+      b += fline(frequency*2.) * filter_cutoff;
+      a += fline(frequency*2.) * filter_resonance;
+    }
+    
+    // formant part
+    if (uv.x > 0.5) {
+      // a list of frequencies
+      const float frequencies[2] = float[2](1.125, 2.25);
+      
+      float base_frequency = 480.;
+      
+      for (int i = 0; i < frequencies.length(); i += 1) {
+        float frequency = frequencies[i] * base_frequency;
         
-      	if (uv.x < 0.5) { // additive (left part of the canvas)
-    		l += fline(harmonic_frequency) * attenuation / 8.;
-      		r += fline(harmonic_frequency) * attenuation / 8.;
-        } else { // bandpass (right part of the canvas)
-            // frequency band 
-          	float sf = start_frequency * 1. + nh * 512.;
- 
-            // L & R amplitude factor
-    		l += fline(sf) * 0.05;
-      		r += fline(sf) * 0.05;
-          
-            float impulse_response_attack_time = 0.5; // impulse response attack time (seconds, fractional)
-            float channel_index = 1.; // correspond to channel index
-            float impulse_response_decay_time = 0.025; // impulse response decay time (seconds)
-
-            g += fline(sf) * (channel_index + impulse_response_attack_time);
-            b += fline(sf) * impulse_response_decay_time;
-        }
+        float source_index = 1.; // correspond to channel index; note : cannot be the same as the formant channel output
+        float impulse_response_attack_time = 0.02751; // attack time of the impulse (seconds) (encoded in fractional part of B)
+        float impulse_response_decay_time = 0.0009; // decay time of the impulse (seconds)
+        
+      	l += fline(frequency) * 0.125;
+      	r += fline(frequency) * 0.125;
+        b += fline(frequency) * (source_index + impulse_response_attack_time);
+        a += fline(frequency) * impulse_response_decay_time;
+      }
     }
 
-    synthOutput = vec4(l, r, g, b);
+    synthOutput = vec4(l, r, b, a);
     fragColor = vec4(l, r, 0., 1.);
   }
+
+

@@ -297,6 +297,21 @@ Here are the instrument parameters :
 
 * Filter order : High value approach brickwall filter (more precise) at the expense of processing time
 
+### Formant (M)
+
+Specific type of synthesis which use a canvas-mapped bank of formant filters, each activated formant filters use an user-defined channel as source. It can be used to mimic speech.
+
+It is similar to bandpass mode with a different algorithm.
+
+Note : Source channel cannot be set to the same channel as it output to. It will remain silent if the source channel is same as output channel.
+
+The RGBA parameters are
+
+- RED : Left amplitude
+- GREEN : Right amplitude
+- BLUE : integral part : source channel index: fractional part is impulse response attack time (seconds where maximum seconds is 60 so 0.5 mean 30 seconds)
+- ALPHA : impulse response decay time (seconds)
+
 ### Phase distorsion (M)
 
 Specific type of synthesis which use an user-defined source channel or instrument as input and produce waveform distorsion as output.

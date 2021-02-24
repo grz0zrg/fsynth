@@ -34,8 +34,9 @@
     		l += fline(harmonic_frequency) * attenuation / 8.;
       		r += fline(harmonic_frequency) * attenuation / 8.;
         } else { // bandpass (right part of the canvas)
-            // frequency band 
-          	float sf = start_frequency * 4. + nh * 2048.;
+            // frequency band
+            float bp_start_frequency = 440.;
+            float sf = bp_start_frequency;
  
             // L & R amplitude factor
     		l += fline(sf) * 12.;

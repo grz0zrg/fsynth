@@ -73,6 +73,7 @@ Instead of generators which work additively Fragment also allow the use of the f
 * Spectral filter (synthesis / resynthesis)
 * Bandpass filter
 * Modal filter (bandpass filter with resonant component)
+* Formant filter (complex filter)
 * String resonance filter (complex filter with resonant component)
 
 ### The combination of both
