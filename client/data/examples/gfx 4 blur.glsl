@@ -1,6 +1,7 @@
   // Sample program : Box blur
   // Note : Must add one input using the [+] toolbar icon (Import button)
   //        To tile the image : Must set Wrap S / Wrap T of input0 settings to "repeat" (right click on input thumbnail after it was imported)
+  // Very cheap blur can also be done using mipmaps
 
   #define N 8.0
 

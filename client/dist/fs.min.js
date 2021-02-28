@@ -36149,6 +36149,7 @@ var _fasSendIntrumentsInfos = function (send_parameters) {
             _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: i, target: 7, value: slice.instrument_params.p4 });
         }
     }
+
     _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: _play_position_markers.length, target: 0, value: 15 }); // FAS_VOID
 };
 

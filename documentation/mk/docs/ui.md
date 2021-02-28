@@ -122,7 +122,7 @@ The code editor is one of the most important tool of Fragment, it allow to contr
 
 ![Fragment GLSL code editor](tutorials/gifs/glsl_inline_report.gif)
 
-The fragment program is compiled as you type, if the compilation fail, the code editor will notice you with a floating message and a red message at the line that cause the compilation to fail, all of that without interrupting sounds/visuals output, this enable **powerful live coding**.
+The fragment program is compiled as you type, if the compilation fail, the code editor will notice you with a floating message and a red message at the line that cause the compilation to fail (it also show the concerned workspace like `main`, `library` or `example`), all of that without interrupting sounds/visuals output, this enable **powerful live coding**.
 
 All changes in the code editor are automatically saved per sessions, **changes are also synchronized in real-time between all the users** of the session you are currently in, **this is the collaborative part of Fragment**.
 

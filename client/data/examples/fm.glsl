@@ -46,7 +46,7 @@
 
     	l += fline(harmonic_frequency) * attenuation;
       	r += fline(harmonic_frequency) * attenuation;
-        // modulator amplitude on (fractional, with feedback level encoded on integer part [0, 65536)
+        // modulator amplitude on fractional, feedback level encoded on integer part [0, 65536)
         mb += fline(harmonic_frequency) * (fm_amplitude + feedback);
         // modulator frequency
         ma += fline(harmonic_frequency) * fm_frequency;

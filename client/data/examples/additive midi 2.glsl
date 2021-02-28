@@ -1,7 +1,7 @@
 
   // Sample program : additive synthesis with MIDI; harmonics parameter
   // MIDI input should be enabled by going into 'SETTINGS' (Jack plug icon)
-  // recommende : try some pentatonic scale
+  // try some pentatonic scale
 
   // generic ADSR envelope; can go into 'my library' if you use this example in 'main' script
   float adsr(float t, vec4 v, float s) {

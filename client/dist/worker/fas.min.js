@@ -34,7 +34,9 @@ var _fas = false,
     _FAS_ACTION_WAVES_RELOAD = 6,
     _FAS_ACTION_IMPULSES_RELOAD = 7,
     
-    _fas_chn_settings_queue = [];
+    _fas_queue = [],
+    _fas_queue_timeout = null,
+    _fas_queue_timeout_ms = 2000;
 
 /***********************************************************
     Functions.
@@ -87,11 +89,6 @@ var _sendBankInfos = function (bank_infos) {
         return;
     }
 
-    if (_fas_ws.readyState !== 1) {
-        setTimeout(_sendBankInfos, 1000, bank_infos);
-        return;
-    }
-
     try {
         _fas_ws.send(_getBankInfosBuffer(bank_infos));
     } finally {
@@ -101,11 +98,6 @@ var _sendBankInfos = function (bank_infos) {
 
 var _sendSynthInfos = function (synth_infos) {
     if (!_fas) {
-        return;
-    }
-
-    if (_fas_ws.readyState !== 1) {
-        setTimeout(_sendSynthInfos, 1000, synth_infos);
         return;
     }
 
@@ -148,11 +140,6 @@ var _sendAction = function (action) {
         uint32_view[1] = action.note;
     }
     
-    if (_fas_ws.readyState !== 1) {
-        setTimeout(_sendAction, 1000, action);
-        return;
-    }
-
     try {
         _fas_ws.send(action_buffer);
     } finally {
@@ -160,26 +147,8 @@ var _sendAction = function (action) {
     }
 }
 
-var _doChnInfos = function (_doChnInfos) {
-    var queue = _fas_chn_settings_queue.slice();
-
-    var i = 0;
-    for (i = 0; i < queue.length; i += 1) {
-        _fas_chn_settings_queue.splice(i, 1);
-
-        _sendChnInfos(queue[i]);
-    }
-};
-
 var _sendInstrInfos = function (instr_infos) {
     if (!_fas) {
-        return;
-    }
-
-    if (_fas_ws.readyState !== 1) {
-        //_fas_chn_settings_queue.push(chn_infos);
-
-        setTimeout(_sendInstrInfos, 1000, instr_infos);
         return;
     }
 
@@ -205,13 +174,6 @@ var _sendChnInfos = function (chn_infos) {
         return;
     }
 
-    if (_fas_ws.readyState !== 1) {
-        //_fas_chn_settings_queue.push(chn_infos);
-
-        setTimeout(_sendChnInfos, 1000, chn_infos);
-        return;
-    }
-
     var buffer = new ArrayBuffer(8 + 8 + 8);
     var uint8_view = new Uint8Array(buffer, 0, 1);
     var uint32_view = new Uint32Array(buffer, 8, 2);
@@ -231,13 +193,6 @@ var _sendChnInfos = function (chn_infos) {
 
 var _sendChnFxInfos = function (chn_fx_infos) {
     if (!_fas) {
-        return;
-    }
-
-    if (_fas_ws.readyState !== 1) {
-        //_fas_chn_settings_queue.push(chn_infos);
-
-        setTimeout(_sendChnFxInfos, 1000, chn_fx_infos);
         return;
     }
 
@@ -358,6 +313,22 @@ var _connect = function (opts) {
         };
 };
 
+var _fetchQueue = function () {
+    if (!_fas) {
+        return;
+    }
+
+    if (_fas_ws.readyState !== 1) {
+        _fas_queue_timeout = setTimeout(_fetchQueue, _fas_queue_timeout_ms);
+    } else {
+        for (var i = 0; i < _fas_queue.length; i += 1) {
+            self.onmessage(_fas_queue[i]);
+        }
+
+        _fas_queue = [];
+    }
+};
+
 self.onmessage = function (m) {
     "use strict";
 
@@ -365,6 +336,20 @@ self.onmessage = function (m) {
 
         cmd = data.cmd,
         arg = data.arg;
+
+    // postpone any changes until FAS link resolve
+    if (_fas === true &&
+        cmd !== _FAS_ENABLE &&
+        cmd !== _FAS_FRAME &&
+        cmd !== _FAS_DISABLE &&
+        _fas_ws !== null && _fas_ws.readyState !== 1) {
+        _fas_queue.push(m);
+
+        clearTimeout(_fas_queue_timeout);
+        _fas_queue_timeout = setTimeout(_fetchQueue, _fas_queue_timeout_ms);
+
+        return;
+    }
 
     if (cmd === _FAS_ENABLE) {
         _fas = true;
@@ -376,6 +361,10 @@ self.onmessage = function (m) {
         _fas = false;
 
         _disconnect();
+
+        // flush queue
+        clearTimeout(_fas_queue_timeout);
+        _fas_queue = [];
     } else if (cmd === _FAS_BANK_INFOS) {
         _sendBankInfos(arg);
     } else if (cmd === _FAS_SYNTH_INFOS) {

@@ -55,8 +55,8 @@
         float impulse_response_attack_time = 0.02751; // attack time of the impulse (seconds) (encoded in fractional part of B)
         float impulse_response_decay_time = 0.0009; // decay time of the impulse (seconds)
         
-      	l += fline(frequency) * 0.125;
-      	r += fline(frequency) * 0.125;
+      	l += fline(frequency) * 0.05;
+      	r += fline(frequency) * 0.05;
         b += fline(frequency) * (source_index + impulse_response_attack_time);
         a += fline(frequency) * impulse_response_decay_time;
       }
