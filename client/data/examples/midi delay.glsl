@@ -51,9 +51,12 @@
           // notice how the envelope is divided by the repeats so that each "echo" are quieter
           float env_l = adsr(delay, vec4(2.75 * (harmonics - i * 2.), 0.05, 0., .25 + delay_parameter), 0.75) / j;
           float env_r = adsr(delay, vec4(2.75 * (harmonics - i * 2.), 0.05, 0., .25 + delay_parameter), 0.75) / j;
+          
+          // modulate frequency by the delay (so that each repeat are on different frequencies)
+          float frequency = kfrq * i + 92. * round(delay);
 
-          l += fline(kfrq * i) * a * kvel * env_l * 8.;
-          r += fline(kfrq * i) * a * kvel * env_r * 8.;
+          l += fline(frequency) * a * kvel * env_l * 8.;
+          r += fline(frequency) * a * kvel * env_r * 8.;
         }
       }
     }
@@ -61,3 +64,4 @@
     synthOutput = vec4(l, r, 0., 0.);
     fragColor = vec4(l, r, 0., 1.);
   }
+

@@ -253,6 +253,24 @@ var _icon_class = {
                 step: 1,
                 value: 10000,
                 decimals: 0
+            },
+            {
+                name: "Dry",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.0001,
+                value: 1,
+                decimals: 4
+            },
+            {
+                name: "Wet",
+                type: 0,
+                min: 0,
+                max: 1,
+                step: 0.0001,
+                value: 0.02,
+                decimals: 4
             }]
         },{
             name: "Autowah",
