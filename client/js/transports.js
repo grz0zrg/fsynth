@@ -61,6 +61,8 @@ var _play = function (update_global_time) {
     }
 
     _pjsResumeAll();
+
+    _fasUnpause();
 };
 
 var _rewind = function () {

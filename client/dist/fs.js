@@ -26681,6 +26681,8 @@ var _play = function (update_global_time) {
     }
 
     _pjsResumeAll();
+
+    _fasUnpause();
 };
 
 var _rewind = function () {
@@ -36094,6 +36096,14 @@ var _fasNotifyFast = function (cmd, data) {
         }, output_data_buffer);
 };
 
+var _fasUnpause = function () {
+    if (!_fas.enabled) {
+        return;
+    }
+    
+    _fasNotify(_FAS_ACTION, { type: 5 });
+};
+
 var _fasPause = function () {
     if (!_fas.enabled) {
         return;
@@ -36107,7 +36117,9 @@ var _fasPause = function () {
         data.push(new _synth_data_array(_canvas_height_mul4));
     }
     
-    _fasNotifyFast(_FAS_FRAME, data);  
+    _fasNotifyFast(_FAS_FRAME, data);
+
+    _fasNotify(_FAS_ACTION, { type: 4 });
 };
 
 var _fasEnable = function () {

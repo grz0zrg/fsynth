@@ -2,7 +2,7 @@
 
 The Fragment Audio Server is a program which is able to do fast real-time audio synthesis, it run alongside the web application to produce sounds.
 
-The audio server **must be launched to output any audio**, it will listen to 127.0.0.1:3003 by default and will use the default audio device. This can be changed by passing command line arguments when launched.
+The audio server **must be launched to output any sounds**, it will listen to 127.0.0.1:3003 by default and will use the default audio device. This can be changed by passing command line arguments when launched.
 
 The Fragment web-client communicate with FAS by sending data through the network, FAS can run on any machines independently of the Fragment application, it gather the pixels data from Fragment in real-time, compute things and deliver the audio through the selected audio device.
 
@@ -152,7 +152,11 @@ Here are the instrument parameters :
 * Max. grain length : the maximum length a grain instance can be (normalized sample length, fractional between 0 and 1)
 * Spread : spread amount
 
-All granular synthesis parameters excluding density and envelope type can be changed in real-time without crackles.
+All granular synthesis parameters excluding density and envelope type can be changed in real-time without crackles. (may be seen as a limitation but the grains density / envelope type can still be tuned using multiple instruments or using an oscillator very close to the frequency you want to play grains)
+
+For stretching sounds and syncopated sounds generally you may want to stay with very close min/max grain length such as `0.01001` for min and `0.01` for max and very low or zero spread.
+
+For very short sounds an appropriate envelope must be chosen like `nutall`.
 
 #### Sampler
 
