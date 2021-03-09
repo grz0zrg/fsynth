@@ -839,10 +839,18 @@ in vec2 position; void main() { gl_Position = vec4(position, 0, 1); }
                         <div id="fs_import_audio_maxfreq_settings"></div>
                         <div class="fs-spacer"></div>
                         <div class="fs-ck-container" style="width: 100%;">
-                            <label style="font-size: 12px; margin-right: 4px;" class="fs-ck-label">
-                                <div>Import videos audio</div>&nbsp;
-                                <input id="fs_import_audio_ck_videotrack" type="checkbox">
-                            </label>
+                            <div>
+                                <label style="font-size: 12px; margin-right: 4px;" class="fs-ck-label">
+                                    <div>Import videos audio</div>&nbsp;
+                                    <input id="fs_import_audio_ck_videotrack" type="checkbox">
+                                </label>
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; margin-right: 4px;" class="fs-ck-label">
+                                    <div>Import phase into Blue channel</div>&nbsp;
+                                    <input id="fs_import_audio_ck_phase" type="checkbox">
+                                </label>
+                            </div>
                         </div>
                     </fieldset>
                     <fieldset class="fs-fieldset fs-collapsible fs-collapsed">

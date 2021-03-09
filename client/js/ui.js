@@ -1260,6 +1260,9 @@ var _onChangeChannelSettings = function (instrument_index, target) {
         obj["p" + (target - 3)] = v;
 
         _sendSliceUpdate(instrument_index, { instruments_settings : obj });
+
+        var slice = _play_position_markers[instrument_index];
+        slice.instrument_params["p" + (target - 3)] = v;
     };
 };
 
@@ -3202,7 +3205,7 @@ var _createFasSettingsContent = function () {
                 var slice = _play_position_markers[instrument_index];
 
                 // load default settings
-                if (!triggered) {
+                if (!triggered && slice.instrument_type !== synth_type) {
                     if (_synthesis_types[synth_type] === "Physical Model") {
                         //_chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
                         //_fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 0, value: synth_type });

@@ -8,11 +8,13 @@ Fragment does not import the audio data as-is but convert it to a stereophonic s
 
 Imported sounds can be used for re-synthesis, vocoder effects etc., transformations and various processing can be applied in real-time to the resulting spectogram which will be played back by any of the synthesis methods that Fragment support, it is for example possible to do re-synthesis based on granular synthesis or granular synthesis and additive synthesis at the same time.
 
-Once a sound file is added, a conversion phase which perform audio analysis and conversion to bitmap data will execute, this conversion phase may take several minutes depending on the sound duration and audio settings, please wait if your sound file isn't added yet. (note : a progression notification will be outputted at regular interval in one of the screen top corner)
+Once a sound file is added, a conversion phase which perform audio analysis and conversion to bitmap data will execute, this conversion phase may take several minutes depending on the sound duration and audio settings, please wait if your sound file isn't added yet. (note : a progress notification will be outputted at regular interval in one of the screen top corner)
 
 Once the sound is converted to an image, several actions are available by clicking on the resulting image thumbnail, see *images import* section for the actions details.
 
 Many sounds can be imported at the same time, Fragment will convert them to images one by one.
+
+On stereo import the left & right information will go into the Red and Green channel and the Blue channel will contain the monophonic value.
 
 ## Import settings
 
@@ -40,6 +42,10 @@ The audio import settings which can be found in the import dialog are the settin
 ##### Import videos audio
 
 This settings is used for all videos import, if checked, Fragment will import the audio channel independently of the visual channel, this mean that there will be two images generated from a single video file. Note that this may take a long time to process.
+
+##### Import phase
+
+When checked phase informations will be outputted into Blue channel as a 8-bit value (0 - 255), due to lack of output parameters the phase only correspond to the Left channel phase. (no stereophonic phase informations)
 
 ## How-to
 

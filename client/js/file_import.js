@@ -128,11 +128,16 @@ var _createImportListeners = function (doc) {
         _audio_import_settings.fft_size = _parseInt10(fft_size);
     });
     
-    
     doc.getElementById("fs_import_audio_ck_videotrack").addEventListener('change', function (e) {
         var videotrack_import = this.checked;
         
         _audio_import_settings.videotrack_import = videotrack_import;
+    });
+
+    doc.getElementById("fs_import_audio_ck_phase").addEventListener('change', function (e) {
+        var phase_import = this.checked;
+        
+        _audio_import_settings.phase_import = phase_import;
     });
 };
 
@@ -146,6 +151,7 @@ var _updateImportWidgets = function (doc) {
     current_doc.getElementById("fs_import_audio_mapping").value = _audio_import_settings.mapping;
     current_doc.getElementById("fs_import_mic_fft_size").value = _audio_import_settings.fft_size;
     current_doc.getElementById("fs_import_audio_ck_videotrack").checked = _audio_import_settings.videotrack_import;
+    current_doc.getElementById("fs_import_audio_ck_phase").checked = _audio_import_settings.phase_import;
 };
 
 /***********************************************************

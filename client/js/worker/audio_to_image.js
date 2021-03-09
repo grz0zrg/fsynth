@@ -35,6 +35,8 @@ var _convert = function (ccwt_lib, params, data) {
     
         deviation = params.settings.deviation,
 
+        phase_import = params.settings.phase_import,
+
         // linear
         frequency_basis_linear = 0,
         frequency_range_linear = maximum_frequency - minimum_frequency,
@@ -114,6 +116,13 @@ var _convert = function (ccwt_lib, params, data) {
             image_data[index + 1] = color;
             image_data[index + 2] = color;
             image_data[index + 3] = 255;
+
+            if (phase_import) {
+                var phase = Math.atan2(r, i);
+                var phase_color = Math.round(phase * 255);
+
+                image_data[index + 2] = phase_color;
+            }
         }
     };
 
@@ -133,24 +142,30 @@ var _convert = function (ccwt_lib, params, data) {
     for (i = 0; i < image_data.length; i += 4) {
         image_data[i] -= amin;
         image_data[i + 1] -= amin;
-        image_data[i + 2] -= amin;
         
         image_data[i] *= adiff;
         image_data[i + 1] *= adiff;
-        image_data[i + 2] *= adiff;
+        
+        if (!phase_import) {
+            image_data[i + 2] -= amin;
+            image_data[i + 2] *= adiff;
+        }
     }
    
     return { width: output_width, height: height, data: image_data };
 };
 
-// when in stereo, we basically assign R = L, G = R and G = (L + R) / 2
-var _mergeChannels = function (l, r) {
+// when in stereo, we basically assign R = L, G = R and B = phase OR B = (L+R) / 2
+var _mergeChannels = function (l, r, phase_import) {
     var i = 0;
     
     for (i = 0; i < l.length; i += 4) {
-        l[i + 1] = r[i + 1];
-        l[i + 2] = (l[i] + r[i + 1]) / 2;
-        l[i + 3] = (l[i + 3] + r[i + 3]) / 2;
+        l[i + 1] = r[i];
+        if (phase_import) {
+            l[i + 2] = r[i + 2];
+        } else {
+            l[i + 2] = (l[i] + r[i]) / 2;
+        } 
     }
     
     return l;
@@ -184,7 +199,7 @@ self.onmessage = function (m) {
             r = new Float32Array(data.right);
             rr = _convert(ccwt_lib, data, r);
             
-            result.pbuffer = _mergeChannels(ll.data, rr.data).buffer;
+            result.pbuffer = _mergeChannels(ll.data, rr.data, data.settings.phase_import).buffer;
         } else {
             result.pbuffer = ll.data.buffer;
         }

@@ -22173,6 +22173,7 @@ var _audio_to_image_worker = new Worker("dist/worker/audio_to_image.min.js"),
         minfreq: 0,
         maxfreq: 0,
         videotrack_import: false,
+        phase_import: false,
         cam_width: 320,
         cam_height: 240,
         fft_size: 2048
@@ -22417,11 +22418,16 @@ var _createImportListeners = function (doc) {
         _audio_import_settings.fft_size = _parseInt10(fft_size);
     });
     
-    
     doc.getElementById("fs_import_audio_ck_videotrack").addEventListener('change', function (e) {
         var videotrack_import = this.checked;
         
         _audio_import_settings.videotrack_import = videotrack_import;
+    });
+
+    doc.getElementById("fs_import_audio_ck_phase").addEventListener('change', function (e) {
+        var phase_import = this.checked;
+        
+        _audio_import_settings.phase_import = phase_import;
     });
 };
 
@@ -22435,6 +22441,7 @@ var _updateImportWidgets = function (doc) {
     current_doc.getElementById("fs_import_audio_mapping").value = _audio_import_settings.mapping;
     current_doc.getElementById("fs_import_mic_fft_size").value = _audio_import_settings.fft_size;
     current_doc.getElementById("fs_import_audio_ck_videotrack").checked = _audio_import_settings.videotrack_import;
+    current_doc.getElementById("fs_import_audio_ck_phase").checked = _audio_import_settings.phase_import;
 };
 
 /***********************************************************
@@ -28901,6 +28908,9 @@ var _onChangeChannelSettings = function (instrument_index, target) {
         obj["p" + (target - 3)] = v;
 
         _sendSliceUpdate(instrument_index, { instruments_settings : obj });
+
+        var slice = _play_position_markers[instrument_index];
+        slice.instrument_params["p" + (target - 3)] = v;
     };
 };
 
@@ -30843,7 +30853,7 @@ var _createFasSettingsContent = function () {
                 var slice = _play_position_markers[instrument_index];
 
                 // load default settings
-                if (!triggered) {
+                if (!triggered && slice.instrument_type !== synth_type) {
                     if (_synthesis_types[synth_type] === "Physical Model") {
                         //_chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
                         //_fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 0, value: synth_type });

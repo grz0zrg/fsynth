@@ -16,6 +16,7 @@ var _audio_to_image_worker = new Worker("dist/worker/audio_to_image.min.js"),
         minfreq: 0,
         maxfreq: 0,
         videotrack_import: false,
+        phase_import: false,
         cam_width: 320,
         cam_height: 240,
         fft_size: 2048
