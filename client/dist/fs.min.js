@@ -30852,6 +30852,10 @@ var _createFasSettingsContent = function () {
                 //var synth_type = osc_settings[1];
                 var slice = _play_position_markers[instrument_index];
 
+                _fasPause();
+                
+                _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 0, value: synth_type });
+
                 // load default settings
                 if (!triggered && slice.instrument_type !== synth_type) {
                     if (_synthesis_types[synth_type] === "Physical Model") {
@@ -30978,7 +30982,7 @@ var _createFasSettingsContent = function () {
                         //_fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
                     }
 
-                    _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 0, value: synth_type });
+                    _fasUnpause();
 
                     _submitSliceUpdate(5, instrument_index, { instruments_settings : { type: synth_type } }); 
 

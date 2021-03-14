@@ -45,9 +45,9 @@ if ("p" in args) {
 
 if (!fse.pathExistsSync(fas_path)) {
     if (fas_path !== default_path) {
-        logger.log("error", 'FAS path does not exist : %s', fas_path)
+        logger.log("error", 'FAS path does not exist (add -h for help): %s', fas_path)
     } else {
-        logger.log("error", 'Default FAS path does not exist : %s', fas_path)
+        logger.log("error", 'Default FAS path does not exist (add -h for help): %s', fas_path)
     }
 
     process.exit()
