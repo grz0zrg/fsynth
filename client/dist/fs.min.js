@@ -30852,12 +30852,14 @@ var _createFasSettingsContent = function () {
                 //var synth_type = osc_settings[1];
                 var slice = _play_position_markers[instrument_index];
 
-                _fasPause();
-                
-                _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 0, value: synth_type });
-
                 // load default settings
-                if (!triggered && slice.instrument_type !== synth_type) {
+                if (!triggered) {
+                    _fasPause();
+
+                    _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 0, value: synth_type });
+
+                    slice.instrument_type = synth_type;
+
                     if (_synthesis_types[synth_type] === "Physical Model") {
                         //_chn_settings[chn].osc = [0, synth_type, 1, 0, 2, 0];
                         //_fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 0, value: synth_type });
@@ -30985,8 +30987,6 @@ var _createFasSettingsContent = function () {
                     _fasUnpause();
 
                     _submitSliceUpdate(5, instrument_index, { instruments_settings : { type: synth_type } }); 
-
-                    slice.instrument_type = synth_type;
                 }
 
                 // save settings
@@ -36073,6 +36073,8 @@ var _fas = {
     },
     
     _fas_address_input = document.getElementById("fs_fas_address"),
+
+    _fas_paused = false,
     
     _FAS_ENABLE = 0,
     _FAS_DISABLE = 1,
@@ -36096,6 +36098,10 @@ var _fasNotify = function (cmd, data) {
 };
 
 var _fasNotifyFast = function (cmd, data) {
+    if (_fas_paused) {
+        return;
+    }
+
     var output_data_buffer = [],
         i = 0;
     
@@ -36114,6 +36120,8 @@ var _fasUnpause = function () {
     if (!_fas.enabled) {
         return;
     }
+
+    _fas_paused = false;
     
     _fasNotify(_FAS_ACTION, { type: 5 });
 };
@@ -36122,6 +36130,8 @@ var _fasPause = function () {
     if (!_fas.enabled) {
         return;
     }
+
+    _fas_paused = true;
     
     var data = [],
         

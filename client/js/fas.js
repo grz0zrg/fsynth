@@ -13,6 +13,8 @@ var _fas = {
     },
     
     _fas_address_input = document.getElementById("fs_fas_address"),
+
+    _fas_paused = false,
     
     _FAS_ENABLE = 0,
     _FAS_DISABLE = 1,
@@ -36,6 +38,10 @@ var _fasNotify = function (cmd, data) {
 };
 
 var _fasNotifyFast = function (cmd, data) {
+    if (_fas_paused) {
+        return;
+    }
+
     var output_data_buffer = [],
         i = 0;
     
@@ -54,12 +60,14 @@ var _fasUnpause = function () {
     if (!_fas.enabled) {
         return;
     }
+
+    _fas_paused = false;
     
     _fasNotify(_FAS_ACTION, { type: 5 });
 };
 
 var _fasPause = function () {
-    if (!_fas.enabled) {
+    if (!_fas.enabled || _fas_paused) {
         return;
     }
     
@@ -72,6 +80,8 @@ var _fasPause = function () {
     }
     
     _fasNotifyFast(_FAS_FRAME, data);
+
+    _fas_paused = true;
 
     _fasNotify(_FAS_ACTION, { type: 4 });
 };
