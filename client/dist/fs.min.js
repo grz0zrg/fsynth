@@ -30854,6 +30854,8 @@ var _createFasSettingsContent = function () {
 
                 // load default settings
                 if (!triggered) {
+                    var was_paused = _fas_paused;
+
                     _fasPause();
 
                     _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 0, value: synth_type });
@@ -30984,7 +30986,9 @@ var _createFasSettingsContent = function () {
                         //_fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
                     }
 
-                    _fasUnpause();
+                    if (!was_paused) {
+                        _fasUnpause();
+                    }
 
                     _submitSliceUpdate(5, instrument_index, { instruments_settings : { type: synth_type } }); 
                 }
@@ -36127,11 +36131,9 @@ var _fasUnpause = function () {
 };
 
 var _fasPause = function () {
-    if (!_fas.enabled) {
+    if (!_fas.enabled || _fas_paused) {
         return;
     }
-
-    _fas_paused = true;
     
     var data = [],
         
@@ -36142,6 +36144,8 @@ var _fasPause = function () {
     }
     
     _fasNotifyFast(_FAS_FRAME, data);
+
+    _fas_paused = true;
 
     _fasNotify(_FAS_ACTION, { type: 4 });
 };
