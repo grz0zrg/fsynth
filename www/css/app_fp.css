@@ -315,6 +315,16 @@ hr {
     background-color: #f50;
 }
 
+.fp-social-reddit:before {
+    content: "\f281";
+    top: -1px;
+    position: relative;
+}
+
+.fp-social-reddit {
+    background-color: #FF4500;
+}
+
 .fp-social-email {
     background-color: #757575;
 }

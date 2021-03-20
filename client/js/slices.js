@@ -645,7 +645,11 @@ var _createMarkerSettings = function (marker_obj) {
             value_min_width: 88,
 
             on_change: _cbMarkerSettingsChange(marker_obj, function (self, value, marker_obj) {
-                _setPlayPosition(marker_obj.element.dataset.slice, _parseInt10(value), 0, true);
+                var value = _parseInt10(value) % _canvas_width;
+                if (value < 0) {
+                    value = _canvas_width - value;
+                }
+                _setPlayPosition(marker_obj.element.dataset.slice, value, 0, true);
             })
         });
 

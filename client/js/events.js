@@ -179,7 +179,7 @@ document.addEventListener('mousemove', function (e) {
             
             canvas_offset;
     
-        if (e.target === _canvas || e.target.dataset.group === "canvas") {
+        if (e.target === _canvas || (e.target && e.target.dataset.group === "canvas")) {
             canvas_offset = _getElementOffset(_canvas);
 
             _cx = e.pageX;

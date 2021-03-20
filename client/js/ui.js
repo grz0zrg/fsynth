@@ -3206,10 +3206,6 @@ var _createFasSettingsContent = function () {
 
                 // load default settings
                 if (!triggered) {
-                    var was_paused = _fas_paused;
-
-                    _fasPause();
-
                     _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 0, value: synth_type });
 
                     slice.instrument_type = synth_type;
@@ -3336,10 +3332,6 @@ var _createFasSettingsContent = function () {
                         slice.instrument_params.p4 = 0;
                     } else {
                         //_fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
-                    }
-
-                    if (!was_paused) {
-                        _fasUnpause();
                     }
 
                     _submitSliceUpdate(5, instrument_index, { instruments_settings : { type: synth_type } }); 

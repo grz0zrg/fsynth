@@ -15,7 +15,7 @@
     float harmonics = 8. + abs(sin(globalTime + uv.x * PI2 * 1.)) * 16.;
     
     // 1 = saw wave (even harmonics), 2 = square wave (odd harmonics)
-    const float harmonics_step = 2.;
+    const float harmonics_step = 1.;
     for (float h = 1.; h < harmonics; h += max(1., harmonics_step)) {
         // normalize
       	float nh = h / harmonics;
@@ -35,7 +35,7 @@
       		r += fline(harmonic_frequency) * attenuation / 8.;
         } else { // bandpass (right part of the canvas)
             // frequency band
-            float bp_start_frequency = 440.;
+            float bp_start_frequency = 120. + abs(sin(globalTime * 4.)) * 1000.;
             float sf = bp_start_frequency;
  
             // L & R amplitude factor
@@ -54,4 +54,5 @@
     synthOutput = vec4(l, r, g, b);
     fragColor = vec4(l, r, 0., 1.);
   }
+
 

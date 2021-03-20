@@ -71,16 +71,6 @@ var _fasPause = function () {
         return;
     }
     
-    var data = [],
-        
-        i = 0;
-    
-    for (i = 0; i < _play_position_markers.length; i += 1) {
-        data.push(new _synth_data_array(_canvas_height_mul4));
-    }
-    
-    _fasNotifyFast(_FAS_FRAME, data);
-
     _fas_paused = true;
 
     _fasNotify(_FAS_ACTION, { type: 4 });

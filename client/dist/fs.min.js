@@ -30854,10 +30854,6 @@ var _createFasSettingsContent = function () {
 
                 // load default settings
                 if (!triggered) {
-                    var was_paused = _fas_paused;
-
-                    _fasPause();
-
                     _fasNotify(_FAS_INSTRUMENT_INFOS, { instrument: instrument_index, target: 0, value: synth_type });
 
                     slice.instrument_type = synth_type;
@@ -30984,10 +30980,6 @@ var _createFasSettingsContent = function () {
                         slice.instrument_params.p4 = 0;
                     } else {
                         //_fasNotify(_FAS_CHN_INFOS, { target: 0, chn: chn, value: synth_type });
-                    }
-
-                    if (!was_paused) {
-                        _fasUnpause();
                     }
 
                     _submitSliceUpdate(5, instrument_index, { instruments_settings : { type: synth_type } }); 
@@ -34549,7 +34541,11 @@ var _createMarkerSettings = function (marker_obj) {
             value_min_width: 88,
 
             on_change: _cbMarkerSettingsChange(marker_obj, function (self, value, marker_obj) {
-                _setPlayPosition(marker_obj.element.dataset.slice, _parseInt10(value), 0, true);
+                var value = _parseInt10(value) % _canvas_width;
+                if (value < 0) {
+                    value = _canvas_width - value;
+                }
+                _setPlayPosition(marker_obj.element.dataset.slice, value, 0, true);
             })
         });
 
@@ -36135,16 +36131,6 @@ var _fasPause = function () {
         return;
     }
     
-    var data = [],
-        
-        i = 0;
-    
-    for (i = 0; i < _play_position_markers.length; i += 1) {
-        data.push(new _synth_data_array(_canvas_height_mul4));
-    }
-    
-    _fasNotifyFast(_FAS_FRAME, data);
-
     _fas_paused = true;
 
     _fasNotify(_FAS_ACTION, { type: 4 });
@@ -37388,7 +37374,7 @@ document.addEventListener('mousemove', function (e) {
             
             canvas_offset;
     
-        if (e.target === _canvas || e.target.dataset.group === "canvas") {
+        if (e.target === _canvas || (e.target && e.target.dataset.group === "canvas")) {
             canvas_offset = _getElementOffset(_canvas);
 
             _cx = e.pageX;

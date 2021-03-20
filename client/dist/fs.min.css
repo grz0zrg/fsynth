@@ -1870,13 +1870,14 @@ canvas {
 }
 
 .fs-discuss-input {
-    width: calc(100% - 152px);
-    height: 20px;
+    width: calc(100% - 156px);
+    height: 18px;
     vertical-align: middle;
     margin: 0;
     text-align: left;
     border: none !important;
-    padding: 4px;
+    padding: 3px;
+    margin-left: 2px;
 }
 
 .fs-discuss-input:hover {
@@ -2136,7 +2137,7 @@ canvas {
 }
 
 .fs-documentation a {
-    color: #ffff00;
+    color: #ffd700;
     text-decoration: none;
 }
 
@@ -2701,7 +2702,7 @@ body .code .CodeMirror-fullscreen {
 
 .fs-text a {
     text-decoration: none;
-    color: yellow;
+    color: #ffd700;
 }
 
 .fs-text a:hover {
