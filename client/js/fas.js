@@ -211,6 +211,11 @@ var _fasInit = function () {
             _fas.address = this.value;
         
             localStorage.setItem("fas-address", _fas.address);
+
+            if (_fas.enabled) {
+                _fasDisable();
+                _fasEnable();
+            }
         });
     
     _fas.worker.addEventListener("message", function (m) {

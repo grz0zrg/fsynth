@@ -445,6 +445,10 @@ function printOverallLoad() {
     clearTimeout(fas_load_timeout);
     fas_load_timeout = setTimeout(printOverallLoad, 2000);
 
+    if (!client_socket) {
+        return;
+    }
+
     var i = 0, l = 0, overall_latency = 0;
     for (i = 0; i < fas_loads.length; i += 1) {
         l += fas_loads[i];
@@ -466,7 +470,7 @@ function printOverallLoad() {
 
     var stream_infos = new ArrayBuffer(8 + 8),
         int32_view = new Int32Array(stream_infos, 0),
-        float64_view = new Float64Array(stream_infos, 2);
+        float64_view = new Float64Array(stream_infos, 8);
 
     int32_view[0] = 0;
     int32_view[1] = l;

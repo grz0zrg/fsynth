@@ -21323,7 +21323,7 @@ _utter_fail_element.innerHTML = "";
     };
 
     if (!(test_canvas.getContext("webgl2", test_opts) || test_canvas.getContext("experimental-webgl2", test_opts))) {
-        _fail("Web WebGL 2 is not available, please use a web browser / device with WebGL 2 support.", true);
+        _fail("WebGL 2 is not available, please use a web browser / device with WebGL 2 support.", true);
 
         return;
     }
@@ -21332,7 +21332,7 @@ _utter_fail_element.innerHTML = "";
         Fields.
     ************************************************************/
 
-    var _motd = '<div id="fs_notify" class="fs-notify"><div class="fs-status-bar-date">31/12/2020 :</div><div class="fs-status-bar-content"><a class="fs-link" href="https://quiet.fsynth.com/d/19-fragment-2-0">Fragment 2.0 released (click for more details)</a></div></div>',
+    var _motd = '<div id="fs_notify" class="fs-notify"><div class="fs-status-bar-date">27/03/2021 :</div><div class="fs-status-bar-content"><a class="fs-link" href="https://quiet.fsynth.com/d/19-fragment-2-0">Fragment 2.0 released (click for more details)</a></div></div>',
         
         _webmidi_support_msg = '<center>WebMIDI API is not enabled/supported by this browser, please use a <a class="fs-link" href="https://caniuse.com/#search=midi">compatible browser</a>.</center>',
         
@@ -36308,6 +36308,11 @@ var _fasInit = function () {
             _fas.address = this.value;
         
             localStorage.setItem("fas-address", _fas.address);
+
+            if (_fas.enabled) {
+                _fasDisable();
+                _fasEnable();
+            }
         });
     
     _fas.worker.addEventListener("message", function (m) {
@@ -36766,6 +36771,11 @@ var _oscInit = function () {
             _osc.address = this.value;
         
             localStorage.setItem("osc-address", _osc.address);
+
+            if (_oscEnabled) {
+                _oscDisable();
+                _oscEnable();
+            }
         });
 
     _osc.worker.addEventListener("message", function (m) {
@@ -37217,14 +37227,14 @@ var _oscInit = function () {
     _loadEditorsMarks();
 
     _allocateFramesData();
+
+    _fasInit();
     
     _uiInit();
 
     _pjsInit();
     
     _midiInit();
-    
-    _fasInit();
     
     _oscInit();
 

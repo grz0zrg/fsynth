@@ -112,6 +112,11 @@ var _oscInit = function () {
             _osc.address = this.value;
         
             localStorage.setItem("osc-address", _osc.address);
+
+            if (_oscEnabled) {
+                _oscDisable();
+                _oscEnable();
+            }
         });
 
     _osc.worker.addEventListener("message", function (m) {
