@@ -14,7 +14,7 @@
     float frequency = 240.;
     
     float wavetable_direction = 1.;
-    float wavetable_speed = 0.005 + abs(sin(globalTime * PI2) / 16.);
+    float wavetable_speed = 0.001;
     float wavetable_interpolation = 0.5; // disable: 0, enable: > 0 (fractional)
     // wave start index: 0 
     // speed is encoded in the fractional part and direction is defined by the sign
@@ -28,3 +28,4 @@
     synthOutput = vec4(l, r, wave_start, wave_end);
     fragColor = vec4(l, r, 0., 1.);
   }
+

@@ -507,6 +507,7 @@ var FragmentSynth = function (params) {
         _cm_show_osderrors = true,
         _cm_advanced_scrollbar = false,
         _quickstart_on_startup = true,
+        _compile_delay_ms = 100,
         
         _clipboard,
 

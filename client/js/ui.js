@@ -1692,7 +1692,7 @@ var _createSynthParametersContent = function () {
                 bar: false,
     
                 step: 0.0000001,
-                scroll_step: 0.01,
+                scroll_step: 0.0001,
     
                 default_value: gmin,
                 value: gmin,
@@ -1719,7 +1719,7 @@ var _createSynthParametersContent = function () {
                 bar: false,
     
                 step: 0.0000001,
-                scroll_step: 0.01,
+                scroll_step: 0.0001,
     
                 default_value: gmax,
                 value: gmax,
@@ -1746,7 +1746,7 @@ var _createSynthParametersContent = function () {
                 bar: false,
     
                 step: 0.0000001,
-                scroll_step: 0.01,
+                scroll_step: 0.0001,
     
                 default_value: gden,
                 value: gden,
@@ -3764,6 +3764,7 @@ var _uiInit = function () {
         
         fs_settings_show_toolbar_title = localStorage.getItem('fs-show-toolbar-title'),
         fs_settings_fps = localStorage.getItem('fs-fps'),
+        fs_settings_compile_delay = localStorage.getItem("fs-compile-delay"),
         fs_settings_note_lifetime = localStorage.getItem('fs-note-lifetime'),
         fs_settings_max_polyphony = localStorage.getItem('fs-max-polyphony'),
         fs_settings_show_globaltime = localStorage.getItem('fs-show-globaltime'),
@@ -3844,6 +3845,10 @@ var _uiInit = function () {
 
     if (fs_settings_fps) {
         _fas.fps = _parseInt10(fs_settings_fps);
+    }
+
+    if (fs_settings_compile_delay) {
+        _compile_delay_ms = _parseInt10(fs_settings_compile_delay);
     }
     
     if (fs_settings_show_globaltime !== null) {
@@ -5508,6 +5513,37 @@ var _uiInit = function () {
                 localStorage.setItem('fs-fps', _fas.fps);
 
                 _fasNotify(_FAS_SYNTH_INFOS, { target: 0, value: _fas.fps });
+            }
+        });
+
+        WUI_RangeSlider.create("fs_settings_compile_delay", {
+            width: 120,
+            height: 8,
+
+            min: 0,
+            max: 5000,
+        
+            bar: false,
+
+            step: 1,
+            scroll_step: 10,
+
+            default_value: _compile_delay_ms,
+            value: _compile_delay_ms,
+
+            title: "Compile delay (ms)",
+
+            title_min_width: 140,
+            value_min_width: 88,
+
+            on_change: function (delay) {
+                if (delay < 0) {
+                    return;
+                }
+                
+                _compile_delay_ms = delay;
+                
+                localStorage.setItem('fs-compile-delay', _compile_delay_ms);
             }
         });
 

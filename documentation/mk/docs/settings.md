@@ -38,6 +38,11 @@ FPS / Slices data rate
 - The rate at which the audio server accept slices data
     - note : this only relate to the audio server rate; generally the client slices capture data at the display refresh rate which is generally 60 Hz, this has an impact on the synthesizer events resolution. As such it is possible to run the client without VSync or with a higher display rate monitor and change the audio server rate to increase the events resolution.
 
+Compile delay (ms)
+
+- Milliseconds delay before the code get compiled when typing stop (only affect GLSL code)
+    - can be 0 (immediate) but performance may degrade (the compilation will be triggered often) good default is 100 ms
+
 Show globalTime
 
 - Hide/Show the globalTime in the informations bar

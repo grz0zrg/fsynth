@@ -304,7 +304,7 @@ var _glsl_compilation = function () {
 var _compile = function () {
     clearTimeout(_glsl_compile_timeout);
     
-    _glsl_compile_timeout = setTimeout(_glsl_compilation, 100);
+    _glsl_compile_timeout = setTimeout(_glsl_compilation, _compile_delay_ms);
 };
 
 var setCursorCb = function (code_editor, position) {
