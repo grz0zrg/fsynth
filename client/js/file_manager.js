@@ -4,10 +4,12 @@
     Fields.
 ************************************************************/
 
-var _ffs_address = _domain + ":3122",
+var _ffs_address = "127.0.0.1:3122",
     _dir_state = new Map(),
     _selected_files = new Map(),
-    _file_check_state = null;
+    _file_check_state = null,
+    
+    _ffs_address_input = document.getElementById("fs_ffs_address");
 
 /***********************************************************
     Functions.
@@ -657,3 +659,17 @@ var _refreshFileManager = function (target_element_id, target) {
     Init.
 ************************************************************/
 
+var _ffsInit = function () {
+    var address = localStorage.getItem("ffs-address");
+    if (address !== null) {
+        _ffs_address = address;
+    }
+
+    _ffs_address_input.value = _ffs_address;
+    
+    _ffs_address_input.addEventListener('input', function () {
+        _ffs_address = this.value;
+        
+        localStorage.setItem("ffs-address", _ffs_address);
+    });
+};

@@ -162,7 +162,7 @@ var FragmentSynth = function (params) {
         Fields.
     ************************************************************/
 
-    var _motd = '<div id="fs_notify" class="fs-notify"><div class="fs-status-bar-date">27/03/2021 :</div><div class="fs-status-bar-content"><a class="fs-link" href="https://quiet.fsynth.com/d/19-fragment-2-0">Fragment 2.0 released (click for more details)</a></div></div>',
+    var _motd = '<div id="fs_notify" class="fs-notify"><div class="fs-status-bar-date">27/03/2021 :</div><div class="fs-status-bar-content"><a class="fs-link" href="https://quiet.fsynth.com/d/26-fragment-2-0-0" target="_blank">Fragment 2.0 released (click for more details)</a></div></div>',
         
         _webmidi_support_msg = '<center>WebMIDI API is not enabled/supported by this browser, please use a <a class="fs-link" href="https://caniuse.com/#search=midi">compatible browser</a>.</center>',
         
@@ -997,6 +997,8 @@ var FragmentSynth = function (params) {
     _allocateFramesData();
 
     _fasInit();
+
+    _ffsInit();
     
     _uiInit();
 

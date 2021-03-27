@@ -21332,7 +21332,7 @@ _utter_fail_element.innerHTML = "";
         Fields.
     ************************************************************/
 
-    var _motd = '<div id="fs_notify" class="fs-notify"><div class="fs-status-bar-date">27/03/2021 :</div><div class="fs-status-bar-content"><a class="fs-link" href="https://quiet.fsynth.com/d/19-fragment-2-0">Fragment 2.0 released (click for more details)</a></div></div>',
+    var _motd = '<div id="fs_notify" class="fs-notify"><div class="fs-status-bar-date">27/03/2021 :</div><div class="fs-status-bar-content"><a class="fs-link" href="https://quiet.fsynth.com/d/26-fragment-2-0-0" target="_blank">Fragment 2.0 released (click for more details)</a></div></div>',
         
         _webmidi_support_msg = '<center>WebMIDI API is not enabled/supported by this browser, please use a <a class="fs-link" href="https://caniuse.com/#search=midi">compatible browser</a>.</center>',
         
@@ -21772,7 +21772,8 @@ _utter_fail_element.innerHTML = "";
 */
 
 var _ws_protocol = "ws",
-    _domain = "127.0.0.1";/* jslint browser: true */
+    _domain = "127.0.0.1";
+/* jslint browser: true */
 
 /**
  * IndexedDB initialization & interface
@@ -26994,10 +26995,12 @@ var _initWorkspace = function () {
     Fields.
 ************************************************************/
 
-var _ffs_address = _domain + ":3122",
+var _ffs_address = "127.0.0.1:3122",
     _dir_state = new Map(),
     _selected_files = new Map(),
-    _file_check_state = null;
+    _file_check_state = null,
+    
+    _ffs_address_input = document.getElementById("fs_ffs_address");
 
 /***********************************************************
     Functions.
@@ -27647,7 +27650,20 @@ var _refreshFileManager = function (target_element_id, target) {
     Init.
 ************************************************************/
 
-/* jslint browser: true */
+var _ffsInit = function () {
+    var address = localStorage.getItem("ffs-address");
+    if (address !== null) {
+        _ffs_address = address;
+    }
+
+    _ffs_address_input.value = _ffs_address;
+    
+    _ffs_address_input.addEventListener('input', function () {
+        _ffs_address = this.value;
+        
+        localStorage.setItem("ffs-address", _ffs_address);
+    });
+};/* jslint browser: true */
 
 /***********************************************************
     Fields.
@@ -37229,6 +37245,8 @@ var _oscInit = function () {
     _allocateFramesData();
 
     _fasInit();
+
+    _ffsInit();
     
     _uiInit();
 

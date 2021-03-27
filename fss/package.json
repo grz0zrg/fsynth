@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "description": "Fragment Synthesizer Server",
   "dependencies": {
-    "bufferutil": "^4.0.3",
+    "bufferutil": "^3.0.5",
     "redis": "^2.6.3",
     "strong-cluster-control": "^2.2.3",
-    "utf-8-validate": "^5.0.4",
+    "utf-8-validate": "^4.0.2",
     "winston": "3.2.1",
-    "ws": "7.2.1"
+    "ws": "5.2.2"
   }
 }

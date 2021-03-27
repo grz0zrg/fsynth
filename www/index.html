@@ -327,7 +327,7 @@
                                         <td style="text-align: center; border-right: solid 1px #f4f4f4; font-size: 13pt">
                                             <b>27/03/2021</b>
                                             <br/>
-                                            &nbsp;<a href="https://quiet.fsynth.com/d/19-fragment-2-0" rel="noopener">Fragment 2.0 released, massive client & audio server update</a>
+                                            &nbsp;<a href="https://quiet.fsynth.com/d/26-fragment-2-0-0" rel="noopener">Fragment 2.0 released, massive client & audio server update</a>
                                         </td>
                                         <td style="text-align: center; border-right: solid 1px #f4f4f4; font-size: 9pt">
                                             31/12/2017
@@ -352,13 +352,12 @@
                         </h5>
                         <hr/>
                         <p class="fp-margin fp-justify value-description">
-                            Fragment require an audio server in order to output any sounds, the audio server must be launched and run alongside any sessions. It is available for Windows as a .zip package and Linux as an installation free <a href="https://appimage.org/">AppImage</a>.
+                            Fragment require an audio server in order to output any sounds, the audio server must be launched and run alongside any sessions. It is available for Windows as a .zip package and Linux as an installation free <a href="https://appimage.org/">AppImage</a> packaged into a .zip.
                         </p>
 
                         <table class="fp-dl-table u-full-width">
                             <thead>
                                 <tr>
-                                    <th>SHA3-256 Checksum</th>
                                     <th>Platform</th>
                                     <th>Description</th>
                                     <th>Download</th>
@@ -367,62 +366,55 @@
                             <tbody>
                                 <tr>
                                     <td>
-                                        
-                                    </td>
-                                    <td>
                                         <i class="fab fa-linux" aria-hidden="true"></i>
                                     </td>
                                     <td>
-                                        Linux 64 Bits (1.4MB; .zip / AppImage)
+                                        Linux 64 Bits without JACK (44MB; .zip / AppImage)
                                     </td>
                                     <td class="fp-download">
-                                        <a href="dl/fas-2.0.0-x86_64.zip" title="Download Fragment Audio Server for Linux as an AppImage (64 Bits; 1.4MB)" rel="noopener">
+                                        <a href="dl/fas-2.0.0-x86_64.zip" title="Download Fragment Audio Server for Linux as an AppImage / .zip file (64 Bits; 44MB)" rel="noopener">
                                             <i class="fas fa-download" aria-hidden="true"></i>
                                         </a>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>
-                                        
-                                    </td>
-                                    <td>
                                         <i class="fab fa-linux" aria-hidden="true"></i>
                                     </td>
                                     <td>
-                                        Linux 64 Bits JACK only (1.4MB; .zip / AppImage)
+                                        Linux 64 Bits JACK only (43.9MB; .zip / AppImage)
                                     </td>
                                     <td class="fp-download">
-                                        <a href="dl/fas-2.0.0-jack-x86_64.zip" title="Download Fragment Audio Server with JACK support for Linux as an AppImage (64 Bits; 1.4MB)" rel="noopener">
+                                        <a href="dl/fas-2.0.0-jack-x86_64.zip" title="Download Fragment Audio Server with JACK support for Linux as an AppImage / .zip file (64 Bits; 43.9MB)" rel="noopener">
                                             <i class="fas fa-download" aria-hidden="true"></i>
                                         </a>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td>
-                                        
-                                    </td>
                                     <td>
                                         <i class="fab fa-windows" aria-hidden="true"></i>
                                     </td>
                                     <td>
-                                        Windows 64 Bits (1.4MB; .zip)
+                                        Windows 64 Bits (38.1MB; .zip)
                                     </td>
                                     <td class="fp-download">
-                                        <a href="dl/fas-2.0.0-x86_64.zip" title="Download Fragment launcher for Windows as a ZIP file (64 Bits; 1.4MB)" rel="noopener">
+                                        <a href="dl/fas-2.0.0-x86_64-win.zip" title="Download Fragment Audio Server for Windows as a .zip file (64 Bits; 38.1MB)" rel="noopener">
                                             <i class="fas fa-download" aria-hidden="true"></i>
                                         </a>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
+                        <a title="SHA3-256 Checksum" href="dl/fas-sha3.txt">SHA3-256 Checksum</a>
+                        <br/><br/>
                         <div class="fp-margin fp-justify value-description">
                             <strong><i class="fab fa-linux" aria-hidden="true" style="font-size: 20px"></i> &nbsp;Instructions to run the AppImage</strong>
                             <ul class="fp-features">
                                 <li>
-                                    <code>sudo chmod +x fas</code> in a terminal (or allow the file to be executable through file properties)
+                                    <code>sudo chmod +x fas.AppImage</code> in a terminal (or allow the file to be executable through file properties)
                                 </li>
                                 <li>
-                                    launch with <code>./fas</code> command in a terminal
+                                    launch with <code>./fas.AppImage</code> command in a terminal
                                 </li>
                             </ul>
                         </div>
@@ -475,10 +467,10 @@
                             <strong>&nbsp;Fragment File Server</strong> (only required to upload samples from the client)
                             <ul class="fp-features">
                                 <li>
-                                    <i class="fab fa-linux" aria-hidden="true"></i>&nbsp;<a href="dl/ffs-2.0.0-x86_64-linux.zip" title="Download Fragment File Server for Linux as a ZIP file (64 bits; 1.4MB)" rel="noopener">Fragment File Server 64 bits (1.4MB; .zip) Linux</a>
+                                    <i class="fab fa-linux" aria-hidden="true"></i>&nbsp;<a href="dl/ffs-2.0.0-x86_64-linux.zip" title="Download Fragment File Server for Linux as a ZIP file (64 bits; 18.9MB)" rel="noopener">Fragment File Server 64 bits (18.9MB; .zip) Linux</a>
                                 </li>
                                 <li>
-                                    <i class="fab fa-windows" aria-hidden="true"></i>&nbsp;<a href="dl/ffs-2.0.0-x86_64-win.zip" title="Download Fragment File Server for Windows as a ZIP file (64 bits; 1.4MB)" rel="noopener">Fragment File Server 64 bits (1.4MB; .zip) Windows</a>
+                                    <i class="fab fa-windows" aria-hidden="true"></i>&nbsp;<a href="dl/ffs-2.0.0-x86_64-win.zip" title="Download Fragment File Server for Windows as a ZIP file (64 bits; 16MB)" rel="noopener">Fragment File Server 64 bits (16MB; .zip) Windows</a>
                                 </li>
                                 <li>
                                     <a title="SHA3-256 Checksum" href="dl/ffs-sha3.txt">SHA3-256 Checksum</a>
@@ -489,10 +481,10 @@
                             <strong>&nbsp;Fragment OSC relay</strong> (only required to use OSC)
                             <ul class="fp-features">
                                 <li>
-                                    <i class="fab fa-linux" aria-hidden="true"></i>&nbsp;<a href="dl/osc-relay-2.0.0-x86_64-linux.zip" title="Download Fragment OSC relay for Linux as a ZIP file (64 bits; 1.4MB)" rel="noopener">Fragment OSC relay 64 bits (1.4MB; .zip) Linux</a>
+                                    <i class="fab fa-linux" aria-hidden="true"></i>&nbsp;<a href="dl/osc-relay-2.0.0-x86_64-linux.zip" title="Download Fragment OSC relay for Linux as a ZIP file (64 bits; 17.8MB)" rel="noopener">Fragment OSC relay 64 bits (17.8MB; .zip) Linux</a>
                                 </li>
                                 <li>
-                                    <i class="fab fa-windows" aria-hidden="true"></i>&nbsp;<a href="dl/osc-relay-2.0.0-x86_64-win.zip" title="Download Fragment OSC relay for Windows as a ZIP file (64 bits; 1.4MB)" rel="noopener">Fragment OSC relay 64 bits (1.4MB; .zip) Windows</a>
+                                    <i class="fab fa-windows" aria-hidden="true"></i>&nbsp;<a href="dl/osc-relay-2.0.0-x86_64-win.zip" title="Download Fragment OSC relay for Windows as a ZIP file (64 bits; 17.6MB)" rel="noopener">Fragment OSC relay 64 bits (17.6MB; .zip) Windows</a>
                                 </li>
                                 <li>
                                     <a title="SHA3-256 Checksum" href="dl/osc-relay-sha3.txt">SHA3-256 Checksum</a>
@@ -503,10 +495,10 @@
                             <strong>&nbsp;Fragment FAS relay</strong> (only required to use multiple audio server for multi-machines/multi-core distributed sound synthesis)
                             <ul class="fp-features">
                                 <li>
-                                    <i class="fab fa-linux" aria-hidden="true"></i>&nbsp;<a href="dl/fas-relay-2.0.0-x86_64-linux.zip" title="Download Fragment relay for Linux as a ZIP file (64 bits; 1.4MB)" rel="noopener">Fragment FAS relay 64 bits (1.4MB; .zip) Linux</a>
+                                    <i class="fab fa-linux" aria-hidden="true"></i>&nbsp;<a href="dl/fas-relay-2.0.0-x86_64-linux.zip" title="Download Fragment relay for Linux as a ZIP file (64 bits; 17.1MB)" rel="noopener">Fragment FAS relay 64 bits (17.1MB; .zip) Linux</a>
                                 </li>
                                 <li>
-                                    <i class="fab fa-windows" aria-hidden="true"></i>&nbsp;<a href="dl/fas-relay-2.0.0-x86_64-win.zip" title="Download Fragment relay for Windows as a ZIP file (64 bits; 1.4MB)" rel="noopener">Fragment FAS relay 64 bits (1.4MB; .zip) Windows</a>
+                                    <i class="fab fa-windows" aria-hidden="true"></i>&nbsp;<a href="dl/fas-relay-2.0.0-x86_64-win.zip" title="Download Fragment relay for Windows as a ZIP file (64 bits; 17MB)" rel="noopener">Fragment FAS relay 64 bits (17MB; .zip) Windows</a>
                                 </li>
                                 <li>
                                     <a title="SHA3-256 Checksum" href="dl/fas-relay-sha3.txt">SHA3-256 Checksum</a>

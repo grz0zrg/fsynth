@@ -27,6 +27,7 @@ www/cache-manifest.mf
 www/data
 www/data/icons
 www/fonts
+www/webfonts
 www/dist/fp.min.css
 www/dist/fp.min.js
 placeholder/index.html

@@ -53,7 +53,7 @@ function websocketConnect() {
         console.log("Connection closed.")
     });
 
-    console.log("Websocket listening on 127.0.0.1:8081");
+    console.log("OSC Relay listening on 127.0.0.1:8081");
 }
 
 udpPort.on("ready", function () {
