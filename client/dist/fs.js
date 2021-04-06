@@ -2491,6 +2491,8 @@ var WUI_RangeSlider = new (function() {
 
             midi: null,
 
+            midi_square_only: false,
+
             /*
                 can be an object with the following fields (example) :
                     {
@@ -2641,7 +2643,10 @@ var WUI_RangeSlider = new (function() {
 
         value_input = bar.nextElementSibling;
 
-//        value = _truncateDecimals(value, widget.opts.decimals);
+        // this check is for leading zeroes; don't truncate on leading zeros (convenience so one can type values such as 0.0)
+        if (parseFloat(value) === value) {
+            value = _truncateDecimals(value, widget.opts.decimals);
+        }
 
         if (rs.opts.vertical) {
             pos = Math.round(pos * bar.offsetHeight);
@@ -3394,6 +3399,16 @@ var WUI_RangeSlider = new (function() {
         bar.classList.add(_class_name.bar);
         filler.classList.add(_class_name.filler);
         hook.classList.add(_class_name.hook);
+
+        if (opts.midi_square_only) {
+            bar.style.display = "none";
+            title_div.style.display = "none";
+            value_input.style.display = "none";
+
+            range_slider.style.width = "8px";
+            range_slider.style.height = "8px";
+            range_slider.style.border = "none";
+        }
 
         if (opts.vertical) {
             title_div.style.textAlign = "center";
@@ -4201,7 +4216,8 @@ var WUI_ToolBar = new (function() {
     };
 
     var _propagate = function (tool, type, state) {
-        if (tool.on_click !== undefined &&
+        if (tool &&
+            tool.on_click !== undefined &&
             tool.on_click !== null) {
             var o = {
                 id: tool.id,
@@ -4479,7 +4495,7 @@ var WUI_ToolBar = new (function() {
 
         my_tool = widget.tools[element.dataset.tool_id];
 
-        if (my_tool.type === "dropdown") {
+        if (my_tool && my_tool.type === "dropdown") {
             if (element.classList.contains(_class_name.toggle_on)) {
                 _removeDdFloatingContent(my_tool, element);
 
@@ -21772,8 +21788,7 @@ _utter_fail_element.innerHTML = "";
 */
 
 var _ws_protocol = "ws",
-    _domain = "127.0.0.1";
-/* jslint browser: true */
+    _domain = "127.0.0.1";/* jslint browser: true */
 
 /**
  * IndexedDB initialization & interface
