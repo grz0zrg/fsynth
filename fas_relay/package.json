@@ -3,8 +3,8 @@
     "version": "1.0.0",
     "description": "Fragment Audio Server Relay",
     "dependencies": {
-        "winston": "3.2.1",
         "minimist": "1.2.5",
+        "winston": "3.2.1",
         "ws": "7.2.1"
     }
 }

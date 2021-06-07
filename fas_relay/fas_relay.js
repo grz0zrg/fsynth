@@ -188,12 +188,18 @@ function websocketConnect() {
                     if (!instruments[instrument_index]) {
                         instruments[instrument_index] = {
                             type: 15,
+                            chn: -1,
+                            p0: -1,
                             p3: -1
                         };
                     }
                     
                     if (uint32_view[1] === 0) { // target
                         instruments[instrument_index].type = float64_view[0];
+                    } else if (uint32_view[1] === 2) {
+                        instruments[instrument_index].chn = float64_view[0];
+                    } else if (uint32_view[1] === 3) {
+                        instruments[instrument_index].p0 = float64_view[0];
                     } else if (uint32_view[1] === 5) {
                         instruments[instrument_index].p3 = float64_view[0];
                     }
@@ -241,21 +247,56 @@ function websocketConnect() {
                             }
                         }
 
+                        // pre-pass for instruments that rely on inputs or channels
+                        // we need to mark their dependencies so they (the dependencies) are sent to all FAS instances
+                        var deps = [];
                         for (j = 0; j < frame_length; j += 1) {
                             var instrument_type = instruments[j].type;
                             var instrument_p3 = instruments[j].p3;
-                            // instruments which use a source channel / instrument are sent to all instances
+
+                            if (instrument_type === 7 || // bandpass
+                                instrument_type === 8 || // formant
+                                instrument_type === 9 || // phase distorsion, should not be handled like that ?
+                                instrument_type === 10 || // string resonance
+                                instrument_type === 11 || // modal
+                                instrument_type === 14) { // faust
+                                for (k = 0; k < data_length_rgba; k += 4) {
+                                    index = k + j * data_length_rgba;
+
+                                    b = data_view[index + 2];
+
+                                    var bf = b - Math.floor(b);
+
+                                    if (bf > 0 && instrument_type !== 8) { // instrument (note: formant only use input channels (no instruments))
+                                        deps[Math.floor(b)] = true;
+                                    } else { // channel
+                                        var source_chn = Math.floor(b);
+
+                                        for (var i = 0; i < frame_length; i += 1) { // meh ?
+                                            var instrument = instruments[i];
+
+                                            // mark all instruments on this channel
+                                            if (instrument.chn === source_chn) {
+                                                deps[i] = true;
+                                            }
+                                        }
+                                    }
+                                }
+                            } else if (instrument_type === 1 && instrument_p3 === 0) { // spectral & factor mode
+                                if (instruments[j].p0 >= 0) {
+                                    deps[instruments[j].p0] = true;
+                                }
+                            }
+                        }
+
+                        for (j = 0; j < frame_length; j += 1) {
+                            var instrument_type = instruments[j].type;
+                            var instrument_p3 = instruments[j].p3;
+                            // here we either dispatch to all instance or a specific instance
                             // TODO: could probably be optimized...
-                            // TODO: Faust instruments with inputs are not handled at all which may cause strange behaviors (we need a way to detect them)
-                            if (instruments[j] && (
-                                    (instrument_type === 1 && instrument_p3 === 0) || // spectral & factor mode
-                                    instrument_type === 7  ||
-                                    instrument_type === 8  ||
-                                    instrument_type === 9  ||
-                                    instrument_type === 10 ||
-                                    instrument_type === 11 ||
-                                    instrument_type === 12)) {
-                                    //instrument_type === 14) { // remove this to handle Faust instruments with input, downside is Faust with no inputs will be handled additively on all instances...
+                            if (instruments[j] &&
+                                (deps[j] === true || // if the instrument is a dependence (an input instrument use it), send it to all instances
+                                instrument_type === 12)) { // modulation is always sent on all instances
                                 for (k = 0; k < data_length_rgba; k += 4) {
                                     index = k + j * data_length_rgba;
 

@@ -29,4 +29,4 @@ Usage:
 
 All options can be used with each other, weight option apply to each ip:port of the servers list even with ip/port range (in this case the range weight is the one of the starting addr/port).
 
-Note : All instruments which use inputs are sent to all instances, this is a limitation which can affect performances when alot of instruments use inputs.
+Note : All instruments which use inputs (either channel or instrument source mode) see their dependencies being sent to all instances. (eg. if there is a subtractive instrument and a bandpass instrument which use it as source the subtractive instrument will be computed on all instances). Modulation instrument are sent to all instances.
