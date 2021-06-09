@@ -72,21 +72,11 @@ This tool is available on the homepage.
 
 The [FAS relay](https://github.com/grz0zrg/fsynth/tree/master/fas_relay) is a program which listen to port 3003 and wait a client connection, when a client is connected, it relay the data from the client to all audio server instances specified at launch, audio server instances can be remote or local (same computer = multi-core)
 
-Moreover, three type of distribution system can be chosen (the constant must be changed in the source-code at the moment), DSMART is recommended as it provide the best performances/distribution
-
-DSPLIT
-
-- Will split the data in equal blocks and distribute them over each audio server instances
-
-DINTER
-
-- Interleaved, this will distribute data over each servers in a linear & cyclical fashion
-
-DSMART
+The relay work as follow:
 
 - Distribute the data equally by default over all the audio servers
-- Provide the best performances/distribution quality out of the three methods available
 - Will also distribute different channels data to different instances
+- Instruments with input (such as filters) see their dependencies being sent to all instances
 - Weight can be defined per servers, this may be of interest to run the servers on machines that has different capabilities, you could have double amount of processing for machine X while normal amount for machine Y and low amount of processing for machine Z etc.
 
 **Commands line argument** (example for 3 localhost servers)

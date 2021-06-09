@@ -2299,7 +2299,7 @@ var _createSynthParametersContent = function () {
             var chn_filter_type_label,
                 chn_filter_type_select,
                 chn_filter_option,
-                chn_filters_option = ["Moog-ladder LPF", "Diode-ladder LPF", "Korg 35 LPF", "18db LPF"];
+                chn_filters_option = ["Moog-ladder LPF", "Diode-ladder LPF", "Korg 35 LPF", "18db LPF", "none"];
 
             chn_filter_type_label = document.createElement("label");
             chn_filter_type_select = document.createElement("select");
