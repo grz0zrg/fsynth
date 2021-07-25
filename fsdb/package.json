@@ -4,15 +4,15 @@
   "description": "Fragment ShareDB Server",
   "dependencies": {
     "express": "4.14.0",
-    "mongodb": "2.2.36",
+    "mongodb": "3.1.13",
     "ot-text": "1.0.2",
     "sharedb": "1.2.1",
     "sharedb-logger": "0.1.4",
-    "sharedb-mongo": "1.0.0-beta.14",
-    "sharedb-redis-pubsub": "^1.0.0",
+    "sharedb-mongo": "1.0.0-beta.19",
+    "sharedb-redis-pubsub": "^2.0.0",
     "strong-cluster-control": "^2.2.3",
     "websocket-json-stream": "0.0.3",
     "winston": "3.2.1",
-    "ws": "5.2.2"
+    "ws": "5.2.3"
   }
 }

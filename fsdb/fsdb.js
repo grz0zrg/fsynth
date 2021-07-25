@@ -63,7 +63,7 @@ var clientVerification = function (info) {
 };
 
 const db = require('sharedb-mongo')({mongo: (callback) => {
-        mongodb.connect('mongodb://localhost:27017/fs', { useUnifiedTopology: true }, callback);
+        mongodb.connect('mongodb://localhost:27017/fs', { useNewUrlParser: true }, callback);
     }});
 
 var share = new ShareDB({ db: db, pubsub: shareDbRedisPubSub('redis://localhost:6379/0') });
