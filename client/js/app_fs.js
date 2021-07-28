@@ -214,6 +214,7 @@ var FragmentSynth = function (params) {
         }, function (i, j) {
             return _midi_data[i][j];
         }],
+        _record_mode = 0, // continuous recording by default (1 = one-shot)
         _record_type = 1, // record AUDIO output only by default
         _record_opts = {
             default: function (p, p2) {
@@ -508,6 +509,7 @@ var FragmentSynth = function (params) {
         _cm_advanced_scrollbar = false,
         _quickstart_on_startup = true,
         _compile_delay_ms = 100,
+        _record_width = _canvas_width,
         
         _clipboard,
 
@@ -732,7 +734,7 @@ var FragmentSynth = function (params) {
             _canvas.width = _canvas_width;
             _canvas.style.width = _canvas_width + 'px';
             
-            _record_canvas.width = _canvas_width;
+            _record_canvas.width = _record_width;
 
             _gl.viewport(0, 0, _canvas.width, _canvas.height);
             

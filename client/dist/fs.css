@@ -1085,12 +1085,24 @@ span.CodeMirror-selectedtext { background: none; }
     background-image: url("../data/ui-icons/play.png");
 }
 
+.fs-stop-icon {
+    background-image: url("../data/ui-icons/stop.png");
+}
+
 .fs-pause-icon {
     background-image: url("../data/ui-icons/pause.png");
 }
 
 .fs-reset-icon {
     background-image: url("../data/ui-icons/reset.png");
+}
+
+.fs-reset2-icon {
+    background-image: url("../data/ui-icons/reset2.png");
+}
+
+.fs-keys-icon {
+    background-image: url("../data/ui-icons/keys.png");
 }
 
 .fs-record-icon {

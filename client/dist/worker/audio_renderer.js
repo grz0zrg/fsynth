@@ -27,15 +27,12 @@ self.onmessage = function (m) {
         sample_rate = w.sample_rate,
         
         notes = w.data,
-        curr_notes = w.data[0],
+        curr_notes = notes[0],
         
         note,
         
         note_time = 1 / (w.options.sps ? w.options.sps : 60),
         note_time_samples = Math.round(note_time * sample_rate),
-        
-        sample_length = notes.length * note_time_samples,
-        sample_length_stereo = notes.length * note_time_samples * 2,
         
         data_l = null,
         data_r = null,
@@ -89,10 +86,11 @@ self.onmessage = function (m) {
             };
     }
     
-    data_l = new Float32Array(sample_length);
-    data_r = new Float32Array(sample_length);
+    data_l = [];
+    data_r = [];
 
-    for (sample = 0; sample < sample_length; sample += 1) {
+    var sample = 0;
+    while (1) {
         output_l = 0.0;
         output_r = 0.0;
         
@@ -106,11 +104,6 @@ self.onmessage = function (m) {
             output_r += (note.pr + note.dr * lerp_t) * s;
 
             osc.phase_index += osc.phase_step;
-/*
-            if (osc.phase_index >= sine_lookup_size) {
-                osc.phase_index -= sine_lookup_size;
-            }
-*/
         }
 
         data_l[sample] = output_l;
@@ -133,9 +126,17 @@ self.onmessage = function (m) {
 
             n += 1;
             
+            if (n === w.data.length) {
+                break;
+            }
+
             curr_notes = w.data[n];
         }
+
+        sample += 1;
     }
+
+    var sample_length = data_l.length;
     
     var ratio_l = 1.0 - max_l;
     var ratio_r = 1.0 - max_r;
@@ -160,17 +161,20 @@ self.onmessage = function (m) {
             factor += factor_step;
         }
     }
-    
+
     avg_l /= sample_length;
     avg_r /= sample_length;
+
+    var data_lb = new Float32Array(data_l);
+    var data_rb = new Float32Array(data_r);
 
     postMessage({ 
             uid: w.uid,
             length: sample_length,
-            data_l: data_l.buffer,
-            data_r: data_r.buffer,
+            data_l: data_lb,
+            data_r: data_rb,
             avg_l: avg_l,
             avg_r: avg_r,
             opts: w.options,
-        }, [data_l.buffer, data_r.buffer]);
+        }, [data_lb.buffer, data_rb.buffer]);
 };

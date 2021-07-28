@@ -485,6 +485,10 @@ var _allocateFramesData = function () {
 };
 
 var _canvasRecord = function () {
+    if (_record_position > _record_canvas.width && _record_mode === 1) {
+        return;
+    }
+
     var min_r = 255, max_r = 0, 
         min_g = 255, max_g = 0,
         min_b = 255, max_b = 0,
@@ -587,7 +591,7 @@ var _canvasRecord = function () {
         }
 */
         _record_position += 1;
-        if (_record_position > _canvas_width) {
+        if (_record_position > _record_canvas.width && _record_mode === 0) {
             _record_position = 0;
         }
     }    

@@ -21400,6 +21400,7 @@ _utter_fail_element.innerHTML = "";
         }, function (i, j) {
             return _midi_data[i][j];
         }],
+        _record_mode = 0, // continuous recording by default (1 = one-shot)
         _record_type = 1, // record AUDIO output only by default
         _record_opts = {
             default: function (p, p2) {
@@ -21694,6 +21695,7 @@ _utter_fail_element.innerHTML = "";
         _cm_advanced_scrollbar = false,
         _quickstart_on_startup = true,
         _compile_delay_ms = 100,
+        _record_width = _canvas_width,
         
         _clipboard,
 
@@ -22954,6 +22956,10 @@ var _allocateFramesData = function () {
 };
 
 var _canvasRecord = function () {
+    if (_record_position > _record_canvas.width && _record_mode === 1) {
+        return;
+    }
+
     var min_r = 255, max_r = 0, 
         min_g = 255, max_g = 0,
         min_b = 255, max_b = 0,
@@ -23056,7 +23062,7 @@ var _canvasRecord = function () {
         }
 */
         _record_position += 1;
-        if (_record_position > _canvas_width) {
+        if (_record_position > _record_canvas.width && _record_mode === 0) {
             _record_position = 0;
         }
     }    
@@ -29979,7 +29985,7 @@ var _createSynthParametersContent = function () {
             var chn_filter_type_label,
                 chn_filter_type_select,
                 chn_filter_option,
-                chn_filters_option = ["Moog-ladder LPF", "Diode-ladder LPF", "Korg 35 LPF", "18db LPF"];
+                chn_filters_option = ["Moog-ladder LPF", "Diode-ladder LPF", "Korg 35 LPF", "18db LPF", "none"];
 
             chn_filter_type_label = document.createElement("label");
             chn_filter_type_select = document.createElement("select");
@@ -31236,6 +31242,14 @@ var _showImportDialog = function (toggle_ev) {
     _updateImportWidgets();
 };
 
+var _toggleRecordMode = function (toggle_ev) {
+    if (toggle_ev.state) {
+        _record_mode = 1;
+    } else {
+        _record_mode = 0;
+    }
+};
+
 var _toggleMIDIRecord = function (toggle_ev) {
     if (toggle_ev.state) {
         _record_type = 3;
@@ -31297,6 +31311,14 @@ var _saveRecord = function () {
 };
 
 var _rewindRecording = function () {
+    _record_position = 0;
+    
+    _record_canvas_ctx.clearRect(0, 0, _record_canvas.width, _record_canvas.height);
+};
+
+var _rewindRecordingTime = function () {
+    _rewind();
+
     _record_position = 0;
     
     _record_canvas_ctx.clearRect(0, 0, _record_canvas.width, _record_canvas.height);
@@ -31445,6 +31467,7 @@ var _uiInit = function () {
         fs_settings_show_toolbar_title = localStorage.getItem('fs-show-toolbar-title'),
         fs_settings_fps = localStorage.getItem('fs-fps'),
         fs_settings_compile_delay = localStorage.getItem("fs-compile-delay"),
+        fs_settings_record_width = localStorage.getItem("fs-record-width"),
         fs_settings_note_lifetime = localStorage.getItem('fs-note-lifetime'),
         fs_settings_max_polyphony = localStorage.getItem('fs-max-polyphony'),
         fs_settings_show_globaltime = localStorage.getItem('fs-show-globaltime'),
@@ -31529,6 +31552,10 @@ var _uiInit = function () {
 
     if (fs_settings_compile_delay) {
         _compile_delay_ms = _parseInt10(fs_settings_compile_delay);
+    }
+
+    if (fs_settings_record_width) {
+        _record_width = _parseInt10(fs_settings_record_width);
     }
     
     if (fs_settings_show_globaltime !== null) {
@@ -32455,8 +32482,21 @@ var _uiInit = function () {
                 ctrl: [
                     {
                         icon: "fs-reset-icon",
+                        on_click: _rewindRecordingTime,
+                        tooltip: "Clear + rewind recording + time"
+                    },
+                    {
+                        icon: "fs-reset2-icon",
                         on_click: _rewindRecording,
-                        tooltip: "Reset recording"
+                        tooltip: "Clear + rewind recording"
+                    },
+                    {
+                        icon: "fs-stop-icon",
+                        type: "toggle",
+                        toggle_state: false,
+                        on_click: _toggleRecordMode,
+                        tooltip: "Stop at end if enabled or continuous recording when disabled",
+                        toggle_group: 3
                     }
                 ],
                 type: [
@@ -33224,6 +33264,39 @@ var _uiInit = function () {
                 _compile_delay_ms = delay;
                 
                 localStorage.setItem('fs-compile-delay', _compile_delay_ms);
+            }
+        });
+
+        WUI_RangeSlider.create("fs_settings_record_width", {
+            width: 120,
+            height: 8,
+
+            min: 1,
+            max: 32767,
+        
+            bar: false,
+
+            step: 1,
+            scroll_step: 1,
+
+            default_value: _record_width,
+            value: _record_width,
+
+            title: "Record canvas width",
+
+            title_min_width: 140,
+            value_min_width: 88,
+
+            on_change: function (record_width) {
+                if (record_width < 0) {
+                    return;
+                }
+                
+                _record_width = record_width;
+
+                _record_canvas.width = _record_width;
+                
+                localStorage.setItem('fs-record-width', _record_width);
             }
         });
 
@@ -35953,6 +36026,11 @@ var _onMIDIMessage = function (midi_message) {
     if (!midi_device.enabled) {
         return;
     }
+
+    // rewind record position on one-shot mode
+    if (_record_position > _record_canvas.width && _record_mode === 1) {
+        _record_position = 0;
+    }
     
     _mpe_instrument.processMidiMessage(midi_message.data);
 
@@ -36995,7 +37073,7 @@ var _oscInit = function () {
             _canvas.width = _canvas_width;
             _canvas.style.width = _canvas_width + 'px';
             
-            _record_canvas.width = _canvas_width;
+            _record_canvas.width = _record_width;
 
             _gl.viewport(0, 0, _canvas.width, _canvas.height);
             

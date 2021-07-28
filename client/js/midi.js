@@ -816,6 +816,11 @@ var _onMIDIMessage = function (midi_message) {
     if (!midi_device.enabled) {
         return;
     }
+
+    // rewind record position on one-shot mode
+    if (_record_position > _record_canvas.width && _record_mode === 1) {
+        _record_position = 0;
+    }
     
     _mpe_instrument.processMidiMessage(midi_message.data);
 
