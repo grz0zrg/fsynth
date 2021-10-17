@@ -2,7 +2,6 @@ const fsynthcommon = require('../common')
 const path = require('path')
 const express = require('express')
 const fastGlob = require('fast-glob')
-const bodyParser= require('body-parser')
 const multer = require('multer')
 const winston = require('winston')
 const fse = require('fs-extra')
@@ -155,8 +154,8 @@ const upload = multer({
 
 const app = express()
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }))
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }))
 app.use(cors())
  
 app.post('/upload', upload.single('file'), (req, res, next) => {
