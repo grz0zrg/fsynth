@@ -271,4 +271,4 @@ The main inspiration for all of this is [Alexander Zolotov Virtual ANS software]
 
 Heavily inspired by [Shadertoy](https://www.shadertoy.com) as well.
 
-Some ideas also come from [Sonographic sound processing](https://www.tadej-droljc.org/portfolio/sonographic-sound-processing/) and [Metasynth](http://uisoftware.com/MetaSynth/)
+Some ideas also come from [Sonographic sound processing](http://www.tadej-droljc.org/max-msp-jitter-m4l/sound-synthesis-sfx/) and [Metasynth](http://uisoftware.com/MetaSynth/)
