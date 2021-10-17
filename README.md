@@ -138,7 +138,6 @@ You can send a message to the **/clear** address to clear all OSC defined unifor
 
 Many tools are available to enhance Fragment.
 
-- A graphical launcher for Fragment and the audio server program is available [here](https://github.com/grz0zrg/fas_launcher).
 - [Independent GLSL editor which can directly connect to the sharedb server](https://github.com/grz0zrg/fsynth/tree/master/editor) 
 - [Audio server which communicate via the WebSocket API](https://github.com/grz0zrg/fas)
 - [OSC relay](https://github.com/grz0zrg/fsynth/tree/master/osc_relay)
@@ -147,6 +146,7 @@ Many tools are available to enhance Fragment.
 
 - [SuperCollider port of the additive synthesis engine (use OSC)](https://github.com/grz0zrg/fsynth/tree/master/supercollider)
 - [Additive synthesis web. sonogram player](https://github.com/grz0zrg/splayer)
+- A graphical launcher for Fragment and the audio server program is available [here](https://github.com/grz0zrg/fas_launcher). (deprecated / may not work anymore)
 
 ## Limitations
 
