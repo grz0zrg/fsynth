@@ -8,7 +8,7 @@
     "express-zip": "3.0.0",
     "fs-extra": "9.0.1",
     "fast-glob": "3.2.2",
-    "minimist": "1.2.5",
+    "minimist": "1.2.6",
     "multer": "1.4.2",
     "body-parser": "1.19.0",
     "winston": "3.2.1"
