@@ -1,0 +1,9 @@
+{
+  "name": "fs-scripts",
+  "version": "1.0.0",
+  "description": "Fragment Scripts",
+  "dependencies": {
+    "mongodb": "2.2.33"
+  }
+}
+
