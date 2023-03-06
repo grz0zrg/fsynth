@@ -4,7 +4,7 @@
   "description": "Fragment ShareDB Server",
   "dependencies": {
     "express": "4.14.0",
-    "mongodb": "3.1.13",
+    "mongodb": "3.5.8",
     "ot-text": "1.0.2",
     "sharedb": "1.2.1",
     "sharedb-logger": "0.1.4",
