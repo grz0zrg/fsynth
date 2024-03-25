@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Fragment ShareDB Server",
   "dependencies": {
-    "express": "4.14.0",
+    "express": "4.19.2",
     "mongodb": "3.5.8",
     "ot-text": "1.0.2",
     "sharedb": "1.2.1",
